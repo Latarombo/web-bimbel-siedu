@@ -1,0 +1,292 @@
+// use prisma-next
+// Siedu — Prisma Next contract (Postgres)
+// Stack: Next.js + @prisma/orm-postgres + PostgreSQL (Supabase)
+
+enum Role {
+  admin
+  guru
+  orang_tua
+  @@map("role")
+}
+
+enum Jenjang {
+  TK
+  SD
+  SMP
+  SMA
+}
+
+enum Hari {
+  Senin
+  Selasa
+  Rabu
+  Kamis
+  Jumat
+  Sabtu
+  Minggu
+}
+
+enum StatusKelas {
+  aktif
+  dibatalkan
+}
+
+enum StatusPeriode {
+  dibuka
+  ditutup
+  selesai
+}
+
+enum MetodeBayar {
+  lunas
+  dp_cicilan
+}
+
+enum StatusPendaftaran {
+  menunggu_pembayaran
+  terdaftar
+  tertunggak
+  dibatalkan_timeout
+  dibatalkan_tunggakan
+  dibatalkan_orang_tua
+  dibatalkan_pelanggaran
+  dibatalkan_kuota
+}
+
+enum TipePembayaran {
+  dp
+  cicilan
+  lunas
+}
+
+enum StatusPembayaran {
+  pending
+  berhasil
+  gagal
+}
+
+enum StatusPresensi {
+  hadir
+  izin
+  sakit
+  alpa
+}
+
+enum StatusPengajuan {
+  menunggu
+  disetujui
+  ditolak
+}
+
+enum KategoriRefund {
+  kesalahan_sistem
+  salah_nominal_transfer
+  salah_rekening
+  salah_pilih_kelas
+  lainnya
+}
+
+model User {
+  id                 Int                @id @default(autoincrement())
+  role               Role
+  name               String
+  email              String             @unique
+  alamat             String?            @map("alamat")
+  nomorTelepon       String?            @map("nomor_telepon")
+  emailVerifiedAt    TimestamptzString? @map("email_verified_at")
+  password           String
+  rememberToken      String?            @map("remember_token")
+  privasiDisetujuiAt TimestamptzString? @map("privasi_disetujui_at")
+  waliDisetujuiAt    TimestamptzString? @map("wali_disetujui_at")
+  createdAt          TimestamptzString  @default(now()) @map("created_at")
+  updatedAt          TimestamptzString  @default(now()) @map("updated_at")
+
+  anak              Anak[]               @relation("OrangTuaAnak")
+  kelasDiampu       Kelas[]              @relation("GuruKelas")
+  presensiDicatat   Presensi[]           @relation("GuruPresensi")
+  nilaiDiinput      NilaiProgres[]       @relation("GuruNilai")
+  pengajuanDiajukan PengajuanPembatalan[] @relation("PengajuPembatalan")
+  pengajuanDiproses PengajuanPembatalan[] @relation("AdminPembatalan")
+
+  @@map("users")
+}
+
+model Anak {
+  id              Int               @id @default(autoincrement())
+  orangTuaId      Int               @map("orang_tua_id")
+  nama            String
+  tanggalLahir    DateString        @map("tanggal_lahir")
+  jenjangTerakhir Jenjang?          @map("jenjang_terakhir")
+  emailNotifikasi String?           @map("email_notifikasi")
+  nomorTelepon    String?           @map("nomor_telepon")
+  createdAt       TimestamptzString @default(now()) @map("created_at")
+  updatedAt       TimestamptzString @default(now()) @map("updated_at")
+  deletedAt       TimestamptzString? @map("deleted_at")
+
+  orangTua    User          @relation("OrangTuaAnak", fields: [orangTuaId], references: [id], onDelete: Cascade)
+  pendaftaran Pendaftaran[]
+
+  @@index([orangTuaId])
+  @@map("anak")
+}
+
+model MataPelajaran {
+  id        Int               @id @default(autoincrement())
+  nama      String
+  jenjang   Jenjang
+  deskripsi String?
+  createdAt TimestamptzString @default(now()) @map("created_at")
+  updatedAt TimestamptzString @default(now()) @map("updated_at")
+
+  kelas Kelas[]
+
+  @@map("mata_pelajaran")
+}
+
+model PeriodePendaftaran {
+  id                      Int               @id @default(autoincrement())
+  nama                    String
+  tanggalMulai            DateString        @map("tanggal_mulai")
+  tanggalSelesai          DateString        @map("tanggal_selesai")
+  tanggalTutupPendaftaran DateString        @map("tanggal_tutup_pendaftaran")
+  status                  StatusPeriode     @default(dibuka)
+  createdAt               TimestamptzString @default(now()) @map("created_at")
+  updatedAt               TimestamptzString @default(now()) @map("updated_at")
+
+  kelas       Kelas[]
+  pendaftaran Pendaftaran[]
+
+  @@map("periode_pendaftaran")
+}
+
+model Kelas {
+  id              Int               @id @default(autoincrement())
+  mataPelajaranId Int               @map("mata_pelajaran_id")
+  guruId          Int               @map("guru_id")
+  periodeId       Int               @map("periode_id")
+  kuotaMaksimum   Int               @map("kuota_maksimum")
+  kuotaMinimum    Int               @map("kuota_minimum")
+  kuotaTerisi     Int               @default(0) @map("kuota_terisi")
+  hari            Hari
+  jamMulai        TimeString        @map("jam_mulai")
+  jamSelesai      TimeString        @map("jam_selesai")
+  biayaPeriode    Decimal           @map("biaya_periode")
+  biayaDp         Decimal?          @map("biaya_dp")
+  status          StatusKelas       @default(aktif)
+  createdAt       TimestamptzString @default(now()) @map("created_at")
+  updatedAt       TimestamptzString @default(now()) @map("updated_at")
+  deletedAt       TimestamptzString? @map("deleted_at")
+
+  mataPelajaran MataPelajaran      @relation(fields: [mataPelajaranId], references: [id], onDelete: Restrict)
+  guru          User               @relation("GuruKelas", fields: [guruId], references: [id], onDelete: Restrict)
+  periode       PeriodePendaftaran @relation(fields: [periodeId], references: [id], onDelete: Restrict)
+  pendaftaran   Pendaftaran[]
+
+  @@index([guruId])
+  @@index([periodeId])
+  @@index([mataPelajaranId])
+  @@map("kelas")
+}
+
+model Pendaftaran {
+  id                Int               @id @default(autoincrement())
+  anakId            Int               @map("anak_id")
+  kelasId           Int               @map("kelas_id")
+  periodeId         Int               @map("periode_id")
+  jenjangSaatDaftar Jenjang           @map("jenjang_saat_daftar")
+  metodeBayar       MetodeBayar       @map("metode_bayar")
+  status            StatusPendaftaran @default(menunggu_pembayaran)
+  diajukanPada      TimestamptzString @default(now()) @map("diajukan_pada")
+  createdAt         TimestamptzString @default(now()) @map("created_at")
+  updatedAt         TimestamptzString @default(now()) @map("updated_at")
+  deletedAt         TimestamptzString? @map("deleted_at")
+
+  anak                Anak                 @relation(fields: [anakId], references: [id], onDelete: Restrict)
+  kelas               Kelas                @relation(fields: [kelasId], references: [id], onDelete: Restrict)
+  periode             PeriodePendaftaran   @relation(fields: [periodeId], references: [id], onDelete: Restrict)
+  pembayaran          Pembayaran[]
+  presensi            Presensi[]
+  nilaiProgres        NilaiProgres[]
+  pengajuanPembatalan PengajuanPembatalan?
+
+  @@index([anakId])
+  @@index([kelasId])
+  @@index([periodeId])
+  @@map("pendaftaran")
+}
+
+model Pembayaran {
+  id               Int               @id @default(autoincrement())
+  pendaftaranId    Int               @map("pendaftaran_id")
+  tipe             TipePembayaran
+  cicilanKe        Int?              @map("cicilan_ke")
+  jumlah           Decimal           @map("jumlah")
+  jatuhTempo       DateString?       @map("jatuh_tempo")
+  dibayarPada      TimestamptzString? @map("dibayar_pada")
+  status           StatusPembayaran  @default(pending)
+  referensiGateway String?           @unique @map("referensi_gateway")
+  createdAt        TimestamptzString @default(now()) @map("created_at")
+  updatedAt        TimestamptzString @default(now()) @map("updated_at")
+
+  pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Restrict)
+
+  @@index([pendaftaranId])
+  @@map("pembayaran")
+}
+
+model Presensi {
+  id               Int               @id @default(autoincrement())
+  pendaftaranId    Int               @map("pendaftaran_id")
+  dicatatOleh      Int               @map("dicatat_oleh")
+  tanggalPertemuan DateString        @map("tanggal_pertemuan")
+  status           StatusPresensi
+  catatan          String?
+  createdAt        TimestamptzString @default(now()) @map("created_at")
+  updatedAt        TimestamptzString @default(now()) @map("updated_at")
+
+  pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
+  guru        User        @relation("GuruPresensi", fields: [dicatatOleh], references: [id], onDelete: Restrict)
+
+  @@unique([pendaftaranId, tanggalPertemuan])
+  @@index([dicatatOleh])
+  @@map("presensi")
+}
+
+model NilaiProgres {
+  id               Int               @id @default(autoincrement())
+  pendaftaranId    Int               @map("pendaftaran_id")
+  dicatatOleh      Int               @map("dicatat_oleh")
+  tanggal          DateString        @map("tanggal")
+  catatanKualitatif String?          @map("catatan_kualitatif")
+  nilaiKuantitatif Decimal?          @map("nilai_kuantitatif")
+  createdAt        TimestamptzString @default(now()) @map("created_at")
+  updatedAt        TimestamptzString @default(now()) @map("updated_at")
+
+  pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
+  guru        User        @relation("GuruNilai", fields: [dicatatOleh], references: [id], onDelete: Restrict)
+
+  @@index([pendaftaranId])
+  @@index([dicatatOleh])
+  @@map("nilai_progres")
+}
+
+model PengajuanPembatalan {
+  id            Int               @id @default(autoincrement())
+  pendaftaranId Int               @unique @map("pendaftaran_id")
+  diajukanOleh  Int               @map("diajukan_oleh")
+  alasan        String
+  kategori      KategoriRefund    @default(lainnya)
+  status        StatusPengajuan   @default(menunggu)
+  diprosesOleh  Int?              @map("diproses_oleh")
+  catatanAdmin  String?           @map("catatan_admin")
+  diprosesPada  TimestamptzString? @map("diproses_pada")
+  createdAt     TimestamptzString @default(now()) @map("created_at")
+  updatedAt     TimestamptzString @default(now()) @map("updated_at")
+
+  pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
+  pengaju     User        @relation("PengajuPembatalan", fields: [diajukanOleh], references: [id], onDelete: Restrict)
+  admin       User?       @relation("AdminPembatalan", fields: [diprosesOleh], references: [id], onDelete: SetNull)
+
+  @@index([diajukanOleh])
+  @@map("pengajuan_pembatalan")
+}
