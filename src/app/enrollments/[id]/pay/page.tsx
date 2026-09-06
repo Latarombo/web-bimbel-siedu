@@ -1,3 +1,4 @@
+import Link from "next/link";
 export default async function Page({ params }: { params: Promise<Record<string,string>> }) {
   const p = await params;
   return (
@@ -6,7 +7,7 @@ export default async function Page({ params }: { params: Promise<Record<string,s
       <p style={{color:'#666',marginTop:8}}>Route: <code>/enrollments/[id]/pay</code></p>
       <pre style={{marginTop:12,background:'#f5f5f5',padding:12}}>{JSON.stringify(p,null,2)}</pre>
       <p style={{marginTop:12}}>Placeholder — Payment Channel Selection. Desain menyusul.</p>
-      <p style={{marginTop:16}}><a href="/" style={{color:'#2563eb',textDecoration:'underline'}}>← Kembali ke /</a></p>
+      <p style={{marginTop:16}}><Link href="/" className="text-sm text-brand underline">← Kembali ke /</Link></p>
     </div>
   );
 }

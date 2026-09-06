@@ -1,0 +1,476 @@
+[
+  {
+    "id": "dropIndex.pembayaran.pembayaran_cron_tunggakan_029e89f1",
+    "label": "Drop index \"pembayaran_cron_tunggakan_029e89f1\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pembayaran_cron_tunggakan_029e89f1",
+        "table": "pembayaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pembayaran_cron_tunggakan_029e89f1\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pembayaran_cron_tunggakan_029e89f1\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop index \"pembayaran_cron_tunggakan_029e89f1\"",
+        "sql": "DROP INDEX \"public\".\"pembayaran_cron_tunggakan_029e89f1\"",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pembayaran_cron_tunggakan_029e89f1\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pembayaran_cron_tunggakan_029e89f1\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropIndex.pembayaran.pembayaran_pendaftaran_id_idx_0bda22e6",
+    "label": "Drop index \"pembayaran_pendaftaran_id_idx_0bda22e6\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pembayaran_pendaftaran_id_idx_0bda22e6",
+        "table": "pembayaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pembayaran_pendaftaran_id_idx_0bda22e6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pembayaran_pendaftaran_id_idx_0bda22e6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop index \"pembayaran_pendaftaran_id_idx_0bda22e6\"",
+        "sql": "DROP INDEX \"public\".\"pembayaran_pendaftaran_id_idx_0bda22e6\"",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pembayaran_pendaftaran_id_idx_0bda22e6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pembayaran_pendaftaran_id_idx_0bda22e6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropIndex.pendaftaran.pendaftaran_cron_timeout_1bbe8adf",
+    "label": "Drop index \"pendaftaran_cron_timeout_1bbe8adf\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pendaftaran_cron_timeout_1bbe8adf",
+        "table": "pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pendaftaran_cron_timeout_1bbe8adf\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pendaftaran_cron_timeout_1bbe8adf\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop index \"pendaftaran_cron_timeout_1bbe8adf\"",
+        "sql": "DROP INDEX \"public\".\"pendaftaran_cron_timeout_1bbe8adf\"",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pendaftaran_cron_timeout_1bbe8adf\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pendaftaran_cron_timeout_1bbe8adf\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropConstraint.pengajuan_pembatalan.pengajuan_pembatalan_pendaftaran_id_key",
+    "label": "Drop constraint \"pengajuan_pembatalan_pendaftaran_id_key\" on \"pengajuan_pembatalan\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "pengajuan_pembatalan_pendaftaran_id_key",
+        "table": "pengajuan_pembatalan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"pengajuan_pembatalan_pendaftaran_id_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pengajuan_pembatalan_pendaftaran_id_key",
+          "public",
+          "\"public\".\"pengajuan_pembatalan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop constraint \"pengajuan_pembatalan_pendaftaran_id_key\"",
+        "sql": "ALTER TABLE \"public\".\"pengajuan_pembatalan\" DROP CONSTRAINT \"pengajuan_pembatalan_pendaftaran_id_key\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"pengajuan_pembatalan_pendaftaran_id_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pengajuan_pembatalan_pendaftaran_id_key",
+          "public",
+          "\"public\".\"pengajuan_pembatalan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropIndex.users.users_email_lower_17273133",
+    "label": "Drop index \"users_email_lower_17273133\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "users_email_lower_17273133",
+        "table": "users"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"users_email_lower_17273133\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"users_email_lower_17273133\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop index \"users_email_lower_17273133\"",
+        "sql": "DROP INDEX \"public\".\"users_email_lower_17273133\"",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"users_email_lower_17273133\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"users_email_lower_17273133\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.kelas.kelas_tenor_butuh_dp_f6c5d8b3",
+    "label": "Add check constraint \"kelas_tenor_butuh_dp_f6c5d8b3\" on \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "kelas_tenor_butuh_dp_f6c5d8b3",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"kelas_tenor_butuh_dp_f6c5d8b3\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_tenor_butuh_dp_f6c5d8b3",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"kelas_tenor_butuh_dp_f6c5d8b3\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" ADD CONSTRAINT \"kelas_tenor_butuh_dp_f6c5d8b3\" CHECK ((biaya_dp IS NULL) = (tenor_maksimum IS NULL))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"kelas_tenor_butuh_dp_f6c5d8b3\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_tenor_butuh_dp_f6c5d8b3",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.anak.anak_tanggal_lahir_idx_7a61a1ac",
+    "label": "Create index \"anak_tanggal_lahir_idx_7a61a1ac\" on \"anak\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "anak_tanggal_lahir_idx_7a61a1ac",
+        "table": "anak"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"anak_tanggal_lahir_idx_7a61a1ac\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"anak_tanggal_lahir_idx_7a61a1ac\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"anak_tanggal_lahir_idx_7a61a1ac\"",
+        "sql": "CREATE INDEX \"anak_tanggal_lahir_idx_7a61a1ac\" ON \"public\".\"anak\" (\"tanggal_lahir\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"anak_tanggal_lahir_idx_7a61a1ac\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"anak_tanggal_lahir_idx_7a61a1ac\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pembayaran.pembayaran_cron_tunggakan_f89b2577",
+    "label": "Create index \"pembayaran_cron_tunggakan_f89b2577\" on \"pembayaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pembayaran_cron_tunggakan_f89b2577",
+        "table": "pembayaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pembayaran_cron_tunggakan_f89b2577\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pembayaran_cron_tunggakan_f89b2577\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pembayaran_cron_tunggakan_f89b2577\"",
+        "sql": "CREATE INDEX \"pembayaran_cron_tunggakan_f89b2577\" ON \"public\".\"pembayaran\" (\"jatuh_tempo\") WHERE ((status = 'pending'))",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pembayaran_cron_tunggakan_f89b2577\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pembayaran_cron_tunggakan_f89b2577\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pembayaran.pembayaran_dp_lunas_unik_ee66e35c",
+    "label": "Create index \"pembayaran_dp_lunas_unik_ee66e35c\" on \"pembayaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pembayaran_dp_lunas_unik_ee66e35c",
+        "table": "pembayaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pembayaran_dp_lunas_unik_ee66e35c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pembayaran_dp_lunas_unik_ee66e35c\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pembayaran_dp_lunas_unik_ee66e35c\"",
+        "sql": "CREATE UNIQUE INDEX \"pembayaran_dp_lunas_unik_ee66e35c\" ON \"public\".\"pembayaran\" (\"pendaftaran_id\") WHERE ((cicilan_ke IS NULL))",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pembayaran_dp_lunas_unik_ee66e35c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pembayaran_dp_lunas_unik_ee66e35c\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pendaftaran.pendaftaran_cron_timeout_c6400a54",
+    "label": "Create index \"pendaftaran_cron_timeout_c6400a54\" on \"pendaftaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pendaftaran_cron_timeout_c6400a54",
+        "table": "pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pendaftaran_cron_timeout_c6400a54\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pendaftaran_cron_timeout_c6400a54\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pendaftaran_cron_timeout_c6400a54\"",
+        "sql": "CREATE INDEX \"pendaftaran_cron_timeout_c6400a54\" ON \"public\".\"pendaftaran\" (\"created_at\") WHERE ((status = 'menunggu_pembayaran'))",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pendaftaran_cron_timeout_c6400a54\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pendaftaran_cron_timeout_c6400a54\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pengajuan_pembatalan.pengajuan_menunggu_unik_00d4f7ff",
+    "label": "Create index \"pengajuan_menunggu_unik_00d4f7ff\" on \"pengajuan_pembatalan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pengajuan_menunggu_unik_00d4f7ff",
+        "table": "pengajuan_pembatalan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pengajuan_menunggu_unik_00d4f7ff\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pengajuan_menunggu_unik_00d4f7ff\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pengajuan_menunggu_unik_00d4f7ff\"",
+        "sql": "CREATE UNIQUE INDEX \"pengajuan_menunggu_unik_00d4f7ff\" ON \"public\".\"pengajuan_pembatalan\" (\"pendaftaran_id\") WHERE ((status = 'menunggu'))",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pengajuan_menunggu_unik_00d4f7ff\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pengajuan_menunggu_unik_00d4f7ff\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.users.users_email_lower_f84d49fd",
+    "label": "Create index \"users_email_lower_f84d49fd\" on \"users\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "users_email_lower_f84d49fd",
+        "table": "users"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"users_email_lower_f84d49fd\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"users_email_lower_f84d49fd\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"users_email_lower_f84d49fd\"",
+        "sql": "CREATE UNIQUE INDEX \"users_email_lower_f84d49fd\" ON \"public\".\"users\" (lower(email))",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"users_email_lower_f84d49fd\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"users_email_lower_f84d49fd\""
+        ]
+      }
+    ]
+  }
+]

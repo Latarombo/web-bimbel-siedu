@@ -1,12 +1,16 @@
-export default async function Page({ params }: { params: Promise<Record<string,string>> }) {
-  const p = await params;
+import { AuthShell } from "@/components/auth-shell";
+import ResetForm from "@/components/auth/reset-form";
+
+export async function generateMetadata({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
+  return { title: `Reset Password — ${token.slice(0, 8)}…` };
+}
+
+export default async function ResetPage({ params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params;
   return (
-    <div style={{padding:24}}>
-      <h1 style={{fontSize:24,fontWeight:700}}>Reset Password</h1>
-      <p style={{color:'#666',marginTop:8}}>Route: <code>/reset-password/[token]</code></p>
-      <pre style={{marginTop:12,background:'#f5f5f5',padding:12}}>{JSON.stringify(p,null,2)}</pre>
-      <p style={{marginTop:12}}>Placeholder — Reset Password. Desain menyusul.</p>
-      <p style={{marginTop:16}}><a href="/" style={{color:'#2563eb',textDecoration:'underline'}}>← Kembali ke /</a></p>
-    </div>
+    <AuthShell title="Reset password" subtitle="Token dari email. Kalau expired (24 jam verifikasi / 1 jam reset), minta ulang.">
+      <ResetForm token={token} />
+    </AuthShell>
   );
 }

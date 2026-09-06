@@ -1,12 +1,14 @@
-export default function Page({ params }: { params?: Record<string,string> }) {
+import Link from "next/link";
+import { AuthShell } from "@/components/auth-shell";
+import LoginForm from "@/components/auth/login-form";
+
+export const metadata = { title: "Masuk" };
+
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  const { next } = await searchParams;
   return (
-    <div style={{padding:24}}>
-      <h1 style={{fontSize:24,fontWeight:700}}>Login</h1>
-      <p style={{color:'#666',marginTop:8}}>Route: <code>/login</code></p>
-      <p style={{marginTop:12}}>B1 — Auth</p>
-      {params && Object.keys(params).length > 0 ? <pre style={{marginTop:12,background:'#f5f5f5',padding:12}}>{JSON.stringify(params,null,2)}</pre> : null}
-      
-      <p style={{marginTop:16}}><a href="/" style={{color:'#2563eb',textDecoration:'underline'}}>← Kembali ke /</a></p>
-    </div>
+    <AuthShell title="Masuk ke Siedu" subtitle="Satu akun orang tua kelola banyak anak. Guru & admin login dengan akun yang dibuat admin." footer={<>Belum punya akun? <Link href="/register" className="font-semibold text-brand hover:underline">Daftar</Link></>}>
+      <LoginForm next={next} />
+    </AuthShell>
   );
 }

@@ -1,12 +1,36 @@
-export default function Page({ params }: { params?: Record<string,string> }) {
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { auth } from "@/lib/auth";
+import { Card, CardPad } from "@/components/ui/card";
+
+export const dynamic = "force-dynamic";
+
+export default async function TeacherCorrections() {
+  const session = await auth();
+  if (!session?.user) redirect("/login?next=/teacher/corrections");
+
+  // BR#18 — koreksi entri >7 hari lewat Admin. Guru cuma lihat penjelasan (data pengajuan ada di fase admin).
   return (
-    <div style={{padding:24}}>
-      <h1 style={{fontSize:24,fontWeight:700}}>Correction Requests</h1>
-      <p style={{color:'#666',marginTop:8}}>Route: <code>/teacher/corrections</code></p>
-      <p style={{marginTop:12}}>D6</p>
-      {params && Object.keys(params).length > 0 ? <pre style={{marginTop:12,background:'#f5f5f5',padding:12}}>{JSON.stringify(params,null,2)}</pre> : null}
-      
-      <p style={{marginTop:16}}><a href="/" style={{color:'#2563eb',textDecoration:'underline'}}>← Kembali ke /</a></p>
+    <div className="mx-auto max-w-3xl px-4 py-10">
+      <h1 className="text-2xl font-bold tracking-tight">Pengajuan Koreksi</h1>
+      <Card className="mt-6">
+        <CardPad>
+          <p className="text-sm text-muted">
+            Presensi dan nilai yang sudah lewat 7 hari sejak input pertama terkunci (BR#18).
+            Koreksi diajukan ke Admin: catatan siapa minta, siapa approve, kapan, alasan, dan nilai
+            sebelum dikoreksi disimpan admin.
+          </p>
+          <p className="mt-3 text-sm">
+            Alur: hubungi admin lewat kanal internal lembaga, sebutkan nama siswa, tanggal sesi,
+            dan nilai/presensi sebelum dikoreksi. Setelah admin approve, data diperbarui admin.
+          </p>
+          <p className="mt-3 text-sm">
+            <Link href="/teacher/grades" className="font-semibold text-brand underline">
+              Lihat entri yang masih bisa diedit (≤7 hari)
+            </Link>
+          </p>
+        </CardPad>
+      </Card>
     </div>
   );
 }
