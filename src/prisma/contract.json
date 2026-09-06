@@ -8,6 +8,10 @@
       "model": "Anak",
       "namespace": "public"
     },
+    "jadwal_item": {
+      "model": "JadwalItem",
+      "namespace": "public"
+    },
     "kelas": {
       "model": "Kelas",
       "namespace": "public"
@@ -216,12 +220,8 @@
                 "value": "dibatalkan_orang_tua"
               },
               {
-                "name": "dibatalkan_pelanggaran",
-                "value": "dibatalkan_pelanggaran"
-              },
-              {
-                "name": "dibatalkan_kuota",
-                "value": "dibatalkan_kuota"
+                "name": "dibatalkan_kelas",
+                "value": "dibatalkan_kelas"
               }
             ]
           },
@@ -303,13 +303,6 @@
             "fields": {
               "createdAt": {
                 "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "deletedAt": {
-                "nullable": true,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
                   "kind": "scalar"
@@ -415,9 +408,6 @@
                 "createdAt": {
                   "column": "created_at"
                 },
-                "deletedAt": {
-                  "column": "deleted_at"
-                },
                 "emailNotifikasi": {
                   "column": "email_notifikasi"
                 },
@@ -447,43 +437,8 @@
               "table": "anak"
             }
           },
-          "Kelas": {
+          "JadwalItem": {
             "fields": {
-              "biayaDp": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/numeric@1",
-                  "kind": "scalar"
-                }
-              },
-              "biayaPeriode": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/numeric@1",
-                  "kind": "scalar"
-                }
-              },
-              "createdAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "deletedAt": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "guruId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
-              },
               "hari": {
                 "nullable": false,
                 "type": {
@@ -516,6 +471,118 @@
                 "type": {
                   "codecId": "pg/time-string@1",
                   "kind": "scalar"
+                }
+              },
+              "kelasId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "kelas": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "kelasId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Kelas",
+                  "namespace": "public"
+                }
+              },
+              "presensi": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "jadwalItemId"
+                  ]
+                },
+                "to": {
+                  "model": "Presensi",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "hari": {
+                  "column": "hari"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "jamMulai": {
+                  "column": "jam_mulai"
+                },
+                "jamSelesai": {
+                  "column": "jam_selesai"
+                },
+                "kelasId": {
+                  "column": "kelas_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "jadwal_item"
+            }
+          },
+          "Kelas": {
+            "fields": {
+              "biayaDp": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "biayaPeriode": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "guruId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "jenjang": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Jenjang",
+                  "namespaceId": "public",
+                  "plane": "domain"
                 }
               },
               "kuotaMaksimum": {
@@ -566,6 +633,13 @@
                   "plane": "domain"
                 }
               },
+              "tenorMaksimum": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "updatedAt": {
                 "nullable": false,
                 "type": {
@@ -587,6 +661,21 @@
                 },
                 "to": {
                   "model": "User",
+                  "namespace": "public"
+                }
+              },
+              "jadwalItem": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "kelasId"
+                  ]
+                },
+                "to": {
+                  "model": "JadwalItem",
                   "namespace": "public"
                 }
               },
@@ -647,23 +736,14 @@
                 "createdAt": {
                   "column": "created_at"
                 },
-                "deletedAt": {
-                  "column": "deleted_at"
-                },
                 "guruId": {
                   "column": "guru_id"
-                },
-                "hari": {
-                  "column": "hari"
                 },
                 "id": {
                   "column": "id"
                 },
-                "jamMulai": {
-                  "column": "jam_mulai"
-                },
-                "jamSelesai": {
-                  "column": "jam_selesai"
+                "jenjang": {
+                  "column": "jenjang"
                 },
                 "kuotaMaksimum": {
                   "column": "kuota_maksimum"
@@ -682,6 +762,9 @@
                 },
                 "status": {
                   "column": "status"
+                },
+                "tenorMaksimum": {
+                  "column": "tenor_maksimum"
                 },
                 "updatedAt": {
                   "column": "updated_at"
@@ -712,19 +795,6 @@
                 "type": {
                   "codecId": "pg/int4@1",
                   "kind": "scalar"
-                }
-              },
-              "jenjang": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                },
-                "valueSet": {
-                  "entityKind": "enum",
-                  "entityName": "Jenjang",
-                  "namespaceId": "public",
-                  "plane": "domain"
                 }
               },
               "nama": {
@@ -769,9 +839,6 @@
                 },
                 "id": {
                   "column": "id"
-                },
-                "jenjang": {
-                  "column": "jenjang"
                 },
                 "nama": {
                   "column": "nama"
@@ -1071,20 +1138,6 @@
                   "kind": "scalar"
                 }
               },
-              "deletedAt": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "diajukanPada": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -1143,6 +1196,13 @@
                   "entityName": "StatusPendaftaran",
                   "namespaceId": "public",
                   "plane": "domain"
+                }
+              },
+              "tenorBulan": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
                 }
               },
               "updatedAt": {
@@ -1215,7 +1275,7 @@
                 }
               },
               "pengajuanPembatalan": {
-                "cardinality": "1:1",
+                "cardinality": "1:N",
                 "on": {
                   "localFields": [
                     "id"
@@ -1268,12 +1328,6 @@
                 "createdAt": {
                   "column": "created_at"
                 },
-                "deletedAt": {
-                  "column": "deleted_at"
-                },
-                "diajukanPada": {
-                  "column": "diajukan_pada"
-                },
                 "id": {
                   "column": "id"
                 },
@@ -1291,6 +1345,9 @@
                 },
                 "status": {
                   "column": "status"
+                },
+                "tenorBulan": {
+                  "column": "tenor_bulan"
                 },
                 "updatedAt": {
                   "column": "updated_at"
@@ -1637,6 +1694,13 @@
                   "kind": "scalar"
                 }
               },
+              "jadwalItemId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "pendaftaranId": {
                 "nullable": false,
                 "type": {
@@ -1688,6 +1752,21 @@
                   "namespace": "public"
                 }
               },
+              "jadwalItem": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "jadwalItemId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "JadwalItem",
+                  "namespace": "public"
+                }
+              },
               "pendaftaran": {
                 "cardinality": "N:1",
                 "on": {
@@ -1717,6 +1796,9 @@
                 },
                 "id": {
                   "column": "id"
+                },
+                "jadwalItemId": {
+                  "column": "jadwal_item_id"
                 },
                 "pendaftaranId": {
                   "column": "pendaftaran_id"
@@ -1797,13 +1879,6 @@
                 "nullable": true,
                 "type": {
                   "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "rememberToken": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -1956,9 +2031,6 @@
                 "privasiDisetujuiAt": {
                   "column": "privasi_disetujui_at"
                 },
-                "rememberToken": {
-                  "column": "remember_token"
-                },
                 "role": {
                   "column": "role"
                 },
@@ -1985,6 +2057,11 @@
             "anak": {
               "checks": [
                 {
+                  "expression": "tanggal_lahir <= CURRENT_DATE",
+                  "name": "anak_dob_not_future_661a6c61",
+                  "prefix": "anak_dob_not_future"
+                },
+                {
                   "expression": "\"jenjang_terakhir\" IN ('TK', 'SD', 'SMP', 'SMA')",
                   "name": "anak_jenjang_terakhir_check_7895310b",
                   "prefix": "anak_jenjang_terakhir_check"
@@ -1999,11 +2076,6 @@
                   },
                   "nativeType": "timestamptz",
                   "nullable": false
-                },
-                "deleted_at": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
-                  "nullable": true
                 },
                 "email_notifikasi": {
                   "codecId": "pg/text@1",
@@ -2087,6 +2159,14 @@
                   "name": "anak_orang_tua_id_idx_1bcc29b8",
                   "prefix": "anak_orang_tua_id_idx",
                   "unique": false
+                },
+                {
+                  "columns": [
+                    "tanggal_lahir"
+                  ],
+                  "name": "anak_tanggal_lahir_idx_7a61a1ac",
+                  "prefix": "anak_tanggal_lahir_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -2096,49 +2176,20 @@
               },
               "uniques": []
             },
-            "kelas": {
+            "jadwal_item": {
               "checks": [
                 {
                   "expression": "\"hari\" IN ('Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu')",
-                  "name": "kelas_hari_check_666350e4",
-                  "prefix": "kelas_hari_check"
+                  "name": "jadwal_item_hari_check_666350e4",
+                  "prefix": "jadwal_item_hari_check"
                 },
                 {
-                  "expression": "\"status\" IN ('aktif', 'dibatalkan')",
-                  "name": "kelas_status_check_744c4bc7",
-                  "prefix": "kelas_status_check"
+                  "expression": "jam_mulai < jam_selesai",
+                  "name": "jadwal_item_jam_range_20bc40a8",
+                  "prefix": "jadwal_item_jam_range"
                 }
               ],
               "columns": {
-                "biaya_dp": {
-                  "codecId": "pg/numeric@1",
-                  "nativeType": "numeric",
-                  "nullable": true
-                },
-                "biaya_periode": {
-                  "codecId": "pg/numeric@1",
-                  "nativeType": "numeric",
-                  "nullable": false
-                },
-                "created_at": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "timestamptz",
-                  "nullable": false
-                },
-                "deleted_at": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
-                  "nullable": true
-                },
-                "guru_id": {
-                  "codecId": "pg/int4@1",
-                  "nativeType": "int4",
-                  "nullable": false
-                },
                 "hari": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -2168,6 +2219,153 @@
                   "codecId": "pg/time-string@1",
                   "nativeType": "time",
                   "nullable": false
+                },
+                "kelas_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "kelas_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "jadwal_item"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "kelas"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "hari"
+                  ],
+                  "name": "jadwal_item_hari_idx_23689cb2",
+                  "prefix": "jadwal_item_hari_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "kelas_id"
+                  ],
+                  "name": "jadwal_item_kelas_id_idx_933496b6",
+                  "prefix": "jadwal_item_kelas_id_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "kelas_id",
+                    "hari",
+                    "jam_mulai",
+                    "jam_selesai"
+                  ]
+                }
+              ]
+            },
+            "kelas": {
+              "checks": [
+                {
+                  "expression": "biaya_periode > 0",
+                  "name": "kelas_biaya_pos_0b501547",
+                  "prefix": "kelas_biaya_pos"
+                },
+                {
+                  "expression": "biaya_dp IS NULL OR (biaya_dp > 0 AND biaya_dp < biaya_periode)",
+                  "name": "kelas_dp_range_66d1fb8a",
+                  "prefix": "kelas_dp_range"
+                },
+                {
+                  "expression": "\"jenjang\" IN ('TK', 'SD', 'SMP', 'SMA')",
+                  "name": "kelas_jenjang_check_2be2c303",
+                  "prefix": "kelas_jenjang_check"
+                },
+                {
+                  "expression": "kuota_minimum <= kuota_maksimum",
+                  "name": "kelas_kuota_range_84ebdb76",
+                  "prefix": "kelas_kuota_range"
+                },
+                {
+                  "expression": "kuota_terisi <= kuota_maksimum",
+                  "name": "kelas_kuota_terisi_e8fa8168",
+                  "prefix": "kelas_kuota_terisi"
+                },
+                {
+                  "expression": "\"status\" IN ('aktif', 'dibatalkan')",
+                  "name": "kelas_status_check_744c4bc7",
+                  "prefix": "kelas_status_check"
+                },
+                {
+                  "expression": "(biaya_dp IS NULL) = (tenor_maksimum IS NULL)",
+                  "name": "kelas_tenor_butuh_dp_f6c5d8b3",
+                  "prefix": "kelas_tenor_butuh_dp"
+                },
+                {
+                  "expression": "tenor_maksimum IS NULL OR tenor_maksimum >= 2",
+                  "name": "kelas_tenor_min_1d9cd717",
+                  "prefix": "kelas_tenor_min"
+                }
+              ],
+              "columns": {
+                "biaya_dp": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": true
+                },
+                "biaya_periode": {
+                  "codecId": "pg/numeric@1",
+                  "nativeType": "numeric",
+                  "nullable": false
+                },
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "guru_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "jenjang": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "Jenjang",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
                 },
                 "kuota_maksimum": {
                   "codecId": "pg/int4@1",
@@ -2212,6 +2410,11 @@
                     "namespaceId": "public",
                     "plane": "storage"
                   }
+                },
+                "tenor_maksimum": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
                 },
                 "updated_at": {
                   "codecId": "pg/timestamptz-string@1",
@@ -2287,6 +2490,14 @@
                 },
                 {
                   "columns": [
+                    "jenjang"
+                  ],
+                  "name": "kelas_jenjang_idx_e9e99a39",
+                  "prefix": "kelas_jenjang_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "mata_pelajaran_id"
                   ],
                   "name": "kelas_mata_pelajaran_id_idx_2f899638",
@@ -2300,6 +2511,15 @@
                   "name": "kelas_periode_id_idx_37f33a53",
                   "prefix": "kelas_periode_id_idx",
                   "unique": false
+                },
+                {
+                  "columns": [
+                    "periode_id",
+                    "status"
+                  ],
+                  "name": "kelas_periode_id_status_idx_0b961910",
+                  "prefix": "kelas_periode_id_status_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -2310,13 +2530,6 @@
               "uniques": []
             },
             "mata_pelajaran": {
-              "checks": [
-                {
-                  "expression": "\"jenjang\" IN ('TK', 'SD', 'SMP', 'SMA')",
-                  "name": "mata_pelajaran_jenjang_check_2be2c303",
-                  "prefix": "mata_pelajaran_jenjang_check"
-                }
-              ],
               "columns": {
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
@@ -2341,17 +2554,6 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
-                "jenjang": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": false,
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "Jenjang",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
-                },
                 "nama": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -2374,9 +2576,22 @@
                   "id"
                 ]
               },
-              "uniques": []
+              "uniques": [
+                {
+                  "columns": [
+                    "nama"
+                  ]
+                }
+              ]
             },
             "nilai_progres": {
+              "checks": [
+                {
+                  "expression": "nilai_kuantitatif IS NULL OR (nilai_kuantitatif >= 0 AND nilai_kuantitatif <= 100)",
+                  "name": "nilai_range_0_100_d87bf105",
+                  "prefix": "nilai_range_0_100"
+                }
+              ],
               "columns": {
                 "catatan_kualitatif": {
                   "codecId": "pg/text@1",
@@ -2495,6 +2710,16 @@
             "pembayaran": {
               "checks": [
                 {
+                  "expression": "cicilan_ke IS NULL OR cicilan_ke >= 1",
+                  "name": "pembayaran_cicilan_ke_pos_83bf84c6",
+                  "prefix": "pembayaran_cicilan_ke_pos"
+                },
+                {
+                  "expression": "jumlah > 0",
+                  "name": "pembayaran_jumlah_pos_21936a5f",
+                  "prefix": "pembayaran_jumlah_pos"
+                },
+                {
                   "expression": "\"status\" IN ('pending', 'berhasil', 'gagal')",
                   "name": "pembayaran_status_check_0ac11c8a",
                   "prefix": "pembayaran_status_check"
@@ -2503,6 +2728,11 @@
                   "expression": "\"tipe\" IN ('dp', 'cicilan', 'lunas')",
                   "name": "pembayaran_tipe_check_5c17d7cc",
                   "prefix": "pembayaran_tipe_check"
+                },
+                {
+                  "expression": "(tipe = 'cicilan') = (cicilan_ke IS NOT NULL)",
+                  "name": "pembayaran_tipe_cicilan_konsisten_778d0ac4",
+                  "prefix": "pembayaran_tipe_cicilan_konsisten"
                 }
               ],
               "columns": {
@@ -2612,10 +2842,29 @@
               "indexes": [
                 {
                   "columns": [
+                    "jatuh_tempo"
+                  ],
+                  "name": "pembayaran_cron_tunggakan_f89b2577",
+                  "prefix": "pembayaran_cron_tunggakan",
+                  "unique": false,
+                  "where": "(status = 'pending')"
+                },
+                {
+                  "columns": [
                     "pendaftaran_id"
                   ],
-                  "name": "pembayaran_pendaftaran_id_idx_0bda22e6",
-                  "prefix": "pembayaran_pendaftaran_id_idx",
+                  "name": "pembayaran_dp_lunas_unik_ee66e35c",
+                  "prefix": "pembayaran_dp_lunas_unik",
+                  "unique": true,
+                  "where": "(cicilan_ke IS NULL)"
+                },
+                {
+                  "columns": [
+                    "pendaftaran_id",
+                    "status"
+                  ],
+                  "name": "pembayaran_pendaftaran_id_status_idx_7652c132",
+                  "prefix": "pembayaran_pendaftaran_id_status_idx",
                   "unique": false
                 }
               ],
@@ -2628,6 +2877,12 @@
                 {
                   "columns": [
                     "referensi_gateway"
+                  ]
+                },
+                {
+                  "columns": [
+                    "pendaftaran_id",
+                    "cicilan_ke"
                   ]
                 }
               ]
@@ -2645,9 +2900,14 @@
                   "prefix": "pendaftaran_metode_bayar_check"
                 },
                 {
-                  "expression": "\"status\" IN ('menunggu_pembayaran', 'terdaftar', 'tertunggak', 'dibatalkan_timeout', 'dibatalkan_tunggakan', 'dibatalkan_orang_tua', 'dibatalkan_pelanggaran', 'dibatalkan_kuota')",
-                  "name": "pendaftaran_status_check_dc26f40c",
+                  "expression": "\"status\" IN ('menunggu_pembayaran', 'terdaftar', 'tertunggak', 'dibatalkan_timeout', 'dibatalkan_tunggakan', 'dibatalkan_orang_tua', 'dibatalkan_kelas')",
+                  "name": "pendaftaran_status_check_d52f5656",
                   "prefix": "pendaftaran_status_check"
+                },
+                {
+                  "expression": "(metode_bayar = 'dp_cicilan' AND tenor_bulan IS NOT NULL AND tenor_bulan >= 2) OR (metode_bayar = 'lunas' AND tenor_bulan IS NULL)",
+                  "name": "pendaftaran_tenor_konsisten_6ab66e2a",
+                  "prefix": "pendaftaran_tenor_konsisten"
                 }
               ],
               "columns": {
@@ -2657,20 +2917,6 @@
                   "nullable": false
                 },
                 "created_at": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "timestamptz",
-                  "nullable": false
-                },
-                "deleted_at": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
-                  "nullable": true
-                },
-                "diajukan_pada": {
                   "codecId": "pg/timestamptz-string@1",
                   "default": {
                     "expression": "now()",
@@ -2734,6 +2980,11 @@
                     "namespaceId": "public",
                     "plane": "storage"
                   }
+                },
+                "tenor_bulan": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
                 },
                 "updated_at": {
                   "codecId": "pg/timestamptz-string@1",
@@ -2801,11 +3052,31 @@
               "indexes": [
                 {
                   "columns": [
+                    "anak_id",
+                    "kelas_id",
+                    "periode_id"
+                  ],
+                  "name": "pendaftaran_aktif_unique_946279c1",
+                  "prefix": "pendaftaran_aktif_unique",
+                  "unique": true,
+                  "where": "(status NOT IN ('dibatalkan_timeout','dibatalkan_tunggakan','dibatalkan_orang_tua','dibatalkan_kelas'))"
+                },
+                {
+                  "columns": [
                     "anak_id"
                   ],
                   "name": "pendaftaran_anak_id_idx_3569f103",
                   "prefix": "pendaftaran_anak_id_idx",
                   "unique": false
+                },
+                {
+                  "columns": [
+                    "created_at"
+                  ],
+                  "name": "pendaftaran_cron_timeout_c6400a54",
+                  "prefix": "pendaftaran_cron_timeout",
+                  "unique": false,
+                  "where": "(status = 'menunggu_pembayaran')"
                 },
                 {
                   "columns": [
@@ -2989,6 +3260,15 @@
               "indexes": [
                 {
                   "columns": [
+                    "pendaftaran_id"
+                  ],
+                  "name": "pengajuan_menunggu_unik_00d4f7ff",
+                  "prefix": "pengajuan_menunggu_unik",
+                  "unique": true,
+                  "where": "(status = 'menunggu')"
+                },
+                {
+                  "columns": [
                     "diajukan_oleh"
                   ],
                   "name": "pengajuan_pembatalan_diajukan_oleh_idx_bdcdb39f",
@@ -3002,6 +3282,14 @@
                   "name": "pengajuan_pembatalan_diproses_oleh_idx_c7a6c546",
                   "prefix": "pengajuan_pembatalan_diproses_oleh_idx",
                   "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "pengajuan_pembatalan_status_idx_e98638ab",
+                  "prefix": "pengajuan_pembatalan_status_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -3009,13 +3297,7 @@
                   "id"
                 ]
               },
-              "uniques": [
-                {
-                  "columns": [
-                    "pendaftaran_id"
-                  ]
-                }
-              ]
+              "uniques": []
             },
             "periode_pendaftaran": {
               "checks": [
@@ -3023,6 +3305,16 @@
                   "expression": "\"status\" IN ('dibuka', 'ditutup', 'selesai')",
                   "name": "periode_pendaftaran_status_check_d92f18ce",
                   "prefix": "periode_pendaftaran_status_check"
+                },
+                {
+                  "expression": "tanggal_mulai < tanggal_selesai",
+                  "name": "periode_range_2aedd500",
+                  "prefix": "periode_range"
+                },
+                {
+                  "expression": "tanggal_tutup_pendaftaran <= tanggal_selesai",
+                  "name": "periode_tutup_dbl_selesai_dfb105c1",
+                  "prefix": "periode_tutup_dbl_selesai"
                 }
               ],
               "columns": {
@@ -3090,7 +3382,16 @@
                 }
               },
               "foreignKeys": [],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "periode_pendaftaran_status_idx_e98638ab",
+                  "prefix": "periode_pendaftaran_status_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -3132,6 +3433,11 @@
                     "expression": "autoincrement()",
                     "kind": "function"
                   },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "jadwal_item_id": {
+                  "codecId": "pg/int4@1",
                   "nativeType": "int4",
                   "nullable": false
                 },
@@ -3188,6 +3494,23 @@
                   "onDelete": "restrict",
                   "source": {
                     "columns": [
+                      "jadwal_item_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "presensi"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "jadwal_item"
+                  }
+                },
+                {
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
                       "dicatat_oleh"
                     ],
                     "namespaceId": "public",
@@ -3213,6 +3536,14 @@
                 },
                 {
                   "columns": [
+                    "jadwal_item_id"
+                  ],
+                  "name": "presensi_jadwal_item_id_idx_0812e48c",
+                  "prefix": "presensi_jadwal_item_id_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
                     "pendaftaran_id"
                   ],
                   "name": "presensi_pendaftaran_id_idx_0bda22e6",
@@ -3229,7 +3560,8 @@
                 {
                   "columns": [
                     "pendaftaran_id",
-                    "tanggal_pertemuan"
+                    "tanggal_pertemuan",
+                    "jadwal_item_id"
                   ]
                 }
               ]
@@ -3296,11 +3628,6 @@
                   "nativeType": "timestamptz",
                   "nullable": true
                 },
-                "remember_token": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
                 "role": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -3328,7 +3655,14 @@
                 }
               },
               "foreignKeys": [],
-              "indexes": [],
+              "indexes": [
+                {
+                  "expression": "lower(email)",
+                  "name": "users_email_lower_f84d49fd",
+                  "prefix": "users_email_lower",
+                  "unique": true
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -3414,8 +3748,7 @@
                 "dibatalkan_timeout",
                 "dibatalkan_tunggakan",
                 "dibatalkan_orang_tua",
-                "dibatalkan_pelanggaran",
-                "dibatalkan_kuota"
+                "dibatalkan_kelas"
               ]
             },
             "StatusPengajuan": {
@@ -3457,7 +3790,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "73542dcea0fa4b01ae9c5168b7209eb26c36dd2020848e4842bf5a7c1ece57a0"
+    "storageHash": "5de3f153a07d0c1e86415b33cc852f6f3f763bdd11f34fa8990c1f4ceaa15e10"
   },
   "capabilities": {
     "postgres": {

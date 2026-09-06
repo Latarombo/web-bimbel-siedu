@@ -1,12 +1,35 @@
-export default function Page({ params }: { params?: Record<string,string> }) {
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { db } from "@/prisma/db";
+import { collect } from "@/lib/collect";
+import { Card, CardPad } from "@/components/ui/card";
+import GuruProfilForm from "@/components/teacher/guru-profil-form";
+
+export const dynamic = "force-dynamic";
+
+export default async function TeacherProfile() {
+  const session = await auth();
+  if (!session?.user) redirect("/login?next=/teacher/profile");
+  const guruId = Number(session.user.id);
+
+  const [guru] = await collect(db.orm.public.User.where((u) => u.id.eq(guruId)).all());
+  if (!guru) redirect("/login");
+
   return (
-    <div style={{padding:24}}>
-      <h1 style={{fontSize:24,fontWeight:700}}>Teacher — Edit Profile</h1>
-      <p style={{color:'#666',marginTop:8}}>Route: <code>/teacher/profile</code></p>
-      <p style={{marginTop:12}}>D7</p>
-      {params && Object.keys(params).length > 0 ? <pre style={{marginTop:12,background:'#f5f5f5',padding:12}}>{JSON.stringify(params,null,2)}</pre> : null}
-      
-      <p style={{marginTop:16}}><a href="/" style={{color:'#2563eb',textDecoration:'underline'}}>← Kembali ke /</a></p>
+    <div className="mx-auto max-w-2xl px-4 py-10">
+      <h1 className="text-2xl font-bold tracking-tight">Profil Guru</h1>
+      <p className="mt-1 text-sm text-muted">{guru.email}</p>
+      <Card className="mt-6">
+        <CardPad>
+          <GuruProfilForm
+            defaults={{
+              nama: guru.name,
+              alamat: guru.alamat ?? "",
+              nomorTelepon: guru.nomorTelepon ?? "",
+            }}
+          />
+        </CardPad>
+      </Card>
     </div>
   );
 }

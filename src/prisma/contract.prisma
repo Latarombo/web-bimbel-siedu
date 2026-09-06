@@ -1,11 +1,12 @@
 // use prisma-next
 // Siedu — Prisma Next contract (Postgres)
 // Stack: Next.js + @prisma/orm-postgres + PostgreSQL (Supabase)
-
+// Revisi skema 5 Sep 2026 — BR#27-31 (lihat ATURAN_SISTEM.md Bagian 3)
 enum Role {
   admin
   guru
   orang_tua
+
   @@map("role")
 }
 
@@ -49,8 +50,7 @@ enum StatusPendaftaran {
   dibatalkan_timeout
   dibatalkan_tunggakan
   dibatalkan_orang_tua
-  dibatalkan_pelanggaran
-  dibatalkan_kuota
+  dibatalkan_kelas
 }
 
 enum TipePembayaran {
@@ -91,23 +91,23 @@ model User {
   role               Role
   name               String
   email              String             @unique
-  alamat             String?            @map("alamat")
+  alamat             String?
   nomorTelepon       String?            @map("nomor_telepon")
   emailVerifiedAt    TimestamptzString? @map("email_verified_at")
   password           String
-  rememberToken      String?            @map("remember_token")
   privasiDisetujuiAt TimestamptzString? @map("privasi_disetujui_at")
   waliDisetujuiAt    TimestamptzString? @map("wali_disetujui_at")
   createdAt          TimestamptzString  @default(now()) @map("created_at")
   updatedAt          TimestamptzString  @default(now()) @map("updated_at")
 
-  anak              Anak[]               @relation("OrangTuaAnak")
-  kelasDiampu       Kelas[]              @relation("GuruKelas")
-  presensiDicatat   Presensi[]           @relation("GuruPresensi")
-  nilaiDiinput      NilaiProgres[]       @relation("GuruNilai")
-  pengajuanDiajukan PengajuanPembatalan[] @relation("PengajuPembatalan")
-  pengajuanDiproses PengajuanPembatalan[] @relation("AdminPembatalan")
+  anak               Anak[]                @relation("OrangTuaAnak")
+  kelasDiampu        Kelas[]               @relation("GuruKelas")
+  presensiDicatat    Presensi[]            @relation("GuruPresensi")
+  nilaiDiinput       NilaiProgres[]        @relation("GuruNilai")
+  pengajuanDiajukan  PengajuanPembatalan[] @relation("PengajuPembatalan")
+  pengajuanDiproses  PengajuanPembatalan[] @relation("AdminPembatalan")
 
+  @@index(expression: "lower(email)", unique: true, name: "users_email_lower")
   @@map("users")
 }
 
@@ -121,25 +121,27 @@ model Anak {
   nomorTelepon    String?           @map("nomor_telepon")
   createdAt       TimestamptzString @default(now()) @map("created_at")
   updatedAt       TimestamptzString @default(now()) @map("updated_at")
-  deletedAt       TimestamptzString? @map("deleted_at")
 
   orangTua    User          @relation("OrangTuaAnak", fields: [orangTuaId], references: [id], onDelete: Cascade)
   pendaftaran Pendaftaran[]
 
   @@index([orangTuaId])
+  // BR#16: deteksi duplikat anak — cari by tanggal_lahir + nama dinormalisasi
+  @@index([tanggalLahir])
+  @@check(expression: "tanggal_lahir <= CURRENT_DATE", name: "anak_dob_not_future")
   @@map("anak")
 }
 
 model MataPelajaran {
   id        Int               @id @default(autoincrement())
   nama      String
-  jenjang   Jenjang
   deskripsi String?
   createdAt TimestamptzString @default(now()) @map("created_at")
   updatedAt TimestamptzString @default(now()) @map("updated_at")
 
   kelas Kelas[]
 
+  @@unique([nama])
   @@map("mata_pelajaran")
 }
 
@@ -156,6 +158,9 @@ model PeriodePendaftaran {
   kelas       Kelas[]
   pendaftaran Pendaftaran[]
 
+  @@index([status])
+  @@check(expression: "tanggal_mulai < tanggal_selesai", name: "periode_range")
+  @@check(expression: "tanggal_tutup_pendaftaran <= tanggal_selesai", name: "periode_tutup_dbl_selesai")
   @@map("periode_pendaftaran")
 }
 
@@ -164,79 +169,117 @@ model Kelas {
   mataPelajaranId Int               @map("mata_pelajaran_id")
   guruId          Int               @map("guru_id")
   periodeId       Int               @map("periode_id")
+  jenjang         Jenjang
   kuotaMaksimum   Int               @map("kuota_maksimum")
   kuotaMinimum    Int               @map("kuota_minimum")
   kuotaTerisi     Int               @default(0) @map("kuota_terisi")
-  hari            Hari
-  jamMulai        TimeString        @map("jam_mulai")
-  jamSelesai      TimeString        @map("jam_selesai")
   biayaPeriode    Decimal           @map("biaya_periode")
   biayaDp         Decimal?          @map("biaya_dp")
+  tenorMaksimum   Int?              @map("tenor_maksimum")
   status          StatusKelas       @default(aktif)
   createdAt       TimestamptzString @default(now()) @map("created_at")
   updatedAt       TimestamptzString @default(now()) @map("updated_at")
-  deletedAt       TimestamptzString? @map("deleted_at")
 
   mataPelajaran MataPelajaran      @relation(fields: [mataPelajaranId], references: [id], onDelete: Restrict)
   guru          User               @relation("GuruKelas", fields: [guruId], references: [id], onDelete: Restrict)
   periode       PeriodePendaftaran @relation(fields: [periodeId], references: [id], onDelete: Restrict)
+  jadwalItem    JadwalItem[]
   pendaftaran   Pendaftaran[]
 
   @@index([guruId])
-  @@index([periodeId])
+  @@index([periodeId, status])
   @@index([mataPelajaranId])
+  @@index([jenjang])
+  @@check(expression: "kuota_minimum <= kuota_maksimum", name: "kelas_kuota_range")
+  @@check(expression: "kuota_terisi <= kuota_maksimum", name: "kelas_kuota_terisi")
+  @@check(expression: "biaya_periode > 0", name: "kelas_biaya_pos")
+  @@check(expression: "biaya_dp IS NULL OR (biaya_dp > 0 AND biaya_dp < biaya_periode)", name: "kelas_dp_range")
+  @@check(expression: "tenor_maksimum IS NULL OR tenor_maksimum >= 2", name: "kelas_tenor_min")
+  // BR#12: tenor cuma masuk akal untuk kelas yang menawarkan DP
+  @@check(expression: "(biaya_dp IS NULL) = (tenor_maksimum IS NULL)", name: "kelas_tenor_butuh_dp")
   @@map("kelas")
 }
 
-model Pendaftaran {
-  id                Int               @id @default(autoincrement())
-  anakId            Int               @map("anak_id")
-  kelasId           Int               @map("kelas_id")
-  periodeId         Int               @map("periode_id")
-  jenjangSaatDaftar Jenjang           @map("jenjang_saat_daftar")
-  metodeBayar       MetodeBayar       @map("metode_bayar")
-  status            StatusPendaftaran @default(menunggu_pembayaran)
-  diajukanPada      TimestamptzString @default(now()) @map("diajukan_pada")
-  createdAt         TimestamptzString @default(now()) @map("created_at")
-  updatedAt         TimestamptzString @default(now()) @map("updated_at")
-  deletedAt         TimestamptzString? @map("deleted_at")
+// BR#27: jadwal 1:N — satu kelas bisa 1-3x pertemuan per minggu
+model JadwalItem {
+  id         Int      @id @default(autoincrement())
+  kelasId    Int      @map("kelas_id")
+  hari       Hari
+  jamMulai   TimeString @map("jam_mulai")
+  jamSelesai TimeString @map("jam_selesai")
 
-  anak                Anak                 @relation(fields: [anakId], references: [id], onDelete: Restrict)
-  kelas               Kelas                @relation(fields: [kelasId], references: [id], onDelete: Restrict)
-  periode             PeriodePendaftaran   @relation(fields: [periodeId], references: [id], onDelete: Restrict)
+  kelas    Kelas      @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  presensi Presensi[]
+
+  @@unique([kelasId, hari, jamMulai, jamSelesai])
+  @@index([hari])
+  @@check(expression: "jam_mulai < jam_selesai", name: "jadwal_item_jam_range")
+  @@map("jadwal_item")
+}
+
+model Pendaftaran {
+  id                Int                  @id @default(autoincrement())
+  anakId            Int                  @map("anak_id")
+  kelasId           Int                  @map("kelas_id")
+  periodeId         Int                  @map("periode_id")
+  jenjangSaatDaftar Jenjang              @map("jenjang_saat_daftar")
+  metodeBayar       MetodeBayar          @map("metode_bayar")
+  tenorBulan        Int?                 @map("tenor_bulan")
+  status            StatusPendaftaran    @default(menunggu_pembayaran)
+  createdAt         TimestamptzString    @default(now()) @map("created_at")
+  updatedAt         TimestamptzString    @default(now()) @map("updated_at")
+
+  anak                Anak                  @relation(fields: [anakId], references: [id], onDelete: Restrict)
+  kelas               Kelas                 @relation(fields: [kelasId], references: [id], onDelete: Restrict)
+  periode             PeriodePendaftaran    @relation(fields: [periodeId], references: [id], onDelete: Restrict)
   pembayaran          Pembayaran[]
   presensi            Presensi[]
   nilaiProgres        NilaiProgres[]
-  pengajuanPembatalan PengajuanPembatalan?
+  pengajuanPembatalan PengajuanPembatalan[]
 
   @@index([anakId])
   @@index([kelasId])
   @@index([periodeId])
+  // Cron BR#2: cuma baris menunggu_pembayaran yang discan tiap 5 menit
+  @@index([createdAt], where: "(status = 'menunggu_pembayaran')", name: "pendaftaran_cron_timeout")
+  // BR#29: partial unique — anak boleh daftar ulang hanya kalau pendaftaran sebelumnya dibatalkan
+  @@index([anakId, kelasId, periodeId], unique: true, where: "(status NOT IN ('dibatalkan_timeout','dibatalkan_tunggakan','dibatalkan_orang_tua','dibatalkan_kelas'))", name: "pendaftaran_aktif_unique")
+  // BR#28: dp_cicilan wajib tenor; lunas tidak pakai tenor
+  @@check(expression: "(metode_bayar = 'dp_cicilan' AND tenor_bulan IS NOT NULL AND tenor_bulan >= 2) OR (metode_bayar = 'lunas' AND tenor_bulan IS NULL)", name: "pendaftaran_tenor_konsisten")
   @@map("pendaftaran")
 }
 
 model Pembayaran {
-  id               Int               @id @default(autoincrement())
-  pendaftaranId    Int               @map("pendaftaran_id")
+  id               Int                @id @default(autoincrement())
+  pendaftaranId    Int                @map("pendaftaran_id")
   tipe             TipePembayaran
-  cicilanKe        Int?              @map("cicilan_ke")
-  jumlah           Decimal           @map("jumlah")
-  jatuhTempo       DateString?       @map("jatuh_tempo")
+  cicilanKe        Int?               @map("cicilan_ke")
+  jumlah           Decimal
+  jatuhTempo       DateString?        @map("jatuh_tempo")
   dibayarPada      TimestamptzString? @map("dibayar_pada")
-  status           StatusPembayaran  @default(pending)
-  referensiGateway String?           @unique @map("referensi_gateway")
-  createdAt        TimestamptzString @default(now()) @map("created_at")
-  updatedAt        TimestamptzString @default(now()) @map("updated_at")
+  status           StatusPembayaran   @default(pending)
+  referensiGateway String?            @unique @map("referensi_gateway")
+  createdAt        TimestamptzString  @default(now()) @map("created_at")
+  updatedAt        TimestamptzString  @default(now()) @map("updated_at")
 
   pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Restrict)
 
-  @@index([pendaftaranId])
+  @@index([pendaftaranId, status])
+  // Cron BR#7: cuma baris pending yang discan tiap 5 menit
+  @@index([jatuhTempo], where: "(status = 'pending')", name: "pembayaran_cron_tunggakan")
+  @@unique([pendaftaranId, cicilanKe])
+  // DP/lunas = cicilan_ke NULL → NULL != NULL di Postgres, guard duplikat di sini
+  @@index([pendaftaranId], unique: true, where: "(cicilan_ke IS NULL)", name: "pembayaran_dp_lunas_unik")
+  @@check(expression: "jumlah > 0", name: "pembayaran_jumlah_pos")
+  @@check(expression: "cicilan_ke IS NULL OR cicilan_ke >= 1", name: "pembayaran_cicilan_ke_pos")
+  @@check(expression: "(tipe = 'cicilan') = (cicilan_ke IS NOT NULL)", name: "pembayaran_tipe_cicilan_konsisten")
   @@map("pembayaran")
 }
 
 model Presensi {
   id               Int               @id @default(autoincrement())
   pendaftaranId    Int               @map("pendaftaran_id")
+  jadwalItemId     Int               @map("jadwal_item_id")
   dicatatOleh      Int               @map("dicatat_oleh")
   tanggalPertemuan DateString        @map("tanggal_pertemuan")
   status           StatusPresensi
@@ -245,48 +288,55 @@ model Presensi {
   updatedAt        TimestamptzString @default(now()) @map("updated_at")
 
   pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
-  guru        User        @relation("GuruPresensi", fields: [dicatatOleh], references: [id], onDelete: Restrict)
+  jadwalItem  JadwalItem @relation(fields: [jadwalItemId], references: [id], onDelete: Restrict)
+  guru        User       @relation("GuruPresensi", fields: [dicatatOleh], references: [id], onDelete: Restrict)
 
-  @@unique([pendaftaranId, tanggalPertemuan])
+  @@unique([pendaftaranId, tanggalPertemuan, jadwalItemId])
   @@index([dicatatOleh])
+  @@index([jadwalItemId])
   @@map("presensi")
 }
 
 model NilaiProgres {
-  id               Int               @id @default(autoincrement())
-  pendaftaranId    Int               @map("pendaftaran_id")
-  dicatatOleh      Int               @map("dicatat_oleh")
-  tanggal          DateString        @map("tanggal")
-  catatanKualitatif String?          @map("catatan_kualitatif")
-  nilaiKuantitatif Decimal?          @map("nilai_kuantitatif")
-  createdAt        TimestamptzString @default(now()) @map("created_at")
-  updatedAt        TimestamptzString @default(now()) @map("updated_at")
+  id                Int       @id @default(autoincrement())
+  pendaftaranId     Int       @map("pendaftaran_id")
+  dicatatOleh       Int       @map("dicatat_oleh")
+  tanggal           DateString
+  catatanKualitatif String?   @map("catatan_kualitatif")
+  nilaiKuantitatif  Decimal?  @map("nilai_kuantitatif")
+  createdAt         TimestamptzString @default(now()) @map("created_at")
+  updatedAt         TimestamptzString @default(now()) @map("updated_at")
 
   pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
-  guru        User        @relation("GuruNilai", fields: [dicatatOleh], references: [id], onDelete: Restrict)
+  guru        User       @relation("GuruNilai", fields: [dicatatOleh], references: [id], onDelete: Restrict)
 
   @@index([pendaftaranId])
   @@index([dicatatOleh])
+  @@check(expression: "nilai_kuantitatif IS NULL OR (nilai_kuantitatif >= 0 AND nilai_kuantitatif <= 100)", name: "nilai_range_0_100")
   @@map("nilai_progres")
 }
 
 model PengajuanPembatalan {
-  id            Int               @id @default(autoincrement())
-  pendaftaranId Int               @unique @map("pendaftaran_id")
-  diajukanOleh  Int               @map("diajukan_oleh")
+  id            Int                @id @default(autoincrement())
+  pendaftaranId Int                @map("pendaftaran_id")
+  diajukanOleh  Int                @map("diajukan_oleh")
   alasan        String
-  kategori      KategoriRefund    @default(lainnya)
-  status        StatusPengajuan   @default(menunggu)
-  diprosesOleh  Int?              @map("diproses_oleh")
-  catatanAdmin  String?           @map("catatan_admin")
+  kategori      KategoriRefund     @default(lainnya)
+  status        StatusPengajuan    @default(menunggu)
+  diprosesOleh  Int?               @map("diproses_oleh")
+  catatanAdmin  String?            @map("catatan_admin")
   diprosesPada  TimestamptzString? @map("diproses_pada")
-  createdAt     TimestamptzString @default(now()) @map("created_at")
-  updatedAt     TimestamptzString @default(now()) @map("updated_at")
+  createdAt     TimestamptzString  @default(now()) @map("created_at")
+  updatedAt     TimestamptzString  @default(now()) @map("updated_at")
 
   pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
-  pengaju     User        @relation("PengajuPembatalan", fields: [diajukanOleh], references: [id], onDelete: Restrict)
-  admin       User?       @relation("AdminPembatalan", fields: [diprosesOleh], references: [id], onDelete: SetNull)
+  pengaju     User       @relation("PengajuPembatalan", fields: [diajukanOleh], references: [id], onDelete: Restrict)
+  admin       User?      @relation("AdminPembatalan", fields: [diprosesOleh], references: [id], onDelete: SetNull)
 
   @@index([diajukanOleh])
+  @@index([diprosesOleh])
+  @@index([status])
+  // Satu pengajuan menunggu per pendaftaran; ditolak → boleh ajukan ulang
+  @@index([pendaftaranId], unique: true, where: "(status = 'menunggu')", name: "pengajuan_menunggu_unik")
   @@map("pengajuan_pembatalan")
 }

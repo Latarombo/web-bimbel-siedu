@@ -1,12 +1,22 @@
-export default function Page({ params }: { params?: Record<string,string> }) {
+import { Card, CardPad } from "@/components/ui/card";
+import { Section } from "@/components/ui/section";
+
+export default function PrivacyPage() {
   return (
-    <div style={{padding:24}}>
-      <h1 style={{fontSize:24,fontWeight:700}}>Privacy Policy</h1>
-      <p style={{color:'#666',marginTop:8}}>Route: <code>/privacy-policy</code></p>
-      <p style={{marginTop:12}}>Placeholder — Privacy Policy. Desain menyusul.</p>
-      {params && Object.keys(params).length > 0 ? <pre style={{marginTop:12,background:'#f5f5f5',padding:12}}>{JSON.stringify(params,null,2)}</pre> : null}
-      
-      <p style={{marginTop:16}}><a href="/" style={{color:'#2563eb',textDecoration:'underline'}}>← Kembali ke /</a></p>
-    </div>
+    <Section className="py-10">
+      <h1 className="text-2xl font-black tracking-tight">Kebijakan Privasi</h1>
+      <p className="mt-2 text-sm text-muted">Terakhir diperbarui: 5 Sep 2026 · Ringkasan ramah baca, bukan dokumen hukum final.</p>
+      <div className="mt-6 grid gap-4">
+        {[
+          ["Data yang kami kumpulkan", "Akun orang tua (email, nama, alamat, nomor telepon), profil anak (nama, tanggal lahir, jenjang, email_notifikasi opsional), pendaftaran & pembayaran. Anak tidak punya akun login terpisah."],
+          ["Consent (BR#25)", "Saat registrasi orang tua mencentang 2 consent: (a) setuju kebijakan privasi, (b) menyatakan sebagai wali sah anak. Timestamp disimpan (privasi_disetujui_at, wali_disetujui_at)."],
+          ["Penggunaan data", "Untuk pendaftaran kelas, verifikasi kuota, penagihan, presensi/nilai, dan notifikasi status. Email_notifikasi anak hanya untuk notifikasi, tidak pernah untuk autentikasi."],
+          ["Pembayaran", "Diproses via Midtrans Snap. Kanal cicilan kartu/BNPL dinonaktifkan (BR#23). Cicilan manual (BR#24). Kami tidak menyimpan data kartu."],
+          ["Retensi & hak", "Hubungi admin untuk koreksi/hapus. Anak dengan riwayat pendaftaran tidak bisa dihapus mandiri."],
+        ].map(([t, d]) => (
+          <Card key={t}><CardPad><h2 className="font-bold text-sm">{t}</h2><p className="mt-2 text-sm text-muted leading-relaxed">{d}</p></CardPad></Card>
+        ))}
+      </div>
+    </Section>
   );
 }

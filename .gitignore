@@ -42,6 +42,11 @@ next-env.d.ts
 .hermes/
 .opencode/
 .prisma/
+.claude/
+.cursor/
+.devin/
 dist/
 .agents
 .graphifyignore
+scripts/
+

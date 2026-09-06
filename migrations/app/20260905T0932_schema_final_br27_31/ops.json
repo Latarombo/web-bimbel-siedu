@@ -1,0 +1,2252 @@
+[
+  {
+    "id": "dropColumn.anak.deleted_at",
+    "label": "Drop column \"deleted_at\" from \"anak\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "deleted_at",
+        "table": "anak"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"deleted_at\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "anak",
+          "deleted_at"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"deleted_at\"",
+        "sql": "ALTER TABLE \"public\".\"anak\" DROP COLUMN \"deleted_at\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"deleted_at\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "anak",
+          "deleted_at"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.kelas.deleted_at",
+    "label": "Drop column \"deleted_at\" from \"kelas\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "deleted_at",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"deleted_at\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "deleted_at"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"deleted_at\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" DROP COLUMN \"deleted_at\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"deleted_at\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "deleted_at"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropCheckConstraint.pendaftaran.pendaftaran_status_check_dc26f40c",
+    "label": "Drop check constraint \"pendaftaran_status_check_dc26f40c\" on \"pendaftaran\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "pendaftaran_status_check_dc26f40c",
+        "table": "pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"pendaftaran_status_check_dc26f40c\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pendaftaran_status_check_dc26f40c",
+          "public",
+          "\"public\".\"pendaftaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"pendaftaran_status_check_dc26f40c\"",
+        "sql": "ALTER TABLE \"public\".\"pendaftaran\" DROP CONSTRAINT \"pendaftaran_status_check_dc26f40c\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"pendaftaran_status_check_dc26f40c\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pendaftaran_status_check_dc26f40c",
+          "public",
+          "\"public\".\"pendaftaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.pendaftaran.deleted_at",
+    "label": "Drop column \"deleted_at\" from \"pendaftaran\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "deleted_at",
+        "table": "pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"deleted_at\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendaftaran",
+          "deleted_at"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"deleted_at\"",
+        "sql": "ALTER TABLE \"public\".\"pendaftaran\" DROP COLUMN \"deleted_at\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"deleted_at\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendaftaran",
+          "deleted_at"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.pendaftaran.diajukan_pada",
+    "label": "Drop column \"diajukan_pada\" from \"pendaftaran\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "diajukan_pada",
+        "table": "pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"diajukan_pada\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendaftaran",
+          "diajukan_pada"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"diajukan_pada\"",
+        "sql": "ALTER TABLE \"public\".\"pendaftaran\" DROP COLUMN \"diajukan_pada\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"diajukan_pada\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendaftaran",
+          "diajukan_pada"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropConstraint.presensi.presensi_pendaftaran_id_tanggal_pertemuan_key",
+    "label": "Drop constraint \"presensi_pendaftaran_id_tanggal_pertemuan_key\" on \"presensi\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "presensi_pendaftaran_id_tanggal_pertemuan_key",
+        "table": "presensi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"presensi_pendaftaran_id_tanggal_pertemuan_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "presensi_pendaftaran_id_tanggal_pertemuan_key",
+          "public",
+          "\"public\".\"presensi\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop constraint \"presensi_pendaftaran_id_tanggal_pertemuan_key\"",
+        "sql": "ALTER TABLE \"public\".\"presensi\" DROP CONSTRAINT \"presensi_pendaftaran_id_tanggal_pertemuan_key\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"presensi_pendaftaran_id_tanggal_pertemuan_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "presensi_pendaftaran_id_tanggal_pertemuan_key",
+          "public",
+          "\"public\".\"presensi\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.users.remember_token",
+    "label": "Drop column \"remember_token\" from \"users\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "remember_token",
+        "table": "users"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"remember_token\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "users",
+          "remember_token"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"remember_token\"",
+        "sql": "ALTER TABLE \"public\".\"users\" DROP COLUMN \"remember_token\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"remember_token\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "users",
+          "remember_token"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.jadwal_item",
+    "label": "Create table \"jadwal_item\"",
+    "summary": "Creates table \"jadwal_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "jadwal_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"jadwal_item\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"jadwal_item\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"jadwal_item\"",
+        "sql": "CREATE TABLE \"public\".\"jadwal_item\" (\n  \"hari\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"jam_mulai\" time NOT NULL,\n  \"jam_selesai\" time NOT NULL,\n  \"kelas_id\" int4 NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"jadwal_item_hari_check_666350e4\" CHECK (\"hari\" IN ('Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu')),\n  CONSTRAINT \"jadwal_item_jam_range_20bc40a8\" CHECK (jam_mulai < jam_selesai)\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"jadwal_item\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"jadwal_item\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "backfill-jadwal-item",
+    "label": "Backfill jadwal_item from kelas.hari/jam_mulai/jam_selesai",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Copy each kelas single-slot schedule into jadwal_item",
+        "sql": "INSERT INTO public.jadwal_item (hari, jam_mulai, jam_selesai, kelas_id) SELECT k.hari, k.jam_mulai, k.jam_selesai, k.id FROM public.kelas k WHERE NOT EXISTS (SELECT 1 FROM public.jadwal_item ji WHERE ji.kelas_id = k.id)",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "column.public.kelas.tenor_maksimum",
+    "label": "Add column \"tenor_maksimum\" to \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "tenor_maksimum",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"tenor_maksimum\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "tenor_maksimum"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"tenor_maksimum\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" ADD COLUMN \"tenor_maksimum\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"tenor_maksimum\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "tenor_maksimum"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.pendaftaran.tenor_bulan",
+    "label": "Add column \"tenor_bulan\" to \"pendaftaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "tenor_bulan",
+        "table": "pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"tenor_bulan\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendaftaran",
+          "tenor_bulan"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"tenor_bulan\"",
+        "sql": "ALTER TABLE \"public\".\"pendaftaran\" ADD COLUMN \"tenor_bulan\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"tenor_bulan\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "pendaftaran",
+          "tenor_bulan"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.kelas.jenjang",
+    "label": "Add column \"jenjang\" to \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "jenjang",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"jenjang\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "jenjang"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"jenjang\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" ADD COLUMN \"jenjang\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"jenjang\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "jenjang"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "backfill-kelas-jenjang",
+    "label": "Backfill kelas.jenjang from mata_pelajaran.jenjang",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Copy jenjang from the subject each class points at",
+        "sql": "UPDATE public.kelas k SET jenjang = mp.jenjang FROM public.mata_pelajaran mp WHERE k.mata_pelajaran_id = mp.id AND k.jenjang IS NULL AND mp.jenjang IS NOT NULL",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "alterNullability.setNotNull.kelas.jenjang",
+    "label": "Set NOT NULL on \"kelas\".\"jenjang\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "jenjang",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"jenjang\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "jenjang"
+        ]
+      },
+      {
+        "description": "ensure no NULL values in \"jenjang\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"kelas\" WHERE \"jenjang\" IS NULL) AS \"result\"",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"jenjang\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" ALTER COLUMN \"jenjang\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"jenjang\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "jenjang",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropCheckConstraint.mata_pelajaran.mata_pelajaran_jenjang_check_2be2c303",
+    "label": "Drop check constraint \"mata_pelajaran_jenjang_check_2be2c303\" on \"mata_pelajaran\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "mata_pelajaran_jenjang_check_2be2c303",
+        "table": "mata_pelajaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"mata_pelajaran_jenjang_check_2be2c303\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "mata_pelajaran_jenjang_check_2be2c303",
+          "public",
+          "\"public\".\"mata_pelajaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"mata_pelajaran_jenjang_check_2be2c303\"",
+        "sql": "ALTER TABLE \"public\".\"mata_pelajaran\" DROP CONSTRAINT \"mata_pelajaran_jenjang_check_2be2c303\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"mata_pelajaran_jenjang_check_2be2c303\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "mata_pelajaran_jenjang_check_2be2c303",
+          "public",
+          "\"public\".\"mata_pelajaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.mata_pelajaran.jenjang",
+    "label": "Drop column \"jenjang\" from \"mata_pelajaran\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "jenjang",
+        "table": "mata_pelajaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"jenjang\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "mata_pelajaran",
+          "jenjang"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"jenjang\"",
+        "sql": "ALTER TABLE \"public\".\"mata_pelajaran\" DROP COLUMN \"jenjang\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"jenjang\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "mata_pelajaran",
+          "jenjang"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropCheckConstraint.kelas.kelas_hari_check_666350e4",
+    "label": "Drop check constraint \"kelas_hari_check_666350e4\" on \"kelas\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "kelas_hari_check_666350e4",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"kelas_hari_check_666350e4\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_hari_check_666350e4",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"kelas_hari_check_666350e4\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" DROP CONSTRAINT \"kelas_hari_check_666350e4\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"kelas_hari_check_666350e4\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_hari_check_666350e4",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.kelas.hari",
+    "label": "Drop column \"hari\" from \"kelas\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "hari",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"hari\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "hari"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"hari\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" DROP COLUMN \"hari\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"hari\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "hari"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.kelas.jam_mulai",
+    "label": "Drop column \"jam_mulai\" from \"kelas\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "jam_mulai",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"jam_mulai\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "jam_mulai"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"jam_mulai\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" DROP COLUMN \"jam_mulai\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"jam_mulai\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "jam_mulai"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "dropColumn.kelas.jam_selesai",
+    "label": "Drop column \"jam_selesai\" from \"kelas\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "jam_selesai",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"jam_selesai\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "jam_selesai"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop column \"jam_selesai\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" DROP COLUMN \"jam_selesai\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"jam_selesai\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "jam_selesai"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.presensi.jadwal_item_id",
+    "label": "Add column \"jadwal_item_id\" to \"presensi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "jadwal_item_id",
+        "table": "presensi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"jadwal_item_id\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "presensi",
+          "jadwal_item_id"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"jadwal_item_id\"",
+        "sql": "ALTER TABLE \"public\".\"presensi\" ADD COLUMN \"jadwal_item_id\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"jadwal_item_id\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "presensi",
+          "jadwal_item_id"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "backfill-presensi-jadwal-item",
+    "label": "Backfill presensi.jadwal_item_id from the class single slot",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Point each presensi row at its class jadwal_item (only one existed pre-migration)",
+        "sql": "UPDATE public.presensi p SET jadwal_item_id = ji.id FROM public.jadwal_item ji JOIN public.pendaftaran pd ON pd.kelas_id = ji.kelas_id WHERE pd.id = p.pendaftaran_id AND p.jadwal_item_id IS NULL",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "alterNullability.setNotNull.presensi.jadwal_item_id",
+    "label": "Set NOT NULL on \"presensi\".\"jadwal_item_id\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "jadwal_item_id",
+        "table": "presensi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"jadwal_item_id\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "presensi",
+          "jadwal_item_id"
+        ]
+      },
+      {
+        "description": "ensure no NULL values in \"jadwal_item_id\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"presensi\" WHERE \"jadwal_item_id\" IS NULL) AS \"result\"",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"jadwal_item_id\"",
+        "sql": "ALTER TABLE \"public\".\"presensi\" ALTER COLUMN \"jadwal_item_id\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"jadwal_item_id\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "presensi",
+          "jadwal_item_id",
+          "NO"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.anak.anak_dob_not_future_661a6c61",
+    "label": "Add check constraint \"anak_dob_not_future_661a6c61\" on \"anak\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "anak_dob_not_future_661a6c61",
+        "table": "anak"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"anak_dob_not_future_661a6c61\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "anak_dob_not_future_661a6c61",
+          "public",
+          "\"public\".\"anak\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"anak_dob_not_future_661a6c61\"",
+        "sql": "ALTER TABLE \"public\".\"anak\" ADD CONSTRAINT \"anak_dob_not_future_661a6c61\" CHECK (tanggal_lahir <= CURRENT_DATE)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"anak_dob_not_future_661a6c61\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "anak_dob_not_future_661a6c61",
+          "public",
+          "\"public\".\"anak\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.jadwal_item.jadwal_item_kelas_id_hari_jam_mulai_jam_selesai_key",
+    "label": "Add unique constraint on \"jadwal_item\" (kelas_id, hari, jam_mulai, jam_selesai)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "jadwal_item_kelas_id_hari_jam_mulai_jam_selesai_key",
+        "table": "jadwal_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"jadwal_item_kelas_id_hari_jam_mulai_jam_selesai_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "jadwal_item_kelas_id_hari_jam_mulai_jam_selesai_key",
+          "public",
+          "\"public\".\"jadwal_item\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"jadwal_item_kelas_id_hari_jam_mulai_jam_selesai_key\"",
+        "sql": "ALTER TABLE \"public\".\"jadwal_item\" ADD CONSTRAINT \"jadwal_item_kelas_id_hari_jam_mulai_jam_selesai_key\" UNIQUE (\"kelas_id\", \"hari\", \"jam_mulai\", \"jam_selesai\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"jadwal_item_kelas_id_hari_jam_mulai_jam_selesai_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "jadwal_item_kelas_id_hari_jam_mulai_jam_selesai_key",
+          "public",
+          "\"public\".\"jadwal_item\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.kelas.kelas_biaya_pos_0b501547",
+    "label": "Add check constraint \"kelas_biaya_pos_0b501547\" on \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "kelas_biaya_pos_0b501547",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"kelas_biaya_pos_0b501547\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_biaya_pos_0b501547",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"kelas_biaya_pos_0b501547\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" ADD CONSTRAINT \"kelas_biaya_pos_0b501547\" CHECK (biaya_periode > 0)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"kelas_biaya_pos_0b501547\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_biaya_pos_0b501547",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.kelas.kelas_dp_range_66d1fb8a",
+    "label": "Add check constraint \"kelas_dp_range_66d1fb8a\" on \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "kelas_dp_range_66d1fb8a",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"kelas_dp_range_66d1fb8a\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_dp_range_66d1fb8a",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"kelas_dp_range_66d1fb8a\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" ADD CONSTRAINT \"kelas_dp_range_66d1fb8a\" CHECK (biaya_dp IS NULL OR (biaya_dp > 0 AND biaya_dp < biaya_periode))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"kelas_dp_range_66d1fb8a\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_dp_range_66d1fb8a",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.kelas.kelas_jenjang_check_2be2c303",
+    "label": "Add check constraint \"kelas_jenjang_check_2be2c303\" on \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "kelas_jenjang_check_2be2c303",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"kelas_jenjang_check_2be2c303\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_jenjang_check_2be2c303",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"kelas_jenjang_check_2be2c303\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" ADD CONSTRAINT \"kelas_jenjang_check_2be2c303\" CHECK (\"jenjang\" IN ('TK', 'SD', 'SMP', 'SMA'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"kelas_jenjang_check_2be2c303\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_jenjang_check_2be2c303",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.kelas.kelas_kuota_range_84ebdb76",
+    "label": "Add check constraint \"kelas_kuota_range_84ebdb76\" on \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "kelas_kuota_range_84ebdb76",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"kelas_kuota_range_84ebdb76\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_kuota_range_84ebdb76",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"kelas_kuota_range_84ebdb76\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" ADD CONSTRAINT \"kelas_kuota_range_84ebdb76\" CHECK (kuota_minimum <= kuota_maksimum)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"kelas_kuota_range_84ebdb76\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_kuota_range_84ebdb76",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.kelas.kelas_kuota_terisi_e8fa8168",
+    "label": "Add check constraint \"kelas_kuota_terisi_e8fa8168\" on \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "kelas_kuota_terisi_e8fa8168",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"kelas_kuota_terisi_e8fa8168\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_kuota_terisi_e8fa8168",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"kelas_kuota_terisi_e8fa8168\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" ADD CONSTRAINT \"kelas_kuota_terisi_e8fa8168\" CHECK (kuota_terisi <= kuota_maksimum)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"kelas_kuota_terisi_e8fa8168\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_kuota_terisi_e8fa8168",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.kelas.kelas_tenor_min_1d9cd717",
+    "label": "Add check constraint \"kelas_tenor_min_1d9cd717\" on \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "kelas_tenor_min_1d9cd717",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"kelas_tenor_min_1d9cd717\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_tenor_min_1d9cd717",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"kelas_tenor_min_1d9cd717\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" ADD CONSTRAINT \"kelas_tenor_min_1d9cd717\" CHECK (tenor_maksimum IS NULL OR tenor_maksimum >= 2)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"kelas_tenor_min_1d9cd717\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "kelas_tenor_min_1d9cd717",
+          "public",
+          "\"public\".\"kelas\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.mata_pelajaran.mata_pelajaran_nama_key",
+    "label": "Add unique constraint on \"mata_pelajaran\" (nama)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "mata_pelajaran_nama_key",
+        "table": "mata_pelajaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"mata_pelajaran_nama_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "mata_pelajaran_nama_key",
+          "public",
+          "\"public\".\"mata_pelajaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"mata_pelajaran_nama_key\"",
+        "sql": "ALTER TABLE \"public\".\"mata_pelajaran\" ADD CONSTRAINT \"mata_pelajaran_nama_key\" UNIQUE (\"nama\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"mata_pelajaran_nama_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "mata_pelajaran_nama_key",
+          "public",
+          "\"public\".\"mata_pelajaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.nilai_progres.nilai_range_0_100_d87bf105",
+    "label": "Add check constraint \"nilai_range_0_100_d87bf105\" on \"nilai_progres\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "nilai_range_0_100_d87bf105",
+        "table": "nilai_progres"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"nilai_range_0_100_d87bf105\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "nilai_range_0_100_d87bf105",
+          "public",
+          "\"public\".\"nilai_progres\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"nilai_range_0_100_d87bf105\"",
+        "sql": "ALTER TABLE \"public\".\"nilai_progres\" ADD CONSTRAINT \"nilai_range_0_100_d87bf105\" CHECK (nilai_kuantitatif IS NULL OR (nilai_kuantitatif >= 0 AND nilai_kuantitatif <= 100))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"nilai_range_0_100_d87bf105\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "nilai_range_0_100_d87bf105",
+          "public",
+          "\"public\".\"nilai_progres\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.pembayaran.pembayaran_cicilan_ke_pos_83bf84c6",
+    "label": "Add check constraint \"pembayaran_cicilan_ke_pos_83bf84c6\" on \"pembayaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "pembayaran_cicilan_ke_pos_83bf84c6",
+        "table": "pembayaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"pembayaran_cicilan_ke_pos_83bf84c6\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pembayaran_cicilan_ke_pos_83bf84c6",
+          "public",
+          "\"public\".\"pembayaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"pembayaran_cicilan_ke_pos_83bf84c6\"",
+        "sql": "ALTER TABLE \"public\".\"pembayaran\" ADD CONSTRAINT \"pembayaran_cicilan_ke_pos_83bf84c6\" CHECK (cicilan_ke IS NULL OR cicilan_ke >= 1)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"pembayaran_cicilan_ke_pos_83bf84c6\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pembayaran_cicilan_ke_pos_83bf84c6",
+          "public",
+          "\"public\".\"pembayaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.pembayaran.pembayaran_jumlah_pos_21936a5f",
+    "label": "Add check constraint \"pembayaran_jumlah_pos_21936a5f\" on \"pembayaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "pembayaran_jumlah_pos_21936a5f",
+        "table": "pembayaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"pembayaran_jumlah_pos_21936a5f\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pembayaran_jumlah_pos_21936a5f",
+          "public",
+          "\"public\".\"pembayaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"pembayaran_jumlah_pos_21936a5f\"",
+        "sql": "ALTER TABLE \"public\".\"pembayaran\" ADD CONSTRAINT \"pembayaran_jumlah_pos_21936a5f\" CHECK (jumlah > 0)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"pembayaran_jumlah_pos_21936a5f\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pembayaran_jumlah_pos_21936a5f",
+          "public",
+          "\"public\".\"pembayaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.pembayaran.pembayaran_tipe_cicilan_konsisten_778d0ac4",
+    "label": "Add check constraint \"pembayaran_tipe_cicilan_konsisten_778d0ac4\" on \"pembayaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "pembayaran_tipe_cicilan_konsisten_778d0ac4",
+        "table": "pembayaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"pembayaran_tipe_cicilan_konsisten_778d0ac4\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pembayaran_tipe_cicilan_konsisten_778d0ac4",
+          "public",
+          "\"public\".\"pembayaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"pembayaran_tipe_cicilan_konsisten_778d0ac4\"",
+        "sql": "ALTER TABLE \"public\".\"pembayaran\" ADD CONSTRAINT \"pembayaran_tipe_cicilan_konsisten_778d0ac4\" CHECK ((tipe = 'cicilan') = (cicilan_ke IS NOT NULL))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"pembayaran_tipe_cicilan_konsisten_778d0ac4\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pembayaran_tipe_cicilan_konsisten_778d0ac4",
+          "public",
+          "\"public\".\"pembayaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.pembayaran.pembayaran_pendaftaran_id_cicilan_ke_key",
+    "label": "Add unique constraint on \"pembayaran\" (pendaftaran_id, cicilan_ke)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "pembayaran_pendaftaran_id_cicilan_ke_key",
+        "table": "pembayaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"pembayaran_pendaftaran_id_cicilan_ke_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pembayaran_pendaftaran_id_cicilan_ke_key",
+          "public",
+          "\"public\".\"pembayaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"pembayaran_pendaftaran_id_cicilan_ke_key\"",
+        "sql": "ALTER TABLE \"public\".\"pembayaran\" ADD CONSTRAINT \"pembayaran_pendaftaran_id_cicilan_ke_key\" UNIQUE (\"pendaftaran_id\", \"cicilan_ke\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"pembayaran_pendaftaran_id_cicilan_ke_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pembayaran_pendaftaran_id_cicilan_ke_key",
+          "public",
+          "\"public\".\"pembayaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.pendaftaran.pendaftaran_status_check_d52f5656",
+    "label": "Add check constraint \"pendaftaran_status_check_d52f5656\" on \"pendaftaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "pendaftaran_status_check_d52f5656",
+        "table": "pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"pendaftaran_status_check_d52f5656\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pendaftaran_status_check_d52f5656",
+          "public",
+          "\"public\".\"pendaftaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"pendaftaran_status_check_d52f5656\"",
+        "sql": "ALTER TABLE \"public\".\"pendaftaran\" ADD CONSTRAINT \"pendaftaran_status_check_d52f5656\" CHECK (\"status\" IN ('menunggu_pembayaran', 'terdaftar', 'tertunggak', 'dibatalkan_timeout', 'dibatalkan_tunggakan', 'dibatalkan_orang_tua', 'dibatalkan_kelas'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"pendaftaran_status_check_d52f5656\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pendaftaran_status_check_d52f5656",
+          "public",
+          "\"public\".\"pendaftaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.pendaftaran.pendaftaran_tenor_konsisten_6ab66e2a",
+    "label": "Add check constraint \"pendaftaran_tenor_konsisten_6ab66e2a\" on \"pendaftaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "pendaftaran_tenor_konsisten_6ab66e2a",
+        "table": "pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"pendaftaran_tenor_konsisten_6ab66e2a\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pendaftaran_tenor_konsisten_6ab66e2a",
+          "public",
+          "\"public\".\"pendaftaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"pendaftaran_tenor_konsisten_6ab66e2a\"",
+        "sql": "ALTER TABLE \"public\".\"pendaftaran\" ADD CONSTRAINT \"pendaftaran_tenor_konsisten_6ab66e2a\" CHECK ((metode_bayar = 'dp_cicilan' AND tenor_bulan IS NOT NULL AND tenor_bulan >= 2) OR (metode_bayar = 'lunas' AND tenor_bulan IS NULL))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"pendaftaran_tenor_konsisten_6ab66e2a\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pendaftaran_tenor_konsisten_6ab66e2a",
+          "public",
+          "\"public\".\"pendaftaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.periode_pendaftaran.periode_range_2aedd500",
+    "label": "Add check constraint \"periode_range_2aedd500\" on \"periode_pendaftaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "periode_range_2aedd500",
+        "table": "periode_pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"periode_range_2aedd500\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "periode_range_2aedd500",
+          "public",
+          "\"public\".\"periode_pendaftaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"periode_range_2aedd500\"",
+        "sql": "ALTER TABLE \"public\".\"periode_pendaftaran\" ADD CONSTRAINT \"periode_range_2aedd500\" CHECK (tanggal_mulai < tanggal_selesai)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"periode_range_2aedd500\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "periode_range_2aedd500",
+          "public",
+          "\"public\".\"periode_pendaftaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.periode_pendaftaran.periode_tutup_dbl_selesai_dfb105c1",
+    "label": "Add check constraint \"periode_tutup_dbl_selesai_dfb105c1\" on \"periode_pendaftaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "periode_tutup_dbl_selesai_dfb105c1",
+        "table": "periode_pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"periode_tutup_dbl_selesai_dfb105c1\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "periode_tutup_dbl_selesai_dfb105c1",
+          "public",
+          "\"public\".\"periode_pendaftaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"periode_tutup_dbl_selesai_dfb105c1\"",
+        "sql": "ALTER TABLE \"public\".\"periode_pendaftaran\" ADD CONSTRAINT \"periode_tutup_dbl_selesai_dfb105c1\" CHECK (tanggal_tutup_pendaftaran <= tanggal_selesai)"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"periode_tutup_dbl_selesai_dfb105c1\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "periode_tutup_dbl_selesai_dfb105c1",
+          "public",
+          "\"public\".\"periode_pendaftaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.presensi.presensi_pendaftaran_id_tanggal_pertemuan_jadwal_item_id_key",
+    "label": "Add unique constraint on \"presensi\" (pendaftaran_id, tanggal_pertemuan, jadwal_item_id)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "presensi_pendaftaran_id_tanggal_pertemuan_jadwal_item_id_key",
+        "table": "presensi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"presensi_pendaftaran_id_tanggal_pertemuan_jadwal_item_id_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "presensi_pendaftaran_id_tanggal_pertemuan_jadwal_item_id_key",
+          "public",
+          "\"public\".\"presensi\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"presensi_pendaftaran_id_tanggal_pertemuan_jadwal_item_id_key\"",
+        "sql": "ALTER TABLE \"public\".\"presensi\" ADD CONSTRAINT \"presensi_pendaftaran_id_tanggal_pertemuan_jadwal_item_id_key\" UNIQUE (\"pendaftaran_id\", \"tanggal_pertemuan\", \"jadwal_item_id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"presensi_pendaftaran_id_tanggal_pertemuan_jadwal_item_id_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "presensi_pendaftaran_id_tanggal_pertemuan_jadwal_item_id_key",
+          "public",
+          "\"public\".\"presensi\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.jadwal_item.jadwal_item_hari_idx_23689cb2",
+    "label": "Create index \"jadwal_item_hari_idx_23689cb2\" on \"jadwal_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "jadwal_item_hari_idx_23689cb2",
+        "table": "jadwal_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"jadwal_item_hari_idx_23689cb2\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"jadwal_item_hari_idx_23689cb2\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"jadwal_item_hari_idx_23689cb2\"",
+        "sql": "CREATE INDEX \"jadwal_item_hari_idx_23689cb2\" ON \"public\".\"jadwal_item\" (\"hari\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"jadwal_item_hari_idx_23689cb2\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"jadwal_item_hari_idx_23689cb2\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.jadwal_item.jadwal_item_kelas_id_idx_933496b6",
+    "label": "Create index \"jadwal_item_kelas_id_idx_933496b6\" on \"jadwal_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "jadwal_item_kelas_id_idx_933496b6",
+        "table": "jadwal_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"jadwal_item_kelas_id_idx_933496b6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"jadwal_item_kelas_id_idx_933496b6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"jadwal_item_kelas_id_idx_933496b6\"",
+        "sql": "CREATE INDEX \"jadwal_item_kelas_id_idx_933496b6\" ON \"public\".\"jadwal_item\" (\"kelas_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"jadwal_item_kelas_id_idx_933496b6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"jadwal_item_kelas_id_idx_933496b6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.kelas.kelas_jenjang_idx_e9e99a39",
+    "label": "Create index \"kelas_jenjang_idx_e9e99a39\" on \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "kelas_jenjang_idx_e9e99a39",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"kelas_jenjang_idx_e9e99a39\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"kelas_jenjang_idx_e9e99a39\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"kelas_jenjang_idx_e9e99a39\"",
+        "sql": "CREATE INDEX \"kelas_jenjang_idx_e9e99a39\" ON \"public\".\"kelas\" (\"jenjang\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"kelas_jenjang_idx_e9e99a39\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"kelas_jenjang_idx_e9e99a39\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.kelas.kelas_periode_id_status_idx_0b961910",
+    "label": "Create index \"kelas_periode_id_status_idx_0b961910\" on \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "kelas_periode_id_status_idx_0b961910",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"kelas_periode_id_status_idx_0b961910\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"kelas_periode_id_status_idx_0b961910\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"kelas_periode_id_status_idx_0b961910\"",
+        "sql": "CREATE INDEX \"kelas_periode_id_status_idx_0b961910\" ON \"public\".\"kelas\" (\"periode_id\", \"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"kelas_periode_id_status_idx_0b961910\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"kelas_periode_id_status_idx_0b961910\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pembayaran.pembayaran_cron_tunggakan_029e89f1",
+    "label": "Create index \"pembayaran_cron_tunggakan_029e89f1\" on \"pembayaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pembayaran_cron_tunggakan_029e89f1",
+        "table": "pembayaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pembayaran_cron_tunggakan_029e89f1\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pembayaran_cron_tunggakan_029e89f1\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pembayaran_cron_tunggakan_029e89f1\"",
+        "sql": "CREATE INDEX \"pembayaran_cron_tunggakan_029e89f1\" ON \"public\".\"pembayaran\" (\"status\", \"jatuh_tempo\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pembayaran_cron_tunggakan_029e89f1\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pembayaran_cron_tunggakan_029e89f1\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pembayaran.pembayaran_pendaftaran_id_status_idx_7652c132",
+    "label": "Create index \"pembayaran_pendaftaran_id_status_idx_7652c132\" on \"pembayaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pembayaran_pendaftaran_id_status_idx_7652c132",
+        "table": "pembayaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pembayaran_pendaftaran_id_status_idx_7652c132\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pembayaran_pendaftaran_id_status_idx_7652c132\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pembayaran_pendaftaran_id_status_idx_7652c132\"",
+        "sql": "CREATE INDEX \"pembayaran_pendaftaran_id_status_idx_7652c132\" ON \"public\".\"pembayaran\" (\"pendaftaran_id\", \"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pembayaran_pendaftaran_id_status_idx_7652c132\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pembayaran_pendaftaran_id_status_idx_7652c132\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pendaftaran.pendaftaran_aktif_unique_946279c1",
+    "label": "Create index \"pendaftaran_aktif_unique_946279c1\" on \"pendaftaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pendaftaran_aktif_unique_946279c1",
+        "table": "pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pendaftaran_aktif_unique_946279c1\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pendaftaran_aktif_unique_946279c1\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pendaftaran_aktif_unique_946279c1\"",
+        "sql": "CREATE UNIQUE INDEX \"pendaftaran_aktif_unique_946279c1\" ON \"public\".\"pendaftaran\" (\"anak_id\", \"kelas_id\", \"periode_id\") WHERE ((status NOT IN ('dibatalkan_timeout','dibatalkan_tunggakan','dibatalkan_orang_tua','dibatalkan_kelas')))",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pendaftaran_aktif_unique_946279c1\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pendaftaran_aktif_unique_946279c1\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pendaftaran.pendaftaran_cron_timeout_1bbe8adf",
+    "label": "Create index \"pendaftaran_cron_timeout_1bbe8adf\" on \"pendaftaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pendaftaran_cron_timeout_1bbe8adf",
+        "table": "pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pendaftaran_cron_timeout_1bbe8adf\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pendaftaran_cron_timeout_1bbe8adf\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pendaftaran_cron_timeout_1bbe8adf\"",
+        "sql": "CREATE INDEX \"pendaftaran_cron_timeout_1bbe8adf\" ON \"public\".\"pendaftaran\" (\"status\", \"created_at\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pendaftaran_cron_timeout_1bbe8adf\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pendaftaran_cron_timeout_1bbe8adf\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pengajuan_pembatalan.pengajuan_pembatalan_status_idx_e98638ab",
+    "label": "Create index \"pengajuan_pembatalan_status_idx_e98638ab\" on \"pengajuan_pembatalan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pengajuan_pembatalan_status_idx_e98638ab",
+        "table": "pengajuan_pembatalan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pengajuan_pembatalan_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pengajuan_pembatalan_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pengajuan_pembatalan_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"pengajuan_pembatalan_status_idx_e98638ab\" ON \"public\".\"pengajuan_pembatalan\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pengajuan_pembatalan_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pengajuan_pembatalan_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.periode_pendaftaran.periode_pendaftaran_status_idx_e98638ab",
+    "label": "Create index \"periode_pendaftaran_status_idx_e98638ab\" on \"periode_pendaftaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "periode_pendaftaran_status_idx_e98638ab",
+        "table": "periode_pendaftaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"periode_pendaftaran_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"periode_pendaftaran_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"periode_pendaftaran_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"periode_pendaftaran_status_idx_e98638ab\" ON \"public\".\"periode_pendaftaran\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"periode_pendaftaran_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"periode_pendaftaran_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.presensi.presensi_jadwal_item_id_idx_0812e48c",
+    "label": "Create index \"presensi_jadwal_item_id_idx_0812e48c\" on \"presensi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "presensi_jadwal_item_id_idx_0812e48c",
+        "table": "presensi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"presensi_jadwal_item_id_idx_0812e48c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"presensi_jadwal_item_id_idx_0812e48c\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"presensi_jadwal_item_id_idx_0812e48c\"",
+        "sql": "CREATE INDEX \"presensi_jadwal_item_id_idx_0812e48c\" ON \"public\".\"presensi\" (\"jadwal_item_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"presensi_jadwal_item_id_idx_0812e48c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"presensi_jadwal_item_id_idx_0812e48c\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.users.users_email_lower_17273133",
+    "label": "Create index \"users_email_lower_17273133\" on \"users\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "users_email_lower_17273133",
+        "table": "users"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"users_email_lower_17273133\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"users_email_lower_17273133\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"users_email_lower_17273133\"",
+        "sql": "CREATE INDEX \"users_email_lower_17273133\" ON \"public\".\"users\" (lower(email))",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"users_email_lower_17273133\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"users_email_lower_17273133\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.jadwal_item.jadwal_item_kelas_id_fkey",
+    "label": "Add foreign key \"jadwal_item_kelas_id_fkey\" on \"jadwal_item\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "jadwal_item_kelas_id_fkey",
+        "table": "jadwal_item"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"jadwal_item_kelas_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "jadwal_item_kelas_id_fkey",
+          "public",
+          "\"public\".\"jadwal_item\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"jadwal_item_kelas_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"jadwal_item\"\nADD CONSTRAINT \"jadwal_item_kelas_id_fkey\"\nFOREIGN KEY (\"kelas_id\")\nREFERENCES \"public\".\"kelas\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"jadwal_item_kelas_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "jadwal_item_kelas_id_fkey",
+          "public",
+          "\"public\".\"jadwal_item\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.presensi.presensi_jadwal_item_id_fkey",
+    "label": "Add foreign key \"presensi_jadwal_item_id_fkey\" on \"presensi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "presensi_jadwal_item_id_fkey",
+        "table": "presensi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"presensi_jadwal_item_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "presensi_jadwal_item_id_fkey",
+          "public",
+          "\"public\".\"presensi\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"presensi_jadwal_item_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"presensi\"\nADD CONSTRAINT \"presensi_jadwal_item_id_fkey\"\nFOREIGN KEY (\"jadwal_item_id\")\nREFERENCES \"public\".\"jadwal_item\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"presensi_jadwal_item_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "presensi_jadwal_item_id_fkey",
+          "public",
+          "\"public\".\"presensi\""
+        ]
+      }
+    ]
+  }
+]

@@ -1,12 +1,21 @@
-export default function Page({ params }: { params?: Record<string,string> }) {
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { db } from "@/prisma/db";
+import { AuthShell } from "@/components/auth-shell";
+import ChildForm from "@/components/auth/child-form";
+
+export const dynamic = "force-dynamic";
+
+export default async function NewChildPage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login?next=/children/new");
+
   return (
-    <div style={{padding:24}}>
-      <h1 style={{fontSize:24,fontWeight:700}}>Add Child</h1>
-      <p style={{color:'#666',marginTop:8}}>Route: <code>/children/new</code></p>
-      <p style={{marginTop:12}}>C9</p>
-      {params && Object.keys(params).length > 0 ? <pre style={{marginTop:12,background:'#f5f5f5',padding:12}}>{JSON.stringify(params,null,2)}</pre> : null}
-      
-      <p style={{marginTop:16}}><a href="/" style={{color:'#2563eb',textDecoration:'underline'}}>← Kembali ke /</a></p>
-    </div>
+    <AuthShell
+      title="Tambah profil anak"
+      subtitle="Bisa tambah lebih dari satu anak — satu akun untuk semua (PRD F2)."
+    >
+      <ChildForm />
+    </AuthShell>
   );
 }
