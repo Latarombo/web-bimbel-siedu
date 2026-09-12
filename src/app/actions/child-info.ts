@@ -17,7 +17,12 @@ const schema = z.object({
   nomor_telepon: z.string().trim().max(30).optional().or(z.literal("")),
 });
 
-export type ChildInfoState = { error?: string; fieldErrors?: Record<string, string> };
+export type ChildInfoState = {
+  error?: string;
+  fieldErrors?: Record<string, string>;
+  nama?: string;
+  jenjang_terakhir?: string;
+};
 
 async function guard() {
   const session = await auth();
@@ -48,10 +53,12 @@ export async function saveChildInfo(
   const ortuId = await guard();
   if (!ortuId) return { error: "Sesi berakhir. Masuk ulang." };
 
+  const namaKetik = String(formData.get("nama") ?? "");
+  const jenjangKetik = String(formData.get("jenjang_terakhir") ?? "");
   const parsed = schema.safeParse({
-    nama: formData.get("nama"),
+    nama: namaKetik,
     tanggal_lahir: formData.get("tanggal_lahir"),
-    jenjang_terakhir: formData.get("jenjang_terakhir"),
+    jenjang_terakhir: jenjangKetik,
     email_notifikasi: String(formData.get("email_notifikasi") ?? ""),
     nomor_telepon: String(formData.get("nomor_telepon") ?? ""),
   });
@@ -59,7 +66,7 @@ export async function saveChildInfo(
     const fieldErrors: Record<string, string> = {};
     for (const issue of parsed.error.issues)
       fieldErrors[String(issue.path[0])] ??= issue.message;
-    return { error: "Periksa lagi isian profil anak.", fieldErrors };
+    return { error: "Periksa lagi isian profil anak.", fieldErrors, nama: namaKetik, jenjang_terakhir: jenjangKetik };
   }
   const d = parsed.data;
 

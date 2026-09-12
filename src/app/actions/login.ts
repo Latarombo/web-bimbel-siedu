@@ -10,14 +10,16 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-export type LoginState = { error?: string };
+export type LoginState = { error?: string; email?: string };
 
 export async function login(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const parsed = loginSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
   });
-  if (!parsed.success) return { error: 'Email atau password salah.' };
+  // Email dikirim balik supaya field tetap terisi saat gagal (password tidak pernah di-echo).
+  const emailKetik = String(formData.get('email') ?? '');
+  if (!parsed.success) return { error: 'Email atau password salah.', email: emailKetik };
 
   const next = String(formData.get('next') ?? '');
   const target =
@@ -30,7 +32,7 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   } catch (e) {
     const digest = (e as { digest?: string })?.digest ?? '';
     if (digest.startsWith('NEXT_REDIRECT')) throw e;
-    return { error: 'Email atau password salah.' };
+    return { error: 'Email atau password salah.', email: emailKetik };
   }
   redirect(target);
 }

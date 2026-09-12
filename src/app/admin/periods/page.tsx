@@ -6,6 +6,7 @@ import { collect } from "@/lib/collect";
 import { Card, CardPad } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
+import { DataTable, type TableColumn, type TableRowData } from "@/components/ui/data-table";
 import PeriodeForm from "@/components/admin/periode-form";
 
 export const dynamic = "force-dynamic";
@@ -22,38 +23,44 @@ export default async function AdminPeriods({ searchParams }: { searchParams: Pro
   for (const k of kelas) nKelas.set(k.periodeId, (nKelas.get(k.periodeId) ?? 0) + 1);
   const editing = editId > 0 ? periode.find((p) => p.id === editId) : undefined;
 
-  const urut = [...periode].sort((a, b) => b.tanggalMulai.localeCompare(a.tanggalMulai));
+  const columns: TableColumn[] = [
+    { key: "nama", header: "Nama" },
+    { key: "status", header: "Status" },
+    { key: "tanggalMulai", header: "Berlangsung" },
+    { key: "nKelas", header: "Kelas", className: "text-center" },
+    { key: "aksi", header: "Aksi", className: "text-right", sortable: false },
+  ];
+
+  const rows: TableRowData[] = [...periode]
+    .sort((a, b) => b.tanggalMulai.localeCompare(a.tanggalMulai))
+    .map((p) => ({
+      id: p.id,
+      values: { nama: p.nama, status: p.status, tanggalMulai: p.tanggalMulai, nKelas: nKelas.get(p.id) ?? 0 },
+      cells: {
+        nama: <span className="font-semibold text-foreground">{p.nama}</span>,
+        status: <Badge tone={p.status === "dibuka" ? "emerald" : p.status === "ditutup" ? "amber" : "slate"}>{p.status}</Badge>,
+        tanggalMulai: (
+          <span className="tabular-nums text-muted">
+            {p.tanggalMulai} s/d {p.tanggalSelesai}
+            <span className="block text-xs">tutup daftar {p.tanggalTutupPendaftaran}</span>
+          </span>
+        ),
+        nKelas: <span className="tabular-nums">{nKelas.get(p.id) ?? 0}</span>,
+        aksi: (
+          <Link href={`/admin/periods?edit=${p.id}`} className="text-sm font-semibold text-brand hover:underline">
+            Edit
+          </Link>
+        ),
+      },
+    }));
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-10">
       <h1 className="text-2xl font-bold tracking-tight">Periode Pendaftaran</h1>
       <p className="mt-1 text-sm text-muted">E3 — buka/tutup periode pendaftaran.</p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_22rem]">
-        <ul className="grid gap-3">
-          {urut.map((p) => (
-            <li key={p.id}>
-              <Card>
-                <CardPad className="p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <p className="font-semibold">{p.nama}</p>
-                      <p className="text-sm text-muted">
-                        {p.tanggalMulai} s/d {p.tanggalSelesai} · tutup daftar {p.tanggalTutupPendaftaran}
-                      </p>
-                      <p className="mt-1 text-xs text-muted">{nKelas.get(p.id) ?? 0} kelas</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge tone={p.status === "dibuka" ? "emerald" : p.status === "ditutup" ? "amber" : "slate"}>{p.status}</Badge>
-                      <Link href={`/admin/periods?edit=${p.id}`} className="text-sm font-semibold text-brand underline">Edit</Link>
-                    </div>
-                  </div>
-                </CardPad>
-              </Card>
-            </li>
-          ))}
-          {periode.length === 0 ? <p className="text-sm text-muted">Belum ada periode.</p> : null}
-        </ul>
+        <DataTable columns={columns} rows={rows} empty="Belum ada periode." initialSort={{ key: "tanggalMulai", dir: "desc" }} />
 
         <Card className="self-start">
           <CardPad>

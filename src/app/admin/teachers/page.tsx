@@ -5,6 +5,7 @@ import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { Card, CardPad } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
+import { DataTable, type TableColumn, type TableRowData } from "@/components/ui/data-table";
 import GuruForm from "@/components/admin/guru-form";
 
 export const dynamic = "force-dynamic";
@@ -22,33 +23,53 @@ export default async function AdminTeachers({ searchParams }: { searchParams: Pr
   const nKelas = new Map<number, number>();
   for (const k of kelas) nKelas.set(k.guruId, (nKelas.get(k.guruId) ?? 0) + 1);
   const editing = editId > 0 ? guru.find((g) => g.id === editId) : undefined;
-  const urut = [...guru].sort((a, b) => a.name.localeCompare(b.name));
+
+  const columns: TableColumn[] = [
+    { key: "nama", header: "Nama" },
+    { key: "email", header: "Email" },
+    { key: "telepon", header: "Telepon" },
+    { key: "nKelas", header: "Kelas diampu", className: "text-center" },
+    { key: "aksi", header: "Aksi", className: "text-right", sortable: false },
+  ];
+
+  const rows: TableRowData[] = guru.map((g) => ({
+    id: g.id,
+    values: { nama: g.name, email: g.email, telepon: g.nomorTelepon ?? "", nKelas: nKelas.get(g.id) ?? 0 },
+    cells: {
+      nama: (
+        <div className="flex items-center gap-3">
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand">
+            {g.name.trim().charAt(0).toUpperCase()}
+          </span>
+          <span className="font-semibold text-foreground">{g.name}</span>
+        </div>
+      ),
+      email: <span className="text-muted">{g.email}</span>,
+      telepon: <span className="text-muted tabular-nums">{g.nomorTelepon || "—"}</span>,
+      nKelas: (
+        <span
+          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums ${
+            (nKelas.get(g.id) ?? 0) > 0 ? "bg-brand-soft text-brand" : "bg-slate-100 text-slate-500"
+          }`}
+        >
+          {nKelas.get(g.id) ?? 0}
+        </span>
+      ),
+      aksi: (
+        <Link href={`/admin/teachers?edit=${g.id}`} className="text-sm font-semibold text-brand hover:underline">
+          Edit
+        </Link>
+      ),
+    },
+  }));
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-10">
       <h1 className="text-2xl font-bold tracking-tight">Guru</h1>
       <p className="mt-1 text-sm text-muted">E4 — kelola akun guru.</p>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_22rem]">
-        <ul className="grid gap-3">
-          {urut.map((g) => (
-            <li key={g.id}>
-              <Card>
-                <CardPad className="p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <p className="font-semibold">{g.name}</p>
-                      <p className="text-sm text-muted">{g.email}</p>
-                      <p className="mt-1 text-xs text-muted">{nKelas.get(g.id) ?? 0} kelas diampu</p>
-                    </div>
-                    <Link href={`/admin/teachers?edit=${g.id}`} className="text-sm font-semibold text-brand underline">Edit</Link>
-                  </div>
-                </CardPad>
-              </Card>
-            </li>
-          ))}
-          {guru.length === 0 ? <p className="text-sm text-muted">Belum ada guru.</p> : null}
-        </ul>
+        <DataTable columns={columns} rows={rows} empty="Belum ada guru." initialSort={{ key: "nama", dir: "asc" }} />
 
         <Card className="self-start">
           <CardPad>
