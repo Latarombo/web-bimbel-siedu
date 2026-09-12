@@ -35,17 +35,21 @@ export default async function EnrollmentDetailPage({
   );
   if (!p) notFound();
 
-  const [anak, kelas, tagihan] = await Promise.all([
-    COLLECT(db.orm.public.Anak.where((a) => a.id.eq(p.anakId)).all()),
-    COLLECT(db.orm.public.Kelas.where((k) => k.id.eq(p.kelasId)).all()),
-    COLLECT(
-      db.orm.public.Pembayaran.where((b) => b.pendaftaranId.eq(pid))
-        .orderBy((b) => b.cicilanKe.asc())
-        .all(),
-    ),
+  const [anak, kelas, tagihan, pengajuan] = await Promise.all([
+  COLLECT(db.orm.public.Anak.where((a) => a.id.eq(p.anakId)).all()),
+  COLLECT(db.orm.public.Kelas.where((k) => k.id.eq(p.kelasId)).all()),
+  COLLECT(
+  db.orm.public.Pembayaran.where((b) => b.pendaftaranId.eq(pid))
+  .orderBy((b) => b.cicilanKe.asc())
+  .all(),
+  ),
+  COLLECT(
+  db.orm.public.PengajuanPembatalan.where((q) => q.pendaftaranId.eq(pid)).all(),
+  ),
   ]);
   const a = anak[0];
   const k = kelas[0];
+  const pengajuanMenunggu = pengajuan.find((q) => q.status === "menunggu");
 
   // Pastikan pendaftaran benar milik orang tua yang login.
   if (!a || a.orangTuaId !== ortuId) notFound();
@@ -152,13 +156,24 @@ export default async function EnrollmentDetailPage({
         </section>
       ) : null}
 
-      {aktif && status === "terdaftar" ? (
-        <p className="mt-8 text-sm">
-          <Link href={`/enrollments/${p.id}/cancel`} className="underline">
-            Ajukan pembatalan
-          </Link>{" "}
-          — DP hangus untuk pembatalan atas permintaan sendiri.
-        </p>
+      {aktif && status === "terdaftar" && !pengajuanMenunggu ? (
+      <p className="mt-8 text-sm">
+      <Link href={`/enrollments/${p.id}/cancel`} className="underline">
+      Ajukan pembatalan
+      </Link>{" "}
+      — DP hangus untuk pembatalan atas permintaan sendiri.
+      </p>
+      ) : null}
+      {pengajuanMenunggu ? (
+      <Card className="mt-8 border-amber-200 bg-amber-50">
+      <CardPad className="py-3">
+      <p className="text-sm text-amber-800">
+      Pengajuan pembatalan kamu ({pengajuanMenunggu.kategori.replaceAll("_", " ")})
+      masih menunggu keputusan admin. Diajukan{" "}
+      {new Date(pengajuanMenunggu.createdAt).toLocaleDateString("id-ID")}.
+      </p>
+      </CardPad>
+      </Card>
       ) : null}
     </div>
   );
