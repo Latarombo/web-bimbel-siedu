@@ -6,52 +6,56 @@ import { z } from 'zod';
 import { db } from '@/prisma/db';
 import { signIn } from '@/lib/auth';
 
+// Consent (privasi + wali, PRD F1/BR#25) TIDAK ditagih di sini — dipindah
+// seluruhnya ke step 2 (AccountInfoForm) yang menagih berdasar cap DB.
 const registerSchema = z.object({
-  name: z.string().trim().min(2, 'Nama minimal 2 karakter'),
   email: z.string().trim().toLowerCase().email('Email tidak valid'),
   password: z
     .string()
-    .min(8, 'Password minimal 8 karakter')
-    .regex(/[A-Z]/, 'Password harus punya 1 huruf besar')
-    .regex(/[0-9]/, 'Password harus punya 1 angka'),
-  privasi: z.literal(true, { error: 'Setujui Kebijakan Privasi' }),
-  wali: z.literal(true, { error: 'Konfirmasi wali sah wajib dicentang' }),
+    .min(8, 'Password minimal 8 karakter'),
 });
 
-export type RegisterState = { error?: string; fieldErrors?: Record<string, string> };
+export type RegisterState = {
+  error?: string;
+  fieldErrors?: Record<string, string>;
+  email?: string;
+};
 
 // PRD F1 + BR#25. Verifikasi email DITUNDA (belum ada SMTP) — akun langsung aktif,
 // email_verified_at tetap null sampai fitur email masuk.
+//
+// Nama Lengkap juga pindah ke step 2 (AccountInfoForm). Kolom users.name NOT NULL
+// dan dipakai session/navbar sejak akun dibuat → step 1 mengisi nama sementara
+// dari prefix email (mis. budi@email.com → "budi"); step 2 menimpanya dengan nama
+// asli sekaligus mencatat cap consent.
 export async function registerParent(
   _prev: RegisterState,
   formData: FormData,
 ): Promise<RegisterState> {
+  const emailKetik = String(formData.get('email') ?? '');
   const parsed = registerSchema.safeParse({
-    name: formData.get('name'),
     email: formData.get('email'),
     password: formData.get('password'),
-    privasi: formData.get('privasi') === 'on',
-    wali: formData.get('wali') === 'on',
   });
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
     for (const issue of parsed.error.issues)
       fieldErrors[String(issue.path[0])] ??= issue.message;
-    return { error: 'Periksa lagi isian formulir.', fieldErrors };
+    return { error: 'Periksa lagi isian formulir.', fieldErrors, email: emailKetik };
   }
-  const { name, email, password } = parsed.data;
+  const { email, password } = parsed.data;
 
   const existing = await db.orm.public.User.where((u) => u.email.eq(email)).first();
-  if (existing) return { error: 'Email sudah terdaftar.', fieldErrors: { email: 'Sudah dipakai' } };
+  if (existing)
+    return { error: 'Email sudah terdaftar.', fieldErrors: { email: 'Sudah dipakai' }, email };
 
-  const now = new Date().toISOString();
   await db.orm.public.User.create({
     role: 'orang_tua',
-    name,
+    name: email.split('@')[0],
     email,
     password: await bcrypt.hash(password, 10),
-    privasiDisetujuiAt: now,
-    waliDisetujuiAt: now,
+    // privasiDisetujuiAt / waliDisetujuiAt sengaja TIDAK diisi di sini —
+    // consent dicatat saat step 2 (saveAccountInfo) setelah diceklis user.
   });
 
   try {

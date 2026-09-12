@@ -4,7 +4,7 @@ import { Card, CardPad } from "@/components/ui/card";
 export function AuthShell({ title, subtitle, children, footer }: { title: string; subtitle?: string; children: React.ReactNode; footer?: React.ReactNode }) {
   return (
     <div className="min-h-[70vh] grid place-items-center px-4 py-10">
-      <div className="w-full max-w-[440px]">
+      <div className="w-full max-w-110">
         <div className="text-center mb-6">
           <Link href="/" className="inline-flex items-center gap-2">
             <span className="w-8 h-8 rounded-lg bg-brand grid place-items-center text-white font-black text-sm">S</span>

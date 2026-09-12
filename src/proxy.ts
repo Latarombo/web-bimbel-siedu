@@ -6,6 +6,14 @@ import { authConfig } from '@/lib/auth.config';
 // Auth.js di sini hanya decode JWT (tanpa db/bcrypt — itu di auth.ts).
 const { auth } = NextAuth(authConfig);
 
+// Prefix halaman area Orang Tua (harus role orang_tua).
+const PARENT_PREFIXES = ['/home', '/children', '/enrollments', '/payments', '/profile', '/schedule-attendance'];
+
+// Dashboard sesuai role — dipakai buat menendang user yang masuk area bukan miliknya.
+function homeFor(role: string): string {
+  return role === 'admin' ? '/admin/dashboard' : role === 'guru' ? '/teacher/dashboard' : '/home';
+}
+
 export default auth((req) => {
   const { nextUrl } = req;
   const path = nextUrl.pathname;
@@ -17,11 +25,15 @@ export default auth((req) => {
     return NextResponse.redirect(url);
   }
   const role = session.user.role;
+  const home = homeFor(role);
   if (path.startsWith('/admin') && role !== 'admin') {
-    return NextResponse.redirect(new URL('/home', nextUrl));
+    return NextResponse.redirect(new URL(home, nextUrl));
   }
   if (path.startsWith('/teacher') && role !== 'guru') {
-    return NextResponse.redirect(new URL('/home', nextUrl));
+    return NextResponse.redirect(new URL(home, nextUrl));
+  }
+  if (PARENT_PREFIXES.some((p) => path.startsWith(p)) && role !== 'orang_tua') {
+    return NextResponse.redirect(new URL(home, nextUrl));
   }
   return NextResponse.next();
 });

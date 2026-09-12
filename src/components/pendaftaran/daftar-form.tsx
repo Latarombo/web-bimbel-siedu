@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { Field, Select } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { daftarKelas, type DaftarState } from "@/app/actions/pendaftaran";
-import { rupiah } from "@/lib/placeholder";
+import { rupiah } from "@/lib/format";
 
 const initial: DaftarState = {};
 

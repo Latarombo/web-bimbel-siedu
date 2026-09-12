@@ -41,10 +41,16 @@ export default async function AdminFlagged({ searchParams }: { searchParams: Pro
         E6 — tunggakan & pembatalan otomatis. Wireframe kasar; format final menunggu rumusan BR.
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-2 text-sm">
+      {/* Filter tabs — pola pill yang sama dengan halaman parent */}
+      <nav aria-label="Filter status pendaftaran" className="mt-4 flex flex-wrap gap-2 text-sm">
         <Link
           href="/admin/enrollments/flagged"
-          className={`rounded-full border px-3 py-1 ${filter === "semua" ? "border-brand bg-blue-50 font-semibold text-brand" : "border-border text-muted"}`}
+          aria-current={filter === "semua" ? "page" : undefined}
+          className={`rounded-full px-4 py-1.5 transition-colors ${
+            filter === "semua"
+              ? "bg-brand font-semibold text-white"
+              : "border border-border text-muted hover:border-slate-300"
+          }`}
         >
           semua ({masalah.length})
         </Link>
@@ -54,13 +60,18 @@ export default async function AdminFlagged({ searchParams }: { searchParams: Pro
             <Link
               key={s}
               href={`/admin/enrollments/flagged?status=${s}`}
-              className={`rounded-full border px-3 py-1 ${filter === s ? "border-brand bg-blue-50 font-semibold text-brand" : "border-border text-muted"}`}
+              aria-current={filter === s ? "page" : undefined}
+              className={`rounded-full px-4 py-1.5 transition-colors ${
+                filter === s
+                  ? "bg-brand font-semibold text-white"
+                  : "border border-border text-muted hover:border-slate-300"
+              }`}
             >
               {s.replaceAll("_", " ")} ({n})
             </Link>
           );
         })}
-      </div>
+      </nav>
 
       <ul className="mt-6 grid gap-3">
         {urut.map((p) => {

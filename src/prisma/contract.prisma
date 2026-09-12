@@ -95,6 +95,7 @@ model User {
   nomorTelepon       String?            @map("nomor_telepon")
   emailVerifiedAt    TimestamptzString? @map("email_verified_at")
   password           String
+  googleSub          String?            @unique @map("google_sub")
   privasiDisetujuiAt TimestamptzString? @map("privasi_disetujui_at")
   waliDisetujuiAt    TimestamptzString? @map("wali_disetujui_at")
   createdAt          TimestamptzString  @default(now()) @map("created_at")

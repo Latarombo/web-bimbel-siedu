@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { Card, CardPad } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
+import { DataTable, type TableColumn, type TableRowData } from "@/components/ui/data-table";
 
 export const dynamic = "force-dynamic";
 
@@ -28,8 +28,62 @@ export default async function AdminClasses({ searchParams }: { searchParams: Pro
   const guruById = new Map(guru.map((g) => [g.id, g]));
   const urut = [...kelasSemua].sort((a, b) => a.id - b.id);
 
+  const columns: TableColumn[] = [
+    { key: "mapel", header: "Mapel" },
+    { key: "guru", header: "Guru" },
+    { key: "jadwal", header: "Jadwal" },
+    { key: "kuota", header: "Kuota", className: "text-center" },
+    { key: "biaya", header: "Biaya" },
+    { key: "status", header: "Status" },
+    { key: "aksi", header: "Aksi", className: "text-right", sortable: false },
+  ];
+
+  const rows: TableRowData[] = urut.map((k) => {
+    const jadwalKelas = jadwal
+      .filter((j) => j.kelasId === k.id)
+      .sort((a, b) => a.hari.localeCompare(b.hari) || a.jamMulai.localeCompare(b.jamMulai));
+    const nAktif = pendaftaran.filter((p) => p.kelasId === k.id && ["terdaftar", "tertunggak", "menunggu_pembayaran"].includes(p.status)).length;
+    const biaya =
+      `Rp${Number(k.biayaPeriode).toLocaleString("id-ID")}` +
+      (k.biayaDp ? ` · DP Rp${Number(k.biayaDp).toLocaleString("id-ID")}` : "");
+    return {
+      id: k.id,
+      values: {
+        mapel: mapelById.get(k.mataPelajaranId)?.nama ?? "Kelas",
+        guru: guruById.get(k.guruId)?.name ?? "—",
+        jadwal: jadwalKelas.map((j) => j.hari).join(", ") || "zzz",
+        kuota: nAktif / Math.max(k.kuotaMaksimum, 1),
+        biaya: Number(k.biayaPeriode),
+        status: k.status,
+      },
+      cells: {
+        mapel: (
+          <div>
+            <p className="font-semibold text-foreground">{mapelById.get(k.mataPelajaranId)?.nama ?? "Kelas"}</p>
+            <p className="text-xs text-muted">{k.jenjang}</p>
+          </div>
+        ),
+        guru: <span>{guruById.get(k.guruId)?.name ?? "—"}</span>,
+        jadwal: (
+          <span className="text-xs text-muted">
+            {jadwalKelas.map((j) => `${j.hari} ${j.jamMulai.slice(0, 5)}–${j.jamSelesai.slice(0, 5)}`).join(", ") ||
+              "tanpa jadwal"}
+          </span>
+        ),
+        kuota: <span className="tabular-nums">{nAktif}/{k.kuotaMaksimum}</span>,
+        biaya: <span className="tabular-nums text-xs">{biaya}</span>,
+        status: <Badge tone={k.status === "aktif" ? "emerald" : "slate"}>{k.status}</Badge>,
+        aksi: (
+          <Link href={`/admin/classes/${k.id}/edit`} className="text-sm font-semibold text-brand hover:underline">
+            Edit
+          </Link>
+        ),
+      },
+    };
+  });
+
   return (
-    <div className="mx-auto max-w-5xl px-4 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Kelas</h1>
@@ -38,54 +92,25 @@ export default async function AdminClasses({ searchParams }: { searchParams: Pro
         <ButtonLink href="/admin/classes/new">+ Kelas baru</ButtonLink>
       </div>
 
-      <div className="mt-4 flex gap-2 text-sm">
+      {/* Filter tabs — pola pill yang sama dengan halaman parent */}
+      <nav aria-label="Filter status kelas" className="mt-4 inline-flex rounded-full bg-slate-100 p-1">
         {["semua", "aktif", "dibatalkan"].map((s) => (
           <Link
             key={s}
             href={s === "semua" ? "/admin/classes" : `/admin/classes?status=${s}`}
-            className={`rounded-full border px-3 py-1 ${filter === s ? "border-brand bg-blue-50 font-semibold text-brand" : "border-border text-muted"}`}
+            aria-current={filter === s ? "page" : undefined}
+            className={`rounded-full px-5 py-2 text-sm font-semibold transition-colors ${
+              filter === s ? "bg-white text-brand shadow-sm" : "text-slate-600 hover:text-slate-900"
+            }`}
           >
             {s}
           </Link>
         ))}
-      </div>
+      </nav>
 
-      <ul className="mt-6 grid gap-4">
-        {urut.map((k) => {
-          const jadwalKelas = jadwal
-            .filter((j) => j.kelasId === k.id)
-            .sort((a, b) => a.hari.localeCompare(b.hari) || a.jamMulai.localeCompare(b.jamMulai));
-          const nAktif = pendaftaran.filter((p) => p.kelasId === k.id && ["terdaftar", "tertunggak", "menunggu_pembayaran"].includes(p.status)).length;
-          return (
-            <li key={k.id}>
-              <Card>
-                <CardPad>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-lg font-semibold">{mapelById.get(k.mataPelajaranId)?.nama ?? "Kelas"}</p>
-                      <p className="text-sm text-muted">
-                        {k.jenjang} · {guruById.get(k.guruId)?.name ?? "—"} · {nAktif}/{k.kuotaMaksimum} siswa (min {k.kuotaMinimum})
-                      </p>
-                      <p className="mt-1 text-sm text-muted">
-                        {jadwalKelas.map((j) => `${j.hari} ${j.jamMulai.slice(0, 5)}–${j.jamSelesai.slice(0, 5)}`).join(" · ") || "tanpa jadwal"}
-                      </p>
-                      <p className="mt-1 text-sm">
-                        Rp{Number(k.biayaPeriode).toLocaleString("id-ID")}
-                        {k.biayaDp ? ` · DP Rp${Number(k.biayaDp).toLocaleString("id-ID")} (tenor ≤ ${k.tenorMaksimum})` : " · tanpa cicilan"}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <Badge tone={k.status === "aktif" ? "emerald" : "slate"}>{k.status}</Badge>
-                      <Link href={`/admin/classes/${k.id}/edit`} className="text-sm font-semibold text-brand underline">Edit</Link>
-                    </div>
-                  </div>
-                </CardPad>
-              </Card>
-            </li>
-          );
-        })}
-      </ul>
-      {urut.length === 0 ? <p className="mt-6 text-sm text-muted">Tidak ada kelas.</p> : null}
+      <div className="mt-6">
+        <DataTable columns={columns} rows={rows} empty="Tidak ada kelas." />
+      </div>
 
       <div className="mt-4"><ButtonLink href="/admin/dashboard" variant="ghost">← Dashboard</ButtonLink></div>
     </div>

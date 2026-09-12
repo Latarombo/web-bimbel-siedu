@@ -18,7 +18,7 @@ export default function MapelForm({ mapelId, defaults }: { mapelId?: number; def
       <Field label="Deskripsi (opsional)" error={err("deskripsi")}>
         <Textarea name="deskripsi" rows={3} defaultValue={defaults?.deskripsi ?? ""} />
       </Field>
-      {state.error ? <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{state.error}</p> : null}
+      {state.error ? <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">{state.error}</p> : null}
       {state.ok && !state.error ? <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700" role="status">Tersimpan.</p> : null}
       <Button type="submit" disabled={pending}>{pending ? "Menyimpan…" : "Simpan"}</Button>
     </form>
