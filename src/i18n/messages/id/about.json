@@ -1,0 +1,128 @@
+{
+  "hero": {
+    "titleBefore": "Kursus anak yang",
+    "titleHighlight": "terurus",
+    "titleAfter": ", orang tua yang tenang",
+    "subtitle": "Siedu adalah sistem bimbel terpadu untuk satu lembaga. Pendaftaran, pembayaran, presensi, dan penilaian dari jenjang TK sampai SMA berjalan di satu tempat, bukan di belasan chat.",
+    "ctaRegister": "Buat akun orang tua",
+    "ctaClasses": "Lihat kelas",
+    "photoAlt": "Ilustrasi anak belajar di Siedu"
+  },
+  "proof": {
+    "quota": "Kuota terkunci saat mendaftar",
+    "attendance": "Presensi hari ini langsung terlihat"
+  },
+  "quote": {
+    "text": "Progres belajar anak sebaiknya bisa dibuka, dicek, dan dipertanggungjawabkan. Bukan ditanya-tanya lewat chat yang kadang dibalas, kadang tidak.",
+    "caption": "Janji yang mendasari semua fitur di Siedu."
+  },
+  "stats": {
+    "children": "Anak terdaftar",
+    "classes": "Kelas aktif",
+    "teachers": "Pengajar",
+    "subjects": "Mata pelajaran"
+  },
+  "story": {
+    "titleBefore": "Bermula dari",
+    "titleHighlight": "chat yang berantakan",
+    "p1": "Bukan karena kursus anaknya buruk. Karena informasinya tersebar. Daftar lewat chat, bayar lewat transfer, progres tidak pernah dilaporkan. Banyak orang tua akhirnya berhenti memantau, bukan karena tidak peduli, tapi karena capek menagih.",
+    "p2": "Siedu membangun ulang alur itu. Semua jejak kursus anak tercatat di satu sistem yang dipakai lembaganya langsung, dan bisa dibuka orang tua kapan saja.",
+    "photoAlt": "Ilustrasi platform Siedu"
+  },
+  "problems": {
+    "title": "Kenali dulu, mungkin ini Anda",
+    "bridge": "Di Siedu, keempatnya punya jawaban di sistem:",
+    "items": [
+      "Daftar lewat chat yang dibalas kalau pengajar sempat",
+      "Bayar transfer, bukti transfer menumpuk di galeri ponsel",
+      "Tidak pernah tahu anak hadir atau tidak",
+      "Nilai cuma keluar di akhir semester, itu pun kalau dilaporkan"
+    ]
+  },
+  "answers": {
+    "items": [
+      "Kelas dipilih dan kuota dikunci lewat platform, bukan antre balasan chat.",
+      "Pembayaran lewat Midtrans, tercatat lunas atau cicilannya.",
+      "Presensi diinput guru tiap pertemuan, bisa Anda cek hari itu juga.",
+      "Nilai masuk portofolio anak, riwayatnya bisa ditelusuri."
+    ]
+  },
+  "compare": {
+    "titleBefore": "Cara lama vs",
+    "titleHighlight": "Siedu",
+    "lead": "Bedanya bukan janji. Setiap sisi kanan adalah fitur yang sudah berjalan di sistem ini sekarang.",
+    "caption": "Perbandingan cara lama mengelola kursus anak dengan sistem Siedu",
+    "colAspect": "Aspek",
+    "colOld": "Cara lama",
+    "rows": [
+      {
+        "aspek": "Daftar kelas",
+        "lama": "Nanya lewat chat, dicatat manual di buku",
+        "baru": "Pilih kelas per jenjang, kuota langsung terkunci saat mendaftar"
+      },
+      {
+        "aspek": "Pembayaran",
+        "lama": "Transfer, rekap manual, sering salah cocok",
+        "baru": "Bayar lewat Midtrans, lunas atau DP + cicilan manual, riwayat rapi di portal"
+      },
+      {
+        "aspek": "Kehadiran",
+        "lama": "Orang tua tidak pernah tahu anak masuk atau tidak",
+        "baru": "Guru input presensi per pertemuan, langsung terlihat di akun Anda"
+      },
+      {
+        "aspek": "Nilai & progres",
+        "lama": "Ditanyakan sendiri, kadang tidak dibalas",
+        "baru": "Nilai tiap pertemuan terpantau, koreksi lewat alur resmi yang tercatat"
+      },
+      {
+        "aspek": "Informasi kelas",
+        "lama": "Menghilang di riwayat chat",
+        "baru": "Jadwal, materi, dan pengumuman ada di satu tempat"
+      }
+    ]
+  },
+  "values": {
+    "titleBefore": "Empat hal yang kami",
+    "titleHighlight": "pegang",
+    "lead": "Bukan slogan di dinding. Masing-masing punya konsekuensi teknis di sistem.",
+    "hero": {
+      "initial": "T",
+      "title": "Terbuka soal biaya",
+      "body": "Biaya kelas tampil utuh sejak awal, tanpa pos tersembunyi. Riwayat bayar dan status tagihan tersimpan rapi di portal orang tua.",
+      "footnote": "Nilai pertama kenapa Siedu dibuat."
+    },
+    "items": [
+      {
+        "initial": "P",
+        "title": "Privasi anak duluan",
+        "body": "Satu sistem untuk satu lembaga. Data siswa tidak pernah dicampur pihak lain, dan persetujuan orang tua diminta lebih dulu."
+      },
+      {
+        "initial": "A",
+        "title": "Aturan yang ditepati",
+        "body": "Kuota dikunci saat daftar, tenggang bayar 7 hari kerja, koreksi nilai lewat alur resmi. Tertulis, bukan kebijakan mendadak."
+      },
+      {
+        "initial": "B",
+        "title": "Bukti, bukan feeling",
+        "body": "Presensi dan nilai diinput guru, langsung terlihat orang tua. Progres anak bisa diperiksa kapan saja, bukan ditanya-tanya lewat chat."
+      }
+    ]
+  },
+  "mission": {
+    "titleBefore": "Visi &",
+    "titleHighlight": "Misi",
+    "visionLabel": "Visi",
+    "vision": "Terwujudnya pendidikan berkualitas yang dapat dipantau setiap orang tua: proses belajar anak tercatat rapi, terbuka, dan dapat dipertanggungjawabkan, dari jenjang TK sampai SMA.",
+    "visionNote": "Visi ini dijabarkan menjadi aturan sistem yang tertulis di halaman ketentuan, bukan sekadar janji lisan.",
+    "missionLabel": "Misi",
+    "missionItems": [
+      "Menyatukan pendaftaran, pembayaran, presensi, dan penilaian dalam satu sistem yang dipakai lembaga.",
+      "Menampilkan biaya kelas secara utuh sejak awal, termasuk opsi DP dan cicilan melalui Midtrans.",
+      "Mengunci kuota kelas saat pendaftaran agar tidak ada janji ganda.",
+      "Melaporkan kehadiran dan nilai lewat input guru di setiap pertemuan.",
+      "Menjaga data siswa milik satu lembaga: tidak dicampur pihak lain, dengan persetujuan orang tua lebih dulu."
+    ]
+  }
+}

@@ -1,7 +1,8 @@
 'use client';
+import { useTranslations } from 'next-intl';
 
 import { useActionState, useState } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { login, type LoginState } from '@/app/actions/login';
 import GoogleButton from '@/components/GoogleButton';
 
@@ -16,6 +17,7 @@ export default function LoginForm({
     googleEnabled?: boolean;
     oauthError?: string;
 }) {
+    const t = useTranslations('auth');
     const [state, formAction, pending] = useActionState(login, initial);
     const [showPassword, setShowPassword] = useState(false);
 
@@ -23,7 +25,7 @@ export default function LoginForm({
         <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md">
             {/* Heading — headline-lg-mobile 24px → sm:headline-md (DESIGN.md typography) */}
             <h2 className="text-2xl sm:text-[20px] sm:leading-[1.3] font-bold text-slate-900 mb-8">
-                Yuk, masuk ke akun Siedu Anda!
+                {t('loginTitle')}
             </h2>
 
             {/* Error OAuth — terima dari server page (?error=OAuthAccountNotLinked dll.) */}
@@ -46,7 +48,8 @@ export default function LoginForm({
                         htmlFor="email"
                         className="block text-sm font-semibold text-slate-700 mb-2"
                     >
-                        Email
+                        {t('email')}{' '}
+                        <span className="text-danger" aria-hidden="true">*</span>
                     </label>
                     <input
                         id="email"
@@ -55,7 +58,7 @@ export default function LoginForm({
                         required
                         autoComplete="email"
                         defaultValue={state.email ?? ''}
-                        placeholder="nama@email.com"
+                        placeholder={t('emailPlaceholder')}
                         className="w-full px-4 py-3 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400"
                     />
                 </div>
@@ -67,13 +70,14 @@ export default function LoginForm({
                             htmlFor="password"
                             className="block text-sm font-semibold text-slate-700"
                         >
-                            Kata Sandi
+                            {t('password')}{' '}
+                            <span className="text-danger" aria-hidden="true">*</span>
                         </label>
                         <Link
                             href="/forgot-password"
                             className="text-sm text-blue-600 hover:text-brand-strong font-medium"
                         >
-                            Lupa kata sandi?
+                            {t('forgotLink')}
                         </Link>
                     </div>
                     <div className="relative">
@@ -83,7 +87,7 @@ export default function LoginForm({
                             type={showPassword ? 'text' : 'password'}
                             required
                             autoComplete="current-password"
-                            placeholder="Masukkan kata sandi"
+                            placeholder={t('passwordPlaceholder')}
                             className="w-full px-4 py-3 pr-12 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400"
                         />
                         <button
@@ -92,8 +96,8 @@ export default function LoginForm({
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
                             aria-label={
                                 showPassword
-                                    ? 'Sembunyikan kata sandi'
-                                    : 'Tampilkan kata sandi'
+                                    ? t('hidePassword')
+                                    : t('showPassword')
                             }
                         >
                             {showPassword ? (
@@ -153,7 +157,7 @@ export default function LoginForm({
                     disabled={pending}
                     className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
                 >
-                    <span>{pending ? 'Memproses...' : 'Lanjutkan'}</span>
+                    <span>{pending ? t('processing') : t('continue')}</span>
                     {!pending && (
                         <svg
                             className="w-5 h-5"
@@ -179,7 +183,7 @@ export default function LoginForm({
                 </div>
                 <div className="relative flex justify-center">
                     <span className="bg-white px-4 text-xs font-medium text-slate-400 tracking-wider">
-                        ATAU
+                        {t('or')}
                     </span>
                 </div>
             </div>
@@ -187,19 +191,19 @@ export default function LoginForm({
             {/* Google Login — aktif saat kredensial OAuth terpasang; user baru
                 ditangkap pages.newUser (step 2), user lama lanjut ke dashboard */}
             <GoogleButton
-                label="Masuk dengan Akun Google"
+                label={t('googleLogin')}
                 enabled={googleEnabled}
-                title="Login Google akan segera tersedia"
+                title={t('googleSoon')}
             />
 
             {/* Sign Up Link — body-sm */}
             <p className="text-center text-sm text-body mt-6">
-                Belum punya akun?{' '}
+                {t('noAccount')}{' '}
                 <Link
                     href="/register"
                     className="text-brand hover:text-brand-strong font-semibold"
                 >
-                    Daftar
+                    {t('register')}
                 </Link>
             </p>
         </div>

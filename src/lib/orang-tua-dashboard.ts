@@ -11,11 +11,24 @@
  */
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
+import type { DisplayLocale } from "@/lib/label";
 import { hariDariTanggal, type Hari } from "@/lib/hari";
 
-export const STATUS_AKTIF_DB = ["menunggu_pembayaran", "terdaftar", "tertunggak"] as const;
+export const STATUS_AKTIF_DB = [
+  "menunggu_pembayaran",
+  "terdaftar",
+  "tertunggak",
+] as const;
 
-const URUTAN_HARI: Hari[] = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+const URUTAN_HARI: Hari[] = [
+  "Senin",
+  "Selasa",
+  "Rabu",
+  "Kamis",
+  "Jumat",
+  "Sabtu",
+  "Minggu",
+];
 
 export type KartuTagihan = {
   /** Jumlah yang masih harus dibayar (pending + gagal). */
@@ -58,9 +71,21 @@ export type AnakDashboard = {
     /** Tanggal pertemuan berikutnya, null kalau hari jadwal belum terpetakan. */
     tanggalBerikutnya: string | null;
   }[];
-  presensi: { total: number; hadir: number; izin: number; sakit: number; alpa: number };
+  presensi: {
+    total: number;
+    hadir: number;
+    izin: number;
+    sakit: number;
+    alpa: number;
+  };
+  /** Riwayat presensi urut tanggal (terbaru dulu) — utk kalender kehadiran. */
+  presensiRiwayat: { tanggal: string; status: string }[];
   persenHadir: number | null;
-  pertemuanTerakhir: { tanggal: string; status: string; catatan: string | null } | null;
+  pertemuanTerakhir: {
+    tanggal: string;
+    status: string;
+    catatan: string | null;
+  } | null;
   nilai: { tanggal: string; nilai: number }[];
   catatanTerakhir: { teks: string; guru: string; tanggal: string } | null;
   pendaftaranId: number | null;
@@ -81,7 +106,10 @@ function tanggalHariBerikut(target: Hari, dari = new Date()): string {
   return d.toISOString().slice(0, 10);
 }
 
-export async function dashboardOrangTua(ortuId: number): Promise<AnakDashboard[]> {
+export async function dashboardOrangTua(
+  ortuId: number,
+  locale: DisplayLocale = "id",
+): Promise<AnakDashboard[]> {
   const [anak, pendaftaran] = await Promise.all([
     collect(db.orm.public.Anak.where((a) => a.orangTuaId.eq(ortuId)).all()),
     collect(
@@ -101,14 +129,15 @@ export async function dashboardOrangTua(ortuId: number): Promise<AnakDashboard[]
   // ORM rc.8 di repo ini belum terbukti mendukung `.inArray`, dan pola yang sudah
   // jalan di halaman ini/lain adalah "ambil tabel kecil, saring di JS"
   // (lihat Pendaftaran.all() di atas & lib/kelas.ts). Skala lembaga aman.
-  const [pembayaran, presensi, nilai, mapelRows, guruRows, jadwalRows] = await Promise.all([
-    collect(db.orm.public.Pembayaran.all()),
-    collect(db.orm.public.Presensi.all()),
-    collect(db.orm.public.NilaiProgres.all()),
-    collect(db.orm.public.MataPelajaran.all()),
-    collect(db.orm.public.User.where((u) => u.role.eq("guru")).all()),
-    collect(db.orm.public.JadwalItem.all()),
-  ]);
+  const [pembayaran, presensi, nilai, mapelRows, guruRows, jadwalRows] =
+    await Promise.all([
+      collect(db.orm.public.Pembayaran.all()),
+      collect(db.orm.public.Presensi.all()),
+      collect(db.orm.public.NilaiProgres.all()),
+      collect(db.orm.public.MataPelajaran.all()),
+      collect(db.orm.public.User.where((u) => u.role.eq("guru")).all()),
+      collect(db.orm.public.JadwalItem.all()),
+    ]);
   const pidSet = new Set(pidSaya);
   const kelasIdSet = new Set(milikSaya.map((p) => p.kelasId));
   const tagihanSemua = pembayaran.filter((b) => pidSet.has(b.pendaftaranId));
@@ -155,6 +184,7 @@ export async function dashboardOrangTua(ortuId: number): Promise<AnakDashboard[]
         tagihan: null,
         jadwal: [],
         presensi: { total: 0, hadir: 0, izin: 0, sakit: 0, alpa: 0 },
+        presensiRiwayat: [],
         persenHadir: null,
         pertemuanTerakhir: null,
         nilai: [],
@@ -171,11 +201,13 @@ export async function dashboardOrangTua(ortuId: number): Promise<AnakDashboard[]
 
     // --- Tagihan
     const bills = tagihanByP.get(p.id) ?? [];
-    const belum = bills.filter((b) => b.status === "pending" || b.status === "gagal");
+    const belum = bills.filter(
+      (b) => b.status === "pending" || b.status === "gagal",
+    );
     const lunas = bills.filter((b) => b.status === "berhasil");
     const cicilanLunas = lunas.filter((b) => b.tipe === "cicilan").length;
-    const next = [...belum].sort(
-      (x, y) => (x.jatuhTempo ?? "9999").localeCompare(y.jatuhTempo ?? "9999"),
+    const next = [...belum].sort((x, y) =>
+      (x.jatuhTempo ?? "9999").localeCompare(y.jatuhTempo ?? "9999"),
     )[0];
     const tagihan: KartuTagihan = {
       belumDibayar: belum.reduce((s, b) => s + Number(b.jumlah), 0),
@@ -190,10 +222,10 @@ export async function dashboardOrangTua(ortuId: number): Promise<AnakDashboard[]
             pembayaranId: next.id,
             label:
               next.tipe === "cicilan"
-                ? `Cicilan ke-${next.cicilanKe}`
+                ? (locale === "en" ? `Installment ${next.cicilanKe}` : `Cicilan ke-${next.cicilanKe}`)
                 : next.tipe === "dp"
-                  ? "Uang muka (DP)"
-                  : "Pembayaran lunas",
+                  ? (locale === "en" ? "Down payment (DP)" : "Uang muka (DP)")
+                  : (locale === "en" ? "Full payment" : "Pembayaran lunas"),
             jumlah: Number(next.jumlah),
             jatuhTempo: next.jatuhTempo,
             status: next.status === "gagal" ? "gagal" : "pending",
@@ -214,7 +246,7 @@ export async function dashboardOrangTua(ortuId: number): Promise<AnakDashboard[]
         hari: j.hari,
         mulai: j.jamMulai.slice(0, 5),
         selesai: j.jamSelesai.slice(0, 5),
-        mapel: mapel.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`,
+        mapel: mapel.get(p.kelas.mataPelajaranId) ?? `${locale === "en" ? "Class" : "Kelas"} #${p.kelasId}`,
         guru: guru.get(p.kelas.guruId) ?? "-",
         tanggalBerikutnya: tanggalHariBerikut(j.hari),
       }));
@@ -231,6 +263,10 @@ export async function dashboardOrangTua(ortuId: number): Promise<AnakDashboard[]
       sakit: hitung("sakit"),
       alpa: hitung("alpa"),
     };
+    const presensiRiwayat = pres.map((x) => ({
+      tanggal: x.tanggalPertemuan,
+      status: x.status,
+    }));
     const pertemuanTerakhir = pres[0]
       ? {
           tanggal: pres[0].tanggalPertemuan,
@@ -251,13 +287,13 @@ export async function dashboardOrangTua(ortuId: number): Promise<AnakDashboard[]
     const catatanGuru = terakhirKual
       ? {
           teks: terakhirKual.catatanKualitatif as string,
-          guru: guru.get(p.kelas.guruId) ?? "Guru",
+          guru: guru.get(p.kelas.guruId) ?? (locale === "en" ? "Teacher" : "Guru"),
           tanggal: terakhirKual.tanggal,
         }
       : pres.find((x) => x.catatan)
         ? {
             teks: pres.find((x) => x.catatan)!.catatan as string,
-            guru: guru.get(p.kelas.guruId) ?? "Guru",
+            guru: guru.get(p.kelas.guruId) ?? (locale === "en" ? "Teacher" : "Guru"),
             tanggal: pres.find((x) => x.catatan)!.tanggalPertemuan,
           }
         : null;
@@ -270,13 +306,16 @@ export async function dashboardOrangTua(ortuId: number): Promise<AnakDashboard[]
       menungguPembayaran: p.status === "menunggu_pembayaran",
       tertunggak: p.status === "tertunggak",
       kelas: {
-        mapel: mapel.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`,
+        mapel: mapel.get(p.kelas.mataPelajaranId) ?? `${locale === "en" ? "Class" : "Kelas"} #${p.kelasId}`,
         guru: guru.get(p.kelas.guruId) ?? "-",
       },
       tagihan,
       jadwal,
       presensi,
-      persenHadir: pres.length ? Math.round((presensi.hadir / pres.length) * 100) : null,
+      presensiRiwayat,
+      persenHadir: pres.length
+        ? Math.round((presensi.hadir / pres.length) * 100)
+        : null,
       pertemuanTerakhir,
       nilai,
       catatanTerakhir: catatanGuru,

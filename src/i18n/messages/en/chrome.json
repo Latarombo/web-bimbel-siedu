@@ -1,0 +1,32 @@
+{
+  "nav": {
+    "classes": "Browse Classes",
+    "about": "About",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms",
+    "login": "Login",
+    "signup": "Sign Up",
+    "dashboard": "Dashboard",
+    "brandAria": "Siedu \u2014 home",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu"
+  },
+  "footer": {
+    "desc": "An integrated learning management platform for the future of your child's education.",
+    "program": "Learning Programs",
+    "company": "Company",
+    "help": "Help",
+    "viewAll": "View All Classes",
+    "companyLinks": ["About Us", "Career", "Our Teachers", "Blog", "Testimonial"],
+    "helpLinks": ["FAQ", "Privacy Policy", "Terms & Conditions", "Contact Us"],
+    "rights": "\u00a9 2026 Siedu. All rights reserved.",
+    "brandAria": "Siedu \u2014 home"
+  },
+  "switcher": {
+    "label": "Change language",
+    "listAria": "Select language",
+    "id": "Bahasa Indonesia (ID)",
+    "en": "English (US)"
+  }
+}

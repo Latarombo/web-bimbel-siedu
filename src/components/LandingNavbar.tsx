@@ -1,51 +1,53 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { useState } from 'react';
-import { chrome, type Lang } from '@/lib/i18n';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 
 // Hanya route yang ada di src/app — tidak ada link mati.
-const navLinks = (t: (typeof chrome)['id']['nav']) => [
-  { name: t.classes, href: '/classes' },
-  { name: t.about, href: '/about' },
-  { name: t.privacy, href: '/privacy-policy' },
-  { name: t.terms, href: '/terms' },
-];
+// (t = hasil useTranslations('chrome.nav'))
+type NavT = {
+  (key: 'classes' | 'about' | 'contact' | 'privacy' | 'terms' | 'login' | 'signup' | 'dashboard' | 'brandAria' | 'menuOpen' | 'menuClose'): string;
+};
 
 interface NavbarProps {
   /** Dashboard sesuai role kalau user sudah login — null saat guest. */
   dashboardHref?: string | null;
-  /** Bahasa aktif (cookie `lang`, dibaca di layout server). */
-  lang?: Lang;
 }
 
-const Navbar = ({ dashboardHref = null, lang = 'id' }: NavbarProps) => {
+const Navbar = ({ dashboardHref = null }: NavbarProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const t = chrome[lang].nav;
-  const links = navLinks(t);
+  const t: NavT = useTranslations('chrome.nav');
+  const links = [
+    { name: t('classes'), href: '/classes' },
+    { name: t('about'), href: '/about' },
+    { name: t('contact'), href: '/contact' },
+    { name: t('privacy'), href: '/privacy-policy' },
+    { name: t('terms'), href: '/terms' },
+  ] as const;
 
   // Auth buttons — guest: Login + Sign Up; sudah login: Dashboard saja.
   const authButtons = dashboardHref ? (
     <Link
       href={dashboardHref}
-      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-brand-strong transition-colors duration-200"
+      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-brand-strong transition-colors duration-200"
     >
-      {t.dashboard}
+      {t('dashboard')}
     </Link>
   ) : (
     <>
       <Link
         href="/login"
-        className="px-4 py-2 text-sm font-medium text-blue-600 border-2 border-blue-600 rounded-full hover:bg-blue-50 transition-colors duration-200"
+        className="px-4 py-2 text-sm font-medium text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 transition-colors duration-200"
       >
-        {t.login}
+        {t('login')}
       </Link>
       <Link
         href="/register"
-        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-full hover:bg-brand-strong transition-colors duration-200"
+        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-brand-strong transition-colors duration-200"
       >
-        {t.signup}
+        {t('signup')}
       </Link>
     </>
   );
@@ -56,13 +58,13 @@ const Navbar = ({ dashboardHref = null, lang = 'id' }: NavbarProps) => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="shrink-0 flex items-center">
-            <Link href="/" className="flex items-center" aria-label="Siedu — beranda">
+            <Link href="/" className="flex items-center" aria-label={t('brandAria')}>
               <Image src="/images/Logo.png" alt="Siedu" width={120} height={36} className="h-8 w-auto" priority />
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden lg:flex items-center space-x-8">
             {links.map((link) => (
               <Link
                 key={link.name}
@@ -75,29 +77,29 @@ const Navbar = ({ dashboardHref = null, lang = 'id' }: NavbarProps) => {
           </div>
 
           {/* Auth Buttons */}
-          <div className="hidden md:flex items-center space-x-4">{authButtons}</div>
+          <div className="hidden lg:flex items-center space-x-4">{authButtons}</div>
 
           {/* Mobile: CTA compact terlihat + hamburger — CTA jangan sembunyi di balik menu */}
-          <div className="md:hidden flex items-center gap-2">
+          <div className="lg:hidden flex items-center gap-2">
             {dashboardHref ? (
               <Link
                 href={dashboardHref}
-                className="flex h-10 items-center px-3.5 text-sm font-semibold text-white bg-blue-600 rounded-full hover:bg-brand-strong transition-colors duration-200"
+                className="flex h-10 items-center px-3.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-brand-strong transition-colors duration-200"
               >
-                {t.dashboard}
+                {t('dashboard')}
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="flex h-10 items-center px-3.5 text-sm font-semibold text-blue-600 border-2 border-blue-600 rounded-full hover:bg-blue-50 transition-colors duration-200"
+                className="flex h-10 items-center px-3.5 text-sm font-semibold text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 transition-colors duration-200"
               >
-                {t.login}
+                {t('login')}
               </Link>
             )}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="grid h-11 w-11 place-items-center text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-full focus-visible:outline-2 focus-visible:outline-blue-600 transition-colors duration-200"
-              aria-label={isMobileMenuOpen ? 'Tutup menu' : 'Buka menu'}
+              aria-label={isMobileMenuOpen ? t('menuClose') : t('menuOpen')}
               aria-expanded={isMobileMenuOpen}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -113,7 +115,7 @@ const Navbar = ({ dashboardHref = null, lang = 'id' }: NavbarProps) => {
 
         {/* Mobile Menu — CTA ter-pin di bawah gaya A11.studio */}
         {isMobileMenuOpen && (
-          <div className="md:hidden pb-4 border-t border-gray-100">
+          <div className="lg:hidden pb-4 border-t border-gray-100">
             <ul className="flex flex-col">
               {links.map((link) => (
                 <li key={link.name}>
@@ -131,26 +133,26 @@ const Navbar = ({ dashboardHref = null, lang = 'id' }: NavbarProps) => {
               {dashboardHref ? (
                 <Link
                   href={dashboardHref}
-                  className="flex min-h-11 items-center justify-center px-6 py-2.5 text-base font-semibold text-white bg-blue-600 rounded-full hover:bg-brand-strong"
+                  className="flex min-h-11 items-center justify-center px-6 py-2.5 text-base font-semibold text-white bg-blue-600 rounded-lg hover:bg-brand-strong"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  {t.dashboard}
+                  {t('dashboard')}
                 </Link>
               ) : (
                 <>
                   <Link
                     href="/login"
-                    className="flex min-h-11 items-center justify-center px-6 py-2.5 text-base font-semibold text-blue-600 border-2 border-blue-600 rounded-full hover:bg-blue-50"
+                    className="flex min-h-11 items-center justify-center px-6 py-2.5 text-base font-semibold text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    {t.login}
+                    {t('login')}
                   </Link>
                   <Link
                     href="/register"
-                    className="flex min-h-11 items-center justify-center px-6 py-2.5 text-base font-semibold text-white bg-blue-600 rounded-full hover:bg-brand-strong"
+                    className="flex min-h-11 items-center justify-center px-6 py-2.5 text-base font-semibold text-white bg-blue-600 rounded-lg hover:bg-brand-strong"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    {t.signup}
+                    {t('signup')}
                   </Link>
                 </>
               )}

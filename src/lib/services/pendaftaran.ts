@@ -39,7 +39,7 @@ export async function createPendaftaran(input: {
       );
       if (!anak) return { ok: false, error: 'Anak tidak ditemukan untuk akun ini.' };
       if (!anak.jenjang_terakhir)
-        return { ok: false, error: 'Lengkapi jenjang anak di profil dulu (BR#13).' };
+        return { ok: false, error: 'Lengkapi jenjang anak di profil dulu.' };
 
       // --- lock kelas (BR#1) + ambil field yang dibutuhkan ---
       const [kelas] = await collect(
@@ -66,9 +66,9 @@ export async function createPendaftaran(input: {
       if (!kelas) return { ok: false, error: 'Kelas tidak ditemukan.' };
       if (kelas.status !== 'aktif') return { ok: false, error: 'Kelas tidak aktif.' };
       if (kelas.jenjang !== anak.jenjang_terakhir)
-        return { ok: false, error: 'Jenjang kelas tidak sesuai jenjang anak (BR#13).' };
+        return { ok: false, error: 'Jenjang kelas tidak sesuai jenjang anak.' };
       if (kelas.kuota_terisi >= kelas.kuota_maksimum)
-        return { ok: false, error: 'Kuota kelas sudah penuh (BR#1).' };
+        return { ok: false, error: 'Kuota kelas sudah penuh.' };
 
       // --- periode masih dibuka ---
       const [periode] = await collect(
@@ -84,16 +84,16 @@ export async function createPendaftaran(input: {
       // --- BR#12 + BR#28 ---
       if (input.metodeBayar === 'dp_cicilan') {
         if (!kelas.biaya_dp)
-          return { ok: false, error: 'Metode cicilan tidak tersedia untuk kelas ini (BR#12).' };
+          return { ok: false, error: 'Metode cicilan tidak tersedia untuk kelas ini.' };
         const tenor = input.tenorBulan ?? 0;
-        if (tenor < 2) return { ok: false, error: 'Tenor minimal 2 (DP + ≥1 cicilan, BR#28).' };
+        if (tenor < 2) return { ok: false, error: 'Tenor minimal 2 (DP + minimal 1 cicilan).' };
         if (kelas.tenor_maksimum != null && tenor > kelas.tenor_maksimum)
           return {
             ok: false,
-            error: `Tenor melebihi batas kelas (${kelas.tenor_maksimum} bulan, BR#28).`,
+            error: `Tenor melebihi batas kelas (${kelas.tenor_maksimum} bulan).`,
           };
       } else if (input.tenorBulan != null) {
-        return { ok: false, error: 'Tenor hanya untuk metode DP+Cicilan (BR#28).' };
+        return { ok: false, error: 'Tenor hanya untuk metode DP+Cicilan.' };
       }
 
       // --- BR#9: bentrok jadwal lintas pasangan JadwalItem (hari sama + jam beririsan) ---
@@ -117,7 +117,7 @@ export async function createPendaftaran(input: {
         ),
       );
       if (bentrok?.bentrok)
-        return { ok: false, error: 'Jadwal bentrok dengan kelas aktif lain (BR#9).' };
+        return { ok: false, error: 'Jadwal bentrok dengan kelas aktif lain.' };
 
       // --- insert Pendaftaran (BR#29 dijaga partial unique DB) ---
       // ponytail: dua cabang — raw lane menolak interpolasi `null` tanpa codec.
@@ -161,7 +161,7 @@ export async function createPendaftaran(input: {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     if (msg.includes('pendaftaran_aktif_unique'))
-      return { ok: false, error: 'Anak sudah punya pendaftaran aktif di kelas ini (BR#29).' };
+      return { ok: false, error: 'Anak sudah punya pendaftaran aktif di kelas ini.' };
     throw e;
   }
 }

@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import { Field, Input, Select } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ export default function KelasForm({
   };
   defaultJadwal?: Jadwal[];
 }) {
+  const t = useTranslations("adminForms");
   const [state, formAction, pending] = useActionState(saveKelas, initial);
   const err = (k: string) => state.fieldErrors?.[k];
   const rows: (Jadwal | null)[] = [defaultJadwal[0] ?? null, defaultJadwal[1] ?? null, defaultJadwal[2] ?? null];
@@ -42,70 +44,70 @@ export default function KelasForm({
     <form action={formAction} className="space-y-4" noValidate>
       {kelasId ? <input type="hidden" name="kelas_id" value={kelasId} /> : null}
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Mata pelajaran" required error={err("mata_pelajaran_id")}>
+        <Field label={t("kelas.subject")} required error={err("mata_pelajaran_id")}>
           <Select name="mata_pelajaran_id" required defaultValue={defaults?.mataPelajaranId ?? ""}>
-            <option value="">— pilih —</option>
+            <option value="">{t("common.choose")}</option>
             {mapelOptions.map((m) => <option key={m.id} value={m.id}>{m.nama}</option>)}
           </Select>
         </Field>
-        <Field label="Guru pengampu" required error={err("guru_id")}>
+        <Field label={t("kelas.teacher")} required error={err("guru_id")}>
           <Select name="guru_id" required defaultValue={defaults?.guruId ?? ""}>
-            <option value="">— pilih —</option>
+            <option value="">{t("common.choose")}</option>
             {guruOptions.map((g) => <option key={g.id} value={g.id}>{g.nama}</option>)}
           </Select>
         </Field>
-        <Field label="Periode" required error={err("periode_id")}>
+        <Field label={t("kelas.period")} required error={err("periode_id")}>
           <Select name="periode_id" required defaultValue={defaults?.periodeId ?? ""}>
-            <option value="">— pilih —</option>
-            {periodeOptions.map((p) => <option key={p.id} value={p.id}>{p.nama}{p.status === "dibuka" ? "" : ` (${p.status})`}</option>)}
+            <option value="">{t("common.choose")}</option>
+            {periodeOptions.map((p) => <option key={p.id} value={p.id}>{p.nama}{p.status === "dibuka" ? "" : ` (${t.has(`periodStatus.${p.status}`) ? t(`periodStatus.${p.status}`) : p.status})`}</option>)}
           </Select>
         </Field>
       </div>
       <div className="grid gap-4 sm:grid-cols-4">
-        <Field label="Jenjang" required error={err("jenjang")}>
+        <Field label={t("kelas.level")} required error={err("jenjang")}>
           <Select name="jenjang" required defaultValue={defaults?.jenjang ?? ""}>
-            {["TK", "SD", "SMP", "SMA"].map((j) => <option key={j} value={j}>{j}</option>)}
+            {["TK", "SD", "SMP", "SMA"].map((j) => <option key={j} value={j}>{t(`levels.${j}`)}</option>)}
           </Select>
         </Field>
-        <Field label="Kuota maksimum" required error={err("kuota_maksimum")}>
+        <Field label={t("kelas.maxQuota")} required error={err("kuota_maksimum")}>
           <Input type="number" name="kuota_maksimum" min={1} required defaultValue={defaults?.kuotaMaksimum ?? ""} />
         </Field>
-        <Field label="Kuota minimum" required error={err("kuota_minimum")}>
+        <Field label={t("kelas.minQuota")} required error={err("kuota_minimum")}>
           <Input type="number" name="kuota_minimum" min={1} required defaultValue={defaults?.kuotaMinimum ?? ""} />
         </Field>
-        <Field label="Status" required error={err("status")}>
+        <Field label={t("common.status")} required error={err("status")}>
           <Select name="status" required defaultValue={defaults?.status ?? "aktif"}>
-            <option value="aktif">aktif</option>
-            <option value="dibatalkan">dibatalkan</option>
+            <option value="aktif">{t("classStatus.aktif")}</option>
+            <option value="dibatalkan">{t("classStatus.dibatalkan")}</option>
           </Select>
         </Field>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Biaya per periode (Rp)" required error={err("biaya_periode")}>
+        <Field label={t("kelas.fee")} required error={err("biaya_periode")}>
           <Input type="number" name="biaya_periode" min={1} step="1000" required defaultValue={defaults?.biayaPeriode ?? ""} />
         </Field>
-        <Field label="Biaya DP (kosong = non-DP)" error={err("biaya_dp")}>
+        <Field label={t("kelas.deposit")} error={err("biaya_dp")}>
           <Input type="number" name="biaya_dp" min={1} step="1000" defaultValue={defaults?.biayaDp ?? ""} />
         </Field>
-        <Field label="Tenor maksimum (kosong = non-DP)" error={err("tenor_maksimum")}>
+        <Field label={t("kelas.tenor")} error={err("tenor_maksimum")}>
           <Input type="number" name="tenor_maksimum" min={2} defaultValue={defaults?.tenorMaksimum ?? ""} />
         </Field>
       </div>
       <fieldset className="rounded-2xl border border-border p-4">
-        <legend className="px-2 text-sm font-semibold">Jadwal sesi per minggu (1–3 baris)</legend>
+        <legend className="px-2 text-sm font-semibold">{t("kelas.schedule")}</legend>
         <div className="space-y-3">
           {rows.map((row, i) => (
             <div key={i} className="grid gap-3 sm:grid-cols-[10rem_1fr_1fr]">
-              <Field label={`Hari ${i + 1}`}>
+              <Field label={t("kelas.day", { number: i + 1 })}>
                 <Select name={`jadwal_hari_${i}`} defaultValue={row?.hari ?? ""}>
-                  <option value="">— kosong —</option>
-                  {HARI.map((h) => <option key={h} value={h}>{h}</option>)}
+                  <option value="">{t("common.empty")}</option>
+                  {HARI.map((h) => <option key={h} value={h}>{t(`days.${h}`)}</option>)}
                 </Select>
               </Field>
-              <Field label="Jam mulai">
+              <Field label={t("kelas.start")}>
                 <Input type="time" name={`jadwal_mulai_${i}`} defaultValue={row?.jamMulai ?? ""} />
               </Field>
-              <Field label="Jam selesai">
+              <Field label={t("kelas.end")}>
                 <Input type="time" name={`jadwal_selesai_${i}`} defaultValue={row?.jamSelesai ?? ""} />
               </Field>
             </div>
@@ -113,9 +115,9 @@ export default function KelasForm({
         </div>
       </fieldset>
       {state.error ? <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">{state.error}</p> : null}
-      {state.ok && !state.error ? <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700" role="status">Tersimpan.</p> : null}
-      <Button type="submit" disabled={pending}>{pending ? "Menyimpan…" : "Simpan kelas"}</Button>
-      <p className="text-xs text-muted">Sistem menolak jadwal yang bentrok dengan kelas aktif lain guru yang sama (BR#6). Kelas DP wajib isi DP + tenor (BR#12).</p>
+      {state.ok && !state.error ? <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700" role="status">{t("common.saved")}</p> : null}
+      <Button type="submit" disabled={pending}>{pending ? t("common.saving") : t("kelas.save")}</Button>
+      <p className="text-xs text-muted">{t("kelas.rules")}</p>
     </form>
   );
 }

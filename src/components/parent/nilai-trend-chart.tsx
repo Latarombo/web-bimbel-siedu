@@ -6,6 +6,7 @@
  * Dipakai hanya kalau ada >=2 titik data; di bawah itu halaman tampil teks.
  */
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
+import { useLocale, useTranslations } from "next-intl";
 import {
   ChartContainer,
   ChartTooltip,
@@ -13,14 +14,15 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 
-const config = {
-  nilai: { label: "Nilai", color: "var(--chart-1)" },
-} satisfies ChartConfig;
-
 export function NilaiTrendChart({ data }: { data: { tanggal: string; nilai: number }[] }) {
+  const tr = useTranslations("parent");
+  const locale = useLocale();
+  const config = {
+    nilai: { label: tr("text191"), color: "var(--chart-1)" },
+  } satisfies ChartConfig;
   const titik = data.map((d) => ({
     ...d,
-    label: new Date(d.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "short" }),
+    label: new Date(d.tanggal).toLocaleDateString(locale === "en" ? "en-US" : "id-ID", { day: "numeric", month: "short" }),
   }));
   return (
     <ChartContainer config={config} className="h-40 w-full">

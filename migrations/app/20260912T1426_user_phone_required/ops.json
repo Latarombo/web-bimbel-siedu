@@ -1,0 +1,83 @@
+[
+  {
+    "id": "data_migration.handle-nulls-users-nomor_telepon",
+    "label": "Data transform: backfill users.nomor_telepon (BR#32)",
+    "operationClass": "data",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [
+      {
+        "description": "Ensure backfill statement is valid on this schema",
+        "sql": "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = $1 AND table_name = $2 AND column_name = $3) AS ok",
+        "params": [
+          "public",
+          "users",
+          "nomor_telepon"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "Backfill kosong/NULL dengan nomor anak atau placeholder",
+        "sql": "\nUPDATE public.users u\nSET nomor_telepon = COALESCE(\n (\n SELECT NULLIF(a.nomor_telepon, '')\n FROM public.anak a\n WHERE a.orang_tua_id = u.id\n AND NULLIF(a.nomor_telepon, '') IS NOT NULL\n ORDER BY a.id\n LIMIT 1\n ),\n '+62-000-0000-0000'\n )\nWHERE u.nomor_telepon IS NULL OR trim(u.nomor_telepon) = ''\n",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "Verify tidak ada users dengan nomor_telepon kosong",
+        "sql": "SELECT NOT EXISTS (SELECT 1 FROM public.users WHERE nomor_telepon IS NULL OR trim(nomor_telepon) = '' LIMIT 1) AS ok",
+        "params": []
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.setNotNull.users.nomor_telepon",
+    "label": "Set NOT NULL on \"users\".\"nomor_telepon\"",
+    "operationClass": "destructive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "nomor_telepon",
+        "table": "users"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"nomor_telepon\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "users",
+          "nomor_telepon"
+        ]
+      },
+      {
+        "description": "ensure no NULL values in \"nomor_telepon\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"public\".\"users\" WHERE \"nomor_telepon\" IS NULL) AS \"result\"",
+        "params": []
+      }
+    ],
+    "execute": [
+      {
+        "description": "set NOT NULL on \"nomor_telepon\"",
+        "sql": "ALTER TABLE \"public\".\"users\" ALTER COLUMN \"nomor_telepon\" SET NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"nomor_telepon\" is NOT NULL",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "users",
+          "nomor_telepon",
+          "NO"
+        ]
+      }
+    ]
+  }
+]

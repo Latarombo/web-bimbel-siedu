@@ -92,7 +92,7 @@ model User {
   name               String
   email              String             @unique
   alamat             String?
-  nomorTelepon       String?            @map("nomor_telepon")
+  nomorTelepon       String             @map("nomor_telepon")
   emailVerifiedAt    TimestamptzString? @map("email_verified_at")
   password           String
   googleSub          String?            @unique @map("google_sub")
@@ -281,6 +281,8 @@ model Presensi {
   id               Int               @id @default(autoincrement())
   pendaftaranId    Int               @map("pendaftaran_id")
   jadwalItemId     Int               @map("jadwal_item_id")
+  sesiPertemuanId  Int?              @map("sesi_pertemuan_id")
+  terlambat        Boolean           @default(false) @map("terlambat")
   dicatatOleh      Int               @map("dicatat_oleh")
   tanggalPertemuan DateString        @map("tanggal_pertemuan")
   status           StatusPresensi
@@ -290,6 +292,7 @@ model Presensi {
 
   pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
   jadwalItem  JadwalItem @relation(fields: [jadwalItemId], references: [id], onDelete: Restrict)
+  sesiPertemuan SesiPertemuan? @relation(fields: [sesiPertemuanId], references: [id], onDelete: SetNull)
   guru        User       @relation("GuruPresensi", fields: [dicatatOleh], references: [id], onDelete: Restrict)
 
   @@unique([pendaftaranId, tanggalPertemuan, jadwalItemId])
@@ -340,4 +343,81 @@ model PengajuanPembatalan {
   // Satu pengajuan menunggu per pendaftaran; ditolak → boleh ajukan ulang
   @@index([pendaftaranId], unique: true, where: "(status = 'menunggu')", name: "pengajuan_menunggu_unik")
   @@map("pengajuan_pembatalan")
+}
+
+
+// ---- Portal guru: sesi pertemuan nyata (M1) ----
+enum StatusSesi {
+  terjadwal
+  selesai
+  dibatalkan
+
+  @@map("status_sesi")
+}
+
+// Pertemuan konkret: dibentuk dari JadwalItem per tanggal dalam periode kelas.
+// Snapshot jam saat dibuat supaya edit jadwal rutin tidak merusak histori.
+model SesiPertemuan {
+  id               Int        @id @default(autoincrement())
+  jadwalItemId     Int        @map("jadwal_item_id")
+  tanggalPertemuan DateString @map("tanggal_pertemuan")
+  statusSesi       StatusSesi @default(terjadwal) @map("status_sesi")
+  jamMulai         TimeString @map("jam_mulai")
+  jamSelesai       TimeString @map("jam_selesai")
+  dibatalkanAlasan String?    @map("dibatalkan_alasan")
+  createdAt        TimestamptzString @default(now()) @map("created_at")
+  updatedAt        TimestamptzString @default(now()) @map("updated_at")
+
+  jadwalItem JadwalItem @relation(fields: [jadwalItemId], references: [id], onDelete: Restrict)
+  presensi   Presensi[]
+  peserta    PesertaSesi[]
+
+  @@unique([jadwalItemId, tanggalPertemuan])
+  @@index([tanggalPertemuan])
+  @@check(expression: "jam_mulai < jam_selesai", name: "sesi_jam_range")
+  @@map("sesi_pertemuan")
+}
+
+// Snapshot peserta per sesi: sumber daftar presensi, menggantikan filter
+// status pendaftaran saat ini. Diisi saat sesi dibuka/digenerate.
+model PesertaSesi {
+  id            Int          @id @default(autoincrement())
+  sesiId        Int          @map("sesi_id")
+  pendaftaranId Int          @map("pendaftaran_id")
+  statusDaftar  StatusPendaftaran @map("status_daftar")
+  createdAt     TimestamptzString @default(now()) @map("created_at")
+
+  sesi        SesiPertemuan @relation(fields: [sesiId], references: [id], onDelete: Cascade)
+  pendaftaran Pendaftaran   @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
+
+  @@unique([sesiId, pendaftaranId])
+  @@index([pendaftaranId])
+  @@map("peserta_sesi")
+}
+
+enum StatusPesan {
+ baru
+ diproses
+ selesai
+
+ @@map("status_pesan")
+}
+
+// A7 — pesan masuk dari formulir Kontak publik (non-registrasi).
+model PesanKontak {
+ id Int @id @default(autoincrement())
+ nama String
+ telepon String
+ email String
+ sekolah String?
+ jenjang Jenjang?
+ subjek String
+ pesan String
+ status StatusPesan @default(baru)
+ createdAt TimestamptzString @default(now()) @map("created_at")
+ updatedAt TimestamptzString @default(now()) @map("updated_at")
+
+ @@index([status])
+ @@index([createdAt])
+ @@map("pesan_kontak")
 }

@@ -28,9 +28,10 @@ export function ProgressRow({
   const wide = Math.max(0, Math.min(100, pct));
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="text-xs font-semibold uppercase text-muted">{label}</p>
-        <p className="text-sm font-bold tabular-nums">{value}</p>
+      <div className="flex items-baseline justify-between gap-2 sm:gap-3">
+        {/* min-w-0 + truncate: label panjang tidak mendorong/menabrak nilai di HP */}
+        <p className="min-w-0 truncate text-xs font-semibold uppercase text-muted">{label}</p>
+        <p className="shrink-0 text-sm font-bold tabular-nums">{value}</p>
       </div>
       <div
         className="mt-2 h-2 overflow-hidden rounded-full bg-slate-100"
@@ -42,7 +43,7 @@ export function ProgressRow({
       >
         <div className={`h-full rounded-full ${fill}`} style={{ width: `${wide}%` }} />
       </div>
-      {hint ? <p className="mt-1.5 text-xs text-muted">{hint}</p> : null}
+      {hint ? <p className="mt-1.5 text-pretty text-xs text-muted">{hint}</p> : null}
     </div>
   );
 }

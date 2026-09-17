@@ -1,6 +1,8 @@
 'use client';
+import { useTranslations, useLocale } from 'next-intl';
 
 import { useState } from 'react';
+import { getPathname } from '@/i18n/navigation';
 import { signIn } from 'next-auth/react';
 
 // Glyph Google — identik dengan desain tombol di LoginForm (verbatim).
@@ -40,6 +42,8 @@ export default function GoogleButton({
     enabled: boolean;
     title?: string;
 }) {
+    const t = useTranslations('auth');
+    const locale = useLocale();
     const [redirecting, setRedirecting] = useState(false);
 
     if (!enabled) {
@@ -47,7 +51,7 @@ export default function GoogleButton({
             <button
                 type="button"
                 disabled
-                title={title ?? 'Akan segera tersedia'}
+                title={title ?? t('soon')}
                 className="w-full border border-slate-200 text-slate-700 text-sm font-semibold py-3 rounded-lg flex items-center justify-center space-x-3 cursor-not-allowed opacity-60"
             >
                 <GoogleGlyph />
@@ -64,14 +68,14 @@ export default function GoogleButton({
                 setRedirecting(true);
                 // Provider tidak terdaftar (mis. env hilang setelah build) →
                 // next-auth client mengalihkan ke halaman signin bawaan (fallback aman).
-                void signIn('google', { redirectTo: '/' }).catch(() =>
+                void signIn('google', { redirectTo: getPathname({ href: '/', locale }) }).catch(() =>
                     setRedirecting(false),
                 );
             }}
             className="w-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold py-3 rounded-lg flex items-center justify-center space-x-3 transition-colors cursor-pointer disabled:opacity-60"
         >
             <GoogleGlyph />
-            <span>{redirecting ? 'Mengalihkan...' : label}</span>
+            <span>{redirecting ? t('redirecting') : label}</span>
         </button>
     );
 }

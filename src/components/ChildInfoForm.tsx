@@ -1,16 +1,25 @@
 'use client';
+import { useTranslations } from 'next-intl';
 
 import { useActionState, useState } from 'react';
 import { saveChildInfo, type ChildInfoState } from '@/app/actions/child-info';
 
 const initial: ChildInfoState = {};
 
-const JENJANG = [
-    { value: 'TK', label: 'TK' },
-    { value: 'SD', label: 'SD' },
-    { value: 'SMP', label: 'SMP' },
-    { value: 'SMA', label: 'SMA' },
-] as const;
+
+
+// Tanggal hari ini di zona WIB (server build bisa ber-Zona UTC: 00.30 WIB
+// masih "kemarin" kalau pakai toISOString bawaan UTC).
+function hariIniWIB(): string {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Jakarta',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).formatToParts(new Date());
+    const g = (t: string) => parts.find((p) => p.type === t)?.value ?? '';
+    return `${g('year')}-${g('month')}-${g('day')}`;
+}
 
 // Ikon inline kecil di kiri input — feather-style, stroke currentColor
 // (mengikuti bahasa ikon wizard: outline, bukan emoji).
@@ -48,6 +57,13 @@ export default function ChildInfoForm({
 }: {
     parentPhone?: string;
 }) {
+    const t = useTranslations('auth');
+    const JENJANG = [
+    { value: 'TK', label: t('TK') },
+    { value: 'SD', label: t('SD') },
+    { value: 'SMP', label: t('SMP') },
+    { value: 'SMA', label: t('SMA') },
+] as const;
     const [state, formAction, pending] = useActionState(saveChildInfo, initial);
     const errors = state.fieldErrors ?? {};
 
@@ -65,12 +81,9 @@ export default function ChildInfoForm({
 
     return (
         <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md">
-            <h2 className="text-2xl sm:text-[20px] sm:leading-[1.3] font-bold sm:font-semibold text-slate-900 text-center mb-2">
-                Lengkapi Informasi Profil Anak
+            <h2 className="text-2xl sm:text-[20px] sm:leading-[1.3] font-bold text-slate-900 mb-8">
+                {t('childTitle')}
             </h2>
-            <p className="text-sm text-body text-center mb-8">
-                Langkah 3 dari 3 — anak bisa dikelola kapan saja dari dashboard.
-            </p>
 
             <form action={formAction} className="space-y-5">
                 {/* Nama Lengkap Anak — wajib (ref: label + tanda bintang) */}
@@ -79,8 +92,8 @@ export default function ChildInfoForm({
                         htmlFor="nama"
                         className="block text-sm font-semibold text-slate-700 mb-2"
                     >
-                        Masukkan Nama Lengkap Anak{' '}
-                        <span className="text-rose-500" aria-hidden="true">
+                        {t('childFullName')}{' '}
+                        <span className="text-danger" aria-hidden="true">
                             *
                         </span>
                     </label>
@@ -94,7 +107,7 @@ export default function ChildInfoForm({
                             type="text"
                             required
                             autoComplete="off"
-                            placeholder="Masukkan Nama Lengkap Anak"
+                            placeholder={t('childFullName')}
                             defaultValue={state.nama ?? ''}
                             aria-invalid={errors.nama ? true : undefined}
                             aria-describedby={errors.nama ? 'nama-error' : undefined}
@@ -115,8 +128,8 @@ export default function ChildInfoForm({
                         htmlFor="tanggal_lahir"
                         className="block text-sm font-semibold text-slate-700 mb-2"
                     >
-                        Tanggal Lahir Anak{' '}
-                        <span className="text-rose-500" aria-hidden="true">
+                        {t('childBirth')}{' '}
+                        <span className="text-danger" aria-hidden="true">
                             *
                         </span>
                     </label>
@@ -129,7 +142,8 @@ export default function ChildInfoForm({
                             name="tanggal_lahir"
                             type="date"
                             required
-                            max={new Date().toISOString().slice(0, 10)}
+                            max={hariIniWIB()}
+                            defaultValue={state.tanggal_lahir ?? ''}
                             aria-invalid={errors.tanggal_lahir ? true : undefined}
                             aria-describedby={
                                 errors.tanggal_lahir ? 'tgl-error' : undefined
@@ -150,8 +164,8 @@ export default function ChildInfoForm({
                         htmlFor="jenjang_terakhir"
                         className="block text-sm font-semibold text-slate-700 mb-2"
                     >
-                        Pilih Kelas{' '}
-                        <span className="text-rose-500" aria-hidden="true">
+                        {t('selectClass')}{' '}
+                        <span className="text-danger" aria-hidden="true">
                             *
                         </span>
                     </label>
@@ -175,7 +189,7 @@ export default function ChildInfoForm({
                             className={`${inputBase} appearance-none cursor-pointer pr-10 bg-white`}
                         >
                             <option value="" disabled>
-                                Pilih Kelas
+                                {t('selectClass')}
                             </option>
                             {JENJANG.map((j) => (
                                 <option key={j.value} value={j.value}>
@@ -215,7 +229,7 @@ export default function ChildInfoForm({
                             htmlFor="hp_sama"
                             className="text-sm font-semibold text-slate-700 cursor-pointer"
                         >
-                            No. HP anak sama dengan orang tua
+                            {t('samePhone')}
                         </label>
                         {/* Checkbox hidup sebagai switch — nama form hp_sama
                             tidak dikirim ke action (bukan field schema) */}
@@ -244,7 +258,7 @@ export default function ChildInfoForm({
                             type="tel"
                             inputMode="tel"
                             autoComplete="off"
-                            placeholder="No. HP anak (opsional)"
+                            placeholder={t('childPhoneOptional')}
                             value={hpTerkunci ? parentPhone : hpValue}
                             onChange={(e) => setHpValue(e.target.value)}
                             readOnly={hpTerkunci}
@@ -257,9 +271,9 @@ export default function ChildInfoForm({
                     <p className="mt-1 text-xs text-slate-400">
                         {ortuPunyaHp
                             ? hpSama
-                                ? 'Nomor HP orang tua dipakai sebagai kontak anak.'
-                                : 'Kosongkan bila anak tidak punya nomor sendiri.'
-                            : 'Orang tua belum mengisi No. HP di langkah 2.'}
+                                ? t('parentPhoneUsed')
+                                : t('childPhoneEmpty')
+                            : t('parentPhoneMissing')}
                     </p>
                 </div>
 
@@ -269,9 +283,9 @@ export default function ChildInfoForm({
                         htmlFor="email_notifikasi"
                         className="block text-sm font-semibold text-slate-700 mb-2"
                     >
-                        Masukkan Email Anak{' '}
+                        {t('childEmail')}{' '}
                         <span className="font-normal text-slate-400">
-                            (Opsional)
+                            {t('optionalParen')}
                         </span>
                     </label>
                     <div className="relative">
@@ -283,7 +297,8 @@ export default function ChildInfoForm({
                             name="email_notifikasi"
                             type="email"
                             autoComplete="off"
-                            placeholder="Masukkan Email Anak (Opsional)"
+                            placeholder={t('childEmailOptional')}
+                            defaultValue={state.email_notifikasi ?? ''}
                             aria-invalid={
                                 errors.email_notifikasi ? true : undefined
                             }
@@ -317,7 +332,7 @@ export default function ChildInfoForm({
                     disabled={pending}
                     className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
                 >
-                    <span>{pending ? 'Memproses...' : 'Buat Profil Anak'}</span>
+                    <span>{pending ? t('processing') : t('createChild')}</span>
                     {!pending && (
                         <svg
                             className="w-5 h-5"

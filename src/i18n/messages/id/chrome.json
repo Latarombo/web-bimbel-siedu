@@ -1,0 +1,32 @@
+{
+  "nav": {
+    "classes": "Jelajah Kelas",
+    "about": "Tentang",
+    "contact": "Kontak",
+    "privacy": "Kebijakan Privasi",
+    "terms": "Ketentuan",
+    "login": "Masuk",
+    "signup": "Daftar",
+    "dashboard": "Dashboard",
+    "brandAria": "Siedu \u2014 beranda",
+    "menuOpen": "Buka menu",
+    "menuClose": "Tutup menu"
+  },
+  "footer": {
+    "desc": "Platform manajemen pembelajaran terintegrasi untuk masa depan pendidikan anak Anda.",
+    "program": "Program Belajar",
+    "company": "Perusahaan",
+    "help": "Bantuan",
+    "viewAll": "Lihat Semua Kelas",
+    "companyLinks": ["Tentang Kami", "Karier", "Pengajar Kami", "Blog", "Testimoni"],
+    "helpLinks": ["FAQ", "Kebijakan Privasi", "Syarat & Ketentuan", "Kontak Kami"],
+    "rights": "\u00a9 2026 Siedu. Seluruh hak cipta dilindungi.",
+    "brandAria": "Siedu \u2014 beranda"
+  },
+  "switcher": {
+    "label": "Ganti bahasa",
+    "listAria": "Pilih bahasa",
+    "id": "Bahasa Indonesia (ID)",
+    "en": "English (US)"
+  }
+}

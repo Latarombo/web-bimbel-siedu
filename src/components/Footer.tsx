@@ -1,12 +1,11 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
-import { getLang } from '@/lib/get-lang';
-import { chrome } from '@/lib/i18n';
+import { getTranslations } from 'next-intl/server';
+import { SITE } from '@/lib/site';
 import { LanguageSwitcher } from '@/components/language-switcher';
 
 const Footer = async () => {
-  const lang = await getLang();
-  const t = chrome[lang].footer;
+  const t = await getTranslations('chrome.footer');
   // Jenjang → halaman kelas + filter (route nyata).
   const programBelajar = [
     { name: 'TK', href: '/classes?jenjang=TK' },
@@ -16,18 +15,18 @@ const Footer = async () => {
   ];
 
   const perusahaan = [
-    { name: t.companyLinks[0], href: '/about' },
-    { name: t.companyLinks[1], href: '/career' },
-    { name: t.companyLinks[2], href: '/teachers' },
-    { name: t.companyLinks[3], href: '/blog' },
-    { name: t.companyLinks[4], href: '/testimonial' },
+    { name: t('companyLinks.0'), href: '/about' },
+    { name: t('companyLinks.1'), href: '/career' },
+    { name: t('companyLinks.2'), href: '/teachers' },
+    { name: t('companyLinks.3'), href: '/blog' },
+    { name: t('companyLinks.4'), href: '/testimonial' },
   ];
 
   const bantuan = [
-    { name: t.helpLinks[0], href: '/faq' },
-    { name: t.helpLinks[1], href: '/privacy-policy' },
-    { name: t.helpLinks[2], href: '/terms' },
-    { name: t.helpLinks[3], href: '/contact' },
+    { name: t('helpLinks.0'), href: '/faq' },
+    { name: t('helpLinks.1'), href: '/privacy-policy' },
+    { name: t('helpLinks.2'), href: '/terms' },
+    { name: t('helpLinks.3'), href: '/contact' },
   ];
 
   const sosial = [
@@ -84,13 +83,13 @@ const Footer = async () => {
           {/* Column 1: Brand & Contact */}
           <div className="sm:col-span-2 lg:col-span-5">
             {/* Logo */}
-            <Link href="/" className="inline-flex items-center" aria-label="Siedu — beranda">
+            <Link href="/" className="inline-flex items-center" aria-label={t('brandAria')}>
               <Image src="/images/Logo.png" alt="Siedu" width={140} height={42} className="h-9 w-auto" />
             </Link>
 
             {/* Description */}
             <p className="mt-5 text-sm leading-relaxed text-gray-600 max-w-sm">
-              {t.desc}
+              {t('desc')}
             </p>
 
             {/* Contact Info */}
@@ -112,8 +111,11 @@ const Footer = async () => {
                     d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                   />
                 </svg>
-                <a href="tel:+6281122334455" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">
-                  +62 811 2233 4455
+                <a
+                href={`tel:${SITE.telepon.replace(/[^+\d]/g, '')}`}
+                className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                >
+                {SITE.telepon}
                 </a>
               </li>
 
@@ -134,8 +136,8 @@ const Footer = async () => {
                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                   />
                 </svg>
-                <a href="mailto:halo@siedu.id" className="text-gray-600 hover:text-blue-600 transition-colors duration-200">
-                  halo@siedu.id
+                <a href={`mailto:${SITE.email}`} className="text-gray-600 hover:text-blue-600 transition-colors duration-200">
+                {SITE.email}
                 </a>
               </li>
 
@@ -162,21 +164,21 @@ const Footer = async () => {
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-                <span className="text-gray-600">
-                  Gedung Pendidikan Lt. 4
-                  <br />
-                  Jl. Jend. Sudirman Kav 1
-                  <br />
-                  Jakarta Selatan 12190
+                <address className="not-italic text-gray-600">
+                {SITE.alamat.map((baris) => (
+                <span key={baris} className="block">
+                {baris}
                 </span>
+                ))}
+                </address>
               </li>
             </ul>
           </div>
 
           {/* Column 2: Program Belajar */}
-          <nav aria-label={t.program} className="lg:col-span-2">
+          <nav aria-label={t('program')} className="lg:col-span-2">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-900">
-              {t.program}
+              {t('program')}
             </h3>
             <ul className="mt-5 space-y-3.5 text-sm">
               {programBelajar.map((item) => (
@@ -194,7 +196,7 @@ const Footer = async () => {
                   href="/classes"
                   className="text-blue-600 font-medium hover:text-blue-700 transition-colors duration-200 inline-flex items-center space-x-1"
                 >
-                  <span>{t.viewAll}</span>
+                  <span>{t('viewAll')}</span>
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -216,9 +218,9 @@ const Footer = async () => {
           </nav>
 
           {/* Column 3: Perusahaan */}
-          <nav aria-label={t.company} className="lg:col-span-2">
+          <nav aria-label={t('company')} className="lg:col-span-2">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-900">
-              {t.company}
+              {t('company')}
             </h3>
             <ul className="mt-5 space-y-3.5 text-sm">
               {perusahaan.map((item) => (
@@ -235,9 +237,9 @@ const Footer = async () => {
           </nav>
 
           {/* Column 4: Bantuan */}
-          <nav aria-label={t.help} className="lg:col-span-3">
+          <nav aria-label={t('help')} className="lg:col-span-3">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-900">
-              {t.help}
+              {t('help')}
             </h3>
             <ul className="mt-5 space-y-3.5 text-sm">
               {bantuan.map((item) => (
@@ -261,13 +263,13 @@ const Footer = async () => {
           <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-5 md:gap-4">
             {/* Copyright */}
             <p className="text-gray-500 text-sm order-last md:order-first">
-              {t.rights}
+              {t('rights')}
             </p>
 
             {/* Right Side: Language + Social Media */}
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               {/* Language Dropdown */}
-              <LanguageSwitcher current={lang} />
+              <LanguageSwitcher />
 
               {/* Social Media Icons */}
               <ul className="flex flex-wrap items-center justify-center gap-2.5">

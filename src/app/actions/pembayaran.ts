@@ -2,6 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { getTranslations } from "next-intl/server";
+import { getLocaleDariCookie } from "@/i18n/locale";
+import { getPathname } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
@@ -19,20 +22,22 @@ export async function mulaiPembayaran(
   _prev: PayState,
   formData: FormData,
 ): Promise<PayState> {
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({ locale, namespace: "adminForms" });
   const session = await auth();
   if (!session?.user || session.user.role !== "orang_tua")
-    return { ok: false, error: "Sesi berakhir. Masuk ulang." };
+    return { ok: false, error: t("validation.session") };
 
   const pembayaranId = Number(formData.get("pembayaran_id"));
   if (!Number.isInteger(pembayaranId))
-    return { ok: false, error: "Tagihan tidak valid." };
+    return { ok: false, error: t("payment.invalid") };
 
   const [b] = await collect(
     db.orm.public.Pembayaran.where((x) => x.id.eq(pembayaranId)).all(),
   );
-  if (!b) return { ok: false, error: "Tagihan tidak ditemukan." };
+  if (!b) return { ok: false, error: t("payment.missing") };
   if (b.status === "berhasil")
-    return { ok: false, error: "Tagihan ini sudah lunas." };
+    return { ok: false, error: t("payment.paid") };
 
   const [p] = await collect(
     db.orm.public.Pendaftaran.where((x) => x.id.eq(b.pendaftaranId)).all(),
@@ -41,7 +46,7 @@ export async function mulaiPembayaran(
     ? await collect(db.orm.public.Anak.where((x) => x.id.eq(p.anakId)).all())
     : [];
   if (!a || a.orangTuaId !== Number(session.user.id))
-    return { ok: false, error: "Tagihan ini bukan milik akun Anda." };
+    return { ok: false, error: t("payment.ownership") };
 
   const origin = process.env.AUTH_URL ?? "http://localhost:3000";
   try {
@@ -50,8 +55,12 @@ export async function mulaiPembayaran(
       grossAmount: Number(b.jumlah),
       email: session.user.email ?? undefined,
       firstName: session.user.name ?? undefined,
-      description: `Siedu ${b.tipe === "cicilan" ? `cicilan ke-${b.cicilanKe}` : b.tipe} — ${a.nama}`,
-      finishUrl: `${origin}/enrollments/${b.pendaftaranId}/payment-result?pembayaran=${pembayaranId}`,
+      description: t("payment.description", {
+        type: b.tipe === "cicilan" ? t("payment.installment", { number: b.cicilanKe ?? 0 })
+          : b.tipe === "dp" || b.tipe === "lunas" ? t(`payment.${b.tipe}`) : b.tipe,
+        name: a.nama,
+      }),
+      finishUrl: `${origin}${getPathname({ locale, href: `/enrollments/${b.pendaftaranId}/payment-result` })}?pembayaran=${pembayaranId}`,
     });
     return { ok: true, url: snap.redirect_url };
   } catch (e) {
@@ -59,7 +68,7 @@ export async function mulaiPembayaran(
     return {
       ok: false,
       error:
-        "Pintu pembayaran tidak bisa dihubungi. Coba lagi, atau gunakan instruksi transfer manual.",
+        t("payment.gateway"),
     };
   }
 }
@@ -104,7 +113,7 @@ export async function konfirmasiManual(formData: FormData): Promise<void> {
 
 export type BatalState = { ok?: boolean; error?: string };
 
-const batalSchema = z.object({
+const batalSchema = (t: Awaited<ReturnType<typeof getTranslations>>) => z.object({
   pendaftaran_id: z.coerce.number().int().positive(),
   kategori: z.enum([
     "kesalahan_sistem",
@@ -112,8 +121,8 @@ const batalSchema = z.object({
     "salah_rekening",
     "salah_pilih_kelas",
     "lainnya",
-  ]),
-  alasan: z.string().trim().min(10, "Jelaskan minimal 10 karakter.").max(1000),
+  ], t("validation.invalid")),
+  alasan: z.string().trim().min(10, t("validation.reasonMin")).max(1000, t("validation.reasonMax")),
 });
 
 /**
@@ -126,31 +135,33 @@ export async function ajukanPembatalan(
   _prev: BatalState,
   formData: FormData,
 ): Promise<BatalState> {
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({ locale, namespace: "adminForms" });
   const session = await auth();
   if (!session?.user || session.user.role !== "orang_tua")
-    return { error: "Sesi berakhir. Masuk ulang." };
+    return { error: t("validation.session") };
 
-  const parsed = batalSchema.safeParse({
+  const parsed = batalSchema(t).safeParse({
     pendaftaran_id: formData.get("pendaftaran_id"),
     kategori: formData.get("kategori"),
     alasan: formData.get("alasan"),
-  });
+  }, { error: () => t("validation.invalid") });
   if (!parsed.success)
-    return { error: parsed.error.issues[0]?.message ?? "Isian tidak valid." };
+    return { error: parsed.error.issues[0]?.message ?? t("validation.invalid") };
   const { pendaftaran_id, kategori, alasan } = parsed.data;
 
   const [p] = await collect(
     db.orm.public.Pendaftaran.where((x) => x.id.eq(pendaftaran_id)).all(),
   );
-  if (!p) return { error: "Pendaftaran tidak ditemukan." };
+  if (!p) return { error: t("payment.enrollmentMissing") };
   if (!["menunggu_pembayaran", "terdaftar", "tertunggak"].includes(p.status))
-    return { error: "Pendaftaran ini sudah berakhir — tidak bisa dibatalkan." };
+    return { error: t("payment.ended") };
 
   const [a] = await collect(
     db.orm.public.Anak.where((x) => x.id.eq(p.anakId)).all(),
   );
   if (!a || a.orangTuaId !== Number(session.user.id))
-    return { error: "Pendaftaran ini bukan milik akun Anda." };
+    return { error: t("payment.enrollmentOwnership") };
 
   const antrian = await collect(
     db.orm.public.PengajuanPembatalan.where((x) =>
@@ -158,7 +169,7 @@ export async function ajukanPembatalan(
     ).all(),
   );
   if (antrian.some((x) => x.status === "menunggu"))
-    return { error: "Pengajuan masih menunggu keputusan admin." };
+    return { error: t("payment.awaiting") };
 
   try {
     await db.orm.public.PengajuanPembatalan.create({
@@ -169,7 +180,7 @@ export async function ajukanPembatalan(
     });
   } catch (e) {
     if (e instanceof Error && e.message.includes("pengajuan_menunggu_unik"))
-      return { error: "Pengajuan masih menunggu keputusan admin." };
+      return { error: t("payment.awaiting") };
     throw e;
   }
   revalidatePath("/admin/refunds");
