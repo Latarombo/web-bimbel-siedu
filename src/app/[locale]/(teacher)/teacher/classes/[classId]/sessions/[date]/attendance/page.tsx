@@ -1,24 +1,35 @@
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { getTranslations, getLocale } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { notFound } from "next/navigation";
+import { redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { hariDariTanggal, dalamJendela7Hari } from "@/lib/hari";
-import { Card, CardPad } from "@/components/ui/card";
+import { hariDariTanggal, dalamJendela7Hari, tanggalValid } from "@/lib/hari";
+import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
+import { PageShell, PageHeader, Panel } from "@/components/admin/ui";
 import PresensiForm from "@/components/teacher/presensi-form";
 
 export const dynamic = "force-dynamic";
 
+const STATUS_WARN = new Set(["izin", "sakit", "alpa"]);
+
 export default async function AttendancePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ classId: string; date: string }>;
+  searchParams: Promise<{ sesi?: string }>;
 }) {
+  const t = await getTranslations("teacher");
+  const locale = await getLocale();
   const session = await auth();
-  if (!session?.user) redirect("/login?next=/teacher/classes");
+  if (!session?.user) return redirect({ href: "/login?next=/teacher/classes", locale });
   const { classId, date } = await params;
+  const { sesi: sesiParam } = await searchParams;
   const kid = Number(classId);
-  if (!Number.isInteger(kid) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) notFound();
+  if (!Number.isInteger(kid) || kid <= 0 || !tanggalValid(date)) notFound();
   const guruId = Number(session.user.id);
 
   const [kelas] = await collect(
@@ -26,75 +37,171 @@ export default async function AttendancePage({
       .where((k) => k.guruId.eq(guruId))
       .all(),
   );
-  if (!kelas) notFound();
+  if (!kelas || kelas.status === "dibatalkan") notFound();
+  const [periode] = await collect(
+    db.orm.public.PeriodePendaftaran.where((p) => p.id.eq(kelas.periodeId)).all(),
+  );
+  if (!periode || date < periode.tanggalMulai || date > periode.tanggalSelesai) notFound();
 
   const jadwal = await collect(
     db.orm.public.JadwalItem.where((j) => j.kelasId.eq(kid)).all(),
   );
   const hari = hariDariTanggal(date);
-  const item = jadwal.find((j) => j.hari === hari);
+  const tanggal = date;
+
+  const mapel = await collect(db.orm.public.MataPelajaran.where((m) => m.id.eq(kelas.mataPelajaranId)).all());
+  const kelasLabel = `${mapel[0]?.nama ?? t("class")} · ${kelas.jenjang}`;
+  const sesiTanggal = await collect(
+    db.orm.public.SesiPertemuan.where((s) => s.jadwalItemId.in(jadwal.map((j) => j.id)))
+      .where((s) => s.tanggalPertemuan.eq(tanggal)).all(),
+  );
+  const sesiBySlot = new Map(sesiTanggal.map((s) => [s.jadwalItemId, s]));
+  // A stored occurrence remains valid after the recurring weekday changes.
+  const cocokTanggal = (j: (typeof jadwal)[number]) => j.hari === hari || sesiBySlot.has(j.id);
+  const sesiDipilih = sesiParam ? jadwal.find((j) => String(j.id) === sesiParam && cocokTanggal(j)) : undefined;
+  if (sesiParam !== undefined && !sesiDipilih) notFound();
+  const item = sesiDipilih ?? jadwal.find((j) => cocokTanggal(j) && sesiBySlot.get(j.id)?.statusSesi !== "dibatalkan");
+  const sesiHariIni = jadwal.filter(cocokTanggal)
+    .filter((j) => sesiBySlot.get(j.id)?.statusSesi !== "dibatalkan")
+    .map((j) => {
+      const tersimpan = sesiBySlot.get(j.id);
+      return { ...j, jamMulai: tersimpan?.jamMulai ?? j.jamMulai, jamSelesai: tersimpan?.jamSelesai ?? j.jamSelesai };
+    });
+
   if (!item) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-10">
-        <Card>
-          <CardPad>
-            <p className="text-sm text-muted">
-              Tanggal {date} bukan hari mengajar kelas ini (jadwal: {jadwal.map((j) => j.hari).join(", ") || "-"}).
+      <PageShell>
+        <PageHeader backHref={`/teacher/classes/${kid}`} title={t("attendanceTitle", { day: t(`day_${hari}`), date: new Date(`${date}T00:00:00+07:00`).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", { timeZone: "Asia/Jakarta" }) })} desc={kelasLabel} />
+        <Panel className="mt-6">
+          <div className="px-4 py-14 text-center sm:px-6">
+            <p className="text-sm font-bold text-slate-900">{t("notTeachingDate", { date })}</p>
+            <p className="mt-1 text-[13px] text-slate-500">
+              {t("classSchedule", { schedule: jadwal.map((j) => t(`day_${j.hari}`)).join(", ") || t("notScheduledAdmin") })}
             </p>
-            <Link href={`/teacher/classes/${kid}`} className="mt-3 inline-block text-sm font-semibold text-brand underline">
-              ← Kembali ke kelas
-            </Link>
-          </CardPad>
-        </Card>
-      </div>
+            <div className="mt-4 flex justify-center gap-2">
+              <ButtonLink href={`/teacher/classes/${kid}`} variant="outline">{t("backToClass")}</ButtonLink>
+            </div>
+          </div>
+        </Panel>
+      </PageShell>
     );
   }
 
-  const [siswa, existing] = await Promise.all([
+  const sesiTersimpan = sesiBySlot.get(item.id);
+  if (sesiTersimpan?.statusSesi === "dibatalkan") notFound();
+
+  const [pendaftaranKelas, existing, semuaAnak] = await Promise.all([
     collect(
-      db.orm.public.Pendaftaran.where((p) => p.kelasId.eq(kid))
-        .where((p) => p.status.in(["terdaftar", "tertunggak"]))
-        .all(),
+      db.orm.public.Pendaftaran.where((p) => p.kelasId.eq(kid)).all(),
     ),
     collect(
       db.orm.public.Presensi.where((x) => x.jadwalItemId.eq(item.id))
-        .where((x) => x.tanggalPertemuan.eq(date))
+        .where((x) => x.tanggalPertemuan.eq(tanggal))
         .all(),
     ),
+    collect(db.orm.public.Anak.all()),
   ]);
+  const anakById = new Map(semuaAnak.map((a) => [a.id, a]));
 
   const existingMap = new Map(existing.map((e) => [e.pendaftaranId, e]));
-  const anakList = await Promise.all(
-    siswa.map(async (s) => {
-      const [a] = await collect(db.orm.public.Anak.where((x) => x.id.eq(s.anakId)).all());
-      const lama = existingMap.get(s.id);
-      return {
-        pendaftaranId: s.id,
-        nama: a?.nama ?? `Anak #${s.anakId}`,
-        status: lama?.status,
-        catatan: lama?.catatan ?? "",
-        terkunci: lama ? !dalamJendela7Hari(lama.createdAt) : false,
-      };
-    }),
+  // Preserve pupils with recorded attendance for this date after withdrawal.
+  const siswa = pendaftaranKelas.filter((p) =>
+    p.status === "terdaftar" || p.status === "tertunggak" || existingMap.has(p.id),
   );
+  const anakList = siswa.map((s) => {
+    const lama = existingMap.get(s.id);
+    return {
+      pendaftaranId: s.id,
+      nama: anakById.get(s.anakId)?.nama ?? t("childFallback", { id: s.anakId }),
+      status: lama?.status,
+      catatan: lama?.catatan ?? "",
+      terkunci: lama ? !dalamJendela7Hari(lama.createdAt) : false,
+    };
+  });
+
+  const terisi = existing.length;
+  const perluPerhatian = existing.filter((x) => STATUS_WARN.has(x.status)).length;
+  const terkunciN = anakList.filter((a) => a.terkunci).length;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <p className="text-sm text-muted">
-        <Link href={`/teacher/classes/${kid}`} className="underline">← Kelas</Link>
-      </p>
-      <header className="mt-3">
-        <h1 className="text-2xl font-bold tracking-tight">
-          Presensi {hari}, {date}
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          {item.jamMulai}–{item.jamSelesai} · {siswa.length} siswa
-        </p>
-      </header>
+    <PageShell>
+      <PageHeader
+        backHref={`/teacher/classes/${kid}`}
+        title={t("attendanceTitle", { day: t(`day_${hari}`), date: new Date(`${date}T00:00:00+07:00`).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", { timeZone: "Asia/Jakarta" }) })}
+        desc={t("attendanceDescription", { class: kelasLabel, start: (sesiTersimpan?.jamMulai ?? item.jamMulai).slice(0, 5), end: (sesiTersimpan?.jamSelesai ?? item.jamSelesai).slice(0, 5) })}
+        meta={t("filledRatio", { count: terisi, total: siswa.length })}
+      />
 
-      <div className="mt-6">
-        <PresensiForm kelasId={kid} jadwalItemId={item.id} tanggal={date} siswa={anakList} />
+      {sesiHariIni.length > 1 ? (
+        <nav aria-label={t("chooseTodaySession")} className="mt-4 flex flex-wrap gap-2">
+          {sesiHariIni.map((j) => (
+            <Link
+              key={j.id}
+              href={`/teacher/classes/${kid}/sessions/${date}/attendance?sesi=${j.id}`}
+              aria-current={j.id === item.id ? "page" : undefined}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
+                j.id === item.id
+                  ? "bg-slate-900 text-white"
+                  : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              <span className="tabular-nums">{j.jamMulai.slice(0, 5)}–{j.jamSelesai.slice(0, 5)}</span>
+            </Link>
+          ))}
+        </nav>
+      ) : null}
+
+      <div className="mt-4 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_17rem]">
+        <Panel>
+          <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
+            <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("attendanceList")}</h2>
+            <p className="text-xs text-slate-500">
+              {t("attendanceHelp")}
+            </p>
+          </div>
+          <div className="p-4 sm:p-6">
+            <PresensiForm kelasId={kid} jadwalItemId={item.id} tanggal={tanggal} siswa={anakList} />
+          </div>
+        </Panel>
+
+        <div className="flex flex-col gap-4 lg:sticky lg:top-6">
+          <Panel>
+            <div className="p-4 sm:p-6">
+              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("thisSession")}</h2>
+              <dl className="mt-3 space-y-2.5 text-sm">
+                {[
+                  [t("filled"), t("ofTotal", { count: terisi, total: siswa.length })],
+                  [t("needsAttention"), t("attentionCount", { count: perluPerhatian })],
+                  [t("notRecorded"), t("studentsCount", { count: Math.max(0, siswa.length - terisi) })],
+                ].map(([k, v]) => (
+                  <div key={k} className="flex items-baseline justify-between gap-3">
+                    <dt className="text-slate-500">{k}</dt>
+                    <dd className="font-bold tabular-nums text-slate-900">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+              {terisi === siswa.length && siswa.length > 0 ? (
+                <Badge tone="emerald">{t("sessionAttendanceComplete")}</Badge>
+              ) : null}
+            </div>
+          </Panel>
+
+          <Panel>
+            <div className="p-4 text-[13px] leading-relaxed text-slate-600 sm:p-6">
+              <p className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("sevenDayRule")}</p>
+              <p className="mt-2">
+                {t("sevenDayHelp")}
+                {terkunciN > 0
+                  ? t("sessionLockedCount", { count: terkunciN })
+                  : t("noSessionLocked")}
+              </p>
+              <Link href="/teacher/corrections" className="mt-3 inline-block font-semibold text-blue-700 hover:underline">
+                {t("viewCorrectionFlow")}
+              </Link>
+            </div>
+          </Panel>
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

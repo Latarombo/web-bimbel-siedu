@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import { Field, Input } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
@@ -26,10 +27,11 @@ export default function PresensiForm({
   tanggal: string;
   siswa: SiswaPresensi[];
 }) {
+  const t = useTranslations("teacher");
   const [state, formAction, pending] = useActionState(savePresensi, initial);
 
   if (siswa.length === 0)
-    return <p className="text-sm text-muted">Belum ada siswa terdaftar di sesi ini.</p>;
+    return <p className="text-sm text-muted">{t("noSessionStudents")}</p>;
 
   return (
     <form action={formAction} className="space-y-4" noValidate>
@@ -45,27 +47,27 @@ export default function PresensiForm({
                 <p className="font-semibold">{s.nama}</p>
                 {s.terkunci ? (
                   <span className="text-xs font-medium text-amber-700">
-                    Terkunci — koreksi via admin (BR#18)
+                    {t("lockedAdminRule")}
                   </span>
                 ) : null}
               </div>
               <fieldset className="mt-3" disabled={s.terkunci}>
-                <legend className="sr-only">Status presensi {s.nama}</legend>
+                <legend className="sr-only">{t("attendanceStudentLabel", { name: s.nama })}</legend>
                 <div className="flex flex-wrap gap-4">
                   {STATUS.map((st) => (
-                    <label key={st} className="inline-flex items-center gap-1.5 text-sm">
+                    <label key={t(`status_${st}`)} className="inline-flex min-h-11 items-center gap-1.5 text-sm">
                       <input
                         type="radio"
                         name={`presensi_${s.pendaftaranId}`}
                         value={st}
                         defaultChecked={(s.status ?? "hadir") === st}
                       />
-                      {st}
+                      {t(`status_${st}`)}
                     </label>
                   ))}
                 </div>
               </fieldset>
-              <Field label="Catatan (opsional)">
+              <Field label={t("notesOptional")}>
                 <Input name={`catatan_${s.pendaftaranId}`} defaultValue={s.catatan ?? ""} disabled={s.terkunci} />
               </Field>
             </div>
@@ -77,11 +79,11 @@ export default function PresensiForm({
         <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{state.error}</p>
       ) : null}
       {state.ok && !state.error ? (
-        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700" role="status">Presensi tersimpan.</p>
+        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700" role="status">{t("attendanceSaved")}</p>
       ) : null}
-      <Button type="submit" disabled={pending}>{pending ? "Menyimpan…" : "Simpan presensi"}</Button>
+      <Button type="submit" disabled={pending}>{pending ? t("saving") : t("saveAttendance")}</Button>
       <p className="text-xs text-muted">
-        Catatan panjang siswa diinput lewat halaman nilai. Entri &gt;7 hari tidak bisa diedit di sini (BR#18).
+        {t("attendanceFormHelp")}
       </p>
     </form>
   );

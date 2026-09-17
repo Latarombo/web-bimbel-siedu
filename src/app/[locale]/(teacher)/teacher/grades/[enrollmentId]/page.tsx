@@ -1,11 +1,13 @@
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { getTranslations, getLocale } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
+import { notFound } from "next/navigation";
+import { redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { dalamJendela7Hari } from "@/lib/hari";
-import { Card, CardPad } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { PageShell, PageHeader, Panel } from "@/components/admin/ui";
 import NilaiForm from "@/components/teacher/nilai-form";
 
 export const dynamic = "force-dynamic";
@@ -15,8 +17,10 @@ export default async function GradeInputPage({
 }: {
   params: Promise<{ enrollmentId: string }>;
 }) {
+  const t = await getTranslations("teacher");
+  const locale = await getLocale();
   const session = await auth();
-  if (!session?.user) redirect("/login?next=/teacher/grades");
+  if (!session?.user) return redirect({ href: "/login?next=/teacher/grades", locale });
   const { enrollmentId } = await params;
   const pid = Number(enrollmentId);
   if (!Number.isInteger(pid)) notFound();
@@ -34,74 +38,143 @@ export default async function GradeInputPage({
   );
   if (!kelas) notFound();
 
-  const [anak] = await collect(db.orm.public.Anak.where((a) => a.id.eq(p.anakId)).all());
-  const nilai = await collect(
-    db.orm.public.NilaiProgres.where((n) => n.pendaftaranId.eq(pid))
-      .orderBy((n) => n.tanggal.desc())
-      .all(),
-  );
+  const [mapel, anak, nilai, presensi] = await Promise.all([
+    collect(db.orm.public.MataPelajaran.where((m) => m.id.eq(kelas.mataPelajaranId)).all()),
+    collect(db.orm.public.Anak.where((a) => a.id.eq(p.anakId)).all()),
+    collect(
+      db.orm.public.NilaiProgres.where((n) => n.pendaftaranId.eq(pid))
+        .orderBy((n) => n.tanggal.desc())
+        .all(),
+    ),
+    collect(db.orm.public.Presensi.where((x) => x.pendaftaranId.eq(pid)).all()),
+  ]);
+  const nama = anak[0]?.nama ?? t("childFallback", { id: p.anakId });
+  const nHadir = presensi.filter((x) => x.status === "hadir").length;
+  const editable = nilai.filter((n) => dalamJendela7Hari(n.createdAt)).length;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
-      <p className="text-sm text-muted">
-        <Link href="/teacher/grades" className="underline">← Nilai & Progres</Link>
-      </p>
-      <header className="mt-3">
-        <h1 className="text-2xl font-bold tracking-tight">{anak?.nama ?? `Anak #${p.anakId}`}</h1>
-        <p className="mt-1 text-sm text-muted">Status {p.status}</p>
-      </header>
+    <PageShell>
+      <PageHeader
+        backHref="/teacher/grades"
+        title={nama}
+        desc={t("gradeStudentDescription", { subject: mapel[0]?.nama ?? t("class"), level: kelas.jenjang, status: t(`status_${p.status}`) })}
+        meta={t("gradeEntriesCount", { count: nilai.length })}
+      />
 
-      <section className="mt-8">
-        <h2 className="text-lg font-bold">Input nilai baru</h2>
-        <div className="mt-3">
-          <NilaiForm pendaftaranId={pid} />
+      <div className="mt-6 grid items-start gap-5 lg:grid-cols-[20rem_minmax(0,1fr)]">
+        {/* KIRI: kartu siswa + form entri — kolom aksi dulu di desktop lebar? tidak:
+            referensi (Kuest) menaruh form di kiri, riwayat di kanan. */}
+        <div className="flex flex-col gap-4 lg:sticky lg:top-6">
+          <Panel>
+            <div className="p-4 sm:p-6">
+              <div className="flex items-center gap-3">
+                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-blue-100 text-base font-bold text-blue-800">
+                  {nama.trim().charAt(0).toUpperCase()}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate font-display text-[15px] font-bold tracking-tight text-slate-900">{nama}</p>
+                  <p className="text-xs text-slate-500">{t("enrollmentId", { id: p.id })}</p>
+                </div>
+              </div>
+              <dl className="mt-4 space-y-2.5 border-t border-slate-100 pt-4 text-sm">
+                {[
+                  [t("recordedAttendance"), t("sessionsCount", { count: presensi.length })],
+                  [t("present"), t("sessionsCount", { count: nHadir })],
+                  [t("editable"), t("editableCount", { count: editable })],
+                ].map(([k, v]) => (
+                  <div key={k} className="flex items-baseline justify-between gap-3">
+                    <dt className="text-slate-500">{k}</dt>
+                    <dd className="font-bold tabular-nums text-slate-900">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </Panel>
+
+          <Panel>
+            <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
+              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("newGradeEntry")}</h2>
+              <p className="text-xs text-slate-500">{t("gradeInputHelp")}</p>
+            </div>
+            <div className="p-4 sm:p-6">
+              <NilaiForm pendaftaranId={pid} />
+            </div>
+          </Panel>
         </div>
-      </section>
 
-      <section className="mt-10">
-        <h2 className="text-lg font-bold">Riwayat ({nilai.length})</h2>
-        {nilai.length === 0 ? (
-          <p className="mt-3 text-sm text-muted">Belum ada entri.</p>
-        ) : (
-          <ul className="mt-3 grid gap-3">
-            {nilai.map((n) => {
-              const terkunci = !dalamJendela7Hari(n.createdAt);
-              return (
-                <li key={n.id}>
-                  <Card>
-                    <CardPad>
-                      <div className="flex flex-wrap items-start justify-between gap-2">
+        {/* KANAN: riwayat linimasa */}
+        <Panel>
+          <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
+            <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("gradeHistory")}</h2>
+            <p className="text-xs text-slate-500">{t("historyHelp")}</p>
+          </div>
+          {nilai.length === 0 ? (
+            <div className="px-4 py-14 text-center sm:px-6">
+              <p className="text-sm font-bold text-slate-900">{t("noStudentEntries")}</p>
+              <p className="mt-1 text-[13px] text-slate-500">{t("firstProgressHelp")}</p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {nilai.map((n) => {
+                const terkunci = !dalamJendela7Hari(n.createdAt);
+                const v = n.nilaiKuantitatif == null ? null : Number(n.nilaiKuantitatif);
+                return (
+                  <li key={n.id} className="px-4 py-5 sm:px-6">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-3">
+                        <span className="font-display text-lg font-extrabold tabular-nums tracking-tight text-slate-900">
+                          {v != null ? v : "—"}
+                        </span>
                         <div>
-                          <p className="text-sm font-semibold">
-                            {n.tanggal}
-                            {n.nilaiKuantitatif != null ? ` — nilai ${Number(n.nilaiKuantitatif)}` : ""}
+                          <p className="text-sm font-semibold text-slate-900">{new Date(`${n.tanggal}T00:00:00+07:00`).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", { timeZone: "Asia/Jakarta" })}</p>
+                          <p className="text-xs text-slate-500">
+                            {terkunci ? t("lockedAdmin") : t("editableWindow")}
                           </p>
-                          {n.catatanKualitatif ? (
-                            <p className="mt-1 whitespace-pre-line text-sm text-muted">{n.catatanKualitatif}</p>
-                          ) : null}
                         </div>
-                        {terkunci ? (
-                          <Badge>Kunci — koreksi via admin</Badge>
-                        ) : (
+                      </div>
+                      {v != null ? (
+                        <Badge tone={v >= 75 ? "emerald" : "brand"}>{v >= 75 ? t("good") : t("needsSupport")}</Badge>
+                      ) : (
+                        <Badge tone="slate">{t("notesOnly")}</Badge>
+                      )}
+                    </div>
+                    {n.catatanKualitatif ? (
+                      <p className="mt-2.5 whitespace-pre-line break-words rounded-xl bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-700">
+                        {n.catatanKualitatif}
+                      </p>
+                    ) : null}
+                    {!terkunci ? (
+                      <details className="mt-3 group">
+                        <summary className="cursor-pointer list-none text-sm font-semibold text-blue-700 hover:underline">
+                          {t("editEntry")}
+                        </summary>
+                        <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
                           <NilaiForm
                             pendaftaranId={pid}
                             nilaiId={n.id}
                             defaults={{
                               tanggal: n.tanggal,
-                              nilai: n.nilaiKuantitatif == null ? "" : String(Number(n.nilaiKuantitatif)),
+                              nilai: v == null ? "" : String(v),
                               catatan: n.catatanKualitatif ?? "",
                             }}
                           />
-                        )}
-                      </div>
-                    </CardPad>
-                  </Card>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-    </div>
+                        </div>
+                      </details>
+                    ) : null}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          <p className="border-t border-slate-100 px-4 py-3 text-xs leading-relaxed text-slate-500 sm:px-6">
+            {t("needLockedCorrection")}{" "}
+            <Link href="/teacher/corrections" className="font-semibold text-blue-700 hover:underline">
+              {t("viewAdminCorrection")}
+            </Link>
+            .
+          </p>
+        </Panel>
+      </div>
+    </PageShell>
   );
 }
