@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { mulaiPembayaran, type PayState } from "@/app/actions/pembayaran";
 
@@ -15,6 +16,7 @@ export default function MidtransPayButton({
   pembayaranId: number;
   label: string;
 }) {
+  const tr = useTranslations("parent");
   const [state, formAction, pending] = useActionState<PayState, FormData>(
     mulaiPembayaran,
     {
@@ -35,7 +37,7 @@ export default function MidtransPayButton({
     <form action={formAction}>
       <input type="hidden" name="pembayaran_id" value={pembayaranId} />
       <Button type="submit" className="w-full" disabled={pending}>
-        {pending ? "Menyiapkan pembayaran…" : label}
+        {pending ? tr("text190") : label}
       </Button>
       {!state.ok && state.error ? (
         <p

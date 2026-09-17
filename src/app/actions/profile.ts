@@ -1,19 +1,20 @@
 'use server';
+import { getTranslations } from 'next-intl/server';
+import { getLocaleDariCookie } from '@/i18n/locale';
 
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { db } from '@/prisma/db';
 
-const schema = z.object({
-  name: z.string().trim().min(2, 'Nama minimal 2 karakter'),
-  alamat: z.string().trim().max(500, 'Alamat maksimal 500 karakter').optional().or(z.literal('')),
+const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
+  name: z.string({error: t('invalidField')}).trim().min(2, t('nameMin')),
+  alamat: z.string({error: t('invalidField')}).trim().max(500, t('addressMax')).optional().or(z.literal('')),
   nomor_telepon: z
-    .string()
+    .string({error: t('invalidField')})
     .trim()
-    .max(30, 'Nomor maksimal 30 karakter')
-    .regex(/^[0-9+\-\s()]*$/, 'Nomor hanya angka, spasi, + atau -')
-    .optional()
-    .or(z.literal('')),
+    .min(8, t('phoneRequired'))
+    .max(30, t('phoneMax'))
+    .regex(/^[0-9+\-\s()]*$/, t('phoneCharacters')),
 });
 
 export type ProfileState = {
@@ -31,27 +32,29 @@ export async function updateProfile(
   _prev: ProfileState,
   formData: FormData,
 ): Promise<ProfileState> {
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({locale, namespace: 'auth'});
   const session = await auth();
   if (!session?.user || session.user.role !== 'orang_tua')
-    return { error: 'Sesi berakhir. Masuk ulang.' };
+    return { error: t('sessionExpired') };
 
   const raw = {
     name: String(formData.get('name') ?? ''),
     alamat: String(formData.get('alamat') ?? ''),
     nomor_telepon: String(formData.get('nomor_telepon') ?? ''),
   };
-  const parsed = schema.safeParse(raw);
+  const parsed = schema(t).safeParse(raw);
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
     for (const issue of parsed.error.issues)
       fieldErrors[String(issue.path[0])] ??= issue.message;
-    return { error: 'Periksa lagi isian profil.', fieldErrors, ...raw };
+    return { error: t('checkProfile'), fieldErrors, ...raw };
   }
 
   await db.orm.public.User.where({ id: Number(session.user.id) }).update({
     name: parsed.data.name,
     alamat: parsed.data.alamat || null,
-    nomorTelepon: parsed.data.nomor_telepon || null,
+    nomorTelepon: parsed.data.nomor_telepon,
   });
   return { ok: true, name: parsed.data.name, alamat: raw.alamat, nomor_telepon: raw.nomor_telepon };
 }

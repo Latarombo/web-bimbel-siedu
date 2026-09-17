@@ -43,6 +43,9 @@ export const prismaNextAdapter: Adapter = {
       name: name ?? email.split('@')[0],
       email,
       password: crypto.randomUUID(),
+      // BR#32: NOT NULL — diisi user di step 2 account-info (akun Google
+      // melewati step 1, consent+nomor ditagih di sana).
+      nomorTelepon: '',
     });
     return toAdapterUser(row);
   },

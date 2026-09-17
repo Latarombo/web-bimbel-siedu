@@ -1,13 +1,15 @@
 'use client';
 
-import Link from 'next/link';
-import { logout } from '@/app/actions/login';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
+import { LanguageSwitcher } from '@/components/language-switcher';
 
 interface ProfilePopoverProps {
   userName?: string;
   role: string;
   /** Dipanggil setelah item diklik supaya dropdown tertutup. */
   onNavigate: () => void;
+  onLogout: () => void;
 }
 
 // Path ikon feather-style (stroke, 24x24 viewBox) — konvensi sama dgn DashboardNavbar.
@@ -50,10 +52,13 @@ const dividerCls = 'mx-2 my-1 h-px bg-slate-100';
  * Terpasang di DashboardNavbar (saat ini hanya role Orang Tua).
  */
 const ProfilePopover: React.FC<ProfilePopoverProps> = ({
-  userName = 'Pengguna',
+  userName: suppliedUserName,
   role,
   onNavigate,
+  onLogout,
 }) => {
+  const t = useTranslations('shared.popover');
+  const userName = suppliedUserName ?? t('user');
   const initials = userName
     .split(' ')
     .map((w) => w[0])
@@ -62,7 +67,7 @@ const ProfilePopover: React.FC<ProfilePopoverProps> = ({
     .toUpperCase();
 
   return (
-    <div className="w-[21.5rem] overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-xl">
+    <div className="w-[min(21.5rem,calc(100vw-2rem))] rounded-3xl border border-slate-100 bg-white shadow-xl">
       {/* Header: identitas + tombol detail profil */}
       <div className="flex items-center gap-2.5 px-5 pb-4 pt-5">
         <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
@@ -70,27 +75,27 @@ const ProfilePopover: React.FC<ProfilePopoverProps> = ({
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-base font-bold text-slate-900">{userName}</p>
-          <p className="text-xs text-slate-500">Akun {role}</p>
+          <p className="text-xs text-slate-500">{t("accountRole", { role })}</p>
         </div>
         <Link
           href="/profile"
           onClick={onNavigate}
           className="shrink-0 whitespace-nowrap rounded-full border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
         >
-          Detail Profil
+          {t("detail")}
         </Link>
       </div>
 
-      <nav className="px-2.5 pb-2.5" aria-label="Menu profil">
+      <nav className="px-2.5 pb-2.5" aria-label={t("menuAria")}>
         <Link href="/children" onClick={onNavigate} className={rowCls}>
           <PopIcon icon="users" className="h-5 w-5 shrink-0 text-slate-700" />
-          Kelola Profil Anak
+          {t("children")}
         </Link>
 
         {/* Akun saat ini — indikator akun terpilih */}
         <Link href="/profile" onClick={onNavigate} className={rowCls}>
           <PopIcon icon="user" className="h-5 w-5 shrink-0 text-slate-700" />
-          <span className="truncate">Akun Orang Tua</span>
+          <span className="truncate">{t("accountItem")}</span>
           <span className="ml-auto flex shrink-0 items-center gap-1.5">
             <span className="grid h-6 w-6 place-items-center rounded-full bg-blue-100 text-[10px] font-bold text-blue-700">
               {initials}
@@ -104,31 +109,32 @@ const ProfilePopover: React.FC<ProfilePopoverProps> = ({
 
         <Link href="/payments" onClick={onNavigate} className={rowCls}>
           <PopIcon icon="clock" className="h-5 w-5 shrink-0 text-slate-700" />
-          Riwayat &amp; Status Pembelian
+          {t("payments")}
         </Link>
 
         <div className={dividerCls} />
 
         <Link href="/privacy-policy" onClick={onNavigate} className={rowCls}>
           <PopIcon icon="file" className="h-5 w-5 shrink-0 text-slate-700" />
-          Kebijakan Privasi
+          {t("privacy")}
         </Link>
         <Link href="/terms" onClick={onNavigate} className={rowCls}>
           <PopIcon icon="file" className="h-5 w-5 shrink-0 text-slate-700" />
-          Syarat dan Ketentuan
+          {t("terms")}
         </Link>
 
         <div className={dividerCls} />
 
+        <div className="px-3 py-3">
+          <LanguageSwitcher placement="bottom" />
+        </div>
+
         <button
-          onClick={() => {
-            onNavigate();
-            logout();
-          }}
+          onClick={onLogout}
           className={`${rowCls} text-rose-600 hover:bg-rose-50`}
         >
           <PopIcon icon="logout" className="h-5 w-5 shrink-0" />
-          Log Out
+          {t("logout")}
         </button>
       </nav>
     </div>

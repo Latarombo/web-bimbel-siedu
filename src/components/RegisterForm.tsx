@@ -1,22 +1,26 @@
 'use client';
+import { useTranslations } from 'next-intl';
 
 import { useActionState, useState } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { registerParent, type RegisterState } from '@/app/actions/register';
 import GoogleButton from '@/components/GoogleButton';
 
 const initial: RegisterState = {};
 
-// Checklist syarat password — dihitung real-time saat mengetik.
-const passwordRules = [
-    { key: 'length', label: 'Minimal 8 karakter', test: (pw: string) => pw.length >= 8 },
-] as const;
+// Checklist syarat password — cerminan registerSchema di actions/register.ts;
+// kalau keduanya tidak sama, user lolos UI lalu ditolak server.
+
 
 export default function RegisterForm({
     googleEnabled = false,
 }: {
     googleEnabled?: boolean;
 }) {
+    const t = useTranslations('auth');
+const passwordRules = [
+    { key: 'length', label: t('minimumEight'), test: (pw: string) => pw.length >= 8 },
+] as const;
     const [state, formAction, pending] = useActionState(registerParent, initial);
     const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState('');
@@ -24,13 +28,10 @@ export default function RegisterForm({
 
     return (
         <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md">
-            {/* Heading — headline-lg-mobile 24px/700 → sm:headline-md 20px/600 (DESIGN.md) */}
-            <h2 className="text-2xl sm:text-[20px] sm:leading-[1.3] font-bold sm:font-semibold text-slate-900 mb-2">
-                Yuk, buat akun Siedu Anda!
+            {/* Judul auth: 24px di HP, 20px mulai sm, tebal 700, jarak bawah 32px. */}
+            <h2 className="text-2xl sm:text-[20px] sm:leading-[1.3] font-bold text-slate-900 mb-8">
+                {t('registerTitle')}
             </h2>
-            <p className="text-sm text-body mb-8">
-                Langkah 1 dari 3 — buat akun orang tua terlebih dahulu.
-            </p>
 
             <form action={formAction} className="space-y-5">
                 {/* Email */}
@@ -39,7 +40,8 @@ export default function RegisterForm({
                         htmlFor="email"
                         className="block text-sm font-semibold text-slate-700 mb-2"
                     >
-                        Email
+                        {t('email')}{' '}
+                        <span className="text-danger" aria-hidden="true">*</span>
                     </label>
                     <input
                         id="email"
@@ -47,7 +49,7 @@ export default function RegisterForm({
                         type="email"
                         required
                         autoComplete="email"
-                        placeholder="nama@email.com"
+                        placeholder={t('emailPlaceholder')}
                         defaultValue={state.email ?? ''}
                         aria-invalid={errors.email ? true : undefined}
                         aria-describedby={errors.email ? 'email-error' : undefined}
@@ -66,7 +68,8 @@ export default function RegisterForm({
                         htmlFor="password"
                         className="block text-sm font-semibold text-slate-700 mb-2"
                     >
-                        Kata Sandi
+                        {t('password')}{' '}
+                        <span className="text-danger" aria-hidden="true">*</span>
                     </label>
                     <div className="relative">
                         <input
@@ -75,7 +78,7 @@ export default function RegisterForm({
                             type={showPassword ? 'text' : 'password'}
                             required
                             autoComplete="new-password"
-                            placeholder="Buat kata sandi"
+                            placeholder={t('createPassword')}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             aria-invalid={errors.password ? true : undefined}
@@ -92,8 +95,8 @@ export default function RegisterForm({
                             className="absolute right-2 top-1/2 -translate-y-1/2 p-2 -m-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 focus:outline-none cursor-pointer"
                             aria-label={
                                 showPassword
-                                    ? 'Sembunyikan kata sandi'
-                                    : 'Tampilkan kata sandi'
+                                    ? t('hidePassword')
+                                    : t('showPassword')
                             }
                         >
                             {showPassword ? (
@@ -198,7 +201,7 @@ export default function RegisterForm({
                     disabled={pending}
                     className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
                 >
-                    <span>{pending ? 'Memproses...' : 'Daftar'}</span>
+                    <span>{pending ? t('processing') : t('register')}</span>
                     {!pending && (
                         <svg
                             className="w-5 h-5"
@@ -226,7 +229,7 @@ export default function RegisterForm({
                 </div>
                 <div className="relative flex justify-center">
                     <span className="bg-white px-4 text-xs font-medium text-slate-400 tracking-wider">
-                        ATAU
+                        {t('or')}
                     </span>
                 </div>
             </div>
@@ -234,19 +237,19 @@ export default function RegisterForm({
             {/* Daftar via Google — user baru otomatis loncat ke step 2, consent
                 ditagih di sana; user lama (email bentrok) diarahkan ke login */}
             <GoogleButton
-                label="Daftar dengan Akun Google"
+                label={t('googleRegister')}
                 enabled={googleEnabled}
-                title="Login Google akan segera tersedia"
+                title={t('googleSoon')}
             />
 
             {/* Login Link */}
             <p className="text-center text-sm text-body mt-6">
-                Sudah punya akun?{' '}
+                {t('hasAccount')}{' '}
                 <Link
                     href="/login"
                     className="text-brand hover:text-brand-strong font-semibold"
                 >
-                    Masuk
+                    {t('login')}
                 </Link>
             </p>
         </div>

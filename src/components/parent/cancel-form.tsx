@@ -1,27 +1,29 @@
 "use client";
 
 import { useEffect, useRef, useActionState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import { Field, Select, Textarea } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { ajukanPembatalan, type BatalState } from "@/app/actions/pembayaran";
 
 const initial: BatalState = {};
 
-// Kategori enum KategoriRefund — 'lainnya' = pembatalan biasa, DP hangus (BR#19).
-const KATEGORI: [string, string][] = [
-  ["salah_pilih_kelas", "Salah pilih kelas (bukti bisa diminta admin)"],
-  ["kesalahan_sistem", "Kesalahan sistem (double-charge dsb.)"],
-  ["salah_nominal_transfer", "Salah nominal transfer"],
-  ["salah_rekening", "Salah rekening tujuan"],
-  ["lainnya", "Lainnya — DP hangus, tanpa refund (BR#19)"],
-];
-
 export default function CancelForm({
   pendaftaranId,
 }: {
   pendaftaranId: number;
 }) {
+  const tr = useTranslations("parent");
+  // Kategori enum KategoriRefund — 'lainnya' = pembatalan biasa, DP hangus (BR#19).
+  const KATEGORI: [string, string][] = [
+    ["salah_pilih_kelas", tr("text178")],
+    ["kesalahan_sistem", tr("text179")],
+    ["salah_nominal_transfer", tr("text180")],
+    ["salah_rekening", tr("text181")],
+    ["lainnya", tr("text182")],
+  ];
+
   const [state, formAction, pending] = useActionState(
     ajukanPembatalan,
     initial,
@@ -42,7 +44,7 @@ export default function CancelForm({
     <form action={formAction} className="space-y-4" noValidate>
       <input type="hidden" name="pendaftaran_id" value={pendaftaranId} />
 
-      <Field label="Alasan pembatalan" required>
+      <Field label={tr("text183")} required>
         <Select name="kategori" required defaultValue="lainnya">
           {KATEGORI.map(([v, t]) => (
             <option key={v} value={v}>
@@ -53,9 +55,9 @@ export default function CancelForm({
       </Field>
 
       <Field
-        label="Penjelasan"
+        label={tr("text184")}
         required
-        hint="Minimal 10 karakter. Admin memakai teks ini untuk memutuskan; keputusan ada di tangan admin."
+        hint={tr("text185")}
       >
         <Textarea
           name="alasan"
@@ -63,7 +65,7 @@ export default function CancelForm({
           required
           minLength={10}
           maxLength={1000}
-          placeholder="Contoh: anak pindah kota mulai bulan depan, kelas Kamis jadi tidak bisa diikuti."
+          placeholder={tr("text186")}
         />
       </Field>
 
@@ -82,12 +84,10 @@ export default function CancelForm({
         className="w-full"
         disabled={pending}
       >
-        {pending ? "Mengajukan…" : "Ajukan pembatalan ke admin"}
+        {pending ? tr("text187") : tr("text188")}
       </Button>
       <p className="text-xs text-muted">
-        Kuota tetap terisi sampai admin menyetujui. Setelah disetujui,
-        pendaftaran jadi dibatalkan dan kuota dibuka untuk anak lain.
-      </p>
+         {tr("text189")} </p>
     </form>
   );
 }

@@ -1,0 +1,611 @@
+[
+  {
+    "id": "table.peserta_sesi",
+    "label": "Create table \"peserta_sesi\"",
+    "summary": "Creates table \"peserta_sesi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "peserta_sesi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"peserta_sesi\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"peserta_sesi\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"peserta_sesi\"",
+        "sql": "CREATE TABLE \"public\".\"peserta_sesi\" (\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"pendaftaran_id\" int4 NOT NULL,\n  \"sesi_id\" int4 NOT NULL,\n  \"status_daftar\" text NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"peserta_sesi_status_daftar_check_292b1719\" CHECK (\"status_daftar\" IN ('menunggu_pembayaran', 'terdaftar', 'tertunggak', 'dibatalkan_timeout', 'dibatalkan_tunggakan', 'dibatalkan_orang_tua', 'dibatalkan_kelas'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"peserta_sesi\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"peserta_sesi\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.sesi_pertemuan",
+    "label": "Create table \"sesi_pertemuan\"",
+    "summary": "Creates table \"sesi_pertemuan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "sesi_pertemuan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"sesi_pertemuan\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sesi_pertemuan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"sesi_pertemuan\"",
+        "sql": "CREATE TABLE \"public\".\"sesi_pertemuan\" (\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dibatalkan_alasan\" text,\n  \"id\" SERIAL NOT NULL,\n  \"jadwal_item_id\" int4 NOT NULL,\n  \"jam_mulai\" time NOT NULL,\n  \"jam_selesai\" time NOT NULL,\n  \"status_sesi\" text DEFAULT 'terjadwal' NOT NULL,\n  \"tanggal_pertemuan\" date NOT NULL,\n  \"updated_at\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"sesi_jam_range_20bc40a8\" CHECK (jam_mulai < jam_selesai),\n  CONSTRAINT \"sesi_pertemuan_status_sesi_check_55d1b5cb\" CHECK (\"status_sesi\" IN ('terjadwal', 'selesai', 'dibatalkan'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"sesi_pertemuan\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sesi_pertemuan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.presensi.sesi_pertemuan_id",
+    "label": "Add column \"sesi_pertemuan_id\" to \"presensi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "sesi_pertemuan_id",
+        "table": "presensi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"sesi_pertemuan_id\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "presensi",
+          "sesi_pertemuan_id"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"sesi_pertemuan_id\"",
+        "sql": "ALTER TABLE \"public\".\"presensi\" ADD COLUMN \"sesi_pertemuan_id\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"sesi_pertemuan_id\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "presensi",
+          "sesi_pertemuan_id"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.presensi.terlambat",
+    "label": "Add column \"terlambat\" to \"presensi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "terlambat",
+        "table": "presensi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"terlambat\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "presensi",
+          "terlambat"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"terlambat\"",
+        "sql": "ALTER TABLE \"public\".\"presensi\" ADD COLUMN \"terlambat\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"terlambat\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "presensi",
+          "terlambat"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.peserta_sesi.peserta_sesi_sesi_id_pendaftaran_id_key",
+    "label": "Add unique constraint on \"peserta_sesi\" (sesi_id, pendaftaran_id)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "peserta_sesi_sesi_id_pendaftaran_id_key",
+        "table": "peserta_sesi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"peserta_sesi_sesi_id_pendaftaran_id_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "peserta_sesi_sesi_id_pendaftaran_id_key",
+          "public",
+          "\"public\".\"peserta_sesi\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"peserta_sesi_sesi_id_pendaftaran_id_key\"",
+        "sql": "ALTER TABLE \"public\".\"peserta_sesi\" ADD CONSTRAINT \"peserta_sesi_sesi_id_pendaftaran_id_key\" UNIQUE (\"sesi_id\", \"pendaftaran_id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"peserta_sesi_sesi_id_pendaftaran_id_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "peserta_sesi_sesi_id_pendaftaran_id_key",
+          "public",
+          "\"public\".\"peserta_sesi\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.sesi_pertemuan.sesi_pertemuan_jadwal_item_id_tanggal_pertemuan_key",
+    "label": "Add unique constraint on \"sesi_pertemuan\" (jadwal_item_id, tanggal_pertemuan)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "sesi_pertemuan_jadwal_item_id_tanggal_pertemuan_key",
+        "table": "sesi_pertemuan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"sesi_pertemuan_jadwal_item_id_tanggal_pertemuan_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "sesi_pertemuan_jadwal_item_id_tanggal_pertemuan_key",
+          "public",
+          "\"public\".\"sesi_pertemuan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"sesi_pertemuan_jadwal_item_id_tanggal_pertemuan_key\"",
+        "sql": "ALTER TABLE \"public\".\"sesi_pertemuan\" ADD CONSTRAINT \"sesi_pertemuan_jadwal_item_id_tanggal_pertemuan_key\" UNIQUE (\"jadwal_item_id\", \"tanggal_pertemuan\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"sesi_pertemuan_jadwal_item_id_tanggal_pertemuan_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "sesi_pertemuan_jadwal_item_id_tanggal_pertemuan_key",
+          "public",
+          "\"public\".\"sesi_pertemuan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.peserta_sesi.peserta_sesi_pendaftaran_id_idx_0bda22e6",
+    "label": "Create index \"peserta_sesi_pendaftaran_id_idx_0bda22e6\" on \"peserta_sesi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "peserta_sesi_pendaftaran_id_idx_0bda22e6",
+        "table": "peserta_sesi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"peserta_sesi_pendaftaran_id_idx_0bda22e6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"peserta_sesi_pendaftaran_id_idx_0bda22e6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"peserta_sesi_pendaftaran_id_idx_0bda22e6\"",
+        "sql": "CREATE INDEX \"peserta_sesi_pendaftaran_id_idx_0bda22e6\" ON \"public\".\"peserta_sesi\" (\"pendaftaran_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"peserta_sesi_pendaftaran_id_idx_0bda22e6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"peserta_sesi_pendaftaran_id_idx_0bda22e6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.peserta_sesi.peserta_sesi_sesi_id_idx_9e4d5c99",
+    "label": "Create index \"peserta_sesi_sesi_id_idx_9e4d5c99\" on \"peserta_sesi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "peserta_sesi_sesi_id_idx_9e4d5c99",
+        "table": "peserta_sesi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"peserta_sesi_sesi_id_idx_9e4d5c99\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"peserta_sesi_sesi_id_idx_9e4d5c99\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"peserta_sesi_sesi_id_idx_9e4d5c99\"",
+        "sql": "CREATE INDEX \"peserta_sesi_sesi_id_idx_9e4d5c99\" ON \"public\".\"peserta_sesi\" (\"sesi_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"peserta_sesi_sesi_id_idx_9e4d5c99\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"peserta_sesi_sesi_id_idx_9e4d5c99\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.presensi.presensi_sesi_pertemuan_id_idx_aa4a3c80",
+    "label": "Create index \"presensi_sesi_pertemuan_id_idx_aa4a3c80\" on \"presensi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "presensi_sesi_pertemuan_id_idx_aa4a3c80",
+        "table": "presensi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"presensi_sesi_pertemuan_id_idx_aa4a3c80\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"presensi_sesi_pertemuan_id_idx_aa4a3c80\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"presensi_sesi_pertemuan_id_idx_aa4a3c80\"",
+        "sql": "CREATE INDEX \"presensi_sesi_pertemuan_id_idx_aa4a3c80\" ON \"public\".\"presensi\" (\"sesi_pertemuan_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"presensi_sesi_pertemuan_id_idx_aa4a3c80\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"presensi_sesi_pertemuan_id_idx_aa4a3c80\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.sesi_pertemuan.sesi_pertemuan_jadwal_item_id_idx_0812e48c",
+    "label": "Create index \"sesi_pertemuan_jadwal_item_id_idx_0812e48c\" on \"sesi_pertemuan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "sesi_pertemuan_jadwal_item_id_idx_0812e48c",
+        "table": "sesi_pertemuan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"sesi_pertemuan_jadwal_item_id_idx_0812e48c\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sesi_pertemuan_jadwal_item_id_idx_0812e48c\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"sesi_pertemuan_jadwal_item_id_idx_0812e48c\"",
+        "sql": "CREATE INDEX \"sesi_pertemuan_jadwal_item_id_idx_0812e48c\" ON \"public\".\"sesi_pertemuan\" (\"jadwal_item_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"sesi_pertemuan_jadwal_item_id_idx_0812e48c\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sesi_pertemuan_jadwal_item_id_idx_0812e48c\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.sesi_pertemuan.sesi_pertemuan_tanggal_pertemuan_idx_13aea590",
+    "label": "Create index \"sesi_pertemuan_tanggal_pertemuan_idx_13aea590\" on \"sesi_pertemuan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "sesi_pertemuan_tanggal_pertemuan_idx_13aea590",
+        "table": "sesi_pertemuan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"sesi_pertemuan_tanggal_pertemuan_idx_13aea590\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sesi_pertemuan_tanggal_pertemuan_idx_13aea590\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"sesi_pertemuan_tanggal_pertemuan_idx_13aea590\"",
+        "sql": "CREATE INDEX \"sesi_pertemuan_tanggal_pertemuan_idx_13aea590\" ON \"public\".\"sesi_pertemuan\" (\"tanggal_pertemuan\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"sesi_pertemuan_tanggal_pertemuan_idx_13aea590\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"sesi_pertemuan_tanggal_pertemuan_idx_13aea590\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.peserta_sesi.peserta_sesi_sesi_id_fkey",
+    "label": "Add foreign key \"peserta_sesi_sesi_id_fkey\" on \"peserta_sesi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "peserta_sesi_sesi_id_fkey",
+        "table": "peserta_sesi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"peserta_sesi_sesi_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "peserta_sesi_sesi_id_fkey",
+          "public",
+          "\"public\".\"peserta_sesi\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"peserta_sesi_sesi_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"peserta_sesi\"\nADD CONSTRAINT \"peserta_sesi_sesi_id_fkey\"\nFOREIGN KEY (\"sesi_id\")\nREFERENCES \"public\".\"sesi_pertemuan\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"peserta_sesi_sesi_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "peserta_sesi_sesi_id_fkey",
+          "public",
+          "\"public\".\"peserta_sesi\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.peserta_sesi.peserta_sesi_pendaftaran_id_fkey",
+    "label": "Add foreign key \"peserta_sesi_pendaftaran_id_fkey\" on \"peserta_sesi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "peserta_sesi_pendaftaran_id_fkey",
+        "table": "peserta_sesi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"peserta_sesi_pendaftaran_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "peserta_sesi_pendaftaran_id_fkey",
+          "public",
+          "\"public\".\"peserta_sesi\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"peserta_sesi_pendaftaran_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"peserta_sesi\"\nADD CONSTRAINT \"peserta_sesi_pendaftaran_id_fkey\"\nFOREIGN KEY (\"pendaftaran_id\")\nREFERENCES \"public\".\"pendaftaran\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"peserta_sesi_pendaftaran_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "peserta_sesi_pendaftaran_id_fkey",
+          "public",
+          "\"public\".\"peserta_sesi\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.sesi_pertemuan.sesi_pertemuan_jadwal_item_id_fkey",
+    "label": "Add foreign key \"sesi_pertemuan_jadwal_item_id_fkey\" on \"sesi_pertemuan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "sesi_pertemuan_jadwal_item_id_fkey",
+        "table": "sesi_pertemuan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"sesi_pertemuan_jadwal_item_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "sesi_pertemuan_jadwal_item_id_fkey",
+          "public",
+          "\"public\".\"sesi_pertemuan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"sesi_pertemuan_jadwal_item_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"sesi_pertemuan\"\nADD CONSTRAINT \"sesi_pertemuan_jadwal_item_id_fkey\"\nFOREIGN KEY (\"jadwal_item_id\")\nREFERENCES \"public\".\"jadwal_item\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"sesi_pertemuan_jadwal_item_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "sesi_pertemuan_jadwal_item_id_fkey",
+          "public",
+          "\"public\".\"sesi_pertemuan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.presensi.presensi_sesi_pertemuan_id_fkey",
+    "label": "Add foreign key \"presensi_sesi_pertemuan_id_fkey\" on \"presensi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "presensi_sesi_pertemuan_id_fkey",
+        "table": "presensi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"presensi_sesi_pertemuan_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "presensi_sesi_pertemuan_id_fkey",
+          "public",
+          "\"public\".\"presensi\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"presensi_sesi_pertemuan_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"presensi\"\nADD CONSTRAINT \"presensi_sesi_pertemuan_id_fkey\"\nFOREIGN KEY (\"sesi_pertemuan_id\")\nREFERENCES \"public\".\"sesi_pertemuan\" (\"id\")\nON DELETE SET NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"presensi_sesi_pertemuan_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "presensi_sesi_pertemuan_id_fkey",
+          "public",
+          "\"public\".\"presensi\""
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,150 @@
+{
+  "common": {
+    "saved": "Tersimpan.",
+    "saving": "Menyimpan…",
+    "save": "Simpan",
+    "status": "Status",
+    "choose": "— pilih —",
+    "empty": "— kosong —",
+    "delete": "Hapus",
+    "confirmDelete": "Yakin hapus?",
+    "cancel": "Batal"
+  },
+  "guru": {
+    "name": "Nama",
+    "email": "Email",
+    "passwordNew": "Password baru (kosongkan bila tidak ganti)",
+    "password": "Password",
+    "passwordHint": "Minimal 8 karakter",
+    "address": "Alamat (opsional)",
+    "phone": "Nomor telepon"
+  },
+  "mapel": {
+    "name": "Nama mata pelajaran",
+    "example": "cth. Matematika",
+    "description": "Deskripsi (opsional)"
+  },
+  "periode": {
+    "name": "Nama periode",
+    "example": "cth. Periode Ganjil 2026/2027",
+    "start": "Tanggal mulai",
+    "end": "Tanggal selesai",
+    "close": "Tutup pendaftaran"
+  },
+  "kelas": {
+    "subject": "Mata pelajaran",
+    "teacher": "Guru pengampu",
+    "period": "Periode",
+    "level": "Jenjang",
+    "maxQuota": "Kuota maksimum",
+    "minQuota": "Kuota minimum",
+    "fee": "Biaya per periode (Rp)",
+    "deposit": "Biaya DP (kosong = non-DP)",
+    "tenor": "Tenor maksimum (kosong = non-DP)",
+    "schedule": "Jadwal sesi per minggu (1–3 baris)",
+    "day": "Hari {number}",
+    "start": "Jam mulai",
+    "end": "Jam selesai",
+    "save": "Simpan kelas",
+    "rules": "Sistem menolak jadwal yang bentrok dengan kelas aktif lain guru yang sama (BR#6). Kelas DP wajib isi DP + tenor (BR#12)."
+  },
+  "periodStatus": {
+    "dibuka": "Dibuka",
+    "ditutup": "Ditutup",
+    "selesai": "Selesai"
+  },
+  "classStatus": {
+    "aktif": "Aktif",
+    "dibatalkan": "Dibatalkan"
+  },
+  "days": {
+    "Senin": "Senin",
+    "Selasa": "Selasa",
+    "Rabu": "Rabu",
+    "Kamis": "Kamis",
+    "Jumat": "Jumat",
+    "Sabtu": "Sabtu",
+    "Minggu": "Minggu"
+  },
+  "levels": {
+    "TK": "TK",
+    "SD": "SD",
+    "SMP": "SMP",
+    "SMA": "SMA"
+  },
+  "chart": {
+    "enrollment": "Pendaftaran",
+    "enrollmentUnit": "pendaftaran",
+    "berhasil": "Berhasil",
+    "pending": "Pending",
+    "gagal": "Gagal",
+    "kedaluwarsa": "Kedaluwarsa"
+  },
+  "validation": {
+    "session": "Sesi berakhir. Masuk ulang.",
+    "checkFields": "Periksa lagi isian.",
+    "invalid": "Isian tidak valid.",
+    "nameMin": "Nama minimal 2 karakter",
+    "nameMax": "Nama maksimal 100 karakter",
+    "descriptionMax": "Deskripsi maksimal 500 karakter",
+    "dateRequired": "Tanggal wajib diisi",
+    "periodOrder": "Mulai harus sebelum selesai.",
+    "closeOrder": "Tutup pendaftaran tidak boleh lewat tanggal selesai.",
+    "email": "Email tidak valid",
+    "passwordMin": "Password minimal 8 karakter",
+    "addressMax": "Alamat maksimal 255 karakter",
+    "phoneMin": "Nomor telepon wajib diisi",
+    "phoneMax": "Nomor maksimal 30 karakter",
+    "required": "Wajib diisi",
+    "newTeacherPassword": "Password wajib untuk guru baru.",
+    "subject": "Pilih mata pelajaran",
+    "teacher": "Pilih guru",
+    "period": "Pilih periode",
+    "minOne": "Minimal 1",
+    "maxQuota": "Maksimal 200",
+    "positiveFee": "Biaya harus > 0",
+    "minTwo": "Minimal 2",
+    "quotaOrder": "Kuota minimum tidak boleh lewat maksimum.",
+    "depositOrder": "DP harus lebih kecil dari biaya periode.",
+    "depositTerm": "Kelas DP wajib punya tenor; kelas non-DP tidak boleh punya tenor (BR#12).",
+    "scheduleInvalid": "Baris jadwal {number} tidak lengkap/valid (hari, jam mulai, jam selesai).",
+    "scheduleOrder": "Baris jadwal {number}: jam mulai harus sebelum jam selesai.",
+    "scheduleRequired": "Minimal satu sesi jadwal per minggu.",
+    "scheduleConflict": "Jadwal bentrok: guru sudah mengajar {day} {start}–{end} (BR#6).",
+    "subjectDuplicate": "Nama mata pelajaran sudah dipakai.",
+    "emailDuplicate": "Email sudah dipakai akun lain.",
+    "reasonMin": "Jelaskan minimal 10 karakter.",
+    "reasonMax": "Alasan maksimal 1000 karakter."
+  },
+  "payment": {
+    "invalid": "Tagihan tidak valid.",
+    "missing": "Tagihan tidak ditemukan.",
+    "paid": "Tagihan ini sudah lunas.",
+    "ownership": "Tagihan ini bukan milik akun Anda.",
+    "gateway": "Pintu pembayaran tidak bisa dihubungi. Coba lagi, atau gunakan instruksi transfer manual.",
+    "installment": "cicilan ke-{number}",
+    "dp": "dp",
+    "lunas": "lunas",
+    "description": "Siedu {type} — {name}",
+    "enrollmentMissing": "Pendaftaran tidak ditemukan.",
+    "ended": "Pendaftaran ini sudah berakhir — tidak bisa dibatalkan.",
+    "enrollmentOwnership": "Pendaftaran ini bukan milik akun Anda.",
+    "awaiting": "Pengajuan masih menunggu keputusan admin."
+  },
+  "enrollment": {
+    "childMissing": "Anak tidak ditemukan untuk akun ini.",
+    "childLevel": "Lengkapi jenjang anak di profil dulu.",
+    "classMissing": "Kelas tidak ditemukan.",
+    "inactive": "Kelas tidak aktif.",
+    "levelMismatch": "Jenjang kelas tidak sesuai jenjang anak.",
+    "full": "Kuota kelas sudah penuh.",
+    "periodClosed": "Pendaftaran periode ini tidak dibuka.",
+    "installmentsUnavailable": "Metode cicilan tidak tersedia untuk kelas ini.",
+    "minTerm": "Tenor minimal 2 (DP + minimal 1 cicilan).",
+    "tenorLimit": "Tenor melebihi batas kelas ({months} bulan).",
+    "termMethod": "Tenor hanya untuk metode DP+Cicilan.",
+    "conflict": "Jadwal bentrok dengan kelas aktif lain.",
+    "failed": "Gagal membuat pendaftaran.",
+    "duplicate": "Anak sudah punya pendaftaran aktif di kelas ini."
+  }
+}

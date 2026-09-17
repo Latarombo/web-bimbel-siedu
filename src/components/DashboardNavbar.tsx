@@ -1,10 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { useState, useRef, useEffect } from 'react';
-import { logout } from '@/app/actions/login';
+import LogoutDialog from '@/components/LogoutDialog';
 import ProfilePopover from '@/components/ProfilePopover';
 
 interface NavItem {
@@ -46,6 +47,8 @@ interface DashboardNavbarProps {
   role: string;
   navItems: NavItem[];
   userName?: string;
+  userEmail?: string | null;
+  accountRole?: string;
   /** Role admin pakai konteks "area" — badge SaaS di samping logo. */
   isAdmin?: boolean;
   /** 'popover' = kartu profil besar (desain user); default: dropdown lama. */
@@ -55,25 +58,35 @@ interface DashboardNavbarProps {
 const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   role,
   navItems,
-  userName = 'Pengguna',
-  isAdmin = false,
+  userName: suppliedUserName,
+  userEmail,
+  accountRole,
   profileVariant = 'dropdown',
 }) => {
+  const t = useTranslations('shared');
+  const userName = suppliedUserName ?? t('user');
   const pathname = usePathname();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const mobileDropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (isLogoutOpen) return;
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        !mobileDropdownRef.current?.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isLogoutOpen]);
 
   // Inisial avatar (tanpa gambar eksternal); biaya render kecil, tidak perlu memo.
   const initials = (userName ?? role)
@@ -88,13 +101,13 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
   return (
     <nav
       className="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100"
-      aria-label="Menu utama"
+      aria-label={t("mainMenuAria")}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo + konteks area (SaaS: wordmark + badge role) */}
           <div className="flex-shrink-0 flex items-center">
-            <Link href="/" className="flex items-center" aria-label="Siedu — beranda">
+            <Link href="/" className="flex items-center" aria-label={t("brandAria")}>
               <Image src="/images/Logo.png" alt="Siedu" width={120} height={36} className="h-8 w-auto" priority />
             </Link>
             <span className="ml-2.5 rounded-full bg-blue-50 border border-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
@@ -102,8 +115,10 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             </span>
           </div>
 
-          {/* Desktop Navigation — persis pola LandingNavbar: teks polos, hover biru, tanpa pill */}
-          <ul className="hidden md:flex items-center space-x-8">
+          {/* Desktop Navigation — persis pola LandingNavbar: teks polos, hover biru,
+              tanpa pill. Breakpoint lg: label nav parent/teacher panjang ("Jadwal &
+              Presensi") dan tidak muat berdampingan dengan badge role di 768px. */}
+          <ul className="hidden lg:flex items-center space-x-8">
             {navItems.map((item) => {
               const active = isActive(item.href);
               return (
@@ -123,12 +138,15 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
             })}
           </ul>
 
-          {/* User Dropdown */}
-          <div className="hidden md:flex items-center" ref={dropdownRef}>
+          {/* User Dropdown — `relative` supaya popover menganchor ke tombolnya,
+              bukan ke <nav> sticky (kalau tidak, menu melenceng ke tepi viewport
+              saat layar lebih lebar dari container max-w-7xl). */}
+          <div className="hidden lg:flex items-center relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               aria-expanded={isDropdownOpen}
               aria-haspopup="menu"
+              aria-label={t("profileMenuAria")}
               className="flex items-center gap-2.5 rounded-full p-1 pr-2.5 hover:bg-gray-50 transition-colors duration-200"
             >
               <span className="grid h-9 w-9 place-items-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
@@ -153,12 +171,13 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
 
             {/* Dropdown Menu — kartu popover profil (desain user) atau dropdown sederhana */}
             {isDropdownOpen && (
-              <div className="absolute right-4 top-14 mt-2 z-50" role="menu">
+              <div className="absolute right-0 top-full mt-2 z-50" role="menu">
                 {profileVariant === 'popover' ? (
                   <ProfilePopover
                     userName={userName}
                     role={role}
                     onNavigate={() => setIsDropdownOpen(false)}
+                    onLogout={() => setIsLogoutOpen(true)}
                   />
                 ) : (
                   <div className="w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
@@ -171,16 +190,16 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       onClick={() => setIsDropdownOpen(false)}
                     >
-                      Profil
+                      {t("nav.profile")}
                     </Link>
+                    <div className="px-4 py-2">
+                      <LanguageSwitcher placement="bottom" />
+                    </div>
                     <button
-                      onClick={() => {
-                        setIsDropdownOpen(false);
-                        logout();
-                      }}
+                      onClick={() => setIsLogoutOpen(true)}
                       className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
                     >
-                      Keluar
+                      {t("nav.logout")}
                     </button>
                   </div>
                 )}
@@ -189,13 +208,13 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
           </div>
 
           {/* Mobile: avatar profil + hamburger */}
-          <div className="md:hidden flex items-center space-x-2">
+          <div className="lg:hidden flex items-center space-x-2">
             <button
               onClick={() => {
                 setIsDropdownOpen(!isDropdownOpen);
                 setIsMobileMenuOpen(false);
               }}
-              aria-label="Menu profil"
+              aria-label={t("profileMenuAria")}
               aria-expanded={isDropdownOpen}
               className="grid h-9 w-9 place-items-center rounded-full bg-blue-100 text-xs font-bold text-blue-700"
             >
@@ -207,7 +226,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                 setIsDropdownOpen(false);
               }}
               className="text-gray-700 hover:text-blue-600 focus:outline-none p-1"
-              aria-label={isMobileMenuOpen ? 'Tutup menu' : 'Buka menu'}
+              aria-label={isMobileMenuOpen ? t('menuClose') : t('menuOpen')}
               aria-expanded={isMobileMenuOpen}
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -223,21 +242,21 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
 
         {/* Popover profil di mobile — sheet dari kanan, overlay menutup */}
         {isDropdownOpen ? (
-          <div className="md:hidden fixed inset-0 z-50" role="menu">
+          <div className="lg:hidden fixed inset-0 z-50" role="menu">
             <button
-              aria-label="Tutup menu profil"
+              aria-label={t("profileMenuCloseAria")}
               onClick={() => setIsDropdownOpen(false)}
               className="absolute inset-0 bg-slate-900/40"
             />
-            <div className="absolute right-3 top-3">
-              <ProfilePopover userName={userName} role={role} onNavigate={() => setIsDropdownOpen(false)} />
+            <div className="absolute right-3 top-3" ref={mobileDropdownRef}>
+              <ProfilePopover userName={userName} role={role} onNavigate={() => setIsDropdownOpen(false)} onLogout={() => setIsLogoutOpen(true)} />
             </div>
           </div>
         ) : null}
 
         {/* Mobile Menu — daftar nav ber-ikon, pola LandingNavbar (tanpa pill, teks tegas) */}
         {isMobileMenuOpen && (
-          <ul className="md:hidden py-3 border-t border-gray-100 flex flex-col">
+          <ul className="lg:hidden py-3 border-t border-gray-100 flex flex-col">
             {navItems.map((item) => {
               const active = isActive(item.href);
               return (
@@ -259,6 +278,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
           </ul>
         )}
       </div>
+      <LogoutDialog open={isLogoutOpen} onOpenChange={setIsLogoutOpen} userName={userName} userEmail={userEmail} role={role} accountRole={accountRole} />
     </nav>
   );
 };

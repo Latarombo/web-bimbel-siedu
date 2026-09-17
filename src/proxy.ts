@@ -1,10 +1,18 @@
 import NextAuth from 'next-auth';
+import createMiddleware from 'next-intl/middleware';
 import { NextResponse } from 'next/server';
 import { authConfig } from '@/lib/auth.config';
+import { routing } from '@/i18n/routing';
 
 // Next 16: middleware diganti nama proxy (lihat node_modules/next/dist/docs/.../proxy.md).
 // Auth.js di sini hanya decode JWT (tanpa db/bcrypt — itu di auth.ts).
 const { auth } = NextAuth(authConfig);
+
+// Urutan di dalam callback: (1) guard memutuskan akses, (2) kalau lolos,
+// response dari next-intl dikembalikan APA ADANYA — di situlah rewrite
+// /home -> /id/home hidup. Kalau NextResponse.next() buatan sendiri yang
+// dikembalikan, rewrite locale hilang dan rute di app/[locale] tidak match.
+const intlMiddleware = createMiddleware(routing);
 
 // Prefix halaman area Orang Tua (harus role orang_tua).
 const PARENT_PREFIXES = ['/home', '/children', '/enrollments', '/payments', '/profile', '/schedule-attendance'];
@@ -14,39 +22,64 @@ function homeFor(role: string): string {
   return role === 'admin' ? '/admin/dashboard' : role === 'guru' ? '/teacher/dashboard' : '/home';
 }
 
+/** '/en/payments/x' -> { base: '/payments/x', prefix: '/en' }; id (tanpa prefix) -> prefix ''. */
+function pisahkanLocale(pathname: string): { base: string; prefix: string } {
+  for (const locale of routing.locales) {
+    if (pathname === `/${locale}`) return { base: '/', prefix: `/${locale}` };
+    if (pathname.startsWith(`/${locale}/`)) {
+      return { base: pathname.slice(locale.length + 1), prefix: `/${locale}` };
+    }
+  }
+  return { base: pathname, prefix: '' };
+}
+
+function isPrivat(base: string): boolean {
+  return (
+    base.startsWith('/admin') ||
+    base.startsWith('/teacher') ||
+    PARENT_PREFIXES.some((p) => base === p || base.startsWith(`${p}/`))
+  );
+}
+
 export default auth((req) => {
   const { nextUrl } = req;
-  const path = nextUrl.pathname;
+  const { base, prefix } = pisahkanLocale(nextUrl.pathname);
   const session = req.auth;
 
+  // Tujuan redirect selalu dibangun ulang dengan prefix locale aktif, supaya
+  // user English tidak dilempar ke halaman Indonesia.
+  const ke = (path: string, query?: string) => {
+    const url = new URL(prefix + path, nextUrl);
+    if (query) url.search = query;
+    return url;
+  };
+
+  let redirectRes: NextResponse | null = null;
   if (!session?.user) {
-    const url = new URL('/login', nextUrl);
-    url.searchParams.set('next', path);
-    return NextResponse.redirect(url);
+    if (isPrivat(base)) {
+      const url = ke('/login');
+      url.searchParams.set('next', prefix + base);
+      redirectRes = NextResponse.redirect(url);
+    }
+  } else {
+    const role = session.user.role;
+    const home = homeFor(role);
+    const diParent = PARENT_PREFIXES.some((p) => base === p || base.startsWith(`${p}/`));
+    if ((base.startsWith('/admin') && role !== 'admin') ||
+        (base.startsWith('/teacher') && role !== 'guru') ||
+        (diParent && role !== 'orang_tua')) {
+      redirectRes = NextResponse.redirect(ke(home));
+    }
   }
-  const role = session.user.role;
-  const home = homeFor(role);
-  if (path.startsWith('/admin') && role !== 'admin') {
-    return NextResponse.redirect(new URL(home, nextUrl));
-  }
-  if (path.startsWith('/teacher') && role !== 'guru') {
-    return NextResponse.redirect(new URL(home, nextUrl));
-  }
-  if (PARENT_PREFIXES.some((p) => path.startsWith(p)) && role !== 'orang_tua') {
-    return NextResponse.redirect(new URL(home, nextUrl));
-  }
-  return NextResponse.next();
+
+  if (redirectRes) return redirectRes;
+  return intlMiddleware(req);
 });
 
 export const config = {
   matcher: [
-    '/home/:path*',
-    '/children/:path*',
-    '/enrollments/:path*',
-    '/payments/:path*',
-    '/profile/:path*',
-    '/schedule-attendance/:path*',
-    '/admin/:path*',
-    '/teacher/:path*',
+    // Semua halaman, termasuk '/', perlu rewrite locale ke app/[locale].
+    // API, internal Next.js, dan aset ber-ekstensi tidak ikut routing bahasa.
+    '/((?!api(?:/|$)|_next(?:/|$)|_vercel(?:/|$)|.*\\..*).*)',
   ],
 };

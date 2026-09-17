@@ -1,0 +1,63 @@
+{
+  "table": {
+    "empty": "No data.",
+    "search": "Search data",
+    "noResults": "No results for this search.",
+    "clearSearch": "Clear search",
+    "filteredCount": "Showing {shown, number} of {total, number} records",
+    "count": "{count, plural, one {# record} other {# records}}"
+  },
+  "status": {
+    "menunggu_pembayaran": "Awaiting payment",
+    "terdaftar": "Enrolled",
+    "tertunggak": "Overdue",
+    "dibatalkan_timeout": "Cancelled (24-hour deadline passed)",
+    "dibatalkan_tunggakan": "Cancelled (overdue payments)",
+    "dibatalkan_orang_tua": "Cancelled (parent request)",
+    "dibatalkan_kelas": "Cancelled (class cancelled)"
+  },
+  "back": "← Back",
+  "mainMenuAria": "Main menu",
+  "brandAria": "Siedu — home",
+  "profileMenuAria": "Profile menu",
+  "profileMenuCloseAria": "Close profile menu",
+  "menuOpen": "Open menu",
+  "menuClose": "Close menu",
+  "admin": {
+    "menuAria": "{role} menu",
+    "badgeAria": "{count, number} awaiting action",
+    "logout": "Log out",
+    "brandAria": "Siedu — home",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu"
+  },
+  "logoutDialog": {
+    "title": "Log out of your account?",
+    "parentDescription": "Are you sure you want to log out of your <strong>parent or guardian</strong> account? You will need to log in again to follow your child's activities and progress.",
+    "description": "Are you sure you want to log out of your <strong>{role}</strong> account? You will need to log in again to continue using Siedu.",
+    "cancel": "Cancel",
+    "confirm": "Yes, log out",
+    "pending": "Logging out...",
+    "close": "Close logout dialog",
+    "error": "Could not log out. Please try again.",
+    "parentNote": "Your child's learning progress remains safely saved",
+    "note": "The data you have saved remains safely stored"
+  },
+  "nav": {
+    "profile": "Profile",
+    "logout": "Log out"
+  },
+  "popover": {
+    "accountRole": "{role} account",
+    "detail": "Profile details",
+    "menuAria": "Profile menu",
+    "children": "Manage children",
+    "accountItem": "Parent account",
+    "payments": "Purchase history & status",
+    "privacy": "Privacy policy",
+    "terms": "Terms of service",
+    "logout": "Log out",
+    "user": "User"
+  },
+  "user": "User"
+}

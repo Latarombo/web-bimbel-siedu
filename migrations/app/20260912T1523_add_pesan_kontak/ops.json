@@ -1,0 +1,119 @@
+[
+  {
+    "id": "table.pesan_kontak",
+    "label": "Create table \"pesan_kontak\"",
+    "summary": "Creates table \"pesan_kontak\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "pesan_kontak"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"pesan_kontak\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pesan_kontak\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"pesan_kontak\"",
+        "sql": "CREATE TABLE \"public\".\"pesan_kontak\" (\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"email\" text NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"jenjang\" text,\n  \"nama\" text NOT NULL,\n  \"pesan\" text NOT NULL,\n  \"sekolah\" text,\n  \"status\" text DEFAULT 'baru' NOT NULL,\n  \"subjek\" text NOT NULL,\n  \"telepon\" text NOT NULL,\n  \"updated_at\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"pesan_kontak_jenjang_check_2be2c303\" CHECK (\"jenjang\" IN ('TK', 'SD', 'SMP', 'SMA')),\n  CONSTRAINT \"pesan_kontak_status_check_7600466d\" CHECK (\"status\" IN ('baru', 'diproses', 'selesai'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"pesan_kontak\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pesan_kontak\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pesan_kontak.pesan_kontak_created_at_idx_225d8c0f",
+    "label": "Create index \"pesan_kontak_created_at_idx_225d8c0f\" on \"pesan_kontak\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pesan_kontak_created_at_idx_225d8c0f",
+        "table": "pesan_kontak"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pesan_kontak_created_at_idx_225d8c0f\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pesan_kontak_created_at_idx_225d8c0f\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pesan_kontak_created_at_idx_225d8c0f\"",
+        "sql": "CREATE INDEX \"pesan_kontak_created_at_idx_225d8c0f\" ON \"public\".\"pesan_kontak\" (\"created_at\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pesan_kontak_created_at_idx_225d8c0f\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pesan_kontak_created_at_idx_225d8c0f\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pesan_kontak.pesan_kontak_status_idx_e98638ab",
+    "label": "Create index \"pesan_kontak_status_idx_e98638ab\" on \"pesan_kontak\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pesan_kontak_status_idx_e98638ab",
+        "table": "pesan_kontak"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pesan_kontak_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pesan_kontak_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pesan_kontak_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"pesan_kontak_status_idx_e98638ab\" ON \"public\".\"pesan_kontak\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pesan_kontak_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pesan_kontak_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  }
+]

@@ -40,8 +40,20 @@
       "model": "PeriodePendaftaran",
       "namespace": "public"
     },
+    "pesan_kontak": {
+      "model": "PesanKontak",
+      "namespace": "public"
+    },
+    "peserta_sesi": {
+      "model": "PesertaSesi",
+      "namespace": "public"
+    },
     "presensi": {
       "model": "Presensi",
+      "namespace": "public"
+    },
+    "sesi_pertemuan": {
+      "model": "SesiPertemuan",
       "namespace": "public"
     },
     "users": {
@@ -259,6 +271,23 @@
               }
             ]
           },
+          "StatusPesan": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "baru",
+                "value": "baru"
+              },
+              {
+                "name": "diproses",
+                "value": "diproses"
+              },
+              {
+                "name": "selesai",
+                "value": "selesai"
+              }
+            ]
+          },
           "StatusPresensi": {
             "codecId": "pg/text@1",
             "members": [
@@ -277,6 +306,23 @@
               {
                 "name": "alpa",
                 "value": "alpa"
+              }
+            ]
+          },
+          "StatusSesi": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "terjadwal",
+                "value": "terjadwal"
+              },
+              {
+                "name": "selesai",
+                "value": "selesai"
+              },
+              {
+                "name": "dibatalkan",
+                "value": "dibatalkan"
               }
             ]
           },
@@ -1664,6 +1710,237 @@
               "table": "periode_pendaftaran"
             }
           },
+          "PesanKontak": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "email": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "jenjang": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Jenjang",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "nama": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "pesan": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sekolah": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "status": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "StatusPesan",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "subjek": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "telepon": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "email": {
+                  "column": "email"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "jenjang": {
+                  "column": "jenjang"
+                },
+                "nama": {
+                  "column": "nama"
+                },
+                "pesan": {
+                  "column": "pesan"
+                },
+                "sekolah": {
+                  "column": "sekolah"
+                },
+                "status": {
+                  "column": "status"
+                },
+                "subjek": {
+                  "column": "subjek"
+                },
+                "telepon": {
+                  "column": "telepon"
+                },
+                "updatedAt": {
+                  "column": "updated_at"
+                }
+              },
+              "namespaceId": "public",
+              "table": "pesan_kontak"
+            }
+          },
+          "PesertaSesi": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "pendaftaranId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "sesiId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "statusDaftar": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "StatusPendaftaran",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              }
+            },
+            "relations": {
+              "pendaftaran": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "pendaftaranId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Pendaftaran",
+                  "namespace": "public"
+                }
+              },
+              "sesi": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "sesiId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SesiPertemuan",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "pendaftaranId": {
+                  "column": "pendaftaran_id"
+                },
+                "sesiId": {
+                  "column": "sesi_id"
+                },
+                "statusDaftar": {
+                  "column": "status_daftar"
+                }
+              },
+              "namespaceId": "public",
+              "table": "peserta_sesi"
+            }
+          },
           "Presensi": {
             "fields": {
               "catatan": {
@@ -1708,6 +1985,13 @@
                   "kind": "scalar"
                 }
               },
+              "sesiPertemuanId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -1725,6 +2009,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/date-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "terlambat": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
                   "kind": "scalar"
                 }
               },
@@ -1781,6 +2072,21 @@
                   "model": "Pendaftaran",
                   "namespace": "public"
                 }
+              },
+              "sesiPertemuan": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "sesiPertemuanId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SesiPertemuan",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -1803,8 +2109,167 @@
                 "pendaftaranId": {
                   "column": "pendaftaran_id"
                 },
+                "sesiPertemuanId": {
+                  "column": "sesi_pertemuan_id"
+                },
                 "status": {
                   "column": "status"
+                },
+                "tanggalPertemuan": {
+                  "column": "tanggal_pertemuan"
+                },
+                "terlambat": {
+                  "column": "terlambat"
+                },
+                "updatedAt": {
+                  "column": "updated_at"
+                }
+              },
+              "namespaceId": "public",
+              "table": "presensi"
+            }
+          },
+          "SesiPertemuan": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "dibatalkanAlasan": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "jadwalItemId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "jamMulai": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/time-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "jamSelesai": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/time-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "statusSesi": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "StatusSesi",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "tanggalPertemuan": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/date-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "jadwalItem": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "jadwalItemId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "JadwalItem",
+                  "namespace": "public"
+                }
+              },
+              "peserta": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "sesiId"
+                  ]
+                },
+                "to": {
+                  "model": "PesertaSesi",
+                  "namespace": "public"
+                }
+              },
+              "presensi": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "sesiPertemuanId"
+                  ]
+                },
+                "to": {
+                  "model": "Presensi",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "dibatalkanAlasan": {
+                  "column": "dibatalkan_alasan"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "jadwalItemId": {
+                  "column": "jadwal_item_id"
+                },
+                "jamMulai": {
+                  "column": "jam_mulai"
+                },
+                "jamSelesai": {
+                  "column": "jam_selesai"
+                },
+                "statusSesi": {
+                  "column": "status_sesi"
                 },
                 "tanggalPertemuan": {
                   "column": "tanggal_pertemuan"
@@ -1814,7 +2279,7 @@
                 }
               },
               "namespaceId": "public",
-              "table": "presensi"
+              "table": "sesi_pertemuan"
             }
           },
           "User": {
@@ -1869,7 +2334,7 @@
                 }
               },
               "nomorTelepon": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -3409,6 +3874,247 @@
               },
               "uniques": []
             },
+            "pesan_kontak": {
+              "checks": [
+                {
+                  "expression": "\"jenjang\" IN ('TK', 'SD', 'SMP', 'SMA')",
+                  "name": "pesan_kontak_jenjang_check_2be2c303",
+                  "prefix": "pesan_kontak_jenjang_check"
+                },
+                {
+                  "expression": "\"status\" IN ('baru', 'diproses', 'selesai')",
+                  "name": "pesan_kontak_status_check_7600466d",
+                  "prefix": "pesan_kontak_status_check"
+                }
+              ],
+              "columns": {
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "email": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "jenjang": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "Jenjang",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "nama": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "pesan": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "sekolah": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "status": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "baru"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "StatusPesan",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "subjek": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "telepon": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "updated_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "created_at"
+                  ],
+                  "name": "pesan_kontak_created_at_idx_225d8c0f",
+                  "prefix": "pesan_kontak_created_at_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "status"
+                  ],
+                  "name": "pesan_kontak_status_idx_e98638ab",
+                  "prefix": "pesan_kontak_status_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "peserta_sesi": {
+              "checks": [
+                {
+                  "expression": "\"status_daftar\" IN ('menunggu_pembayaran', 'terdaftar', 'tertunggak', 'dibatalkan_timeout', 'dibatalkan_tunggakan', 'dibatalkan_orang_tua', 'dibatalkan_kelas')",
+                  "name": "peserta_sesi_status_daftar_check_292b1719",
+                  "prefix": "peserta_sesi_status_daftar_check"
+                }
+              ],
+              "columns": {
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "pendaftaran_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "sesi_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "status_daftar": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "StatusPendaftaran",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "sesi_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "peserta_sesi"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "sesi_pertemuan"
+                  }
+                },
+                {
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "pendaftaran_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "peserta_sesi"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "pendaftaran"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "pendaftaran_id"
+                  ],
+                  "name": "peserta_sesi_pendaftaran_id_idx_0bda22e6",
+                  "prefix": "peserta_sesi_pendaftaran_id_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "sesi_id"
+                  ],
+                  "name": "peserta_sesi_sesi_id_idx_9e4d5c99",
+                  "prefix": "peserta_sesi_sesi_id_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "sesi_id",
+                    "pendaftaran_id"
+                  ]
+                }
+              ]
+            },
             "presensi": {
               "checks": [
                 {
@@ -3456,6 +4162,11 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
+                "sesi_pertemuan_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
                 "status": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -3470,6 +4181,15 @@
                 "tanggal_pertemuan": {
                   "codecId": "pg/date-string@1",
                   "nativeType": "date",
+                  "nullable": false
+                },
+                "terlambat": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
                   "nullable": false
                 },
                 "updated_at": {
@@ -3518,6 +4238,23 @@
                   }
                 },
                 {
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "sesi_pertemuan_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "presensi"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "sesi_pertemuan"
+                  }
+                },
+                {
                   "onDelete": "restrict",
                   "source": {
                     "columns": [
@@ -3559,6 +4296,14 @@
                   "name": "presensi_pendaftaran_id_idx_0bda22e6",
                   "prefix": "presensi_pendaftaran_id_idx",
                   "unique": false
+                },
+                {
+                  "columns": [
+                    "sesi_pertemuan_id"
+                  ],
+                  "name": "presensi_sesi_pertemuan_id_idx_aa4a3c80",
+                  "prefix": "presensi_sesi_pertemuan_id_idx",
+                  "unique": false
                 }
               ],
               "primaryKey": {
@@ -3572,6 +4317,139 @@
                     "pendaftaran_id",
                     "tanggal_pertemuan",
                     "jadwal_item_id"
+                  ]
+                }
+              ]
+            },
+            "sesi_pertemuan": {
+              "checks": [
+                {
+                  "expression": "jam_mulai < jam_selesai",
+                  "name": "sesi_jam_range_20bc40a8",
+                  "prefix": "sesi_jam_range"
+                },
+                {
+                  "expression": "\"status_sesi\" IN ('terjadwal', 'selesai', 'dibatalkan')",
+                  "name": "sesi_pertemuan_status_sesi_check_55d1b5cb",
+                  "prefix": "sesi_pertemuan_status_sesi_check"
+                }
+              ],
+              "columns": {
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "dibatalkan_alasan": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "jadwal_item_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "jam_mulai": {
+                  "codecId": "pg/time-string@1",
+                  "nativeType": "time",
+                  "nullable": false
+                },
+                "jam_selesai": {
+                  "codecId": "pg/time-string@1",
+                  "nativeType": "time",
+                  "nullable": false
+                },
+                "status_sesi": {
+                  "codecId": "pg/text@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": "terjadwal"
+                  },
+                  "nativeType": "text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "StatusSesi",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "tanggal_pertemuan": {
+                  "codecId": "pg/date-string@1",
+                  "nativeType": "date",
+                  "nullable": false
+                },
+                "updated_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "jadwal_item_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "sesi_pertemuan"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "jadwal_item"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "jadwal_item_id"
+                  ],
+                  "name": "sesi_pertemuan_jadwal_item_id_idx_0812e48c",
+                  "prefix": "sesi_pertemuan_jadwal_item_id_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "tanggal_pertemuan"
+                  ],
+                  "name": "sesi_pertemuan_tanggal_pertemuan_idx_13aea590",
+                  "prefix": "sesi_pertemuan_tanggal_pertemuan_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "jadwal_item_id",
+                    "tanggal_pertemuan"
                   ]
                 }
               ]
@@ -3631,7 +4509,7 @@
                 "nomor_telepon": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
-                  "nullable": true
+                  "nullable": false
                 },
                 "password": {
                   "codecId": "pg/text@1",
@@ -3787,6 +4665,14 @@
                 "selesai"
               ]
             },
+            "StatusPesan": {
+              "kind": "valueSet",
+              "values": [
+                "baru",
+                "diproses",
+                "selesai"
+              ]
+            },
             "StatusPresensi": {
               "kind": "valueSet",
               "values": [
@@ -3794,6 +4680,14 @@
                 "izin",
                 "sakit",
                 "alpa"
+              ]
+            },
+            "StatusSesi": {
+              "kind": "valueSet",
+              "values": [
+                "terjadwal",
+                "selesai",
+                "dibatalkan"
               ]
             },
             "TipePembayaran": {
@@ -3810,7 +4704,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "c9886aded5f26b69efac22883482a586db165a9ca488f4ede26a96a560351045"
+    "storageHash": "52f1fa0cb41940ca1fba49354f50d9002f0b0988c802918c6dac20bb268ed641"
   },
   "capabilities": {
     "postgres": {

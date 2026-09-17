@@ -7,8 +7,9 @@
 /*
  * Design tokens — sumber: .agents/docs/DESIGN.md (prosa Colors, bukan blok token M3).
  * Keputusan 6 Sep 2026: primary = blue-600 #2563EB; blok token M3 di DESIGN.md dinyatakan
- * tidak dipakai. Deviasi sadar dari DESIGN.md: tombol CTA tetap pill (rounded-full),
- * bukan radius 8px — pill dipakai identitas Siedu (sesuai "Utility Elements: Pill").
+ * tidak dipakai. 13 Sep 2026 (keputusan user): semua tombol CTA rata rounded-lg (10px)
+ * mengikuti tombol Hero — pill (rounded-full) TIDAK lagi dipakai untuk tombol.
+ * rounded-full sisanya khusus ikon bulat, avatar, badge/chip filter, dan dekorasi.
  *
  * 7 Sep 2026: shadcn init (preset nova) — token shadcn (:root blok kedua + @theme inline
  * mapping) digabung di sini. Token Siedu (--brand dst) TETAP sumber kebenaran; varian
@@ -114,7 +115,14 @@
         scrollbar-color: var(--border) transparent;
     }
     html {
-        scroll-behavior: smooth;
+        scroll-behavior: auto;
+        /* Blob/bola dekoratif yang diposisikan keluar tepi (negative offset di
+           hero, FAQ, CTA) tidak boleh ikut menghitung lebar dokumen.
+           clip = tetap bisa scroll vertikal, hanya sumbu X yang dipotong. */
+        overflow-x: clip;
+    }
+    body {
+        overflow-x: clip;
     }
     body {
         background: var(--background);
@@ -166,6 +174,31 @@
 }
 
 /* Wave Animations — di @layer utilities agar utility lain (mis. animate-none) tetap menang */
+
+/* Latar kisi kotak-kotak: digeser persis satu kotak (40px) supaya loop-nya mulus. */
+@keyframes grid-drift {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 40px 40px;
+    }
+}
+
+/* Hero rain (15 Sep): garis tipis jatuh menembus frame hero. Jarak jatuh
+   pakai vh supaya selalu lebih tinggi dari frame berapa pun breakpoint
+   (translate persen justru relatif ke tinggi garisnya sendiri, bukan frame).
+   Delay negatif di inline style bikin hujan langsung terisi saat halaman
+   dibuka; prefers-reduced-motion ditangani utility motion-reduce:hidden. */
+@keyframes hero-rain {
+    0% {
+        transform: translateY(-30vh);
+    }
+    100% {
+        transform: translateY(150vh);
+    }
+}
+
 @keyframes wave-slow {
     0% {
         transform: translateX(0);
@@ -194,15 +227,46 @@
 }
 
 @layer utilities {
-    .animate-wave-slow {
-        animation: wave-slow 15s linear infinite;
-    }
+ .animate-grid-drift {
+   animation: grid-drift 16s linear infinite;
+ }
 
-    .animate-wave-medium {
-        animation: wave-medium 10s linear infinite;
-    }
+ .animate-wave-slow {
+ animation: wave-slow 15s linear infinite;
+ }
 
-    .animate-wave-fast {
-        animation: wave-fast 7s linear infinite;
-    }
+ .animate-wave-medium {
+ animation: wave-medium 10s linear infinite;
+ }
+
+ .animate-wave-fast {
+ animation: wave-fast 7s linear infinite;
+ }
+
+ /* Karusel testimoni: alur kartu digeser tangan, bukan jalan sendiri.
+    Scrollbar horizontal disembunyikan (scroll tetap jalan), tepi dikasih
+    fade halus supaya kartu terpotong terlihat disengaja. */
+ .no-scrollbar {
+   scrollbar-width: none;
+   -ms-overflow-style: none;
+ }
+ .no-scrollbar::-webkit-scrollbar {
+   display: none;
+ }
+ .carousel-fade {
+   -webkit-mask-image: linear-gradient(
+     to right,
+     transparent,
+     black 3%,
+     black 97%,
+     transparent
+   );
+   mask-image: linear-gradient(
+     to right,
+     transparent,
+     black 3%,
+     black 97%,
+     transparent
+   );
+ }
 }

@@ -10,7 +10,9 @@ export function Field({ label, hint, error, children, required }: { label: strin
   );
 }
 
-const inputBase = "w-full rounded-lg border border-border bg-white px-4 py-3 text-sm text-foreground outline-none focus:border-brand focus:ring-2 focus:ring-brand/15 transition-colors placeholder:text-slate-400";
+/* text-base (16px) di mobile: di bawah 16px Safari iOS auto-zoom saat field
+   difokuskan (layout melompat). Kembali text-sm mulai sm:. */
+const inputBase = "w-full rounded-lg border border-border bg-white px-4 py-3 text-base text-foreground outline-none transition-colors placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand/15 sm:text-sm";
 
 export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${inputBase} ${props.className ?? ""}`} />;

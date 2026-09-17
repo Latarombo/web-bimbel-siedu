@@ -1,150 +1,147 @@
+import { getTranslations } from "next-intl/server";
+/**
+ * Section "Kata guru" di halaman /about.
+ *
+ * 16 Sep: layout mengacu guru.png / ruangkelas.com/ruangkelas — panggung PUTIH,
+ * kartu tumpang tindih 3 lapis (badge mengampu di tepi atas foto, foto potret di
+ * latar lavender, kotak kutipan menutupi bawah foto, ikon kutip menonjol di sudut).
+ * Kulitnya palet halaman About (#227195 teal + #e1ecfd chip), bukan cyan mentah.
+ *
+ * Perubahan data penting: identitas kartu TIDAK lagi hardcoded. Nama, mapel,
+ * jenjang, dan jumlah kelas diambil dari DB lewat guruDariKelasAktif (guru yang
+ * benar-benar mengampu kelas aktif). Yang tetap tulisan redaksional: kutipan
+ * (pool 3 catatan, dirotasi per indeks) dan foto (stok headshot 01-03, dirotasi;
+ * ganti dengan foto pengajar asli di /public/images bila ada).
+ */
 import Image from "next/image";
+import { Quote, School } from "lucide-react";
+import type { GuruKatalog } from "@/lib/kelas";
 
-interface Testimonial {
-  id: number;
-  schoolName: string;
-  teacherName: string;
-  teacherTitle: string;
-  quote: string;
-  photoUrl: string;
-}
+const TEAL = "#227195";
+const CHIP = "#e1ecfd";
+const LAVENDER = "#c7d1ee"; // latar foto ala referensi; headshot putih menyatu via multiply
 
-const testimonials: Testimonial[] = [
-  {
-    id: 1,
-    schoolName: 'SMAN 1 Kersana',
-    teacherName: 'Muhammad Ihsan, S.pd',
-    teacherTitle: 'Guru Siedu',
-    quote:
-      'Guru sangat terbantu dengan adanya konten materi yang sudah tersedia di Siedu. Siswa pun mudah memahami materi serta sangat antusias dalam mengikuti pembelajaran harian.',
-    photoUrl: '/images/01_Teacher.png',
-  },
-  {
-    id: 2,
-    schoolName: 'SMAN 2 Banjarmasin',
-    teacherName: 'Ahmad Zulkifli, M.Pd.',
-    teacherTitle: 'Guru Siedu',
-    quote:
-      'Melalui Siedu, saya merasa terbantu dalam mengelola kelas daring, lebih mudah merekap presensi murid, serta lancar membagikan materi berupa modul PPT, e-book, dan video informatif.',
-    photoUrl: '/images/02_Teacher.png',
-  },
-  {
-    id: 3,
-    schoolName: 'SMK IT Al-Junaediyah',
-    teacherName: 'Rangga Pratama, S.Si',
-    teacherTitle: 'Guru Siedu',
-    quote:
-      'Siedu memiliki fitur manajemen tugas dan kuis otomatis yang jarang dimiliki LMS lain. Fitur ini sangat meringankan beban administratif guru sehingga kami bisa fokus membimbing siswa.',
-    photoUrl: '/images/03_Teacher.png',
-  },
+/* Catatan redaksional — dirotasi ke guru sesuai urutan kartu. */
+
+
+const FOTO = ["/images/01_Teacher.png", "/images/02_Teacher.png", "/images/03_Teacher.png"];
+
+async function KartuGuru({ guru, index }: { guru: GuruKatalog; index: number }) {
+ const tr = await getTranslations("public");
+const KUTIPAN = [
+  tr("text147"),
+  tr("text148"),
+  tr("text149"),
 ];
 
-export default function TestimonialSection() {
-  return (
-    <section className="bg-[#0d1a24] py-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header — ikut skala h2 halaman (dulu text-5xl/py-20, kegedean) */}
-        <div className="text-center mb-12">
-          <p className="text-xs font-bold tracking-widest uppercase text-amber-300">Pengajar</p>
-          <h2 className="mt-2 text-2xl sm:text-3xl font-bold text-white tracking-tight">
-            Kata guru tentang Siedu
-          </h2>
-          <p className="mt-3 text-slate-400 text-sm sm:text-base max-w-2xl mx-auto leading-relaxed">
-            Pengalaman nyata dari ribuan tenaga pendidik dalam mengoptimalkan
-            proses belajar mengajar secara interaktif.
-          </p>
-        </div>
+  const kutip = KUTIPAN[index % KUTIPAN.length];
+  const foto = FOTO[index % FOTO.length];
+  const jenjang = guru.jenjang.join(", ");
 
-        {/* Testimonial Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-11 lg:gap-13">
-          {testimonials.map((testimonial) => (
-            <TestimonialCard key={testimonial.id} data={testimonial} />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function TestimonialCard({ data }: { data: Testimonial }) {
   return (
-    <div className="relative">
-      {/* School Badge - overlapping top edge of the card */}
-      <div className="absolute -top-8 left-2 z-20">
-        <div className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 shadow-sm flex items-center space-x-2.5">
-          {/* Icon Gedung Sekolah */}
-          <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center shrink-0">
-            <svg
-              className="w-4 h-4 text-cyan-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-              />
-            </svg>
-          </div>
+    <div className="relative w-full max-w-[440px] pt-9 sm:min-w-[300px] sm:grow sm:basis-0">
+      {/* HP: w-full saja (satu kartu per baris). grow/basis-0 dikhususkan sm+ supaya
+          3 kartu membagi rata — kalau tidak, dua kartu di HP berdampingan ±159px
+          karena flex-basis:0 mengalahkan width:100% saat dihitung ruang utama. */}
+      {/* Badge mengampu — rata KIRI KARTU (left-0), sejajar tepi kiri kotak
+          kutipan di bawahnya; dulu nempel tepi foto (12.5%) jadi terlihat
+          menyendiri ke tengah. */}
+      <div className="absolute left-0 top-0 z-20">
+        <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm sm:px-4 sm:py-2.5">
+          <span
+            aria-hidden="true"
+            className="grid size-7 shrink-0 place-items-center rounded-lg sm:size-8"
+            style={{ backgroundColor: CHIP }}
+          >
+            <School className="size-4" style={{ color: TEAL }} />
+          </span>
           <div>
-            <p className="text-xs text-gray-500 leading-tight">Pengajar di</p>
-            <p className="text-sm font-semibold text-gray-900 leading-tight">
-              {data.schoolName}
-            </p>
+            <p className="text-xs leading-tight text-slate-500">{tr("text151")}</p>
+            <p className="text-[13px] font-semibold leading-tight text-slate-900 sm:text-sm">{guru.mapel.join(", ")}</p>
           </div>
         </div>
       </div>
 
-      {/* Photo block — amber offset behind, white frame in front */}
-      <div className="relative">
-        <div className="absolute inset-0 bg-amber-300 rounded-2xl translate-x-2.5 translate-y-2.5" aria-hidden="true"></div>
-        <div className="relative bg-white rounded-2xl overflow-hidden aspect-498/516">
-          <Image
-            src={data.photoUrl}
-            alt={data.teacherName}
-            fill
-            sizes="(max-width: 768px) 100vw, 33vw"
-            className="object-cover object-top"
-          />
+      {/* Foto potret — lebar 75% kartu (ukur dari guru.png & DOM ruangkelas: img
+          256px di dalam kartu 340px), RATA TENGAH lewat mx-auto supaya kotak
+          kutipan menjorok sama besar di kiri-kanan. Latar lavender; headshot
+          berlatar putih menyatu lewat multiply. */}
+      <div className="mx-auto w-[75%]">
+        <div className="overflow-hidden rounded-2xl border border-slate-200" style={{ backgroundColor: LAVENDER }}>
+          <div className="relative aspect-498/516">
+            <Image
+              src={foto}
+              alt={tr("teacherPhoto", {name: guru.nama})}
+              fill
+              sizes="(max-width: 768px) 75vw, (max-width: 1024px) 38vw, 28vw"
+              className="object-cover object-top mix-blend-multiply"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Quote Box — white, shadow only, overlapping the photo */}
-      <div className="relative -mt-8 z-10 px-1">
-        <div className="bg-white rounded-2xl p-6 shadow-xl relative border-2 border-cyan-700">
-          {/* Quote Icon - lingkaran teal di pojok kiri atas */}
-          <div className="absolute -top-5 left-6">
-            <div className="w-10 h-10 bg-cyan-700 rounded-full flex items-center justify-center shadow-md">
-              <svg
-                className="w-5 h-5 text-white"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Quote Text */}
-          <p className="text-gray-700 leading-relaxed mb-6 mt-2 text-[15px]">
-            {data.quote}
+      {/* Kotak kutipan — lebar penuh kartu, menutupi bawah foto, ikon kutip di sudut.
+          -mt dalam % (margin % dihitung dari LEBAR containing block = kartu), sehingga
+          tumpang tindih tetap ±21% tinggi foto di semua lebar. Angka tetap (72px) bikin
+          foto HP yang lebih pendek ketutupan sampai 31%. */}
+      <div className="relative -mt-[16.5%] z-10">
+        <div className="relative rounded-2xl border-2 bg-white px-5 pb-5 pt-7 shadow-[0_14px_30px_rgba(14,47,69,0.10)] sm:px-6 sm:pb-6 sm:pt-8" style={{ borderColor: TEAL }}>
+          <span
+            aria-hidden="true"
+            className="absolute -top-5 left-4 grid size-10 place-items-center rounded-full shadow-md sm:left-5"
+            style={{ backgroundColor: TEAL }}
+          >
+            <Quote className="size-5 text-white" fill="currentColor" />
+          </span>
+          <p className="text-sm font-semibold leading-relaxed sm:text-[15px]" style={{ color: TEAL }}>
+            &ldquo;{kutip}&rdquo;
           </p>
-
-          {/* Divider */}
-          <div className="border-t border-gray-200 pt-4">
-            <p className="font-bold text-gray-900 text-base">
-              {data.teacherName}
-            </p>
-            <p className="text-sm text-gray-500 mt-0.5">
-              {data.teacherTitle}
-            </p>
+          <div className="mt-5 border-t border-dashed border-slate-200 pt-4">
+            <p className="text-base font-bold text-slate-900">{guru.nama}</p>
+            <p className="mt-0.5 text-sm text-slate-500">
+              {tr("teacherLevels", {level: jenjang, count: guru.jumlahKelas})}</p>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+export default async function TestimonialSection({ gurus }: { gurus: GuruKatalog[] }) {
+ const tr = await getTranslations("public");
+  // Tidak ada guru dengan kelas aktif? Section disembunyikan, bukan diisi nama palsu.
+  if (gurus.length === 0) return null;
+
+  return (
+    <section className="relative overflow-hidden bg-white">
+      {/* Lengkung dekorasi tipis di pojok kanan atas (pola latar ruangkelas) */}
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 400 400"
+        className="pointer-events-none absolute -right-24 -top-24 w-[420px] text-[#cfe0ef]"
+        fill="none"
+      >
+        <circle cx="330" cy="70" r="120" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="330" cy="70" r="180" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="330" cy="70" r="240" stroke="currentColor" strokeWidth="1.5" />
+      </svg>
+
+      <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+        <div className="mx-auto mb-14 max-w-2xl text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            {tr("text158")}</h2>
+          <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:text-base">
+            {tr("text159")}</p>
+        </div>
+
+        {/* Flex terpusat, bukan grid 3 kolom: jumlah guru dari DB (bisa 1 atau 2),
+            grid tetap membuat kartu tunggal mengambang kiri dengan ruang kosong lebar. */}
+        <div className="mt-2 flex flex-wrap justify-center gap-x-10 gap-y-14 sm:gap-y-20">
+          {gurus.map((g, i) => (
+            <KartuGuru key={g.id} guru={g} index={i} />
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }

@@ -1,27 +1,43 @@
 "use server";
+import { getTranslations } from 'next-intl/server';
+import { getLocaleDariCookie } from '@/i18n/locale';
 
-import { redirect } from "next/navigation";
+import { redirect, getPathname } from '@/i18n/navigation';
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/prisma/db";
 import { auth } from "@/lib/auth";
 
-const schema = z.object({
-  nama: z.string().trim().min(2, "Nama anak minimal 2 karakter"),
+const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
+  nama: z.string({error: t('invalidField')}).trim().min(2, t('childNameMin')),
   tanggal_lahir: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Tanggal lahir wajib diisi")
-    .refine((v) => new Date(v) <= new Date(), "Tanggal lahir tidak boleh di masa depan"),
-  jenjang_terakhir: z.enum(["TK", "SD", "SMP", "SMA"]),
-  email_notifikasi: z.string().trim().email().optional().or(z.literal("")),
-  nomor_telepon: z.string().trim().max(30).optional().or(z.literal("")),
+    .string({error: t('invalidField')})
+    .regex(/^\d{4}-\d{2}-\d{2}$/, t('birthRequired'))
+    .refine((v) => new Date(v) <= new Date(), t('birthFuture')),
+  jenjang_terakhir: z.enum(["TK", "SD", "SMP", "SMA"], {error: t('invalidLevel')}),
+  email_notifikasi: z
+    .string({error: t('invalidField')})
+    .trim()
+    .email(t('invalidEmailFormat'))
+    .optional()
+    .or(z.literal("")),
+  nomor_telepon: z
+    .string({error: t('invalidField')})
+    .trim()
+    .max(30, t('phoneMax'))
+    .regex(/^[0-9+\-\s()]*$/, t('phoneCharacters'))
+    .optional()
+    .or(z.literal("")),
 });
 
 export type ChildInfoState = {
   error?: string;
   fieldErrors?: Record<string, string>;
   nama?: string;
+  tanggal_lahir?: string;
   jenjang_terakhir?: string;
+  email_notifikasi?: string;
+  nomor_telepon?: string;
 };
 
 async function guard() {
@@ -50,23 +66,35 @@ export async function saveChildInfo(
   _prev: ChildInfoState,
   formData: FormData,
 ): Promise<ChildInfoState> {
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({locale, namespace: 'auth'});
   const ortuId = await guard();
-  if (!ortuId) return { error: "Sesi berakhir. Masuk ulang." };
+  if (!ortuId) return { error: t('sessionExpired') };
 
   const namaKetik = String(formData.get("nama") ?? "");
   const jenjangKetik = String(formData.get("jenjang_terakhir") ?? "");
-  const parsed = schema.safeParse({
+  const emailKetik = String(formData.get("email_notifikasi") ?? "");
+  const teleponKetik = String(formData.get("nomor_telepon") ?? "");
+  const parsed = schema(t).safeParse({
     nama: namaKetik,
     tanggal_lahir: formData.get("tanggal_lahir"),
     jenjang_terakhir: jenjangKetik,
-    email_notifikasi: String(formData.get("email_notifikasi") ?? ""),
-    nomor_telepon: String(formData.get("nomor_telepon") ?? ""),
+    email_notifikasi: emailKetik,
+    nomor_telepon: teleponKetik,
   });
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
     for (const issue of parsed.error.issues)
       fieldErrors[String(issue.path[0])] ??= issue.message;
-    return { error: "Periksa lagi isian profil anak.", fieldErrors, nama: namaKetik, jenjang_terakhir: jenjangKetik };
+    return {
+      error: t('checkChild'),
+      fieldErrors,
+      nama: namaKetik,
+      tanggal_lahir: String(formData.get("tanggal_lahir") ?? ""),
+      jenjang_terakhir: jenjangKetik,
+      email_notifikasi: emailKetik,
+      nomor_telepon: teleponKetik,
+    };
   }
   const d = parsed.data;
 
@@ -78,7 +106,8 @@ export async function saveChildInfo(
     emailNotifikasi: d.email_notifikasi || null,
     nomorTelepon: d.nomor_telepon || null,
   });
-  redirect("/home");
+  revalidatePath(getPathname({href: "/children", locale}));
+  return redirect({href: "/home", locale});
 }
 
 // C10 — edit anak. Ditolak kalau ada pendaftaran aktif (Keputusan #5).
@@ -86,19 +115,21 @@ export async function updateChild(
   _prev: ChildInfoState,
   formData: FormData,
 ): Promise<ChildInfoState> {
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({locale, namespace: 'auth'});
   const ortuId = await guard();
-  if (!ortuId) return { error: "Sesi berakhir. Masuk ulang." };
+  if (!ortuId) return { error: t('sessionExpired') };
 
   const anakId = Number(formData.get("anak_id"));
-  if (!Number.isInteger(anakId) || anakId <= 0) return { error: "Anak tidak valid." };
+  if (!Number.isInteger(anakId) || anakId <= 0) return { error: t('invalidChild') };
 
   if (await anakTerkunci(anakId))
     return {
       error:
-        "Profil anak terkunci karena ada pendaftaran aktif. Hubungi admin untuk koreksi.",
+        t('childLocked'),
     };
 
-  const parsed = schema.safeParse({
+  const parsed = schema(t).safeParse({
     nama: formData.get("nama"),
     tanggal_lahir: formData.get("tanggal_lahir"),
     jenjang_terakhir: formData.get("jenjang_terakhir"),
@@ -109,7 +140,7 @@ export async function updateChild(
     const fieldErrors: Record<string, string> = {};
     for (const issue of parsed.error.issues)
       fieldErrors[String(issue.path[0])] ??= issue.message;
-    return { error: "Periksa lagi isian profil anak.", fieldErrors };
+    return { error: t('checkChild'), fieldErrors };
   }
   const d = parsed.data;
 
@@ -124,7 +155,7 @@ export async function updateChild(
       .where((a) => a.orangTuaId.eq(ortuId))
       .all(),
   );
-  if (milikOrtu.length === 0) return { error: "Anak tidak ditemukan." };
+  if (milikOrtu.length === 0) return { error: t('childNotFound') };
 
   await db.orm.public.Anak.where({ id: anakId }).update({
     nama: d.nama,
@@ -133,6 +164,6 @@ export async function updateChild(
     emailNotifikasi: d.email_notifikasi || null,
     nomorTelepon: d.nomor_telepon || null,
   });
-  revalidatePath("/children");
-  redirect("/children");
+  revalidatePath(getPathname({href: "/children", locale}));
+  return redirect({href: "/children", locale});
 }

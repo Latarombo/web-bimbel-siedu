@@ -1,0 +1,128 @@
+{
+  "hero": {
+    "titleBefore": "Your child's lessons, fully",
+    "titleHighlight": "on track",
+    "titleAfter": ". Your peace of mind too",
+    "subtitle": "Siedu is an integrated tutoring system for one institution. Enrollment, payments, attendance, and grading from TK through SMA all run in one place, not across a dozen chats.",
+    "ctaRegister": "Create a parent account",
+    "ctaClasses": "Browse classes",
+    "photoAlt": "Illustration of a child learning at Siedu"
+  },
+  "proof": {
+    "quota": "Seats lock the moment you enroll",
+    "attendance": "Today's attendance is visible right away"
+  },
+  "quote": {
+    "text": "A child's learning progress should be something you can open, check, and hold accountable. Not something you chase through chats that sometimes get answered, sometimes don't.",
+    "caption": "The promise behind every feature in Siedu."
+  },
+  "stats": {
+    "children": "Children enrolled",
+    "classes": "Active classes",
+    "teachers": "Teachers",
+    "subjects": "Subjects"
+  },
+  "story": {
+    "titleBefore": "It started with",
+    "titleHighlight": "chats that fell apart",
+    "p1": "Not because the lessons were bad. Because the information was scattered. Enrollment by chat, payment by bank transfer, progress never reported. Many parents stop following up in the end, not out of indifference, but because they're tired of asking.",
+    "p2": "Siedu rebuilds that flow. Every trace of your child's course is recorded in one system the institution actually uses, and you can open it any time.",
+    "photoAlt": "Illustration of the Siedu platform"
+  },
+  "problems": {
+    "title": "Recognize any of these?",
+    "bridge": "At Siedu, all four have an answer in the system:",
+    "items": [
+      "Enrolling by chat, answered whenever the teacher gets a moment",
+      "Paying by transfer, receipts piling up in your phone gallery",
+      "Never knowing whether your child showed up",
+      "Grades only appearing at the end of the semester, if at all"
+    ]
+  },
+  "answers": {
+    "items": [
+      "Pick a class and the seat locks through the platform, not by waiting for a chat reply.",
+      "Payments go through Midtrans, recorded in full or as an installment plan.",
+      "Teachers enter attendance every session, and you can check it the same day.",
+      "Grades go into your child's portfolio with a traceable history."
+    ]
+  },
+  "compare": {
+    "titleBefore": "The old way vs",
+    "titleHighlight": "Siedu",
+    "lead": "These aren't promises. Every item on the right already runs in this system today.",
+    "caption": "Comparing the old way of managing a child's course with the Siedu system",
+    "colAspect": "Aspect",
+    "colOld": "The old way",
+    "rows": [
+      {
+        "aspek": "Enrollment",
+        "lama": "Ask in chat, written down by hand in a notebook",
+        "baru": "Choose a class per level, the seat locks as soon as you enroll"
+      },
+      {
+        "aspek": "Payment",
+        "lama": "Transfer, tallied manually, often mismatched",
+        "baru": "Pay through Midtrans, in full or DP plus installments, with a clean history in the portal"
+      },
+      {
+        "aspek": "Attendance",
+        "lama": "Parents never know if the child attended",
+        "baru": "Teachers record attendance per session, visible in your account immediately"
+      },
+      {
+        "aspek": "Grades & progress",
+        "lama": "You have to ask, and sometimes no one replies",
+        "baru": "Grades tracked every session, corrections through a recorded official flow"
+      },
+      {
+        "aspek": "Class information",
+        "lama": "Buried in chat history",
+        "baru": "Schedule, materials, and announcements in one place"
+      }
+    ]
+  },
+  "values": {
+    "titleBefore": "Four things we",
+    "titleHighlight": "hold to",
+    "lead": "Not slogans on a wall. Each one has a technical consequence in the system.",
+    "hero": {
+      "initial": "T",
+      "title": "Transparent about cost",
+      "body": "Class fees are shown in full from the start, with no hidden line items. Payment history and outstanding balances stay tidy in the parent portal.",
+      "footnote": "The first reason Siedu was built."
+    },
+    "items": [
+      {
+        "initial": "P",
+        "title": "Children's privacy first",
+        "body": "One system for one institution. Student data is never mixed with other parties, and parental consent is requested up front."
+      },
+      {
+        "initial": "R",
+        "title": "Rules that get honored",
+        "body": "Seats lock at enrollment, the payment window is 7 working days, grade corrections go through the official flow. Written down, not decided on the spot."
+      },
+      {
+        "initial": "E",
+        "title": "Evidence, not gut feel",
+        "body": "Attendance and grades are entered by teachers and immediately visible to parents. Progress can be checked any time, instead of chased through chat."
+      }
+    ]
+  },
+  "mission": {
+    "titleBefore": "Vision &",
+    "titleHighlight": "Mission",
+    "visionLabel": "Vision",
+    "vision": "Quality education that every parent can follow: your child's learning process recorded neatly, openly, and accountably, from TK through SMA.",
+    "visionNote": "This vision is carried out as written system rules on the terms page, not left as a spoken promise.",
+    "missionLabel": "Mission",
+    "missionItems": [
+      "Bring enrollment, payment, attendance, and grading together in one system the institution uses.",
+      "Show class costs in full from the start, including DP and installment options through Midtrans.",
+      "Lock class seats at enrollment so no double promises happen.",
+      "Report attendance and grades through teacher input at every session.",
+      "Keep one institution's student data its own: never mixed with other parties, with parental consent obtained first."
+    ]
+  }
+}

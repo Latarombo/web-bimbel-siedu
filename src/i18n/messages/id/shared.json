@@ -1,0 +1,63 @@
+{
+  "table": {
+    "empty": "Tidak ada data.",
+    "search": "Cari data",
+    "noResults": "Tidak ada hasil untuk pencarian ini.",
+    "clearSearch": "Hapus kata kunci",
+    "filteredCount": "Menampilkan {shown, number} dari {total, number} data",
+    "count": "{count, number} data"
+  },
+  "status": {
+    "menunggu_pembayaran": "Menunggu pembayaran",
+    "terdaftar": "Terdaftar",
+    "tertunggak": "Tertunggak",
+    "dibatalkan_timeout": "Batal (lewat 24 jam)",
+    "dibatalkan_tunggakan": "Batal (tunggakan)",
+    "dibatalkan_orang_tua": "Batal (permintaan orang tua)",
+    "dibatalkan_kelas": "Batal (kelas dibatalkan)"
+  },
+  "back": "← Kembali",
+  "mainMenuAria": "Menu utama",
+  "brandAria": "Siedu — beranda",
+  "profileMenuAria": "Menu profil",
+  "profileMenuCloseAria": "Tutup menu profil",
+  "menuOpen": "Buka menu",
+  "menuClose": "Tutup menu",
+  "admin": {
+    "menuAria": "Menu {role}",
+    "badgeAria": "{count, number} menunggu tindakan",
+    "logout": "Keluar",
+    "brandAria": "Siedu — beranda",
+    "menuOpen": "Buka menu",
+    "menuClose": "Tutup menu"
+  },
+  "logoutDialog": {
+    "title": "Keluar dari Akun?",
+    "parentDescription": "Apakah Anda yakin ingin keluar dari akun <strong>orang tua wali</strong>? Anda perlu masuk kembali untuk memantau aktivitas dan perkembangan anak.",
+    "description": "Apakah Anda yakin ingin keluar dari akun <strong>{role}</strong>? Anda perlu masuk kembali untuk melanjutkan aktivitas di Siedu.",
+    "cancel": "Batal",
+    "confirm": "Ya, Keluar",
+    "pending": "Keluar...",
+    "close": "Tutup dialog keluar",
+    "error": "Belum berhasil keluar. Silakan coba lagi.",
+    "parentNote": "Data progres belajar anak Anda tetap tersimpan dengan aman",
+    "note": "Data yang sudah Anda simpan tetap tersimpan dengan aman"
+  },
+  "nav": {
+    "profile": "Profil",
+    "logout": "Keluar"
+  },
+  "popover": {
+    "accountRole": "Akun {role}",
+    "detail": "Detail Profil",
+    "menuAria": "Menu profil",
+    "children": "Kelola Profil Anak",
+    "accountItem": "Akun Orang Tua",
+    "payments": "Riwayat & Status Pembelian",
+    "privacy": "Kebijakan Privasi",
+    "terms": "Syarat dan Ketentuan",
+    "logout": "Log Out",
+    "user": "Pengguna"
+  },
+  "user": "Pengguna"
+}

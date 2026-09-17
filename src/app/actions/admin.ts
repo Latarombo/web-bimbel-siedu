@@ -1,6 +1,10 @@
 "use server";
 
 import { z } from "zod";
+import { getTranslations } from "next-intl/server";
+import { getLocaleDariCookie } from "@/i18n/locale";
+
+type Translator = Awaited<ReturnType<typeof getTranslations>>;
 import { revalidatePath } from "next/cache";
 import { db } from "@/prisma/db";
 import { auth } from "@/lib/auth";
@@ -23,29 +27,31 @@ function fieldErr(parsed: {
   error: {
     issues: readonly { path: readonly PropertyKey[]; message: string }[];
   };
-}): AdminState {
+}, t: Translator): AdminState {
   const fieldErrors: Record<string, string> = {};
   for (const issue of parsed.error.issues)
     fieldErrors[String(issue.path[0])] ??= issue.message;
-  return { error: "Periksa lagi isian.", fieldErrors };
+  return { error: t("validation.checkFields"), fieldErrors };
 }
 
 // --- E2 Mata Pelajaran ---
-const mapelSchema = z.object({
-  nama: z.string().trim().min(2, "Nama minimal 2 karakter").max(100),
-  deskripsi: z.string().trim().max(500).optional().or(z.literal("")),
+const mapelSchema = (t: Translator) => z.object({
+  nama: z.string().trim().min(2, t("validation.nameMin")).max(100, t("validation.nameMax")),
+  deskripsi: z.string().trim().max(500, t("validation.descriptionMax")).optional().or(z.literal("")),
 });
 
 export async function saveMapel(
   _prev: AdminState,
   formData: FormData,
 ): Promise<AdminState> {
-  if (!(await guardAdmin())) return { error: "Sesi berakhir. Masuk ulang." };
-  const parsed = mapelSchema.safeParse({
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({ locale, namespace: "adminForms" });
+  if (!(await guardAdmin())) return { error: t("validation.session") };
+  const parsed = mapelSchema(t).safeParse({
     nama: formData.get("nama"),
     deskripsi: formData.get("deskripsi") ?? "",
-  });
-  if (!parsed.success) return fieldErr(parsed);
+  }, { error: () => t("validation.invalid") });
+  if (!parsed.success) return fieldErr(parsed, t);
   const mapelId = Number(formData.get("mapel_id") ?? 0);
   try {
     if (mapelId > 0) {
@@ -61,7 +67,7 @@ export async function saveMapel(
     }
   } catch (e) {
     if (e instanceof Error && e.message.includes("mata_pelajaran_nama_key"))
-      return { error: "Nama mata pelajaran sudah dipakai." };
+      return { error: t("validation.subjectDuplicate") };
     throw e;
   }
   revalidatePath("/admin/subjects");
@@ -81,26 +87,26 @@ export async function hapusMapel(formData: FormData): Promise<void> {
 }
 
 // --- E3 Periode ---
-const periodeSchema = z
+const periodeSchema = (t: Translator) => z
   .object({
-    nama: z.string().trim().min(2, "Nama minimal 2 karakter").max(100),
+    nama: z.string().trim().min(2, t("validation.nameMin")).max(100, t("validation.nameMax")),
     tanggal_mulai: z
       .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "Tanggal wajib diisi"),
+      .regex(/^\d{4}-\d{2}-\d{2}$/, t("validation.dateRequired")),
     tanggal_selesai: z
       .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "Tanggal wajib diisi"),
+      .regex(/^\d{4}-\d{2}-\d{2}$/, t("validation.dateRequired")),
     tanggal_tutup_pendaftaran: z
       .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "Tanggal wajib diisi"),
-    status: z.enum(["dibuka", "ditutup", "selesai"]),
+      .regex(/^\d{4}-\d{2}-\d{2}$/, t("validation.dateRequired")),
+    status: z.enum(["dibuka", "ditutup", "selesai"], t("validation.invalid")),
   })
   .refine((d) => d.tanggal_mulai < d.tanggal_selesai, {
-    message: "Mulai harus sebelum selesai.",
+    message: t("validation.periodOrder"),
     path: ["tanggal_selesai"],
   })
   .refine((d) => d.tanggal_tutup_pendaftaran <= d.tanggal_selesai, {
-    message: "Tutup pendaftaran tidak boleh lewat tanggal selesai.",
+    message: t("validation.closeOrder"),
     path: ["tanggal_tutup_pendaftaran"],
   });
 
@@ -108,15 +114,17 @@ export async function savePeriode(
   _prev: AdminState,
   formData: FormData,
 ): Promise<AdminState> {
-  if (!(await guardAdmin())) return { error: "Sesi berakhir. Masuk ulang." };
-  const parsed = periodeSchema.safeParse({
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({ locale, namespace: "adminForms" });
+  if (!(await guardAdmin())) return { error: t("validation.session") };
+  const parsed = periodeSchema(t).safeParse({
     nama: formData.get("nama"),
     tanggal_mulai: formData.get("tanggal_mulai"),
     tanggal_selesai: formData.get("tanggal_selesai"),
     tanggal_tutup_pendaftaran: formData.get("tanggal_tutup_pendaftaran"),
     status: formData.get("status"),
-  });
-  if (!parsed.success) return fieldErr(parsed);
+  }, { error: () => t("validation.invalid") });
+  if (!parsed.success) return fieldErr(parsed, t);
   const periodeId = Number(formData.get("periode_id") ?? 0);
   const d = parsed.data;
   const values = {
@@ -136,31 +144,37 @@ export async function savePeriode(
 }
 
 // --- E4 Guru ---
-const guruSchema = z.object({
-  nama: z.string().trim().min(2, "Nama minimal 2 karakter").max(100),
-  email: z.string().trim().toLowerCase().email("Email tidak valid"),
+const guruSchema = (t: Translator) => z.object({
+  nama: z.string().trim().min(2, t("validation.nameMin")).max(100, t("validation.nameMax")),
+  email: z.string().trim().toLowerCase().email(t("validation.email")),
   password: z
     .string()
-    .min(8, "Password minimal 8 karakter")
+    .min(8, t("validation.passwordMin"))
     .optional()
     .or(z.literal("")),
-  alamat: z.string().trim().max(255).optional().or(z.literal("")),
-  nomor_telepon: z.string().trim().max(30).optional().or(z.literal("")),
+  alamat: z.string().trim().max(255, t("validation.addressMax")).optional().or(z.literal("")),
+  nomor_telepon: z
+    .string()
+    .trim()
+    .min(8, t("validation.phoneMin"))
+    .max(30, t("validation.phoneMax")),
 });
 
 export async function saveGuru(
   _prev: AdminState,
   formData: FormData,
 ): Promise<AdminState> {
-  if (!(await guardAdmin())) return { error: "Sesi berakhir. Masuk ulang." };
-  const parsed = guruSchema.safeParse({
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({ locale, namespace: "adminForms" });
+  if (!(await guardAdmin())) return { error: t("validation.session") };
+  const parsed = guruSchema(t).safeParse({
     nama: formData.get("nama"),
     email: formData.get("email"),
     password: formData.get("password") ?? "",
     alamat: formData.get("alamat") ?? "",
     nomor_telepon: formData.get("nomor_telepon") ?? "",
-  });
-  if (!parsed.success) return fieldErr(parsed);
+  }, { error: () => t("validation.invalid") });
+  if (!parsed.success) return fieldErr(parsed, t);
   const { nama, email, password, alamat, nomor_telepon } = parsed.data;
   const guruId = Number(formData.get("guru_id") ?? 0);
   try {
@@ -169,14 +183,14 @@ export async function saveGuru(
         name: nama,
         email,
         alamat: alamat || null,
-        nomorTelepon: nomor_telepon || null,
+        nomorTelepon: nomor_telepon,
         ...(password ? { password: await bcrypt.hash(password, 10) } : {}),
       });
     } else {
       if (!password)
         return {
-          error: "Password wajib untuk guru baru.",
-          fieldErrors: { password: "Wajib diisi" },
+          error: t("validation.newTeacherPassword"),
+          fieldErrors: { password: t("validation.required") },
         };
       await db.orm.public.User.create({
         role: "guru",
@@ -184,16 +198,39 @@ export async function saveGuru(
         email,
         password: await bcrypt.hash(password, 10),
         alamat: alamat || null,
-        nomorTelepon: nomor_telepon || null,
+        nomorTelepon: nomor_telepon,
       });
     }
   } catch (e) {
     if (e instanceof Error && e.message.includes("duplicate key"))
-      return { error: "Email sudah dipakai akun lain." };
+      return { error: t("validation.emailDuplicate") };
     throw e;
   }
   revalidatePath("/admin/teachers");
   return { ok: true };
+}
+
+export async function hapusGuru(formData: FormData): Promise<void> {
+  if (!(await guardAdmin())) return;
+  const guruId = Number(formData.get("guru_id"));
+  if (!Number.isInteger(guruId) || guruId <= 0) return;
+
+  // FK Restrict di 4 tabel: tidak boleh ada kelas, pesan tidak langsung (tidak
+  // ada kolom guru — diabaikan), presensi, atau nilai yang masih menunjuk akun
+  // ini. Ditolak dengan pesan, bukan silent-fail: admin perlu tahu kenapa.
+  const [kelasDipakai, presensiDipakai, nilaiDipakai] = await Promise.all([
+    collect(db.orm.public.Kelas.where((k) => k.guruId.eq(guruId)).all()),
+    collect(db.orm.public.Presensi.where((x) => x.dicatatOleh.eq(guruId)).all()),
+    collect(db.orm.public.NilaiProgres.where((n) => n.dicatatOleh.eq(guruId)).all()),
+  ]);
+  if (kelasDipakai.length > 0 || presensiDipakai.length > 0 || nilaiDipakai.length > 0) return;
+
+  try {
+    await db.orm.public.User.where({ id: guruId, role: "guru" }).delete();
+  } catch {
+    return; // balapan: dependensi muncul di antara cek dan delete
+  }
+  revalidatePath("/admin/teachers");
 }
 
 // --- E5 Kelas + jadwal ---
@@ -207,25 +244,25 @@ const HARI = [
   "Minggu",
 ] as const;
 
-const kelasSchema = z
+const kelasSchema = (t: Translator) => z
   .object({
-    mata_pelajaran_id: z.coerce.number().int().positive("Pilih mata pelajaran"),
-    guru_id: z.coerce.number().int().positive("Pilih guru"),
-    periode_id: z.coerce.number().int().positive("Pilih periode"),
-    jenjang: z.enum(["TK", "SD", "SMP", "SMA"]),
-    kuota_maksimum: z.coerce.number().int().min(1, "Minimal 1").max(200),
-    kuota_minimum: z.coerce.number().int().min(1, "Minimal 1").max(200),
-    biaya_periode: z.coerce.number().positive("Biaya harus > 0"),
+    mata_pelajaran_id: z.coerce.number().int().positive(t("validation.subject")),
+    guru_id: z.coerce.number().int().positive(t("validation.teacher")),
+    periode_id: z.coerce.number().int().positive(t("validation.period")),
+    jenjang: z.enum(["TK", "SD", "SMP", "SMA"], t("validation.invalid")),
+    kuota_maksimum: z.coerce.number().int().min(1, t("validation.minOne")).max(200, t("validation.maxQuota")),
+    kuota_minimum: z.coerce.number().int().min(1, t("validation.minOne")).max(200, t("validation.maxQuota")),
+    biaya_periode: z.coerce.number().positive(t("validation.positiveFee")),
     biaya_dp: z.coerce.number().positive().optional(),
-    tenor_maksimum: z.coerce.number().int().min(2, "Minimal 2").optional(),
-    status: z.enum(["aktif", "dibatalkan"]),
+    tenor_maksimum: z.coerce.number().int().min(2, t("validation.minTwo")).optional(),
+    status: z.enum(["aktif", "dibatalkan"], t("validation.invalid")),
   })
   .refine((d) => d.kuota_minimum <= d.kuota_maksimum, {
-    message: "Kuota minimum tidak boleh lewat maksimum.",
+    message: t("validation.quotaOrder"),
     path: ["kuota_minimum"],
   })
   .refine((d) => d.biaya_dp == null || d.biaya_dp < d.biaya_periode, {
-    message: "DP harus lebih kecil dari biaya periode.",
+    message: t("validation.depositOrder"),
     path: ["biaya_dp"],
   });
 
@@ -233,8 +270,10 @@ export async function saveKelas(
   _prev: AdminState,
   formData: FormData,
 ): Promise<AdminState> {
-  if (!(await guardAdmin())) return { error: "Sesi berakhir. Masuk ulang." };
-  const parsed = kelasSchema.safeParse({
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({ locale, namespace: "adminForms" });
+  if (!(await guardAdmin())) return { error: t("validation.session") };
+  const parsed = kelasSchema(t).safeParse({
     mata_pelajaran_id: formData.get("mata_pelajaran_id"),
     guru_id: formData.get("guru_id"),
     periode_id: formData.get("periode_id"),
@@ -245,14 +284,14 @@ export async function saveKelas(
     biaya_dp: formData.get("biaya_dp") || undefined,
     tenor_maksimum: formData.get("tenor_maksimum") || undefined,
     status: formData.get("status"),
-  });
-  if (!parsed.success) return fieldErr(parsed);
+  }, { error: () => t("validation.invalid") });
+  if (!parsed.success) return fieldErr(parsed, t);
   const d = parsed.data;
   // BR#12 dijaga CHECK DB: biaya_dp NULL ⇔ tenor_maksimum NULL
   if ((d.biaya_dp == null) !== (d.tenor_maksimum == null))
     return {
       error:
-        "Kelas DP wajib punya tenor; kelas non-DP tidak boleh punya tenor (BR#12).",
+        t("validation.depositTerm"),
     };
 
   // BR#6: jadwal guru tidak boleh bentrok (periode sama, hari sama, jam beririsan) — level jadwal_item.
@@ -269,16 +308,16 @@ export async function saveKelas(
       !/^([01]\d|2[0-3]):[0-5]\d$/.test(jamSelesai)
     )
       return {
-        error: `Baris jadwal ${i + 1} tidak lengkap/valid (hari, jam mulai, jam selesai).`,
+        error: t("validation.scheduleInvalid", { number: i + 1 }),
       };
     if (jamMulai >= jamSelesai)
       return {
-        error: `Baris jadwal ${i + 1}: jam mulai harus sebelum jam selesai.`,
+        error: t("validation.scheduleOrder", { number: i + 1 }),
       };
     jadwalBaru.push({ hari, jamMulai, jamSelesai });
   }
   if (jadwalBaru.length === 0)
-    return { error: "Minimal satu sesi jadwal per minggu." };
+    return { error: t("validation.scheduleRequired") };
 
   // ponytail: cek bentrok BR#6 dibaca semua jadwal guru lalu dibanding di JS —
   // interval overlap SQL antar-baris baru+lama rumit; upgrade jadi satu SQL bila kelas >ratusan.
@@ -300,7 +339,7 @@ export async function saveKelas(
         strip(nl.jamMulai) < strip(ol.jamSelesai)
       )
         return {
-          error: `Jadwal bentrok: guru sudah mengajar ${nl.hari} ${strip(ol.jamMulai)}–${strip(ol.jamSelesai)} (BR#6).`,
+          error: t("validation.scheduleConflict", { day: t(`days.${nl.hari}`), start: strip(ol.jamMulai), end: strip(ol.jamSelesai) }),
         };
     }
   }
@@ -400,4 +439,28 @@ export async function prosesPengajuan(formData: FormData): Promise<void> {
   revalidatePath("/admin/refunds");
   revalidatePath("/home");
   revalidatePath("/payments");
+}
+
+// E11 — Pesan Kontak: admin menandai status pesan masuk dari formulir /contact.
+export async function ubahStatusPesan(formData: FormData): Promise<void> {
+ const adminId = await guardAdmin();
+ if (!adminId) return;
+ const id = Number(formData.get("pesan_id"));
+ const status = String(formData.get("status") ?? "");
+ if (!Number.isInteger(id) || !["baru", "diproses", "selesai"].includes(status)) return;
+ await db.orm.public.PesanKontak.where((p) => p.id.eq(id)).update({
+  status: status as "baru" | "diproses" | "selesai",
+  updatedAt: new Date().toISOString(),
+ });
+ revalidatePath("/admin/messages");
+ revalidatePath("/admin/dashboard");
+}
+
+export async function hapusPesan(formData: FormData): Promise<void> {
+ if (!(await guardAdmin())) return;
+ const id = Number(formData.get("pesan_id"));
+ if (!Number.isInteger(id)) return;
+ await db.orm.public.PesanKontak.where((p) => p.id.eq(id)).delete();
+ revalidatePath("/admin/messages");
+ revalidatePath("/admin/dashboard");
 }

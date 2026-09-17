@@ -7,5 +7,7 @@ export function Badge({ children, tone = "slate" }: { children: React.ReactNode;
     emerald: "bg-emerald-100 text-emerald-800 border-emerald-200",
     red: "bg-rose-100 text-rose-800 border-rose-200",
   } as const;
-  return <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${map[tone]}`}>{children}</span>;
+  /* max-w-full + break-words: badge dengan teks panjang tidak melebar keluar
+     sel/kartu di layar sempit (pill tetap utuh untuk teks pendek). */
+  return <span className={`inline-flex max-w-full items-center break-words rounded-full border px-3 py-1 text-xs font-medium ${map[tone]}`}>{children}</span>;
 }
