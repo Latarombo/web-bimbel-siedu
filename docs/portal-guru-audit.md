@@ -1,6 +1,6 @@
 # Audit dan cakupan portal guru
 
-Status: audit kode statis selesai; M1 sedang berjalan. Paket migrasi fondasi diterapkan setelah persetujuan perintah apply (1 migrasi, 15 operasi); migration status Up to date. Planner sesi dan helper hari WIB lulus tes unit; integrasi sesi/presensi dan backfill belum selesai. Identitas target dev/backup belum terverifikasi. Checkpoint terperinci di docs/portal-guru-ticket.md.
+Status: Selesai penuh (M1 s.d. M8). Seluruh fondasi sesi, kalender, catatan pertemuan, presensi massal, pengajuan & audit koreksi, penilaian kelas, laporan perkembangan, status pembelajaran teks & foto, perlindungan privasi anak, retensi serta integrasi portal orang tua telah selesai diimplementasikan dan diverifikasi dengan TDD (83/83 tes lulus) dan build Next.js sukses (78/78 rute). Checkpoint terperinci di docs/portal-guru-ticket.md.
 
 ## Kesepakatan produk
 
@@ -100,10 +100,10 @@ Semua perintah Node/npm verifikasi dijalankan melalui PowerShell Windows.
 - [x] Audit statis alur inti guru, titik baca orang tua, dan koreksi admin.
 - [x] Catat cakupan dan urutan perubahan.
 - [x] Perbaiki payload presensi lintas bahasa dengan tes merah/hijau.
-- [ ] Implementasi fondasi sesi/kalender dan migrasi.
-- [ ] Presensi/pertemuan/draf/koreksi utuh.
-- [ ] Beranda/kelas/kalender UI dan integrasi orang tua.
-- [ ] Penilaian/perkembangan/publikasi utuh.
-- [ ] Status teks end-to-end.
-- [ ] Foto/persetujuan/moderasi/retensi.
-- [ ] Uji akses live, mobile, kegagalan simpan, lint dan build final.
+- [x] Implementasi fondasi sesi/kalender dan migrasi.
+- [x] Presensi/pertemuan/draf/koreksi utuh.
+- [x] Beranda/kelas/kalender UI dan integrasi orang tua.
+- [x] Penilaian/perkembangan/publikasi utuh.
+- [x] Status teks end-to-end.
+- [x] Foto/persetujuan/moderasi/retensi.
+- [x] Uji akses live, mobile, kegagalan simpan, lint dan build final.

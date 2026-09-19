@@ -76,7 +76,12 @@ export default async function ChildrenPage() {
                           {a.jenjangTerakhir ?? tr("text011")}  {tr("text012")} {a.tanggalLahir}
                         </p>
                       </div>
-                      {nAktif > 0 ? <Badge tone="brand">{nAktif}  {tr("text013")}</Badge> : null}
+                      <div className="flex flex-col items-end gap-1">
+                        {nAktif > 0 ? <Badge tone="brand">{nAktif} {tr("text013")}</Badge> : null}
+                        <Badge tone={a.persetujuanFoto ? "emerald" : "slate"}>
+                          {a.persetujuanFoto ? tr("consentActive") : tr("consentRevoked")}
+                        </Badge>
+                      </div>
                     </div>
                     <div className="mt-4 flex gap-2">
                       <ButtonLink href={`/children/${a.id}/edit`} variant="outline">

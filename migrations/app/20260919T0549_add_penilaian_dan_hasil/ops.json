@@ -1,0 +1,485 @@
+[
+  {
+    "id": "table.hasil_penilaian",
+    "label": "Create table \"hasil_penilaian\"",
+    "summary": "Creates table \"hasil_penilaian\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "hasil_penilaian"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"hasil_penilaian\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"hasil_penilaian\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"hasil_penilaian\"",
+        "sql": "CREATE TABLE \"public\".\"hasil_penilaian\" (\n  \"catatan\" text,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"nilai\" numeric,\n  \"pendaftaran_id\" int4 NOT NULL,\n  \"penilaian_id\" int4 NOT NULL,\n  \"status_hasil\" text DEFAULT 'belum_dinilai' NOT NULL,\n  \"updated_at\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"hasil_penilaian_non_negatif_4a34f6d6\" CHECK (nilai IS NULL OR nilai >= 0),\n  CONSTRAINT \"hasil_penilaian_status_hasil_check_989d6ff8\" CHECK (\"status_hasil\" IN ('belum_dinilai', 'dinilai', 'tidak_ikut'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"hasil_penilaian\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"hasil_penilaian\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.penilaian",
+    "label": "Create table \"penilaian\"",
+    "summary": "Creates table \"penilaian\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "penilaian"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"penilaian\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"penilaian\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"penilaian\"",
+        "sql": "CREATE TABLE \"public\".\"penilaian\" (\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dibuat_oleh\" int4 NOT NULL,\n  \"diterbitkan_pada\" timestamptz,\n  \"draf\" bool DEFAULT true NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"kelas_id\" int4 NOT NULL,\n  \"nama\" text NOT NULL,\n  \"nilai_maksimum\" numeric DEFAULT '100'::numeric NOT NULL,\n  \"tanggal\" date NOT NULL,\n  \"updated_at\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"penilaian_maksimum_positif_fba317bb\" CHECK (nilai_maksimum > 0)\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"penilaian\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"penilaian\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.hasil_penilaian.hasil_penilaian_penilaian_id_pendaftaran_id_key",
+    "label": "Add unique constraint on \"hasil_penilaian\" (penilaian_id, pendaftaran_id)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "hasil_penilaian_penilaian_id_pendaftaran_id_key",
+        "table": "hasil_penilaian"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"hasil_penilaian_penilaian_id_pendaftaran_id_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "hasil_penilaian_penilaian_id_pendaftaran_id_key",
+          "public",
+          "\"public\".\"hasil_penilaian\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"hasil_penilaian_penilaian_id_pendaftaran_id_key\"",
+        "sql": "ALTER TABLE \"public\".\"hasil_penilaian\" ADD CONSTRAINT \"hasil_penilaian_penilaian_id_pendaftaran_id_key\" UNIQUE (\"penilaian_id\", \"pendaftaran_id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"hasil_penilaian_penilaian_id_pendaftaran_id_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "hasil_penilaian_penilaian_id_pendaftaran_id_key",
+          "public",
+          "\"public\".\"hasil_penilaian\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.hasil_penilaian.hasil_penilaian_pendaftaran_id_idx_0bda22e6",
+    "label": "Create index \"hasil_penilaian_pendaftaran_id_idx_0bda22e6\" on \"hasil_penilaian\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "hasil_penilaian_pendaftaran_id_idx_0bda22e6",
+        "table": "hasil_penilaian"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"hasil_penilaian_pendaftaran_id_idx_0bda22e6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"hasil_penilaian_pendaftaran_id_idx_0bda22e6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"hasil_penilaian_pendaftaran_id_idx_0bda22e6\"",
+        "sql": "CREATE INDEX \"hasil_penilaian_pendaftaran_id_idx_0bda22e6\" ON \"public\".\"hasil_penilaian\" (\"pendaftaran_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"hasil_penilaian_pendaftaran_id_idx_0bda22e6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"hasil_penilaian_pendaftaran_id_idx_0bda22e6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.hasil_penilaian.hasil_penilaian_penilaian_id_idx_f5bdb1b3",
+    "label": "Create index \"hasil_penilaian_penilaian_id_idx_f5bdb1b3\" on \"hasil_penilaian\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "hasil_penilaian_penilaian_id_idx_f5bdb1b3",
+        "table": "hasil_penilaian"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"hasil_penilaian_penilaian_id_idx_f5bdb1b3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"hasil_penilaian_penilaian_id_idx_f5bdb1b3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"hasil_penilaian_penilaian_id_idx_f5bdb1b3\"",
+        "sql": "CREATE INDEX \"hasil_penilaian_penilaian_id_idx_f5bdb1b3\" ON \"public\".\"hasil_penilaian\" (\"penilaian_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"hasil_penilaian_penilaian_id_idx_f5bdb1b3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"hasil_penilaian_penilaian_id_idx_f5bdb1b3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.penilaian.penilaian_dibuat_oleh_idx_3489b1c4",
+    "label": "Create index \"penilaian_dibuat_oleh_idx_3489b1c4\" on \"penilaian\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "penilaian_dibuat_oleh_idx_3489b1c4",
+        "table": "penilaian"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"penilaian_dibuat_oleh_idx_3489b1c4\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"penilaian_dibuat_oleh_idx_3489b1c4\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"penilaian_dibuat_oleh_idx_3489b1c4\"",
+        "sql": "CREATE INDEX \"penilaian_dibuat_oleh_idx_3489b1c4\" ON \"public\".\"penilaian\" (\"dibuat_oleh\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"penilaian_dibuat_oleh_idx_3489b1c4\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"penilaian_dibuat_oleh_idx_3489b1c4\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.penilaian.penilaian_kelas_id_idx_933496b6",
+    "label": "Create index \"penilaian_kelas_id_idx_933496b6\" on \"penilaian\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "penilaian_kelas_id_idx_933496b6",
+        "table": "penilaian"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"penilaian_kelas_id_idx_933496b6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"penilaian_kelas_id_idx_933496b6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"penilaian_kelas_id_idx_933496b6\"",
+        "sql": "CREATE INDEX \"penilaian_kelas_id_idx_933496b6\" ON \"public\".\"penilaian\" (\"kelas_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"penilaian_kelas_id_idx_933496b6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"penilaian_kelas_id_idx_933496b6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.penilaian.penilaian_tanggal_idx_9e863ca6",
+    "label": "Create index \"penilaian_tanggal_idx_9e863ca6\" on \"penilaian\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "penilaian_tanggal_idx_9e863ca6",
+        "table": "penilaian"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"penilaian_tanggal_idx_9e863ca6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"penilaian_tanggal_idx_9e863ca6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"penilaian_tanggal_idx_9e863ca6\"",
+        "sql": "CREATE INDEX \"penilaian_tanggal_idx_9e863ca6\" ON \"public\".\"penilaian\" (\"tanggal\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"penilaian_tanggal_idx_9e863ca6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"penilaian_tanggal_idx_9e863ca6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.hasil_penilaian.hasil_penilaian_penilaian_id_fkey",
+    "label": "Add foreign key \"hasil_penilaian_penilaian_id_fkey\" on \"hasil_penilaian\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "hasil_penilaian_penilaian_id_fkey",
+        "table": "hasil_penilaian"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"hasil_penilaian_penilaian_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "hasil_penilaian_penilaian_id_fkey",
+          "public",
+          "\"public\".\"hasil_penilaian\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"hasil_penilaian_penilaian_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"hasil_penilaian\"\nADD CONSTRAINT \"hasil_penilaian_penilaian_id_fkey\"\nFOREIGN KEY (\"penilaian_id\")\nREFERENCES \"public\".\"penilaian\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"hasil_penilaian_penilaian_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "hasil_penilaian_penilaian_id_fkey",
+          "public",
+          "\"public\".\"hasil_penilaian\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.hasil_penilaian.hasil_penilaian_pendaftaran_id_fkey",
+    "label": "Add foreign key \"hasil_penilaian_pendaftaran_id_fkey\" on \"hasil_penilaian\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "hasil_penilaian_pendaftaran_id_fkey",
+        "table": "hasil_penilaian"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"hasil_penilaian_pendaftaran_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "hasil_penilaian_pendaftaran_id_fkey",
+          "public",
+          "\"public\".\"hasil_penilaian\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"hasil_penilaian_pendaftaran_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"hasil_penilaian\"\nADD CONSTRAINT \"hasil_penilaian_pendaftaran_id_fkey\"\nFOREIGN KEY (\"pendaftaran_id\")\nREFERENCES \"public\".\"pendaftaran\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"hasil_penilaian_pendaftaran_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "hasil_penilaian_pendaftaran_id_fkey",
+          "public",
+          "\"public\".\"hasil_penilaian\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.penilaian.penilaian_kelas_id_fkey",
+    "label": "Add foreign key \"penilaian_kelas_id_fkey\" on \"penilaian\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "penilaian_kelas_id_fkey",
+        "table": "penilaian"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"penilaian_kelas_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "penilaian_kelas_id_fkey",
+          "public",
+          "\"public\".\"penilaian\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"penilaian_kelas_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"penilaian\"\nADD CONSTRAINT \"penilaian_kelas_id_fkey\"\nFOREIGN KEY (\"kelas_id\")\nREFERENCES \"public\".\"kelas\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"penilaian_kelas_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "penilaian_kelas_id_fkey",
+          "public",
+          "\"public\".\"penilaian\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.penilaian.penilaian_dibuat_oleh_fkey",
+    "label": "Add foreign key \"penilaian_dibuat_oleh_fkey\" on \"penilaian\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "penilaian_dibuat_oleh_fkey",
+        "table": "penilaian"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"penilaian_dibuat_oleh_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "penilaian_dibuat_oleh_fkey",
+          "public",
+          "\"public\".\"penilaian\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"penilaian_dibuat_oleh_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"penilaian\"\nADD CONSTRAINT \"penilaian_dibuat_oleh_fkey\"\nFOREIGN KEY (\"dibuat_oleh\")\nREFERENCES \"public\".\"users\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"penilaian_dibuat_oleh_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "penilaian_dibuat_oleh_fkey",
+          "public",
+          "\"public\".\"penilaian\""
+        ]
+      }
+    ]
+  }
+]

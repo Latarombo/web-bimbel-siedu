@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { PageShell, PageHeader, Panel } from "@/components/admin/ui";
 import PresensiForm from "@/components/teacher/presensi-form";
+import CatatanPertemuanForm from "@/components/teacher/catatan-pertemuan-form";
 
 export const dynamic = "force-dynamic";
 
@@ -90,7 +91,7 @@ export default async function AttendancePage({
   const sesiTersimpan = sesiBySlot.get(item.id);
   if (sesiTersimpan?.statusSesi === "dibatalkan") notFound();
 
-  const [pendaftaranKelas, existing, semuaAnak] = await Promise.all([
+  const [pendaftaranKelas, existing, semuaAnak, catatanPertemuanRows] = await Promise.all([
     collect(
       db.orm.public.Pendaftaran.where((p) => p.kelasId.eq(kid)).all(),
     ),
@@ -100,7 +101,11 @@ export default async function AttendancePage({
         .all(),
     ),
     collect(db.orm.public.Anak.all()),
+    sesiTersimpan
+      ? collect(db.orm.public.CatatanPertemuan.where((c) => c.sesiId.eq(sesiTersimpan.id)).all())
+      : Promise.resolve([]),
   ]);
+  const catatanPertemuan = catatanPertemuanRows[0];
   const anakById = new Map(semuaAnak.map((a) => [a.id, a]));
 
   const existingMap = new Map(existing.map((e) => [e.pendaftaranId, e]));
@@ -152,17 +157,39 @@ export default async function AttendancePage({
       ) : null}
 
       <div className="mt-4 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_17rem]">
-        <Panel>
-          <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-            <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("attendanceList")}</h2>
-            <p className="text-xs text-slate-500">
-              {t("attendanceHelp")}
-            </p>
-          </div>
-          <div className="p-4 sm:p-6">
-            <PresensiForm kelasId={kid} jadwalItemId={item.id} tanggal={tanggal} siswa={anakList} />
-          </div>
-        </Panel>
+        <div className="space-y-5">
+          <Panel>
+            <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
+              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("attendanceList")}</h2>
+              <p className="text-xs text-slate-500">
+                {t("attendanceHelp")}
+              </p>
+            </div>
+            <div className="p-4 sm:p-6">
+              <PresensiForm kelasId={kid} jadwalItemId={item.id} tanggal={tanggal} siswa={anakList} />
+            </div>
+          </Panel>
+
+          <Panel>
+            <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
+              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("sessionNotesTitle")}</h2>
+              <p className="text-xs text-slate-500">
+                {t("sessionNotesHelp")}
+              </p>
+            </div>
+            <div className="p-4 sm:p-6">
+              <CatatanPertemuanForm
+                kelasId={kid}
+                jadwalItemId={item.id}
+                tanggal={tanggal}
+                initialMateri={catatanPertemuan?.materi ?? ""}
+                initialPr={catatanPertemuan?.pr ?? ""}
+                isDraf={catatanPertemuan?.draf ?? true}
+                diterbitkanPada={catatanPertemuan?.diterbitkanPada ?? null}
+              />
+            </div>
+          </Panel>
+        </div>
 
         <div className="flex flex-col gap-4 lg:sticky lg:top-6">
           <Panel>
