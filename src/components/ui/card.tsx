@@ -1,7 +1,7 @@
-/* Kartu harga — flat sesuai DESIGN.md (radius 16px, border slate-100, shadow-1). */
+/* Kartu — Living Design System (Modern Clean SaaS: border slate-200/80, shadow-sm, rounded-xl). */
 export function Card({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`rounded-2xl border border-slate-100 bg-surface shadow-sm ${className}`}>{children}</div>;
+  return <div className={`rounded-xl border border-slate-200/80 bg-surface shadow-sm transition-shadow ${className}`}>{children}</div>;
 }
 export function CardPad({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`p-4 sm:p-6 ${className}`}>{children}</div>;
+  return <div className={`p-5 sm:p-6 ${className}`}>{children}</div>;
 }

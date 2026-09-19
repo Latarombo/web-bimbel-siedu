@@ -1,13 +1,13 @@
 {
   "nav": {
-    "classes": "Jelajah Kelas",
+    "classes": "Katalog Kelas",
     "about": "Tentang",
     "contact": "Kontak",
     "privacy": "Kebijakan Privasi",
     "terms": "Ketentuan",
     "login": "Masuk",
     "signup": "Daftar",
-    "dashboard": "Dashboard",
+    "dashboard": "Beranda",
     "brandAria": "Siedu \u2014 beranda",
     "menuOpen": "Buka menu",
     "menuClose": "Tutup menu"
