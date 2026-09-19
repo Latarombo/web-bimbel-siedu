@@ -43,8 +43,10 @@ export default async function TeacherLayout({ children }: { children: React.Reac
       label: t("teaching"),
       items: [
         { name: t("dashboard"), href: "/teacher/dashboard", icon: "grid" },
+        { name: t("calendarTitle"), href: "/teacher/calendar", icon: "calendar" },
         { name: t("assignedClassesTitle"), href: "/teacher/classes", icon: "layers", badge: kelas.filter((k) => k.status === "aktif").length },
         { name: t("gradesTitle"), href: "/teacher/grades", icon: "chart", badge: siswaBelumNilai },
+        { name: t("statusTitle"), href: "/teacher/status", icon: "inbox" },
         { name: t("corrections"), href: "/teacher/corrections", icon: "clipboard", badge: terkunci },
       ],
     },

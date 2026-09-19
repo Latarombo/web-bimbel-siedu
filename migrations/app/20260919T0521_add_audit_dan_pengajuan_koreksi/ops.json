@@ -1,0 +1,401 @@
+[
+  {
+    "id": "table.audit_perubahan",
+    "label": "Create table \"audit_perubahan\"",
+    "summary": "Creates table \"audit_perubahan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "audit_perubahan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"audit_perubahan\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"audit_perubahan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"audit_perubahan\"",
+        "sql": "CREATE TABLE \"public\".\"audit_perubahan\" (\n  \"aksi\" text NOT NULL,\n  \"aktor_id\" int4 NOT NULL,\n  \"alasan\" text,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"entitas\" text NOT NULL,\n  \"entitas_id\" int4 NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"sebelum\" text,\n  \"sesudah\" text,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"audit_perubahan\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"audit_perubahan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.pengajuan_koreksi",
+    "label": "Create table \"pengajuan_koreksi\"",
+    "summary": "Creates table \"pengajuan_koreksi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "pengajuan_koreksi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"pengajuan_koreksi\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pengajuan_koreksi\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"pengajuan_koreksi\"",
+        "sql": "CREATE TABLE \"public\".\"pengajuan_koreksi\" (\n  \"alasan\" text NOT NULL,\n  \"catatan_admin\" text,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"data_sebelum\" text,\n  \"data_usulan\" text NOT NULL,\n  \"diproses_oleh\" int4,\n  \"entitas\" text NOT NULL,\n  \"entitas_id\" int4 NOT NULL,\n  \"guru_id\" int4 NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"status\" text DEFAULT 'menunggu' NOT NULL,\n  \"updated_at\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"pengajuan_koreksi_status_check_64629cf3\" CHECK (\"status\" IN ('menunggu', 'disetujui', 'ditolak'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"pengajuan_koreksi\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pengajuan_koreksi\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.audit_perubahan.audit_perubahan_aktor_id_idx_09d2e67e",
+    "label": "Create index \"audit_perubahan_aktor_id_idx_09d2e67e\" on \"audit_perubahan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "audit_perubahan_aktor_id_idx_09d2e67e",
+        "table": "audit_perubahan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"audit_perubahan_aktor_id_idx_09d2e67e\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"audit_perubahan_aktor_id_idx_09d2e67e\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"audit_perubahan_aktor_id_idx_09d2e67e\"",
+        "sql": "CREATE INDEX \"audit_perubahan_aktor_id_idx_09d2e67e\" ON \"public\".\"audit_perubahan\" (\"aktor_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"audit_perubahan_aktor_id_idx_09d2e67e\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"audit_perubahan_aktor_id_idx_09d2e67e\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.audit_perubahan.audit_perubahan_entitas_entitas_id_idx_e0afe73f",
+    "label": "Create index \"audit_perubahan_entitas_entitas_id_idx_e0afe73f\" on \"audit_perubahan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "audit_perubahan_entitas_entitas_id_idx_e0afe73f",
+        "table": "audit_perubahan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"audit_perubahan_entitas_entitas_id_idx_e0afe73f\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"audit_perubahan_entitas_entitas_id_idx_e0afe73f\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"audit_perubahan_entitas_entitas_id_idx_e0afe73f\"",
+        "sql": "CREATE INDEX \"audit_perubahan_entitas_entitas_id_idx_e0afe73f\" ON \"public\".\"audit_perubahan\" (\"entitas\", \"entitas_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"audit_perubahan_entitas_entitas_id_idx_e0afe73f\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"audit_perubahan_entitas_entitas_id_idx_e0afe73f\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pengajuan_koreksi.pengajuan_koreksi_diproses_oleh_idx_c7a6c546",
+    "label": "Create index \"pengajuan_koreksi_diproses_oleh_idx_c7a6c546\" on \"pengajuan_koreksi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pengajuan_koreksi_diproses_oleh_idx_c7a6c546",
+        "table": "pengajuan_koreksi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pengajuan_koreksi_diproses_oleh_idx_c7a6c546\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pengajuan_koreksi_diproses_oleh_idx_c7a6c546\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pengajuan_koreksi_diproses_oleh_idx_c7a6c546\"",
+        "sql": "CREATE INDEX \"pengajuan_koreksi_diproses_oleh_idx_c7a6c546\" ON \"public\".\"pengajuan_koreksi\" (\"diproses_oleh\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pengajuan_koreksi_diproses_oleh_idx_c7a6c546\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pengajuan_koreksi_diproses_oleh_idx_c7a6c546\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pengajuan_koreksi.pengajuan_koreksi_guru_id_idx_502a0782",
+    "label": "Create index \"pengajuan_koreksi_guru_id_idx_502a0782\" on \"pengajuan_koreksi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pengajuan_koreksi_guru_id_idx_502a0782",
+        "table": "pengajuan_koreksi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pengajuan_koreksi_guru_id_idx_502a0782\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pengajuan_koreksi_guru_id_idx_502a0782\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pengajuan_koreksi_guru_id_idx_502a0782\"",
+        "sql": "CREATE INDEX \"pengajuan_koreksi_guru_id_idx_502a0782\" ON \"public\".\"pengajuan_koreksi\" (\"guru_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pengajuan_koreksi_guru_id_idx_502a0782\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pengajuan_koreksi_guru_id_idx_502a0782\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.pengajuan_koreksi.pengajuan_koreksi_status_idx_e98638ab",
+    "label": "Create index \"pengajuan_koreksi_status_idx_e98638ab\" on \"pengajuan_koreksi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "pengajuan_koreksi_status_idx_e98638ab",
+        "table": "pengajuan_koreksi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"pengajuan_koreksi_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pengajuan_koreksi_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"pengajuan_koreksi_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"pengajuan_koreksi_status_idx_e98638ab\" ON \"public\".\"pengajuan_koreksi\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"pengajuan_koreksi_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"pengajuan_koreksi_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.audit_perubahan.audit_perubahan_aktor_id_fkey",
+    "label": "Add foreign key \"audit_perubahan_aktor_id_fkey\" on \"audit_perubahan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "audit_perubahan_aktor_id_fkey",
+        "table": "audit_perubahan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"audit_perubahan_aktor_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "audit_perubahan_aktor_id_fkey",
+          "public",
+          "\"public\".\"audit_perubahan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"audit_perubahan_aktor_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"audit_perubahan\"\nADD CONSTRAINT \"audit_perubahan_aktor_id_fkey\"\nFOREIGN KEY (\"aktor_id\")\nREFERENCES \"public\".\"users\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"audit_perubahan_aktor_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "audit_perubahan_aktor_id_fkey",
+          "public",
+          "\"public\".\"audit_perubahan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.pengajuan_koreksi.pengajuan_koreksi_guru_id_fkey",
+    "label": "Add foreign key \"pengajuan_koreksi_guru_id_fkey\" on \"pengajuan_koreksi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "pengajuan_koreksi_guru_id_fkey",
+        "table": "pengajuan_koreksi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"pengajuan_koreksi_guru_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pengajuan_koreksi_guru_id_fkey",
+          "public",
+          "\"public\".\"pengajuan_koreksi\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"pengajuan_koreksi_guru_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"pengajuan_koreksi\"\nADD CONSTRAINT \"pengajuan_koreksi_guru_id_fkey\"\nFOREIGN KEY (\"guru_id\")\nREFERENCES \"public\".\"users\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"pengajuan_koreksi_guru_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pengajuan_koreksi_guru_id_fkey",
+          "public",
+          "\"public\".\"pengajuan_koreksi\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.pengajuan_koreksi.pengajuan_koreksi_diproses_oleh_fkey",
+    "label": "Add foreign key \"pengajuan_koreksi_diproses_oleh_fkey\" on \"pengajuan_koreksi\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "pengajuan_koreksi_diproses_oleh_fkey",
+        "table": "pengajuan_koreksi"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"pengajuan_koreksi_diproses_oleh_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pengajuan_koreksi_diproses_oleh_fkey",
+          "public",
+          "\"public\".\"pengajuan_koreksi\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"pengajuan_koreksi_diproses_oleh_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"pengajuan_koreksi\"\nADD CONSTRAINT \"pengajuan_koreksi_diproses_oleh_fkey\"\nFOREIGN KEY (\"diproses_oleh\")\nREFERENCES \"public\".\"users\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"pengajuan_koreksi_diproses_oleh_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "pengajuan_koreksi_diproses_oleh_fkey",
+          "public",
+          "\"public\".\"pengajuan_koreksi\""
+        ]
+      }
+    ]
+  }
+]

@@ -10,6 +10,10 @@ import { NilaiTrendChart } from "@/components/parent/nilai-trend-chart";
 import { RingProgres, GridKehadiran } from "@/components/parent/visual-ring";
 import { dashboardOrangTua } from "@/lib/orang-tua-dashboard";
 import { rupiah } from "@/lib/format";
+import { db } from "@/prisma/db";
+import { collect } from "@/lib/collect";
+import { filterStatusForParent } from "@/lib/status-pembelajaran";
+import { LearningStatusFeed, type LearningStatusItem } from "@/components/parent/learning-status-card";
 
 export const dynamic = "force-dynamic";
 
@@ -86,6 +90,55 @@ export default async function ParentHome({
     (a) => (a.tagihan?.belumDibayar ?? 0) > 0,
   ).length;
   const t = dipilih.tagihan;
+
+  // M6 / M7 — Kabar & Status Pembelajaran yang dibagikan oleh guru untuk anak ini
+  const [allStatusList, allReceipts, allClasses, allMapel, allUsers, allPendaftaran] = await Promise.all([
+    collect(db.orm.public.StatusPembelajaran.where({ status: "aktif" }).all()),
+    collect(db.orm.public.StatusPembelajaranPenerima.all()),
+    collect(db.orm.public.Kelas.all()),
+    collect(db.orm.public.MataPelajaran.all()),
+    collect(db.orm.public.User.all()),
+    collect(db.orm.public.Pendaftaran.where((p) => p.anakId.eq(dipilih.id)).all()),
+  ]);
+
+  const activeEnrollments = allPendaftaran.filter((p) =>
+    ["terdaftar", "tertunggak"].includes(p.status),
+  );
+  const nowIso = new Date().toISOString();
+  const visibleStatuses = filterStatusForParent({
+    statusList: allStatusList,
+    receipts: allReceipts,
+    parentChildIds: [dipilih.id],
+    activeEnrollmentIds: activeEnrollments.map((p) => p.id),
+    nowIso,
+  });
+
+  const kelasMap = new Map(allClasses.map((k) => [k.id, k]));
+  const mapelMap = new Map(allMapel.map((m) => [m.id, m.nama]));
+  const userMap = new Map(allUsers.map((u) => [u.id, u.name]));
+
+  const learningStatuses: LearningStatusItem[] = visibleStatuses.map((s) => {
+    const k = kelasMap.get(s.kelasId);
+    const kelasNama = k ? `${mapelMap.get(k.mataPelajaranId) ?? "Kelas"} #${k.id}` : `Kelas #${s.kelasId}`;
+    const guruNama = k ? (userMap.get(k.guruId) ?? undefined) : undefined;
+    let mediaUrls: string[] = [];
+    if (s.mediaUrls) {
+      try {
+        mediaUrls = JSON.parse(s.mediaUrls);
+      } catch {
+        mediaUrls = [];
+      }
+    }
+    return {
+      id: s.id,
+      kelasId: s.kelasId,
+      kelasNama,
+      guruNama,
+      kontenTeks: s.kontenTeks,
+      mediaUrls,
+      diterbitkanPada: s.diterbitkanPada,
+    };
+  });
 
   return (
     <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10">
@@ -525,6 +578,14 @@ export default async function ParentHome({
           </CardPad>
         </Card>
       </div>
+
+      {/* S5.5 — Kabar & Status Pembelajaran Terbaru */}
+      <section className="mt-8">
+        <Judul>{tr("learningStatusFeedTitle")}</Judul>
+        <div className="mt-3">
+          <LearningStatusFeed statuses={learningStatuses} />
+        </div>
+      </section>
 
       {/* S6 — Pertanyaan yang biasanya ditanyakan, dijawab layar ini juga */}
       <section className="mt-10">

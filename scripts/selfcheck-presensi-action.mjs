@@ -40,6 +40,7 @@ function harness({ status = 'aktif', guruId = 7, weekday = 'Kamis', failInsert =
     MataPelajaran: [], Anak: [], NilaiProgres: [],
     Pendaftaran: [{ id: 5, kelasId: 1, status: 'terdaftar' }],
     Presensi: [],
+    CatatanPertemuan: [],
     SesiPertemuan: sesiDibatalkan ? [{ id: 500, jadwalItemId: 11, tanggalPertemuan: '2026-09-17', statusSesi: 'dibatalkan', jamMulai: '08:00:00', jamSelesai: '09:00:00' }] : [],
   };
   function table(name, predicates = []) {
@@ -100,6 +101,7 @@ function harness({ status = 'aktif', guruId = 7, weekday = 'Kamis', failInsert =
       if (name === 'next/cache') return { revalidatePath() {} };
       if (name === '@/lib/hari') return hari;
       if (name === '@/lib/rencana-sesi') return rencanaSesi;
+      if (name === '@/lib/laporan-perkembangan') return { validateLaporanInput: () => null, sanitizeLaporanForParent: (x) => x };
       if (name === '@/lib/collect') return { collect: async iterable => {
         const result = []; for await (const row of iterable) result.push(row); return result;
       } };

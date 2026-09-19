@@ -105,6 +105,14 @@ model User {
   kelasDiampu        Kelas[]               @relation("GuruKelas")
   presensiDicatat    Presensi[]            @relation("GuruPresensi")
   nilaiDiinput       NilaiProgres[]        @relation("GuruNilai")
+  catatanPertemuan   CatatanPertemuan[]    @relation("GuruCatatanPertemuan")
+  auditAktor         AuditPerubahan[]      @relation("AktorAudit")
+  koreksiDiajukan    PengajuanKoreksi[]    @relation("GuruPengajuanKoreksi")
+  koreksiDiproses    PengajuanKoreksi[]    @relation("AdminPengajuanKoreksi")
+  penilaianDibuat    Penilaian[]           @relation("GuruPenilaian")
+  laporanPerkembangan LaporanPerkembangan[] @relation("GuruLaporanPerkembangan")
+  statusDibuat       StatusPembelajaran[]  @relation("GuruStatusPembelajaran")
+  laporanFoto        LaporanFotoStatus[]   @relation("PelaporFotoStatus")
   pengajuanDiajukan  PengajuanPembatalan[] @relation("PengajuPembatalan")
   pengajuanDiproses  PengajuanPembatalan[] @relation("AdminPembatalan")
 
@@ -123,8 +131,10 @@ model Anak {
   createdAt       TimestamptzString @default(now()) @map("created_at")
   updatedAt       TimestamptzString @default(now()) @map("updated_at")
 
-  orangTua    User          @relation("OrangTuaAnak", fields: [orangTuaId], references: [id], onDelete: Cascade)
-  pendaftaran Pendaftaran[]
+  orangTua        User                         @relation("OrangTuaAnak", fields: [orangTuaId], references: [id], onDelete: Cascade)
+  pendaftaran     Pendaftaran[]
+  persetujuanFoto Boolean                      @default(false) @map("persetujuan_foto")
+  statusDiterima  StatusPembelajaranPenerima[]
 
   @@index([orangTuaId])
   // BR#16: deteksi duplikat anak — cari by tanggal_lahir + nama dinormalisasi
@@ -184,8 +194,9 @@ model Kelas {
   mataPelajaran MataPelajaran      @relation(fields: [mataPelajaranId], references: [id], onDelete: Restrict)
   guru          User               @relation("GuruKelas", fields: [guruId], references: [id], onDelete: Restrict)
   periode       PeriodePendaftaran @relation(fields: [periodeId], references: [id], onDelete: Restrict)
-  jadwalItem    JadwalItem[]
-  pendaftaran   Pendaftaran[]
+  jadwalItem         JadwalItem[]
+  pendaftaran        Pendaftaran[]
+  statusPembelajaran StatusPembelajaran[]
 
   @@index([guruId])
   @@index([periodeId, status])
@@ -237,6 +248,9 @@ model Pendaftaran {
   presensi            Presensi[]
   nilaiProgres        NilaiProgres[]
   pengajuanPembatalan PengajuanPembatalan[]
+  hasilPenilaian      HasilPenilaian[]
+  laporanPerkembangan LaporanPerkembangan[]
+  statusDiterima      StatusPembelajaranPenerima[]
 
   @@index([anakId])
   @@index([kelasId])
@@ -371,6 +385,7 @@ model SesiPertemuan {
   jadwalItem JadwalItem @relation(fields: [jadwalItemId], references: [id], onDelete: Restrict)
   presensi   Presensi[]
   peserta    PesertaSesi[]
+  catatan    CatatanPertemuan?
 
   @@unique([jadwalItemId, tanggalPertemuan])
   @@index([tanggalPertemuan])
@@ -420,4 +435,218 @@ model PesanKontak {
  @@index([status])
  @@index([createdAt])
  @@map("pesan_kontak")
+}
+
+// M2 Catatan pertemuan: materi dan PR untuk sesi tertentu.
+// Draf server terisolasi dari orang tua sampai diterbitkan oleh guru.
+model CatatanPertemuan {
+  id              Int               @id @default(autoincrement())
+  sesiId          Int               @unique @map("sesi_id")
+  materi          String?
+  pr              String?
+  draf            Boolean           @default(true)
+  diterbitkanPada TimestamptzString? @map("diterbitkan_pada")
+  dicatatOleh     Int               @map("dicatat_oleh")
+  createdAt       TimestamptzString @default(now()) @map("created_at")
+  updatedAt       TimestamptzString @default(now()) @map("updated_at")
+
+  sesi SesiPertemuan @relation(fields: [sesiId], references: [id], onDelete: Cascade)
+  guru User          @relation("GuruCatatanPertemuan", fields: [dicatatOleh], references: [id], onDelete: Restrict)
+
+  @@index([dicatatOleh])
+  @@map("catatan_pertemuan")
+}
+
+// M2 Audit perubahan: mencatat setiap koreksi/penarikan/perubahan data.
+model AuditPerubahan {
+  id        Int               @id @default(autoincrement())
+  entitas   String            @map("entitas")
+  entitasId Int               @map("entitas_id")
+  aksi      String            @map("aksi")
+  sebelum   String?           @map("sebelum")
+  sesudah   String?           @map("sesudah")
+  alasan    String?           @map("alasan")
+  aktorId   Int               @map("aktor_id")
+  createdAt TimestamptzString @default(now()) @map("created_at")
+
+  aktor User @relation("AktorAudit", fields: [aktorId], references: [id], onDelete: Restrict)
+
+  @@index([entitas, entitasId])
+  @@index([aktorId])
+  @@map("audit_perubahan")
+}
+
+enum StatusPengajuanKoreksi {
+  menunggu
+  disetujui
+  ditolak
+
+  @@map("status_pengajuan_koreksi")
+}
+
+// M2 Pengajuan koreksi: diajukan guru saat entri terkunci (> 7 hari), diproses admin.
+model PengajuanKoreksi {
+  id           Int                    @id @default(autoincrement())
+  guruId       Int                    @map("guru_id")
+  entitas      String                 @map("entitas")
+  entitasId    Int                    @map("entitas_id")
+  status       StatusPengajuanKoreksi @default(menunggu)
+  dataSebelum  String?                @map("data_sebelum")
+  dataUsulan   String                 @map("data_usulan")
+  alasan       String                 @map("alasan")
+  diprosesOleh Int?                   @map("diproses_oleh")
+  catatanAdmin String?                @map("catatan_admin")
+  createdAt    TimestamptzString      @default(now()) @map("created_at")
+  updatedAt    TimestamptzString      @default(now()) @map("updated_at")
+
+  guru  User  @relation("GuruPengajuanKoreksi", fields: [guruId], references: [id], onDelete: Restrict)
+  admin User? @relation("AdminPengajuanKoreksi", fields: [diprosesOleh], references: [id], onDelete: Restrict)
+
+  @@index([guruId])
+  @@index([status])
+  @@map("pengajuan_koreksi")
+}
+
+enum StatusHasilPenilaian {
+  belum_dinilai
+  dinilai
+  tidak_ikut
+
+  @@map("status_hasil_penilaian")
+}
+
+// M4 Penilaian kelas: entitas tugas/penilaian per kelas dengan skala fleksibel
+model Penilaian {
+  id              Int               @id @default(autoincrement())
+  kelasId         Int               @map("kelas_id")
+  nama            String            @map("nama")
+  tanggal         DateString        @map("tanggal")
+  nilaiMaksimum   Decimal           @default("100") @map("nilai_maksimum")
+  draf            Boolean           @default(true) @map("draf")
+  diterbitkanPada TimestamptzString? @map("diterbitkan_pada")
+  dibuatOleh      Int               @map("dibuat_oleh")
+  createdAt       TimestamptzString @default(now()) @map("created_at")
+  updatedAt       TimestamptzString @default(now()) @map("updated_at")
+
+  kelas Kelas            @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  guru  User             @relation("GuruPenilaian", fields: [dibuatOleh], references: [id], onDelete: Restrict)
+  hasil HasilPenilaian[]
+
+  @@index([kelasId])
+  @@index([dibuatOleh])
+  @@index([tanggal])
+  @@check(expression: "nilai_maksimum > 0", name: "penilaian_maksimum_positif")
+  @@map("penilaian")
+}
+
+// M4 Hasil penilaian per siswa
+model HasilPenilaian {
+  id            Int                  @id @default(autoincrement())
+  penilaianId   Int                  @map("penilaian_id")
+  pendaftaranId Int                  @map("pendaftaran_id")
+  statusHasil   StatusHasilPenilaian @default(belum_dinilai) @map("status_hasil")
+  nilai         Decimal?             @map("nilai")
+  catatan       String?              @map("catatan")
+  createdAt     TimestamptzString    @default(now()) @map("created_at")
+  updatedAt     TimestamptzString    @default(now()) @map("updated_at")
+
+  penilaian   Penilaian   @relation(fields: [penilaianId], references: [id], onDelete: Cascade)
+  pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
+
+  @@unique([penilaianId, pendaftaranId])
+  @@index([pendaftaranId])
+  @@check(expression: "nilai IS NULL OR nilai >= 0", name: "hasil_penilaian_non_negatif")
+  @@map("hasil_penilaian")
+}
+
+// M5 Laporan perkembangan murid (pemisahan catatan internal dan laporan publik)
+model LaporanPerkembangan {
+  id              Int                @id @default(autoincrement())
+  pendaftaranId   Int                @map("pendaftaran_id")
+  dicatatOleh     Int                @map("dicatat_oleh")
+  tanggal         DateString
+  judul           String             @default("Laporan Perkembangan")
+  catatanInternal String?            @map("catatan_internal")
+  laporanOrtu     String?            @map("laporan_ortu")
+  draf            Boolean            @default(true)
+  diterbitkanPada TimestamptzString? @map("diterbitkan_pada")
+  createdAt       TimestamptzString  @default(now()) @map("created_at")
+  updatedAt       TimestamptzString  @default(now()) @map("updated_at")
+
+  pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
+  guru        User        @relation("GuruLaporanPerkembangan", fields: [dicatatOleh], references: [id], onDelete: Restrict)
+
+  @@index([pendaftaranId])
+  @@index([dicatatOleh])
+  @@index([tanggal])
+  @@map("laporan_perkembangan")
+}
+
+enum StatusUnggahan {
+  aktif
+  diarsipkan
+  ditarik_admin
+  dihapus_guru
+
+  @@map("status_unggahan")
+}
+
+// M6 & M7 Status pembelajaran: pembaruan teks (M6) dan dokumentasi foto hingga 5 (M7)
+model StatusPembelajaran {
+  id              Int               @id @default(autoincrement())
+  kelasId         Int               @map("kelas_id")
+  dibuatOleh      Int               @map("dibuat_oleh")
+  kontenTeks      String            @map("konten_teks")
+  mediaUrls       String?           @map("media_urls")
+  status          StatusUnggahan    @default(aktif)
+  diterbitkanPada TimestamptzString @default(now()) @map("diterbitkan_pada")
+  kadaluarsaPada  TimestamptzString @map("kadaluarsa_pada")
+  createdAt       TimestamptzString @default(now()) @map("created_at")
+  updatedAt       TimestamptzString @default(now()) @map("updated_at")
+
+  kelas       Kelas                        @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  guru        User                         @relation("GuruStatusPembelajaran", fields: [dibuatOleh], references: [id], onDelete: Restrict)
+  penerima    StatusPembelajaranPenerima[]
+  laporanFoto LaporanFotoStatus[]
+
+  @@index([kelasId])
+  @@index([dibuatOleh])
+  @@index([status])
+  @@index([diterbitkanPada])
+  @@map("status_pembelajaran")
+}
+
+// Penerima dibekukan saat unggahan diterbitkan
+model StatusPembelajaranPenerima {
+  id            Int               @id @default(autoincrement())
+  statusId      Int               @map("status_id")
+  pendaftaranId Int               @map("pendaftaran_id")
+  anakId        Int               @map("anak_id")
+  createdAt     TimestamptzString @default(now()) @map("created_at")
+
+  statusPembelajaran StatusPembelajaran @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  pendaftaran        Pendaftaran        @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
+  anak               Anak               @relation(fields: [anakId], references: [id], onDelete: Cascade)
+
+  @@unique([statusId, pendaftaranId])
+  @@index([pendaftaranId])
+  @@index([anakId])
+  @@map("status_pembelajaran_penerima")
+}
+
+// M7 Laporan orang tua terhadap foto privat
+model LaporanFotoStatus {
+  id        Int               @id @default(autoincrement())
+  statusId  Int               @map("status_id")
+  pelaporId Int               @map("pelapor_id")
+  alasan    String
+  catatan   String?
+  createdAt TimestamptzString @default(now()) @map("created_at")
+
+  statusPembelajaran StatusPembelajaran @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  pelapor            User               @relation("PelaporFotoStatus", fields: [pelaporId], references: [id], onDelete: Restrict)
+
+  @@index([statusId])
+  @@index([pelaporId])
+  @@map("laporan_foto_status")
 }

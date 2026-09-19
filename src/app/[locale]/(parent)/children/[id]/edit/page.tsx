@@ -7,6 +7,8 @@ import { AuthShell } from "@/components/auth-shell";
 import ChildForm from "@/components/auth/child-form";
 import { Card, CardPad } from "@/components/ui/card";
 
+import { PhotoConsentToggle } from "@/components/parent/photo-consent-toggle";
+
 export const dynamic = "force-dynamic";
 
 export default async function EditChildPage({
@@ -56,25 +58,33 @@ export default async function EditChildPage({
           : tr("text002")
       }
     >
-      {terkunci ? (
-        <Card>
-          <CardPad>
-            <p className="text-sm font-medium text-amber-800">
-               {tr("text003")} </p>
-          </CardPad>
-        </Card>
-      ) : (
-        <ChildForm
-          anak={{
-            id: a.id,
-            nama: a.nama,
-            tanggalLahir: a.tanggalLahir,
-            jenjangTerakhir: a.jenjangTerakhir ?? "",
-            emailNotifikasi: a.emailNotifikasi ?? "",
-            nomorTelepon: a.nomorTelepon ?? "",
-          }}
+      <div className="space-y-6">
+        {terkunci ? (
+          <Card>
+            <CardPad>
+              <p className="text-sm font-medium text-amber-800">
+                 {tr("text003")} </p>
+            </CardPad>
+          </Card>
+        ) : (
+          <ChildForm
+            anak={{
+              id: a.id,
+              nama: a.nama,
+              tanggalLahir: a.tanggalLahir,
+              jenjangTerakhir: a.jenjangTerakhir ?? "",
+              emailNotifikasi: a.emailNotifikasi ?? "",
+              nomorTelepon: a.nomorTelepon ?? "",
+            }}
+          />
+        )}
+
+        {/* M7 — Izin Publikasi Foto Kegiatan */}
+        <PhotoConsentToggle
+          anakId={a.id}
+          initialConsent={Boolean(a.persetujuanFoto)}
         />
-      )}
+      </div>
     </AuthShell>
   );
 }

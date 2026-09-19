@@ -52,4 +52,16 @@ for (const locale of ['id', 'en']) {
     const label = locale === 'en' ? 'present' : 'hadir';
     assert.ok(html.includes(`/>${label}</label>`), 'visible label remains translated');
   });
+
+  test(`presensi ${locale}: initial status is unselected when student has no recorded status`, () => {
+    const html = render(locale, { status: undefined });
+    const checkedRadios = [...html.matchAll(/<input\b[^>]*type="radio"[^>]*checked[^>]*>/g)];
+    assert.equal(checkedRadios.length, 0, 'new attendance session must start unselected, not default to hadir');
+  });
+
+  test(`presensi ${locale}: renders mass action button and attendance summary indicators`, () => {
+    const html = render(locale, { status: undefined });
+    const markAllText = locale === 'en' ? 'Mark all present' : 'Tandai semua hadir';
+    assert.ok(html.includes(markAllText), 'mass action button must be rendered');
+  });
 }

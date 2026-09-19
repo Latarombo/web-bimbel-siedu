@@ -1,0 +1,206 @@
+[
+  {
+    "id": "table.catatan_pertemuan",
+    "label": "Create table \"catatan_pertemuan\"",
+    "summary": "Creates table \"catatan_pertemuan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "catatan_pertemuan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"catatan_pertemuan\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"catatan_pertemuan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"catatan_pertemuan\"",
+        "sql": "CREATE TABLE \"public\".\"catatan_pertemuan\" (\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dicatat_oleh\" int4 NOT NULL,\n  \"diterbitkan_pada\" timestamptz,\n  \"draf\" bool DEFAULT true NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"materi\" text,\n  \"pr\" text,\n  \"sesi_id\" int4 NOT NULL,\n  \"updated_at\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"catatan_pertemuan\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"catatan_pertemuan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.catatan_pertemuan.catatan_pertemuan_sesi_id_key",
+    "label": "Add unique constraint on \"catatan_pertemuan\" (sesi_id)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "catatan_pertemuan_sesi_id_key",
+        "table": "catatan_pertemuan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"catatan_pertemuan_sesi_id_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "catatan_pertemuan_sesi_id_key",
+          "public",
+          "\"public\".\"catatan_pertemuan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"catatan_pertemuan_sesi_id_key\"",
+        "sql": "ALTER TABLE \"public\".\"catatan_pertemuan\" ADD CONSTRAINT \"catatan_pertemuan_sesi_id_key\" UNIQUE (\"sesi_id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"catatan_pertemuan_sesi_id_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "catatan_pertemuan_sesi_id_key",
+          "public",
+          "\"public\".\"catatan_pertemuan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.catatan_pertemuan.catatan_pertemuan_dicatat_oleh_idx_c21fd364",
+    "label": "Create index \"catatan_pertemuan_dicatat_oleh_idx_c21fd364\" on \"catatan_pertemuan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "catatan_pertemuan_dicatat_oleh_idx_c21fd364",
+        "table": "catatan_pertemuan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"catatan_pertemuan_dicatat_oleh_idx_c21fd364\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"catatan_pertemuan_dicatat_oleh_idx_c21fd364\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"catatan_pertemuan_dicatat_oleh_idx_c21fd364\"",
+        "sql": "CREATE INDEX \"catatan_pertemuan_dicatat_oleh_idx_c21fd364\" ON \"public\".\"catatan_pertemuan\" (\"dicatat_oleh\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"catatan_pertemuan_dicatat_oleh_idx_c21fd364\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"catatan_pertemuan_dicatat_oleh_idx_c21fd364\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.catatan_pertemuan.catatan_pertemuan_sesi_id_fkey",
+    "label": "Add foreign key \"catatan_pertemuan_sesi_id_fkey\" on \"catatan_pertemuan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "catatan_pertemuan_sesi_id_fkey",
+        "table": "catatan_pertemuan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"catatan_pertemuan_sesi_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "catatan_pertemuan_sesi_id_fkey",
+          "public",
+          "\"public\".\"catatan_pertemuan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"catatan_pertemuan_sesi_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"catatan_pertemuan\"\nADD CONSTRAINT \"catatan_pertemuan_sesi_id_fkey\"\nFOREIGN KEY (\"sesi_id\")\nREFERENCES \"public\".\"sesi_pertemuan\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"catatan_pertemuan_sesi_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "catatan_pertemuan_sesi_id_fkey",
+          "public",
+          "\"public\".\"catatan_pertemuan\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.catatan_pertemuan.catatan_pertemuan_dicatat_oleh_fkey",
+    "label": "Add foreign key \"catatan_pertemuan_dicatat_oleh_fkey\" on \"catatan_pertemuan\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "catatan_pertemuan_dicatat_oleh_fkey",
+        "table": "catatan_pertemuan"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"catatan_pertemuan_dicatat_oleh_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "catatan_pertemuan_dicatat_oleh_fkey",
+          "public",
+          "\"public\".\"catatan_pertemuan\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"catatan_pertemuan_dicatat_oleh_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"catatan_pertemuan\"\nADD CONSTRAINT \"catatan_pertemuan_dicatat_oleh_fkey\"\nFOREIGN KEY (\"dicatat_oleh\")\nREFERENCES \"public\".\"users\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"catatan_pertemuan_dicatat_oleh_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "catatan_pertemuan_dicatat_oleh_fkey",
+          "public",
+          "\"public\".\"catatan_pertemuan\""
+        ]
+      }
+    ]
+  }
+]

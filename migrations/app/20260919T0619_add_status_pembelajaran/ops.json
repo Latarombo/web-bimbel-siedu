@@ -1,0 +1,848 @@
+[
+  {
+    "id": "table.laporan_foto_status",
+    "label": "Create table \"laporan_foto_status\"",
+    "summary": "Creates table \"laporan_foto_status\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "laporan_foto_status"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"laporan_foto_status\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"laporan_foto_status\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"laporan_foto_status\"",
+        "sql": "CREATE TABLE \"public\".\"laporan_foto_status\" (\n  \"alasan\" text NOT NULL,\n  \"catatan\" text,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"pelapor_id\" int4 NOT NULL,\n  \"status_id\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"laporan_foto_status\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"laporan_foto_status\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.status_pembelajaran",
+    "label": "Create table \"status_pembelajaran\"",
+    "summary": "Creates table \"status_pembelajaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "status_pembelajaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"status_pembelajaran\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"status_pembelajaran\"",
+        "sql": "CREATE TABLE \"public\".\"status_pembelajaran\" (\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"dibuat_oleh\" int4 NOT NULL,\n  \"diterbitkan_pada\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"kadaluarsa_pada\" timestamptz NOT NULL,\n  \"kelas_id\" int4 NOT NULL,\n  \"konten_teks\" text NOT NULL,\n  \"media_urls\" text,\n  \"status\" text DEFAULT 'aktif' NOT NULL,\n  \"updated_at\" timestamptz DEFAULT (now()) NOT NULL,\n  PRIMARY KEY (\"id\"),\n  CONSTRAINT \"status_pembelajaran_status_check_1d7b8e43\" CHECK (\"status\" IN ('aktif', 'diarsipkan', 'ditarik_admin', 'dihapus_guru'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"status_pembelajaran\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.status_pembelajaran_penerima",
+    "label": "Create table \"status_pembelajaran_penerima\"",
+    "summary": "Creates table \"status_pembelajaran_penerima\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "status_pembelajaran_penerima"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"status_pembelajaran_penerima\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_penerima\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"status_pembelajaran_penerima\"",
+        "sql": "CREATE TABLE \"public\".\"status_pembelajaran_penerima\" (\n  \"anak_id\" int4 NOT NULL,\n  \"created_at\" timestamptz DEFAULT (now()) NOT NULL,\n  \"id\" SERIAL NOT NULL,\n  \"pendaftaran_id\" int4 NOT NULL,\n  \"status_id\" int4 NOT NULL,\n  PRIMARY KEY (\"id\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"status_pembelajaran_penerima\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_penerima\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.anak.persetujuan_foto",
+    "label": "Add column \"persetujuan_foto\" to \"anak\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "persetujuan_foto",
+        "table": "anak"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"persetujuan_foto\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "anak",
+          "persetujuan_foto"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"persetujuan_foto\"",
+        "sql": "ALTER TABLE \"public\".\"anak\" ADD COLUMN \"persetujuan_foto\" bool DEFAULT false NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"persetujuan_foto\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "anak",
+          "persetujuan_foto"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.status_pembelajaran_penerima.status_pembelajaran_penerima_status_id_pendaftaran_id_key",
+    "label": "Add unique constraint on \"status_pembelajaran_penerima\" (status_id, pendaftaran_id)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "status_pembelajaran_penerima_status_id_pendaftaran_id_key",
+        "table": "status_pembelajaran_penerima"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"status_pembelajaran_penerima_status_id_pendaftaran_id_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "status_pembelajaran_penerima_status_id_pendaftaran_id_key",
+          "public",
+          "\"public\".\"status_pembelajaran_penerima\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"status_pembelajaran_penerima_status_id_pendaftaran_id_key\"",
+        "sql": "ALTER TABLE \"public\".\"status_pembelajaran_penerima\" ADD CONSTRAINT \"status_pembelajaran_penerima_status_id_pendaftaran_id_key\" UNIQUE (\"status_id\", \"pendaftaran_id\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"status_pembelajaran_penerima_status_id_pendaftaran_id_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "status_pembelajaran_penerima_status_id_pendaftaran_id_key",
+          "public",
+          "\"public\".\"status_pembelajaran_penerima\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.laporan_foto_status.laporan_foto_status_pelapor_id_idx_f6f78854",
+    "label": "Create index \"laporan_foto_status_pelapor_id_idx_f6f78854\" on \"laporan_foto_status\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "laporan_foto_status_pelapor_id_idx_f6f78854",
+        "table": "laporan_foto_status"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"laporan_foto_status_pelapor_id_idx_f6f78854\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"laporan_foto_status_pelapor_id_idx_f6f78854\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"laporan_foto_status_pelapor_id_idx_f6f78854\"",
+        "sql": "CREATE INDEX \"laporan_foto_status_pelapor_id_idx_f6f78854\" ON \"public\".\"laporan_foto_status\" (\"pelapor_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"laporan_foto_status_pelapor_id_idx_f6f78854\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"laporan_foto_status_pelapor_id_idx_f6f78854\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.laporan_foto_status.laporan_foto_status_status_id_idx_060dbe68",
+    "label": "Create index \"laporan_foto_status_status_id_idx_060dbe68\" on \"laporan_foto_status\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "laporan_foto_status_status_id_idx_060dbe68",
+        "table": "laporan_foto_status"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"laporan_foto_status_status_id_idx_060dbe68\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"laporan_foto_status_status_id_idx_060dbe68\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"laporan_foto_status_status_id_idx_060dbe68\"",
+        "sql": "CREATE INDEX \"laporan_foto_status_status_id_idx_060dbe68\" ON \"public\".\"laporan_foto_status\" (\"status_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"laporan_foto_status_status_id_idx_060dbe68\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"laporan_foto_status_status_id_idx_060dbe68\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.status_pembelajaran.status_pembelajaran_dibuat_oleh_idx_3489b1c4",
+    "label": "Create index \"status_pembelajaran_dibuat_oleh_idx_3489b1c4\" on \"status_pembelajaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "status_pembelajaran_dibuat_oleh_idx_3489b1c4",
+        "table": "status_pembelajaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"status_pembelajaran_dibuat_oleh_idx_3489b1c4\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_dibuat_oleh_idx_3489b1c4\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"status_pembelajaran_dibuat_oleh_idx_3489b1c4\"",
+        "sql": "CREATE INDEX \"status_pembelajaran_dibuat_oleh_idx_3489b1c4\" ON \"public\".\"status_pembelajaran\" (\"dibuat_oleh\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"status_pembelajaran_dibuat_oleh_idx_3489b1c4\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_dibuat_oleh_idx_3489b1c4\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.status_pembelajaran.status_pembelajaran_diterbitkan_pada_idx_3532551f",
+    "label": "Create index \"status_pembelajaran_diterbitkan_pada_idx_3532551f\" on \"status_pembelajaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "status_pembelajaran_diterbitkan_pada_idx_3532551f",
+        "table": "status_pembelajaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"status_pembelajaran_diterbitkan_pada_idx_3532551f\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_diterbitkan_pada_idx_3532551f\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"status_pembelajaran_diterbitkan_pada_idx_3532551f\"",
+        "sql": "CREATE INDEX \"status_pembelajaran_diterbitkan_pada_idx_3532551f\" ON \"public\".\"status_pembelajaran\" (\"diterbitkan_pada\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"status_pembelajaran_diterbitkan_pada_idx_3532551f\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_diterbitkan_pada_idx_3532551f\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.status_pembelajaran.status_pembelajaran_kelas_id_idx_933496b6",
+    "label": "Create index \"status_pembelajaran_kelas_id_idx_933496b6\" on \"status_pembelajaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "status_pembelajaran_kelas_id_idx_933496b6",
+        "table": "status_pembelajaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"status_pembelajaran_kelas_id_idx_933496b6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_kelas_id_idx_933496b6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"status_pembelajaran_kelas_id_idx_933496b6\"",
+        "sql": "CREATE INDEX \"status_pembelajaran_kelas_id_idx_933496b6\" ON \"public\".\"status_pembelajaran\" (\"kelas_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"status_pembelajaran_kelas_id_idx_933496b6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_kelas_id_idx_933496b6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.status_pembelajaran.status_pembelajaran_status_idx_e98638ab",
+    "label": "Create index \"status_pembelajaran_status_idx_e98638ab\" on \"status_pembelajaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "status_pembelajaran_status_idx_e98638ab",
+        "table": "status_pembelajaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"status_pembelajaran_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"status_pembelajaran_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"status_pembelajaran_status_idx_e98638ab\" ON \"public\".\"status_pembelajaran\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"status_pembelajaran_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.status_pembelajaran_penerima.status_pembelajaran_penerima_anak_id_idx_3569f103",
+    "label": "Create index \"status_pembelajaran_penerima_anak_id_idx_3569f103\" on \"status_pembelajaran_penerima\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "status_pembelajaran_penerima_anak_id_idx_3569f103",
+        "table": "status_pembelajaran_penerima"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"status_pembelajaran_penerima_anak_id_idx_3569f103\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_penerima_anak_id_idx_3569f103\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"status_pembelajaran_penerima_anak_id_idx_3569f103\"",
+        "sql": "CREATE INDEX \"status_pembelajaran_penerima_anak_id_idx_3569f103\" ON \"public\".\"status_pembelajaran_penerima\" (\"anak_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"status_pembelajaran_penerima_anak_id_idx_3569f103\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_penerima_anak_id_idx_3569f103\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.status_pembelajaran_penerima.status_pembelajaran_penerima_pendaftaran_id_idx_0bda22e6",
+    "label": "Create index \"status_pembelajaran_penerima_pendaftaran_id_idx_0bda22e6\" on \"status_pembelajaran_penerima\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "status_pembelajaran_penerima_pendaftaran_id_idx_0bda22e6",
+        "table": "status_pembelajaran_penerima"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"status_pembelajaran_penerima_pendaftaran_id_idx_0bda22e6\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_penerima_pendaftaran_id_idx_0bda22e6\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"status_pembelajaran_penerima_pendaftaran_id_idx_0bda22e6\"",
+        "sql": "CREATE INDEX \"status_pembelajaran_penerima_pendaftaran_id_idx_0bda22e6\" ON \"public\".\"status_pembelajaran_penerima\" (\"pendaftaran_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"status_pembelajaran_penerima_pendaftaran_id_idx_0bda22e6\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_penerima_pendaftaran_id_idx_0bda22e6\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.status_pembelajaran_penerima.status_pembelajaran_penerima_status_id_idx_060dbe68",
+    "label": "Create index \"status_pembelajaran_penerima_status_id_idx_060dbe68\" on \"status_pembelajaran_penerima\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "status_pembelajaran_penerima_status_id_idx_060dbe68",
+        "table": "status_pembelajaran_penerima"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"status_pembelajaran_penerima_status_id_idx_060dbe68\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_penerima_status_id_idx_060dbe68\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"status_pembelajaran_penerima_status_id_idx_060dbe68\"",
+        "sql": "CREATE INDEX \"status_pembelajaran_penerima_status_id_idx_060dbe68\" ON \"public\".\"status_pembelajaran_penerima\" (\"status_id\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"status_pembelajaran_penerima_status_id_idx_060dbe68\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"status_pembelajaran_penerima_status_id_idx_060dbe68\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.laporan_foto_status.laporan_foto_status_status_id_fkey",
+    "label": "Add foreign key \"laporan_foto_status_status_id_fkey\" on \"laporan_foto_status\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "laporan_foto_status_status_id_fkey",
+        "table": "laporan_foto_status"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"laporan_foto_status_status_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "laporan_foto_status_status_id_fkey",
+          "public",
+          "\"public\".\"laporan_foto_status\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"laporan_foto_status_status_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"laporan_foto_status\"\nADD CONSTRAINT \"laporan_foto_status_status_id_fkey\"\nFOREIGN KEY (\"status_id\")\nREFERENCES \"public\".\"status_pembelajaran\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"laporan_foto_status_status_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "laporan_foto_status_status_id_fkey",
+          "public",
+          "\"public\".\"laporan_foto_status\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.laporan_foto_status.laporan_foto_status_pelapor_id_fkey",
+    "label": "Add foreign key \"laporan_foto_status_pelapor_id_fkey\" on \"laporan_foto_status\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "laporan_foto_status_pelapor_id_fkey",
+        "table": "laporan_foto_status"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"laporan_foto_status_pelapor_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "laporan_foto_status_pelapor_id_fkey",
+          "public",
+          "\"public\".\"laporan_foto_status\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"laporan_foto_status_pelapor_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"laporan_foto_status\"\nADD CONSTRAINT \"laporan_foto_status_pelapor_id_fkey\"\nFOREIGN KEY (\"pelapor_id\")\nREFERENCES \"public\".\"users\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"laporan_foto_status_pelapor_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "laporan_foto_status_pelapor_id_fkey",
+          "public",
+          "\"public\".\"laporan_foto_status\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.status_pembelajaran.status_pembelajaran_kelas_id_fkey",
+    "label": "Add foreign key \"status_pembelajaran_kelas_id_fkey\" on \"status_pembelajaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "status_pembelajaran_kelas_id_fkey",
+        "table": "status_pembelajaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"status_pembelajaran_kelas_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "status_pembelajaran_kelas_id_fkey",
+          "public",
+          "\"public\".\"status_pembelajaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"status_pembelajaran_kelas_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"status_pembelajaran\"\nADD CONSTRAINT \"status_pembelajaran_kelas_id_fkey\"\nFOREIGN KEY (\"kelas_id\")\nREFERENCES \"public\".\"kelas\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"status_pembelajaran_kelas_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "status_pembelajaran_kelas_id_fkey",
+          "public",
+          "\"public\".\"status_pembelajaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.status_pembelajaran.status_pembelajaran_dibuat_oleh_fkey",
+    "label": "Add foreign key \"status_pembelajaran_dibuat_oleh_fkey\" on \"status_pembelajaran\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "status_pembelajaran_dibuat_oleh_fkey",
+        "table": "status_pembelajaran"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"status_pembelajaran_dibuat_oleh_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "status_pembelajaran_dibuat_oleh_fkey",
+          "public",
+          "\"public\".\"status_pembelajaran\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"status_pembelajaran_dibuat_oleh_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"status_pembelajaran\"\nADD CONSTRAINT \"status_pembelajaran_dibuat_oleh_fkey\"\nFOREIGN KEY (\"dibuat_oleh\")\nREFERENCES \"public\".\"users\" (\"id\")\nON DELETE RESTRICT"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"status_pembelajaran_dibuat_oleh_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "status_pembelajaran_dibuat_oleh_fkey",
+          "public",
+          "\"public\".\"status_pembelajaran\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.status_pembelajaran_penerima.status_pembelajaran_penerima_status_id_fkey",
+    "label": "Add foreign key \"status_pembelajaran_penerima_status_id_fkey\" on \"status_pembelajaran_penerima\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "status_pembelajaran_penerima_status_id_fkey",
+        "table": "status_pembelajaran_penerima"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"status_pembelajaran_penerima_status_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "status_pembelajaran_penerima_status_id_fkey",
+          "public",
+          "\"public\".\"status_pembelajaran_penerima\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"status_pembelajaran_penerima_status_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"status_pembelajaran_penerima\"\nADD CONSTRAINT \"status_pembelajaran_penerima_status_id_fkey\"\nFOREIGN KEY (\"status_id\")\nREFERENCES \"public\".\"status_pembelajaran\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"status_pembelajaran_penerima_status_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "status_pembelajaran_penerima_status_id_fkey",
+          "public",
+          "\"public\".\"status_pembelajaran_penerima\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.status_pembelajaran_penerima.status_pembelajaran_penerima_pendaftaran_id_fkey",
+    "label": "Add foreign key \"status_pembelajaran_penerima_pendaftaran_id_fkey\" on \"status_pembelajaran_penerima\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "status_pembelajaran_penerima_pendaftaran_id_fkey",
+        "table": "status_pembelajaran_penerima"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"status_pembelajaran_penerima_pendaftaran_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "status_pembelajaran_penerima_pendaftaran_id_fkey",
+          "public",
+          "\"public\".\"status_pembelajaran_penerima\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"status_pembelajaran_penerima_pendaftaran_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"status_pembelajaran_penerima\"\nADD CONSTRAINT \"status_pembelajaran_penerima_pendaftaran_id_fkey\"\nFOREIGN KEY (\"pendaftaran_id\")\nREFERENCES \"public\".\"pendaftaran\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"status_pembelajaran_penerima_pendaftaran_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "status_pembelajaran_penerima_pendaftaran_id_fkey",
+          "public",
+          "\"public\".\"status_pembelajaran_penerima\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.status_pembelajaran_penerima.status_pembelajaran_penerima_anak_id_fkey",
+    "label": "Add foreign key \"status_pembelajaran_penerima_anak_id_fkey\" on \"status_pembelajaran_penerima\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "status_pembelajaran_penerima_anak_id_fkey",
+        "table": "status_pembelajaran_penerima"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"status_pembelajaran_penerima_anak_id_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "status_pembelajaran_penerima_anak_id_fkey",
+          "public",
+          "\"public\".\"status_pembelajaran_penerima\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"status_pembelajaran_penerima_anak_id_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"status_pembelajaran_penerima\"\nADD CONSTRAINT \"status_pembelajaran_penerima_anak_id_fkey\"\nFOREIGN KEY (\"anak_id\")\nREFERENCES \"public\".\"anak\" (\"id\")\nON DELETE CASCADE"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"status_pembelajaran_penerima_anak_id_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "status_pembelajaran_penerima_anak_id_fkey",
+          "public",
+          "\"public\".\"status_pembelajaran_penerima\""
+        ]
+      }
+    ]
+  }
+]

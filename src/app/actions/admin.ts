@@ -464,3 +464,134 @@ export async function hapusPesan(formData: FormData): Promise<void> {
  revalidatePath("/admin/messages");
  revalidatePath("/admin/dashboard");
 }
+
+// --- M2 proses pengajuan koreksi (admin) ---
+export async function prosesKoreksi(
+  prevOrFormData: AdminState | FormData,
+  maybeFormData?: FormData,
+): Promise<AdminState> {
+  const formData = (typeof FormData !== "undefined" && maybeFormData instanceof FormData)
+    ? maybeFormData
+    : (typeof FormData !== "undefined" && prevOrFormData instanceof FormData)
+      ? prevOrFormData
+      : (maybeFormData ?? prevOrFormData) as FormData;
+  const adminId = await guardAdmin();
+  if (!adminId) return { error: "Sesi admin berakhir." };
+
+  const koreksiId = Number(formData.get("koreksi_id"));
+  const keputusan = String(formData.get("keputusan") ?? ""); // 'setujui' | 'tolak'
+  const catatanAdmin = String(formData.get("catatan_admin") ?? "").trim();
+
+  if (!Number.isInteger(koreksiId) || !["setujui", "tolak"].includes(keputusan)) {
+    return { error: "Parameter keputusan tidak valid." };
+  }
+
+  const [koreksi] = await collect(
+    db.orm.public.PengajuanKoreksi.where({ id: koreksiId }).all(),
+  );
+  if (!koreksi) return { error: "Pengajuan koreksi tidak ditemukan." };
+  if (koreksi.status !== "menunggu") {
+    return { error: "Pengajuan koreksi sudah pernah diproses." };
+  }
+
+  await db.transaction(async (tx) => {
+    if (keputusan === "setujui") {
+      let usulan: Record<string, unknown> = {};
+      try {
+        usulan = JSON.parse(koreksi.dataUsulan);
+      } catch {
+        usulan = { status: koreksi.dataUsulan };
+      }
+
+      if (koreksi.entitas === "presensi") {
+        const updateData: Record<string, unknown> = {};
+        if (typeof usulan.status === "string") updateData.status = usulan.status;
+        if (typeof usulan.catatan === "string") updateData.catatan = usulan.catatan;
+        await tx.orm.public.Presensi.where({ id: koreksi.entitasId }).update(updateData);
+      } else if (koreksi.entitas === "nilai") {
+        const updateData: Record<string, unknown> = {};
+        if (usulan.nilaiKuantitatif !== undefined) updateData.nilaiKuantitatif = String(usulan.nilaiKuantitatif);
+        if (usulan.catatanKualitatif !== undefined) updateData.catatanKualitatif = String(usulan.catatanKualitatif);
+        await tx.orm.public.NilaiProgres.where({ id: koreksi.entitasId }).update(updateData);
+      }
+
+      await tx.orm.public.PengajuanKoreksi.where({ id: koreksiId }).update({
+        status: "disetujui",
+        diprosesOleh: adminId,
+        catatanAdmin: catatanAdmin || null,
+      });
+
+      await tx.orm.public.AuditPerubahan.create({
+        entitas: koreksi.entitas,
+        entitasId: koreksi.entitasId,
+        aksi: "koreksi_disetujui",
+        sebelum: koreksi.dataSebelum,
+        sesudah: koreksi.dataUsulan,
+        alasan: catatanAdmin || koreksi.alasan,
+        aktorId: adminId,
+      });
+    } else {
+      await tx.orm.public.PengajuanKoreksi.where({ id: koreksiId }).update({
+        status: "ditolak",
+        diprosesOleh: adminId,
+        catatanAdmin: catatanAdmin || null,
+      });
+
+      await tx.orm.public.AuditPerubahan.create({
+        entitas: koreksi.entitas,
+        entitasId: koreksi.entitasId,
+        aksi: "koreksi_ditolak",
+        sebelum: koreksi.dataSebelum,
+        sesudah: koreksi.dataUsulan,
+        alasan: catatanAdmin || "Ditolak admin",
+        aktorId: adminId,
+      });
+    }
+  });
+
+  revalidatePath("/[locale]/admin/corrections", "page");
+  revalidatePath("/[locale]/teacher/corrections", "page");
+  return { ok: true };
+}
+
+export async function prosesKoreksiAction(formData: FormData): Promise<void> {
+  await prosesKoreksi(formData);
+}
+
+export async function tarikStatusPembelajaranAdmin(
+  statusId: number,
+  alasan: string = "Ditarik oleh admin"
+): Promise<{ ok?: boolean; error?: string }> {
+  const adminId = await guardAdmin();
+  if (!adminId) return { error: "Sesi admin berakhir" };
+
+  const [existing] = await collect(
+    db.orm.public.StatusPembelajaran.where({ id: statusId }).all()
+  );
+  if (!existing) return { error: "Status pembelajaran tidak ditemukan" };
+
+  const nowIso = new Date().toISOString();
+  await db.orm.public.StatusPembelajaran.where({ id: statusId }).update({
+    status: "ditarik_admin",
+    updatedAt: nowIso,
+  });
+
+  await db.orm.public.AuditPerubahan.create({
+    entitas: "status_pembelajaran",
+    entitasId: statusId,
+    aksi: "tarik_status_admin",
+    sebelum: JSON.stringify({ status: existing.status }),
+    sesudah: JSON.stringify({ status: "ditarik_admin" }),
+    alasan,
+    aktorId: adminId,
+    createdAt: nowIso,
+  });
+
+  revalidatePath("/[locale]/teacher/status", "page");
+  revalidatePath("/[locale]/home", "page");
+  revalidatePath("/[locale]/schedule-attendance", "page");
+  return { ok: true };
+}
+
+
+

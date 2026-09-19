@@ -128,7 +128,7 @@ export default async function TeacherDashboard() {
         title={t("teacherDashboard")}
         desc={t("greeting", { name: session.user.name ?? t("teacher"), day: t(`day_${hari}`), sessions: sesiHariIni.length > 0 ? t("teachingSessions", {count: sesiHariIni.length}) : t("noTeachingSessions") })}
       >
-        <ButtonLink href="/teacher/grades" variant="outline">{t("enterGrade")}</ButtonLink>
+        <ButtonLink href="/teacher/calendar" variant="outline">{t("calendarTitle")}</ButtonLink>
         <ButtonLink href="/teacher/classes">{t("manageClasses")}</ButtonLink>
       </PageHeader>
 
