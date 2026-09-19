@@ -22,6 +22,8 @@
 
 # debug logs
 /dev.log
+/dev/log
+/.dev.log
 /dev-hero.log
 npm-debug.log*
 yarn-debug.log*
@@ -42,6 +44,10 @@ next-env.d.ts
 # tooling
 /graphify-out/
 .hermes/
+# temp helpers & generated screenshots (agent scratch)
+
+# generated docs artifacts
+
 .opencode/
 .prisma/
 .claude/

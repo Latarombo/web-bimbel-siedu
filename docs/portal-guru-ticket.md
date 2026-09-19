@@ -4,7 +4,7 @@ Dokumen ini adalah indeks ticket dan handoff untuk melanjutkan implementasi keti
 
 ## Konteks proyek
 
-- Repositori: /mnt/d/projek_react/PJBL/siedu (Windows D:\projek_react\PJBL\siedu), branch main, banyak perubahan belum commit milik user. JANGAN commit, push, atau reset tanpa diminta.
+- Repositori: /mnt/d/projek_react/PJBL/siedu (Windows D:\projek_react\PJBL\siedu), branch main. Dua commit pekerjaan ini SUDAH ada secara lokal (lihat "### Commit dan review" di bawah), BELUM di-push. Sisanya di working tree hanya artefak user (log, cache, .env.example, aset referensi docs/public) yang sengaja tidak di-commit. JANGAN commit, push, atau reset tanpa diminta.
 - Stack: Next.js 16 App Router (src/app/[locale]/...), Tailwind v4, Prisma Next 8 contract-first (src/prisma/contract.prisma, db.orm.public.<Model>, plugin @prisma/orm-postgres), next-intl (src/i18n/messages/{id,en}), next-auth v5 (role: admin|guru|orang_tua), Supabase Postgres.
 - ATURAN KERAS ENV (AGENTS.md): npm dan toolchain Node/Prisma dijalankan lewat PowerShell Windows; git commit juga hanya dari Windows. Git read-only boleh dari WSL. Contoh PowerShell: powershell.exe -NoProfile -Command "Set-Location 'D:\projek_react\PJBL\siedu'; <cmd>". Agent di WSL hanya edit file. Verifikasi halaman dev dari WSL via IP gateway (cek `ip route`, mis. http://192.168.96.1:3000), bukan localhost.
 - Verifikasi minimal tiap milestone: `npm run lint` (beberapa error pre-existing di scripts/check-admin-i18n.cjs dan src/components/landing/CountUp.tsx bukan penambahannya; pastikan TIDAK menambah error baru), `npm run build`, tes khusus milestone.
@@ -160,7 +160,20 @@ Setiap M adalah satu ticket lokal, bukan issue GitHub. Status awal seluruh M1-M8
 
 ## Checkpoint terakhir
 
-### Hasil terbaru, menggantikan batas verifikasi lama di bawah
+### Commit dan review (terbaru, 18 Sep 2026)
+
+- Dua commit lokal di branch main, BELUM di-push:
+  - 9f409ee feat: establish localized routes and shared UI foundation (218 file: rute [locale], i18n messages id/en, shared UI, migrasi 20260912T1426/20260912T1523/20260917T0932 + snapshot kontrak, tests/admin-hapus-guru.test.mjs).
+  - 1d3ba00 feat: add teacher session and atomic attendance workflows (26 file: docs/portal-guru-audit.md, docs/portal-guru-ticket.md, src/lib/rencana-sesi.ts, src/lib/service-sesi.ts, scripts/selfcheck-*.mjs, scripts/uji-*.mjs, scripts/ts-resolve*.mjs, perubahan teacher action/halaman, contract.prisma).
+- Review pra-commit oleh subagent independen (read-only):
+  - Review portal guru: passed=true, tanpa security concern atau logic error baru. M1 tetap incomplete (roster transisional), browser authenticated belum terverifikasi.
+  - Review fondasi: passed=false ditemukan satu security concern: hapusGuru (src/app/actions/admin.ts:213-234) dulu menghapus User hanya berdasarkan id. SUDAH diperbaiki menjadi `db.orm.public.User.where({ id: guruId, role: "guru" }).delete()` beserta tes tests/admin-hapus-guru.test.mjs.
+- Verifikasi sebelum commit: 27 tes (4 suite selfcheck + admin-hapus-guru) lulus; eslint src/app/actions/admin.ts dan tests/admin-hapus-guru.test.mjs lulus; npm run build lulus (TypeScript + 72 halaman) via PowerShell Windows. npm run lint seluruh repo tetap gagal 15 error di scripts/check-admin-i18n.cjs dan src/components/landing/CountUp.tsx (baseline, di luar perubahan ini).
+- Tidak ada push. .env.example sengaja tidak di-commit (perubahan user, bukan milik fitur). Log/cache (.dev.log, .refcache, .refs_cards, .tmp_*) dan laporan docs/test-results tetap untracked.
+- Izin commit ini hanya untuk kedua commit di atas. Migrasi 20260917T0932_teacher_session_foundation sudah diterapkan pada database terkonfigurasi sejak 17 Sep; identitas dev BELUM pernah dibuktikan.
+
+### Hasil terbaru peserta historis
+
 
 - Presensi yang sudah tercatat tetap muncul pada halaman sesi dan bisa dikoreksi sesuai kunci 7 hari walaupun pendaftaran kemudian dibatalkan. Action dan loader memilih pendaftaran milik kelas yang aktif ATAU memiliki presensi pada slot+tanggal tersebut. Pendaftaran batal tanpa bukti presensi tidak otomatis dimasukkan. Tidak membuat PesertaSesi/backfill atau mengarang status keanggotaan lampau.
 - RED: murid dengan presensi lama hilang dari form setelah status dibatalkan. GREEN: 26 tes regresi, lint action/halaman/harness, dan build TypeScript + 72 halaman lulus melalui PowerShell Windows.
@@ -175,7 +188,29 @@ Setiap M adalah satu ticket lokal, bukan issue GitHub. Status awal seluruh M1-M8
 - Browser nyata membuka /id/teacher/dashboard dan dialihkan ke /login?next=...; belum authenticated. Vault kosong; percobaan awal tidak mengenali origin sesi bernama, percobaan berikutnya pada /id/login menghasilkan save_declined. Jangan meminta simpan login lagi pada turn yang sama atau menyuntik cookie autentikasi buatan. Belum ada bukti submit form/edit melalui HTTP authenticated.
 - Blocker verifikasi browser: perlu sesi browser login guru uji yang sah. Histori peserta/provenance, hari libur, serta reschedule lengkap tetap belum selesai. Tidak ada mutasi DB atau commit pada langkah ini.
 
-### Hasil detail kelas sebelumnya
+### Peserta historis (masih terbuka)
+
+- Roster saat ini: pendaftaran kelas yang aktif ATAU sudah memiliki presensi pada slot+tanggal. Ini transisional, bukan roster historis.
+- Yang belum ada: interval masuk/keluar per pendaftaran. Tanpa itu murid baru tetap muncul di tanggal lampau; jangan gunakan updatedAt sebagai tanggal aktivasi/pembatalan.
+- Langkah: rancang kolom histori, review migrasi formal (contract emit, plan --from 20260917T0932, apply lewat PowerShell), baru wiring perubahan status pendaftaran.
+
+### Komit dan review
+
+- Dua commit lokal, belum di-push: 9f409ee (fondasi rute [locale], i18n id/en, UI bersama, migrasi) dan 1d3ba00 (sesi guru dan presensi atomik).
+- Review pra-commit: review portal guru passed; review fondasi menemukan hapusGuru menghapus user hanya berdasarkan id. Sudah diperbaiki ke role guru, dengan tes. Verifikasi 27 tes, eslint, dan build lulus. Lint repo tetap 15 error baseline.
+- Izin commit hanya untuk kedua commit itu. Log, cache, .env.example, dan aset referensi sengaja tidak di-commit. Migrasi 20260917T0932 sudah diterapkan; identitas dev tidak pernah dibuktikan.
+
+### Verifikasi browser (blocker)
+
+- Belum ada bukti HTTP authenticated. Dashboard dan login terbuka tapi redirect. Vault kosong; save_declined dua kali. Jangan minta simpan login lagi dalam turn yang sama.
+- Kebutuhan: sesi browser yang sudah login sebagai guru uji. Tanpa itu, uji akhir M1 hanya bisa lewat action asli dengan PostgreSQL, bukan UI.
+
+### Resume setelah konteks habis
+
+1. Baca AGENTS.md, docs/portal-guru-ticket.md, docs/portal-guru-audit.md, lalu git status dan git log -2.
+2. Cek ticket yang belum selesai: pilih M1 (peserta historis) atau M2 sesuai prioritas.
+3. Tes kecil gagal dulu, implementasi sampai hijau, catat bukti bertahap. Jangan menulis seluruh implementasi sebelum tes.
+4. Setelah selesai, perbarui checkpoint di docs/portal-guru-ticket.md.
 
 - Detail kelas kini menautkan tiap slot ke tanggal pertemuan berikutnya mulai hari ini WIB, dibatasi periode kelas, melewati sesi dibatalkan, dan menyertakan ?sesi=<jadwalItemId>. Tanggal serta snapshot jam tujuan tampil pada tautan; tombol presensi hari ini hanya muncul bila ada slot valid. Kelas batal/periode selesai tidak menawarkan tautan presensi. Perhitungan memakai planner murni, GET tidak membuat sesi DB.
 - RED: dua slot berbeda dan tombol header sebelumnya menuju tanggal hari ini tanpa selector; kelas batal tetap memiliki tautan. GREEN: 23/23 tes regresi lulus via PowerShell (`node --import ./scripts/ts-resolve.mjs --test scripts/selfcheck-presensi-action.mjs scripts/selfcheck-presensi-form.mjs scripts/selfcheck-service-sesi.mjs scripts/selfcheck-sesi.mjs`). ESLint detail kelas dan dua harness lulus; npm run build lulus TypeScript + 72 halaman.
