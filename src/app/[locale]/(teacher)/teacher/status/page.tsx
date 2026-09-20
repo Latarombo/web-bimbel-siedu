@@ -21,7 +21,7 @@ export default async function TeacherStatusPage() {
 
   // 1. Get active classes owned by this teacher
   const [kelas, mapel, pendaftaran, anakList] = await Promise.all([
-    collect(db.orm.public.Kelas.where({ guruId, status: 'aktif' }).all()),
+    collect(db.orm.public.Kelas.where((k) => k.guruId.eq(guruId)).where((k) => k.status.eq('aktif')).all()),
     collect(db.orm.public.MataPelajaran.all()),
     collect(db.orm.public.Pendaftaran.all()),
     collect(db.orm.public.Anak.all()),
@@ -55,7 +55,7 @@ export default async function TeacherStatusPage() {
 
   // 2. Fetch past statuses posted by this teacher
   const [statusList, allRecipients] = await Promise.all([
-    collect(db.orm.public.StatusPembelajaran.where({ dibuatOleh: guruId }).all()),
+    collect(db.orm.public.StatusPembelajaran.where((s) => s.dibuatOleh.eq(guruId)).all()),
     collect(db.orm.public.StatusPembelajaranPenerima.all()),
   ]);
 

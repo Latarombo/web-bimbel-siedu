@@ -69,7 +69,10 @@ export default async function AdminClasses({ searchParams }: { searchParams: Pro
         mapel: (
           <div>
             <p className="font-semibold text-slate-900">{mapelById.get(k.mataPelajaranId)?.nama ?? t("text11")}</p>
-            <p className="text-xs text-slate-500">{t("classLevel", { level: k.jenjang, id: k.id })}</p>
+            <p className="text-xs text-slate-500">
+              {t("classLevel", { level: k.jenjang, id: k.id })}
+              {((k as unknown as { tingkat?: string | null }).tingkat) ? ` · ${(k as unknown as { tingkat?: string | null }).tingkat}` : ""}
+            </p>
           </div>
         ),
         guru: <span className="text-slate-700">{guruById.get(k.guruId)?.name ?? "—"}</span>,

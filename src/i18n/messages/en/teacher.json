@@ -98,6 +98,7 @@
   "sessionSchedule": "Session schedule",
   "noClassScheduleAdmin": "The admin has not scheduled this class yet.",
   "attendance": "Attendance",
+  "grades": "Grades",
   "teachingSummary": "Teaching summary",
   "yourGradeEntries": "Your grade entries",
   "recordedAttendance": "Attendance recorded",

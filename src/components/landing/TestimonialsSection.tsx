@@ -64,9 +64,9 @@ const testi: Testimoni[] = [
     <section id="testimoni" className="scroll-mt-20 bg-white">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#0b1c30]">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
             {tr("text130")}</h2>
-          <p className="mt-4 text-sm sm:text-base leading-relaxed text-gray-500">
+          <p className="mt-4 text-sm sm:text-base leading-relaxed text-muted">
             {tr("text131")}</p>
         </div>
 

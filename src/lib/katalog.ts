@@ -7,15 +7,25 @@ export const JENJANG_KATALOG = ['Semua', 'TK', 'SD', 'SMP', 'SMA'] as const;
 export type FilterKatalog = {
   q: string;
   jenjang: typeof JENJANG_KATALOG[number];
+  mapelId?: number;
+  tingkat?: string;
   sort: 'terbaru' | 'termurah' | 'termahal';
   page: number;
 };
 
 export function filterKatalog(params: Record<string, string | string[] | undefined>): FilterKatalog {
   const page = typeof params.page === 'string' && /^\d+$/.test(params.page) ? Number(params.page) : 1;
+  const mapelId = typeof params.mapelId === 'string' && /^\d+$/.test(params.mapelId) && Number(params.mapelId) > 0
+    ? Number(params.mapelId)
+    : undefined;
+  const tingkat = typeof params.tingkat === 'string' && params.tingkat.trim().length > 0 && params.tingkat.trim() !== 'Semua'
+    ? params.tingkat.trim().slice(0, 30)
+    : undefined;
   return {
     q: typeof params.q === 'string' ? params.q.trim().slice(0, 100) : '',
     jenjang: JENJANG_KATALOG.includes(params.jenjang as FilterKatalog['jenjang']) ? params.jenjang as FilterKatalog['jenjang'] : 'Semua',
+    mapelId,
+    tingkat,
     sort: params.sort === 'termurah' || params.sort === 'termahal' ? params.sort : 'terbaru',
     page: Number.isSafeInteger(page) && page > 0 ? Math.min(page, 1_000_000) : 1,
   };
@@ -26,6 +36,8 @@ export function urlKatalog(filter: FilterKatalog, perubahan: Partial<FilterKatal
   const params = new URLSearchParams();
   if (next.q) params.set('q', next.q);
   if (next.jenjang !== 'Semua') params.set('jenjang', next.jenjang);
+  if (next.mapelId) params.set('mapelId', String(next.mapelId));
+  if (next.tingkat && next.tingkat !== 'Semua') params.set('tingkat', next.tingkat);
   if (next.sort !== 'terbaru') params.set('sort', next.sort);
   if (next.page > 1) params.set('page', String(next.page));
   return `/classes${params.size ? `?${params}` : ''}`;
@@ -47,8 +59,10 @@ export async function kelasKatalogHalaman(filter: FilterKatalog, locale: string 
       join mata_pelajaran m on m.id = k.mata_pelajaran_id
       join users g on g.id = k.guru_id
       where k.status = 'aktif'
+        and (${filter.mapelId ?? 0} = 0 or k.mata_pelajaran_id = ${filter.mapelId ?? 0})
+        and (${filter.tingkat ?? ''} = '' or ${filter.tingkat ?? ''} = 'Semua' or lower(coalesce(k.tingkat, '')) = lower(${filter.tingkat ?? ''}) or strpos(lower(m.nama || ' ' || coalesce(m.deskripsi, '')), lower(${filter.tingkat ?? ''})) > 0)
         and (${filter.q} = '' or strpos(lower(
-          m.nama || ' ' || g.name || ' ' || coalesce((
+          m.nama || ' ' || coalesce(m.deskripsi, '') || ' ' || g.name || ' ' || coalesce((
             select string_agg(
               (${hariLabels}::jsonb ->> j.hari) || ' ' || left(j.jam_mulai::text, 5) || '–' || left(j.jam_selesai::text, 5),
               ', ' order by j.hari
@@ -99,4 +113,8 @@ export async function kelasKatalogHalaman(filter: FilterKatalog, locale: string 
     rows: info.ids.flatMap((id) => { const row = byId.get(id); return row ? [row] : []; }),
     semua: Object.values(info.jumlahJenjang).reduce((sum, count) => sum + count, 0),
   };
+}
+
+export async function daftarMataPelajaranKatalog() {
+  return collect(db.orm.public.MataPelajaran.orderBy((m) => m.nama.asc()).all());
 }

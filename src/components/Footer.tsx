@@ -75,7 +75,7 @@ const Footer = async () => {
   ];
 
   return (
-    <footer className="bg-white border-t border-gray-200">
+    <footer className="bg-white border-t border-border">
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
         {/* Grid responsif: brand full di mobile, 2 kolom grup link di sm, 12-grid penuh di lg */}
@@ -88,7 +88,7 @@ const Footer = async () => {
             </Link>
 
             {/* Description */}
-            <p className="mt-5 text-sm leading-relaxed text-gray-600 max-w-sm">
+            <p className="mt-5 text-sm leading-relaxed text-body max-w-sm">
               {t('desc')}
             </p>
 
@@ -97,7 +97,7 @@ const Footer = async () => {
               {/* Phone */}
               <li className="flex items-center space-x-3">
                 <svg
-                  className="w-5 h-5 text-gray-400 flex-shrink-0"
+                  className="w-5 h-5 text-muted flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -113,7 +113,7 @@ const Footer = async () => {
                 </svg>
                 <a
                 href={`tel:${SITE.telepon.replace(/[^+\d]/g, '')}`}
-                className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                className="text-body hover:text-brand transition-colors duration-200"
                 >
                 {SITE.telepon}
                 </a>
@@ -122,7 +122,7 @@ const Footer = async () => {
               {/* Email */}
               <li className="flex items-center space-x-3">
                 <svg
-                  className="w-5 h-5 text-gray-400 flex-shrink-0"
+                  className="w-5 h-5 text-muted flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -136,7 +136,7 @@ const Footer = async () => {
                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                   />
                 </svg>
-                <a href={`mailto:${SITE.email}`} className="text-gray-600 hover:text-blue-600 transition-colors duration-200">
+                <a href={`mailto:${SITE.email}`} className="text-body hover:text-brand transition-colors duration-200">
                 {SITE.email}
                 </a>
               </li>
@@ -144,7 +144,7 @@ const Footer = async () => {
               {/* Address */}
               <li className="flex items-start space-x-3">
                 <svg
-                  className="w-5 h-5 text-gray-400 mt-0.5 flex-shrink-0"
+                  className="w-5 h-5 text-muted mt-0.5 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -164,7 +164,7 @@ const Footer = async () => {
                     d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-                <address className="not-italic text-gray-600">
+                <address className="not-italic text-body">
                 {SITE.alamat.map((baris) => (
                 <span key={baris} className="block">
                 {baris}
@@ -177,7 +177,7 @@ const Footer = async () => {
 
           {/* Column 2: Program Belajar */}
           <nav aria-label={t('program')} className="lg:col-span-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-900">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
               {t('program')}
             </h3>
             <ul className="mt-5 space-y-3.5 text-sm">
@@ -185,7 +185,7 @@ const Footer = async () => {
                 <li key={item.name}>
                   <Link
                     href={item.href}
-                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                    className="text-body hover:text-brand transition-colors duration-200"
                   >
                     {item.name}
                   </Link>
@@ -194,7 +194,7 @@ const Footer = async () => {
               <li>
                 <Link
                   href="/classes"
-                  className="text-blue-600 font-medium hover:text-blue-700 transition-colors duration-200 inline-flex items-center space-x-1"
+                  className="text-brand font-medium hover:text-brand-strong transition-colors duration-200 inline-flex items-center space-x-1"
                 >
                   <span>{t('viewAll')}</span>
                   <svg
@@ -219,7 +219,7 @@ const Footer = async () => {
 
           {/* Column 3: Perusahaan */}
           <nav aria-label={t('company')} className="lg:col-span-2">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-900">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
               {t('company')}
             </h3>
             <ul className="mt-5 space-y-3.5 text-sm">
@@ -227,7 +227,7 @@ const Footer = async () => {
                 <li key={item.name}>
                   <Link
                     href={item.href}
-                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                    className="text-body hover:text-brand transition-colors duration-200"
                   >
                     {item.name}
                   </Link>
@@ -238,7 +238,7 @@ const Footer = async () => {
 
           {/* Column 4: Bantuan */}
           <nav aria-label={t('help')} className="lg:col-span-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-900">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">
               {t('help')}
             </h3>
             <ul className="mt-5 space-y-3.5 text-sm">
@@ -246,7 +246,7 @@ const Footer = async () => {
                 <li key={item.name}>
                   <Link
                     href={item.href}
-                    className="text-gray-600 hover:text-blue-600 transition-colors duration-200"
+                    className="text-body hover:text-brand transition-colors duration-200"
                   >
                     {item.name}
                   </Link>
@@ -258,11 +258,11 @@ const Footer = async () => {
       </div>
 
       {/* Bottom Footer */}
-      <div className="border-t border-gray-200">
+      <div className="border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-5 md:gap-4">
             {/* Copyright */}
-            <p className="text-gray-500 text-sm order-last md:order-first">
+            <p className="text-muted text-sm order-last md:order-first">
               {t('rights')}
             </p>
 

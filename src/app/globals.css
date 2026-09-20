@@ -29,6 +29,7 @@
     --muted: #64748b; /* slate-500 — helper text */
     --border: #e2e8f0; /* slate-200 */
     --surface: #ffffff; /* card container */
+    --surface-alt: #f8fafc; /* slate-50 — background section selang-seling / sidebar */
 
     /* — shadcn (nova, disesuaikan ke brand Siedu) — */
     --card: #ffffff;
@@ -73,6 +74,7 @@
     --color-muted: var(--muted);
     --color-border: var(--border);
     --color-surface: var(--surface);
+    --color-surface-alt: var(--surface-alt);
     --font-sans: var(--font-inter);
     --font-display: var(--font-jakarta);
 
@@ -175,6 +177,19 @@
 
 /* Wave Animations — di @layer utilities agar utility lain (mis. animate-none) tetap menang */
 
+/* Nav wave underline — animasi garis SVG ombak saat hover link navbar (desktop).
+   SVG: garis datar di kiri-kanan, satu lengkungan ombak di tengah (390×50px).
+   background-position-x dari 390px → 0 membuat ombak muncul dari kanan ke kiri (1 siklus).
+   Warna brand Siedu (#2563eb) di-encode ke dalam data URI SVG. */
+@keyframes nav-wave-slide {
+    0% {
+        background-position-x: 390px;
+    }
+    100% {
+        background-position-x: 0;
+    }
+}
+
 /* Latar kisi kotak-kotak: digeser persis satu kotak (40px) supaya loop-nya mulus. */
 @keyframes grid-drift {
     0% {
@@ -229,6 +244,24 @@
 @layer utilities {
  .animate-grid-drift {
    animation: grid-drift 16s linear infinite;
+ }
+
+ /* Nav wave underline — class diterapkan ke <li> wrapper link desktop navbar.
+    Pada hover, background SVG ombak dianimasikan dari kanan ke kiri selama 0.9s.
+    Pseudo-element tidak bisa dipakai di Tailwind tanpa plugin, maka background
+    langsung ke <li> yang sudah punya width & height tetap. */
+ .nav-wave-link {
+   position: relative;
+   transition: background-position-x 0.9s linear;
+ }
+ .nav-wave-link:hover {
+   /* SVG ombak 390×50 — garis datar di kiri-kanan, lengkungan di tengah.
+      stroke diganti brand Siedu #2563eb (URL-encoded: %232563eb) */
+   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='50' viewBox='0 0 390 50'%3E%3Cpath fill='none' stroke='%232563eb' stroke-width='1.5' stroke-miterlimit='10' d='M0,47.585c0,0,97.5,0,130,0c13.75,0,28.74-38.778,46.168-19.416C192.669,46.5,243.603,47.585,260,47.585c31.821,0,130,0,130,0'/%3E%3C/svg%3E");
+   background-repeat: repeat-x;
+   background-position-y: bottom;
+   background-size: 390px 50px;
+   animation: nav-wave-slide 0.9s linear;
  }
 
  .animate-wave-slow {

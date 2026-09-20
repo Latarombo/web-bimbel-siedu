@@ -27,6 +27,7 @@ export default function KelasForm({
     guruId: number;
     periodeId: number;
     jenjang: string;
+    tingkat?: string;
     kuotaMaksimum: number;
     kuotaMinimum: number;
     biayaPeriode: string;
@@ -63,11 +64,14 @@ export default function KelasForm({
           </Select>
         </Field>
       </div>
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-5">
         <Field label={t("kelas.level")} required error={err("jenjang")}>
           <Select name="jenjang" required defaultValue={defaults?.jenjang ?? ""}>
             {["TK", "SD", "SMP", "SMA"].map((j) => <option key={j} value={j}>{t(`levels.${j}`)}</option>)}
           </Select>
+        </Field>
+        <Field label={t("kelas.grade")} error={err("tingkat")}>
+          <Input name="tingkat" placeholder="cth. Kelas 6" defaultValue={defaults?.tingkat ?? ""} />
         </Field>
         <Field label={t("kelas.maxQuota")} required error={err("kuota_maksimum")}>
           <Input type="number" name="kuota_maksimum" min={1} required defaultValue={defaults?.kuotaMaksimum ?? ""} />

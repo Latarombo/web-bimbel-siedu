@@ -181,6 +181,7 @@ model Kelas {
   guruId          Int               @map("guru_id")
   periodeId       Int               @map("periode_id")
   jenjang         Jenjang
+  tingkat         String?           @map("tingkat")
   kuotaMaksimum   Int               @map("kuota_maksimum")
   kuotaMinimum    Int               @map("kuota_minimum")
   kuotaTerisi     Int               @default(0) @map("kuota_terisi")
@@ -202,6 +203,7 @@ model Kelas {
   @@index([periodeId, status])
   @@index([mataPelajaranId])
   @@index([jenjang])
+  @@index([tingkat])
   @@check(expression: "kuota_minimum <= kuota_maksimum", name: "kelas_kuota_range")
   @@check(expression: "kuota_terisi <= kuota_maksimum", name: "kelas_kuota_terisi")
   @@check(expression: "biaya_periode > 0", name: "kelas_biaya_pos")

@@ -9,6 +9,7 @@ export type KelasKatalog = {
   id: number;
   mapel: string;
   jenjang: JenjangKatalog;
+  tingkat: string | null;
   jadwal: string; // "Selasa 15:00–16:30, Kamis 15:00–16:30"
   guru: string;
   kuota: { terisi: number; maksimum: number };
@@ -32,6 +33,7 @@ export function toKelasKatalog(k: RowKelas, locale: DisplayLocale = "id"): Kelas
     id: k.id,
     mapel: k.mataPelajaran.nama,
     jenjang: k.jenjang as JenjangKatalog,
+    tingkat: (k as unknown as { tingkat?: string | null }).tingkat ?? null,
     jadwal: (k.jadwalItem ?? [])
       .map((j) => `${labelHari(j.hari, locale)} ${jamPendek(j.jamMulai)}–${jamPendek(j.jamSelesai)}`)
       .join(", ") || (locale === "en" ? "Schedule to follow" : "Jadwal menyusul"),

@@ -31,7 +31,7 @@ const Navbar = ({ dashboardHref = null }: NavbarProps) => {
   const authButtons = dashboardHref ? (
     <Link
       href={dashboardHref}
-      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-brand-strong transition-colors duration-200"
+      className="px-4 py-2 text-sm font-medium text-white bg-brand rounded-lg hover:bg-brand-strong transition-colors duration-200"
     >
       {t('dashboard')}
     </Link>
@@ -39,13 +39,13 @@ const Navbar = ({ dashboardHref = null }: NavbarProps) => {
     <>
       <Link
         href="/login"
-        className="px-4 py-2 text-sm font-medium text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 transition-colors duration-200"
+        className="px-4 py-2 text-sm font-medium text-brand border-2 border-brand rounded-lg hover:bg-brand-soft transition-colors duration-200"
       >
         {t('login')}
       </Link>
       <Link
         href="/register"
-        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-brand-strong transition-colors duration-200"
+        className="px-4 py-2 text-sm font-medium text-white bg-brand rounded-lg hover:bg-brand-strong transition-colors duration-200"
       >
         {t('signup')}
       </Link>
@@ -53,7 +53,7 @@ const Navbar = ({ dashboardHref = null }: NavbarProps) => {
   );
 
   return (
-    <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100">
+    <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md shadow-sm border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -66,13 +66,14 @@ const Navbar = ({ dashboardHref = null }: NavbarProps) => {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-8">
             {links.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-sm text-gray-700 hover:text-blue-600 px-3 py-2 font-medium transition-colors duration-200"
-              >
-                {link.name}
-              </Link>
+              <div key={link.name} className="nav-wave-link h-[50px] flex items-center">
+                <Link
+                  href={link.href}
+                  className="text-sm text-body hover:text-brand px-3 py-2 font-medium transition-colors duration-200"
+                >
+                  {link.name}
+                </Link>
+              </div>
             ))}
           </div>
 
@@ -84,21 +85,21 @@ const Navbar = ({ dashboardHref = null }: NavbarProps) => {
             {dashboardHref ? (
               <Link
                 href={dashboardHref}
-                className="flex h-10 items-center px-3.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-brand-strong transition-colors duration-200"
+                className="flex h-10 items-center px-3.5 text-sm font-semibold text-white bg-brand rounded-lg hover:bg-brand-strong transition-colors duration-200"
               >
                 {t('dashboard')}
               </Link>
             ) : (
               <Link
                 href="/login"
-                className="flex h-10 items-center px-3.5 text-sm font-semibold text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50 transition-colors duration-200"
+                className="flex h-10 items-center px-3.5 text-sm font-semibold text-brand border-2 border-brand rounded-lg hover:bg-brand-soft transition-colors duration-200"
               >
                 {t('login')}
               </Link>
             )}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="grid h-11 w-11 place-items-center text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-full focus-visible:outline-2 focus-visible:outline-blue-600 transition-colors duration-200"
+              className="grid h-11 w-11 place-items-center text-body hover:text-brand hover:bg-brand-soft rounded-full focus-visible:outline-2 focus-visible:outline-brand transition-colors duration-200"
               aria-label={isMobileMenuOpen ? t('menuClose') : t('menuOpen')}
               aria-expanded={isMobileMenuOpen}
             >
@@ -115,13 +116,13 @@ const Navbar = ({ dashboardHref = null }: NavbarProps) => {
 
         {/* Mobile Menu — CTA ter-pin di bawah gaya A11.studio */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden pb-4 border-t border-gray-100">
+          <div className="lg:hidden pb-4 border-t border-border">
             <ul className="flex flex-col">
               {links.map((link) => (
                 <li key={link.name}>
                   <Link
                     href={link.href}
-                    className="flex items-center min-h-11 px-3 text-base font-medium text-gray-700 hover:text-blue-600 transition-colors duration-200"
+                    className="flex items-center min-h-11 px-3 text-base font-medium text-body hover:text-brand transition-colors duration-200"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {link.name}
@@ -129,11 +130,11 @@ const Navbar = ({ dashboardHref = null }: NavbarProps) => {
                 </li>
               ))}
             </ul>
-            <div className="flex flex-col gap-3 pt-4 mt-2 border-t border-gray-100">
+            <div className="flex flex-col gap-3 pt-4 mt-2 border-t border-border">
               {dashboardHref ? (
                 <Link
                   href={dashboardHref}
-                  className="flex min-h-11 items-center justify-center px-6 py-2.5 text-base font-semibold text-white bg-blue-600 rounded-lg hover:bg-brand-strong"
+                  className="flex min-h-11 items-center justify-center px-6 py-2.5 text-base font-semibold text-white bg-brand rounded-lg hover:bg-brand-strong"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t('dashboard')}
@@ -142,14 +143,14 @@ const Navbar = ({ dashboardHref = null }: NavbarProps) => {
                 <>
                   <Link
                     href="/login"
-                    className="flex min-h-11 items-center justify-center px-6 py-2.5 text-base font-semibold text-blue-600 border-2 border-blue-600 rounded-lg hover:bg-blue-50"
+                    className="flex min-h-11 items-center justify-center px-6 py-2.5 text-base font-semibold text-brand border-2 border-brand rounded-lg hover:bg-brand-soft"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {t('login')}
                   </Link>
                   <Link
                     href="/register"
-                    className="flex min-h-11 items-center justify-center px-6 py-2.5 text-base font-semibold text-white bg-blue-600 rounded-lg hover:bg-brand-strong"
+                    className="flex min-h-11 items-center justify-center px-6 py-2.5 text-base font-semibold text-white bg-brand rounded-lg hover:bg-brand-strong"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {t('signup')}

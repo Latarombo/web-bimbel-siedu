@@ -31,7 +31,7 @@ export default async function TrustIndicators({
   return (
     <section className="bg-white">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mx-auto grid max-w-5xl grid-cols-2 rounded-2xl border border-gray-200 bg-white lg:grid-cols-4">
+        <div className="mx-auto grid max-w-5xl grid-cols-2 rounded-2xl border border-border bg-white lg:grid-cols-4">
           {ITEMS.map((it, i) => (
             <div
               key={it.label}
@@ -39,15 +39,15 @@ export default async function TrustIndicators({
                 "relative flex flex-col items-center justify-center px-4 py-9 text-center sm:px-6",
                 // pemisah mobile: garis penuh 2x2; di desktop dilepas,
                 // tinggal garis pendek di tengah (lihat span di bawah)
-                i % 2 === 1 ? "border-l border-gray-200 lg:border-l-0" : "",
-                i >= 2 ? "border-t border-gray-200 lg:border-t-0" : "",
+                i % 2 === 1 ? "border-l border-border lg:border-l-0" : "",
+                i >= 2 ? "border-t border-border lg:border-t-0" : "",
               ].join(" ")}
             >
               {/* pemisah desktop: pendek, tidak menyentuh tepi kartu */}
               {i > 0 && (
                 <span
                   aria-hidden="true"
-                  className="absolute left-0 top-1/2 hidden h-14 w-px -translate-y-1/2 bg-gray-200 lg:block"
+                  className="absolute left-0 top-1/2 hidden h-14 w-px -translate-y-1/2 bg-border lg:block"
                 />
               )}
               <p className="text-3xl font-black tracking-tight text-slate-900 tabular-nums sm:text-4xl">

@@ -93,7 +93,7 @@ export default async function ParentHome({
 
   // M6 / M7 — Kabar & Status Pembelajaran yang dibagikan oleh guru untuk anak ini
   const [allStatusList, allReceipts, allClasses, allMapel, allUsers, allPendaftaran] = await Promise.all([
-    collect(db.orm.public.StatusPembelajaran.where({ status: "aktif" }).all()),
+    collect(db.orm.public.StatusPembelajaran.where((s) => s.status.eq("aktif")).all()),
     collect(db.orm.public.StatusPembelajaranPenerima.all()),
     collect(db.orm.public.Kelas.all()),
     collect(db.orm.public.MataPelajaran.all()),
