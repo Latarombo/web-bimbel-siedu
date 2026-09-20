@@ -215,5 +215,19 @@
   "consentPhotoTitle": "Izin Publikasi Foto Kegiatan",
   "consentPhotoDesc": "Mengizinkan dokumentasi foto kegiatan belajar yang menampilkan wajah anak dibagikan terbatas kepada sesama orang tua di kelas.",
   "consentActive": "Izin Diberikan",
-  "consentRevoked": "Izin Tidak Diberikan"
+  "consentRevoked": "Izin Tidak Diberikan",
+  "pendingPaymentTitle": "Menunggu Pembayaran",
+  "pendingPaymentNotice": "Selesaikan pembayaran dalam 24 jam sejak pendaftaran. Lewat batas waktu, pendaftaran otomatis dibatalkan dan kuota kelas dibuka kembali.",
+  "timeRemaining": "Sisa waktu: {hours} jam {minutes} menit",
+  "timeRemainingMinutesOnly": "Sisa waktu: {minutes} menit",
+  "timeExpired": "Batas waktu 24 jam telah berakhir (dapat dibatalkan otomatis)",
+  "paymentSummaryStudent": "Nama Siswa",
+  "paymentSummaryClass": "Kelas & Jenjang",
+  "paymentSummaryMethod": "Skema Pembayaran",
+  "paymentSummaryAmount": "Total Tagihan Pertama",
+  "payNowButton": "Bayar Sekarang →",
+  "paymentMethodFull": "Lunas (Sekali Bayar)",
+  "paymentMethodInstallment": "DP + Cicilan ({tenor} bulan)",
+  "paymentMethodInstallmentNoTenor": "DP + Cicilan",
+  "payInstructionHint": "Pilih metode pembayaran (transfer bank, VA, QRIS, e-wallet) di halaman berikutnya."
 }

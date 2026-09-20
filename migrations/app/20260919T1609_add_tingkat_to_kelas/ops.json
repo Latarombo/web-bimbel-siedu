@@ -1,0 +1,83 @@
+[
+  {
+    "id": "column.public.kelas.tingkat",
+    "label": "Add column \"tingkat\" to \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "tingkat",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"tingkat\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "tingkat"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"tingkat\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" ADD COLUMN \"tingkat\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"tingkat\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "tingkat"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.kelas.kelas_tingkat_idx_b687b73a",
+    "label": "Create index \"kelas_tingkat_idx_b687b73a\" on \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "kelas_tingkat_idx_b687b73a",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"kelas_tingkat_idx_b687b73a\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"kelas_tingkat_idx_b687b73a\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"kelas_tingkat_idx_b687b73a\"",
+        "sql": "CREATE INDEX \"kelas_tingkat_idx_b687b73a\" ON \"public\".\"kelas\" (\"tingkat\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"kelas_tingkat_idx_b687b73a\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"kelas_tingkat_idx_b687b73a\""
+        ]
+      }
+    ]
+  }
+]

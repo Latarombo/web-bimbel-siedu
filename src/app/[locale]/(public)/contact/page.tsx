@@ -65,16 +65,32 @@ export default async function ContactPage() {
   const waHref = `https://wa.me/${SITE.telepon.replace(/\D/g, "")}`;
 
   return (
-    <div>
-      <div className="border-b border-slate-100 bg-slate-50">
-        <Section className="py-12 sm:py-16">
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">{tr("text289")}</h1>
-          <p className="mt-3 max-w-2xl text-sm sm:text-base leading-relaxed text-muted">
-            {tr("text290")}</p>
-        </Section>
+    <div className="relative min-h-full bg-slate-50">
+      {/* Ambient Lighting Glow: Kombinasi 2 Titik Cahaya Diagonal yang Pas & Bersih */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+        {/* Cahaya utama di pojok kanan atas: Biru Siedu + Sky */}
+        <div
+          className="absolute -top-24 -right-24 size-[650px] rounded-full bg-gradient-to-bl from-blue-500/20 via-sky-400/15 to-transparent blur-[110px]"
+        />
+        {/* Cahaya penyeimbang di sisi kiri bawah: Indigo lembut */}
+        <div
+          className="absolute -bottom-32 -left-32 size-[600px] rounded-full bg-indigo-500/15 blur-[120px]"
+        />
       </div>
 
-      <Section className="pt-14 pb-10 sm:pt-20 sm:pb-12">
+      <section className="relative z-10 overflow-hidden rounded-b-[3rem] md:rounded-b-[4.5rem] bg-[#0f235f] pt-10 pb-14 sm:pt-14 sm:pb-16">
+        {/* Blob dekorasi abstrak */}
+        <div className="pointer-events-none absolute -top-16 -right-16 size-72 rounded-full bg-blue-500/20 blur-3xl" aria-hidden />
+        <div className="pointer-events-none absolute bottom-0 -left-12 size-56 rounded-full bg-indigo-400/15 blur-3xl" aria-hidden />
+        <div className="pointer-events-none absolute top-1/2 left-1/3 size-40 rounded-full bg-sky-400/10 blur-2xl" aria-hidden />
+        <Section className="relative flex flex-col items-center text-center px-4">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">{tr("text289")}</h1>
+          <p className="mt-3 max-w-2xl text-sm sm:text-base leading-relaxed text-slate-300">
+            {tr("text290")}</p>
+        </Section>
+      </section>
+
+      <Section className="relative z-10 pt-14 pb-10 sm:pt-20 sm:pb-12">
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 md:grid-cols-2 md:gap-8 lg:gap-12">
           <div>
             <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">{tr("text291")}</h2>

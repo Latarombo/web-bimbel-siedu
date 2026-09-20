@@ -46,10 +46,10 @@ const CARDS: Card[] = [
     <section className="bg-white">
       <div className="mx-auto max-w-7xl px-4 pb-24 pt-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#0b1c30]">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
             {tr("text100")}<span className="text-brand">{tr("text101")}</span>
           </h2>
-          <p className="mt-4 text-sm sm:text-base leading-relaxed text-gray-500">
+          <p className="mt-4 text-sm sm:text-base leading-relaxed text-muted">
             {tr("text102")}</p>
         </div>
 
@@ -69,7 +69,7 @@ const CARDS: Card[] = [
                 <Link
                   href={card.href}
                   aria-label={tr("serviceMore", {title: card.title})}
-                  className="grid size-10 shrink-0 place-items-center rounded-full bg-amber-400 text-gray-900 transition-transform hover:scale-105"
+                  className="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-foreground transition-transform hover:scale-105"
                 >
                   <ArrowUpRight className="size-5" strokeWidth={2.5} />
                 </Link>

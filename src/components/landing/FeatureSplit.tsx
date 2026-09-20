@@ -69,15 +69,15 @@ function Feature({ b }: { b: Baris }) {
       >
         {b.eyebrow}
       </p>
-      <h3 className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-[#0b1c30]">{b.heading}</h3>
-      <p className="mt-4 text-sm sm:text-base leading-relaxed text-gray-500">{b.body}</p>
+      <h3 className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-foreground">{b.heading}</h3>
+      <p className="mt-4 text-sm sm:text-base leading-relaxed text-muted">{b.body}</p>
       <ul className="mt-6 grid gap-x-8 gap-y-3 sm:grid-cols-2">
         {b.bullets.map((t) => (
           <li key={t} className="flex items-center gap-3">
             <span className="grid size-6 shrink-0 place-items-center rounded-full" style={{ backgroundColor: b.tintBg }}>
               <Check className="size-3.5" strokeWidth={3} style={{ color: b.tintFg }} />
             </span>
-            <span className="text-sm text-gray-700">{t}</span>
+            <span className="text-sm text-body">{t}</span>
           </li>
         ))}
       </ul>
@@ -282,10 +282,10 @@ const baris: Baris[] = [
       <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
         {/* Header tengah: heading biasa tanpa coretan */}
         <div className="relative mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#0b1c30]">
+          <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
             {tr("text66")}<span className="text-brand">Siedu</span>
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-sm sm:text-base leading-relaxed text-gray-500">
+          <p className="mx-auto mt-5 max-w-2xl text-sm sm:text-base leading-relaxed text-muted">
             {tr("text68")}</p>
         </div>
 

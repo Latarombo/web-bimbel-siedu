@@ -78,10 +78,10 @@ const JENJANG: JenjangInfo[] = [
   return (
     <Section className="py-14 sm:py-16">
       <div className="mx-auto max-w-2xl text-center">
-        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#0b1c30]">
+        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
           {tr("text86")}<span className="text-brand">{tr("text87")}</span>
         </h2>
-        <p className="mt-4 text-sm sm:text-base leading-relaxed text-gray-500">
+        <p className="mt-4 text-sm sm:text-base leading-relaxed text-muted">
           {tr("text88")}</p>
       </div>
 

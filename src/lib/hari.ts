@@ -37,3 +37,19 @@ export function dalamJendela7Hari(createdAt: Date | string): boolean {
   const t = typeof createdAt === "string" ? new Date(createdAt) : createdAt;
   return Date.now() - t.getTime() <= 7 * 86_400_000;
 }
+
+/** Menghitung sisa waktu batas bayar 24 jam sejak pendaftaran dibuat. */
+export function sisaWaktu24Jam(createdAt: Date | string): {
+  isExpired: boolean;
+  sisaJam: number;
+  sisaMenit: number;
+} {
+  const t = typeof createdAt === "string" ? new Date(createdAt) : createdAt;
+  const deadlineMs = t.getTime() + 24 * 60 * 60 * 1000;
+  const sisaMs = deadlineMs - Date.now();
+  const isExpired = sisaMs <= 0;
+  const sisaMenitTotal = Math.max(0, Math.floor(sisaMs / (1000 * 60)));
+  const sisaJam = Math.floor(sisaMenitTotal / 60);
+  const sisaMenit = sisaMenitTotal % 60;
+  return { isExpired, sisaJam, sisaMenit };
+}

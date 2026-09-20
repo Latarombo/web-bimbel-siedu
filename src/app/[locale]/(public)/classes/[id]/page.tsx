@@ -61,11 +61,16 @@ export default async function ClassDetail({ params }: { params: Promise<{ id: st
 
   return (
     <div className="pb-24 lg:pb-0">
-      <BandKelas judul={`${kc.mapel} · ${kc.jenjang}`} />
+      <BandKelas judul={`${kc.mapel}${kc.tingkat ? ` · ${kc.tingkat}` : ""} · ${kc.jenjang}`} />
 
       <Section className="py-6">
         {/* Chip konteks, seperti 'Kelas 4' di Ruangguru — data nyata, bukan filter palsu */}
         <div className="flex flex-wrap gap-2">
+          {kc.tingkat ? (
+            <span className="inline-flex min-h-9 items-center rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-foreground">
+              {kc.tingkat}
+            </span>
+          ) : null}
           <span className="inline-flex min-h-9 items-center rounded-lg border border-border bg-surface px-3 text-sm font-semibold text-foreground">
             {kc.jenjang}
           </span>

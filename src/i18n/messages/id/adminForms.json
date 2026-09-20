@@ -36,6 +36,7 @@
     "teacher": "Guru pengampu",
     "period": "Periode",
     "level": "Jenjang",
+    "grade": "Tingkat / Kelas",
     "maxQuota": "Kuota maksimum",
     "minQuota": "Kuota minimum",
     "fee": "Biaya per periode (Rp)",

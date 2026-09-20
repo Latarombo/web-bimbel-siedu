@@ -46,7 +46,7 @@ export async function KelasCardView({ k }: { k: KelasKatalog }) {
       href={`/classes/${k.id}`}
       className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
     >
-      {/* Blok atas berwarna: badge + judul + deskripsi, watermark ikon samar */}
+      {/* Blok atas berwarna */}
       <div className="relative overflow-hidden px-5 pb-5 pt-5" style={{ backgroundColor: t.blok }}>
         <BookOpen aria-hidden className="absolute -right-4 -top-4 size-24 text-white/50" strokeWidth={1.5} />
         <Calculator aria-hidden className="absolute bottom-2 right-10 size-14 text-white/40" strokeWidth={1.5} />
@@ -55,7 +55,7 @@ export async function KelasCardView({ k }: { k: KelasKatalog }) {
             className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-xs font-bold"
             style={{ color: t.aksen }}
           >
-            <GraduationCap className="size-3.5" /> {k.jenjang}
+            <GraduationCap className="size-3.5" /> {k.tingkat ? `${k.tingkat} · ${k.jenjang}` : k.jenjang}
           </span>
           {penuh ? (
             <span className="rounded-full bg-slate-700 px-3 py-1 text-[11px] font-bold text-white">{tr("text188")}</span>
@@ -71,7 +71,6 @@ export async function KelasCardView({ k }: { k: KelasKatalog }) {
       </div>
 
       <div className="flex flex-1 flex-col p-5">
-        {/* Informasi kelas tetap terlihat; harga rata bawah mengikuti tinggi baris. */}
         <ul className="space-y-3 pb-5">
           {daftarFitur(k, tr).map((f) => (
             <li key={f} className="flex items-start gap-2 text-sm leading-relaxed text-gray-700">

@@ -215,5 +215,19 @@
   "consentPhotoTitle": "Activity Photo Publication Consent",
   "consentPhotoDesc": "Allow classroom activity photos featuring your child to be shared privately with fellow parents in the same class.",
   "consentActive": "Consent Granted",
-  "consentRevoked": "Consent Withheld"
+  "consentRevoked": "Consent Withheld",
+  "pendingPaymentTitle": "Awaiting Payment",
+  "pendingPaymentNotice": "Complete your payment within 24 hours of enrollment. After the deadline, enrollment is automatically canceled and the seat reopened.",
+  "timeRemaining": "Time remaining: {hours} hours {minutes} minutes",
+  "timeRemainingMinutesOnly": "Time remaining: {minutes} minutes",
+  "timeExpired": "24-hour payment deadline has passed (subject to automatic cancellation)",
+  "paymentSummaryStudent": "Student Name",
+  "paymentSummaryClass": "Class & Level",
+  "paymentSummaryMethod": "Payment Scheme",
+  "paymentSummaryAmount": "Initial Bill Amount",
+  "payNowButton": "Pay Now →",
+  "paymentMethodFull": "Full Payment (One-time)",
+  "paymentMethodInstallment": "Down Payment + Installments ({tenor} months)",
+  "paymentMethodInstallmentNoTenor": "Down Payment + Installments",
+  "payInstructionHint": "Choose your preferred payment method (bank transfer, VA, QRIS, e-wallet) on the next page."
 }

@@ -36,6 +36,7 @@
     "teacher": "Assigned teacher",
     "period": "Period",
     "level": "Education level",
+    "grade": "Grade / Specific Class",
     "maxQuota": "Maximum capacity",
     "minQuota": "Minimum capacity",
     "fee": "Fee per period (Rp)",

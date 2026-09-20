@@ -38,7 +38,7 @@ function Kartu({ t, hiasan }: { t: Testimoni; hiasan?: boolean }) {
   return (
     <article
       aria-hidden={hiasan || undefined}
-      className="relative w-[min(84vw,420px)] shrink-0 rounded-2xl p-6 shadow-sm ring-1 ring-[#0b1c30]/5"
+      className="relative w-[min(84vw,420px)] shrink-0 rounded-2xl p-6 shadow-sm ring-1 ring-foreground/5"
       style={{ backgroundColor: KARTU }}
     >
       <Quote className="absolute right-6 top-5 size-8 text-slate-400/40" fill="currentColor" />
@@ -51,16 +51,16 @@ function Kartu({ t, hiasan }: { t: Testimoni; hiasan?: boolean }) {
           className="size-12 rounded-full object-cover"
         />
         <div>
-          <p className="text-sm font-bold text-[#0b1c30]">{t.nama}</p>
-          <p className="text-xs text-slate-500">{t.peran}</p>
+          <p className="text-sm font-bold text-foreground">{t.nama}</p>
+          <p className="text-xs text-muted">{t.peran}</p>
         </div>
       </div>
       <div className="mt-4 flex gap-1">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Star key={i} className="size-4 fill-amber-400 text-amber-400" />
+          <Star key={i} className="size-4 fill-accent text-accent" />
         ))}
       </div>
-      <p className="mt-3 text-sm italic leading-relaxed text-slate-600">{`"${t.kutip}"`}</p>
+      <p className="mt-3 text-sm italic leading-relaxed text-body">{`"${t.kutip}"`}</p>
     </article>
   );
 }

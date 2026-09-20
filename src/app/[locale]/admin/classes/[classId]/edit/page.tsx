@@ -60,6 +60,7 @@ export default async function AdminClassesEdit({ params }: { params: Promise<{ c
             guruId: kelas.guruId,
             periodeId: kelas.periodeId,
             jenjang: kelas.jenjang,
+            tingkat: ((kelas as unknown as { tingkat?: string | null }).tingkat) ?? "",
             kuotaMaksimum: kelas.kuotaMaksimum,
             kuotaMinimum: kelas.kuotaMinimum,
             biayaPeriode: String(kelas.biayaPeriode),
