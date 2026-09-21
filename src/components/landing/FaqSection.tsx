@@ -40,27 +40,58 @@ function Circles() {
  );
 }
 
-function Item({ q, a }: { q: string; a: string }) {
- return (
- <details className="group">
- <summary
- className="flex min-h-[63px] cursor-pointer list-none items-center justify-between gap-4 rounded-lg px-4 py-3 text-[15px] font-semibold text-[#2c313a] group-open:rounded-b-none sm:px-6 [&::-webkit-details-marker]:hidden"
- style={{ backgroundColor: BARIS }}
- >
- {q}
- <ChevronDown
- className="size-4 shrink-0 text-slate-500 transition-transform group-open:rotate-180"
- aria-hidden
- />
- </summary>
- <p
- className="-mt-px rounded-b-lg px-4 pb-5 pt-1 text-sm leading-relaxed text-pretty text-gray-600 sm:px-6"
- style={{ backgroundColor: BARIS }}
- >
- {a}
- </p>
- </details>
- );
+function FaqItem({
+  q,
+  a,
+  isOpen,
+  onToggle,
+  id,
+}: {
+  q: string;
+  a: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  id: string;
+}) {
+  return (
+    <div
+      className="overflow-hidden rounded-xl transition-shadow duration-200"
+      style={{ backgroundColor: BARIS }}
+    >
+      <button
+        type="button"
+        id={`faq-btn-${id}`}
+        aria-expanded={isOpen}
+        aria-controls={`faq-content-${id}`}
+        onClick={onToggle}
+        className="flex min-h-[63px] w-full cursor-pointer items-center justify-between gap-4 px-4 py-3.5 text-left text-[15px] font-semibold text-[#2c313a] transition-colors hover:text-slate-900 sm:px-6"
+      >
+        <span className="leading-snug">{q}</span>
+        <ChevronDown
+          className={`size-4 shrink-0 text-slate-500 transition-transform duration-300 ease-out ${
+            isOpen ? "rotate-180 text-teal-700" : ""
+          }`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {/* Smooth Expand/Collapse via CSS Grid template rows */}
+      <div
+        id={`faq-content-${id}`}
+        role="region"
+        aria-labelledby={`faq-btn-${id}`}
+        className={`grid transition-all duration-300 ease-in-out ${
+          isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <p className="px-4 pb-5 pt-1 text-sm leading-relaxed text-slate-600 sm:px-6 sm:text-[14.5px]">
+            {a}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function FaqSection() {
@@ -109,41 +140,95 @@ const faq: [string, string][] = [
  ],
 ];
 
- const [semua, setSemua] = useState(false);
- const tampil = semua ? faq : faq.slice(0, AWAL);
+  const [semua, setSemua] = useState(false);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
 
- return (
- <section
- id="faq"
- className="relative scroll-mt-20 overflow-hidden"
- style={{ backgroundColor: TEAL }}
- >
- <Circles />
- <div className="relative mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
- <h2 className="text-center text-3xl font-bold tracking-tight text-balance text-white sm:text-4xl">
- {tr("text23")}</h2>
+  const awalFaq = faq.slice(0, AWAL);
+  const sisaFaq = faq.slice(AWAL);
 
- <div className="mt-10 space-y-3">
- {tampil.map(([q, a]) => (
- <Item key={q} q={q} a={a} />
- ))}
- </div>
+  const handleToggle = (index: number) => {
+    setOpenIndex((prev) => (prev === index ? null : index));
+  };
 
- <div className="mt-10 text-center">
- <button
- type="button"
- onClick={() => setSemua((v) => !v)}
- className="inline-flex items-center gap-2 text-[15px] font-bold text-white"
- aria-expanded={semua}
- >
- {semua ? tr("faqHide") : tr("text24")}
- <ChevronDown
- className={`size-4 text-cyan-200 transition-transform ${semua ? "rotate-180" : ""}`}
- aria-hidden
- />
- </button>
- </div>
- </div>
- </section>
- );
+  const handleToggleSemua = () => {
+    setSemua((prev) => {
+      const next = !prev;
+      // Jika disembunyikan dan item yang terbuka berada di sisa FAQ (index >= AWAL), tutup item tersebut
+      if (!next && openIndex !== null && openIndex >= AWAL) {
+        setOpenIndex(null);
+      }
+      return next;
+    });
+  };
+
+  return (
+    <section
+      id="faq"
+      className="relative scroll-mt-20 overflow-hidden"
+      style={{ backgroundColor: TEAL }}
+    >
+      <Circles />
+      <div className="relative mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
+        <h2 className="text-center text-3xl font-bold tracking-tight text-balance text-white sm:text-4xl">
+          {tr("text23")}
+        </h2>
+
+        {/* 5 FAQ Pertama */}
+        <div className="mt-10 space-y-3">
+          {awalFaq.map(([q, a], idx) => (
+            <FaqItem
+              key={q}
+              id={String(idx)}
+              q={q}
+              a={a}
+              isOpen={openIndex === idx}
+              onToggle={() => handleToggle(idx)}
+            />
+          ))}
+        </div>
+
+        {/* Sisa FAQ dengan Animasi Smooth Slide Down/Up via CSS Grid */}
+        <div
+          className={`grid transition-all duration-500 ease-in-out ${
+            semua ? "grid-rows-[1fr] opacity-100 mt-3" : "grid-rows-[0fr] opacity-0 mt-0"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="space-y-3 pt-0">
+              {sisaFaq.map(([q, a], idx) => {
+                const actualIndex = AWAL + idx;
+                return (
+                  <FaqItem
+                    key={q}
+                    id={String(actualIndex)}
+                    q={q}
+                    a={a}
+                    isOpen={openIndex === actualIndex}
+                    onToggle={() => handleToggle(actualIndex)}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-10 text-center">
+          <button
+            type="button"
+            onClick={handleToggleSemua}
+            className="group inline-flex cursor-pointer items-center gap-2 text-[15px] font-bold text-white transition-colors hover:text-cyan-100"
+            aria-expanded={semua}
+          >
+            <span>{semua ? tr("faqHide") : tr("text24")}</span>
+            <ChevronDown
+              className={`size-4 text-cyan-200 transition-transform duration-300 ease-out ${
+                semua ? "rotate-180 text-white" : "group-hover:translate-y-0.5"
+              }`}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+      </div>
+    </section>
+  );
 }

@@ -6,8 +6,6 @@ import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { Card, CardPad } from "@/components/ui/card";
-import { ButtonLink } from "@/components/ui/button";
 import DaftarForm from "@/components/pendaftaran/daftar-form";
 
 export const dynamic = "force-dynamic";
@@ -62,7 +60,7 @@ export default async function DaftarKelasPage({
   if (!target) notFound();
 
   const jadwal = (target.jadwalItem ?? [])
-    .map((j) => `${labelHari(j.hari, locale)} ${String(j.jamMulai).slice(0, 5)}–${String(j.jamSelesai).slice(0, 5)}`)
+    .map((j) => `${labelHari(j.hari, locale)} ${String(j.jamMulai).slice(0, 5)}-${String(j.jamSelesai).slice(0, 5)}`)
     .join(", ");
 
   const pilihanKelasList = allActiveClasses.map((k) => ({
@@ -72,7 +70,7 @@ export default async function DaftarKelasPage({
     mapelNama: k.mataPelajaran.nama,
     guruNama: k.guru.name,
     jadwal: (k.jadwalItem ?? [])
-      .map((j) => `${labelHari(j.hari, locale)} ${String(j.jamMulai).slice(0, 5)}–${String(j.jamSelesai).slice(0, 5)}`)
+      .map((j) => `${labelHari(j.hari, locale)} ${String(j.jamMulai).slice(0, 5)}-${String(j.jamSelesai).slice(0, 5)}`)
       .join(", ") || (locale === "en" ? "Schedule to follow" : "Jadwal menyusul"),
     biayaPeriode: Number(k.biayaPeriode),
     biayaDp: k.biayaDp == null ? null : Number(k.biayaDp),
@@ -84,49 +82,60 @@ export default async function DaftarKelasPage({
   const targetTingkat = ((target as unknown as { tingkat?: string | null }).tingkat) ?? null;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10">
-      <Link
-        href={`/classes/${kelasId}`}
-        className="text-sm font-semibold text-brand hover:text-brand-strong"
-      >
-        {tr("text270")}</Link>
-      <h1 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">
-        {tr("text271")}{target.mataPelajaran.nama}{targetTingkat ? ` · ${targetTingkat}` : ""}
-      </h1>
-      <p className="mt-1 text-sm text-muted">
-        {target.guru.name} · {targetTingkat ? `${targetTingkat} · ` : ""}{target.jenjang} · {jadwal || tr("text274")} {tr("text275")}{" "}
-        {target.kuotaMaksimum - target.kuotaTerisi}
-      </p>
+    <div className="min-h-full bg-slate-50 pb-20">
+      {/* Header Band */}
+      <header className="bg-[#0f235f] py-6 sm:py-7 text-white border-b border-slate-800">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link
+                href={`/classes/${kelasId}`}
+                className="grid size-9 place-items-center rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
+                aria-label="Kembali"
+              >
+                <span className="text-base font-bold leading-none">←</span>
+              </Link>
+              <div>
+                <span className="text-xs text-slate-300 block font-medium">
+                  Pendaftaran Kelas
+                </span>
+                <h1 className="text-lg sm:text-xl font-bold text-white">
+                  {target.mataPelajaran.nama} {targetTingkat ? `(${targetTingkat})` : ""} {target.jenjang}
+                </h1>
+              </div>
+            </div>
 
-      {anak.length === 0 ? (
-        <Card className="mt-6">
-          <CardPad className="text-center">
-            <p className="text-sm text-muted">
-              {tr("text277")}</p>
-            <ButtonLink href="/children/new" className="mt-4">
-              {tr("text278")}</ButtonLink>
-          </CardPad>
-        </Card>
-      ) : (
-        <Card className="mt-6">
-          <CardPad>
-            <DaftarForm
-              kelasId={target.id}
-              biayaPeriode={Number(target.biayaPeriode)}
-              biayaDp={target.biayaDp == null ? null : Number(target.biayaDp)}
-              tenorMaksimum={target.tenorMaksimum}
-              metodeAwal={metodeAwal}
-              tenorAwal={Number.isFinite(tenorDipilih) ? tenorDipilih : 2}
-              anak={anak.map((a) => ({
-                id: a.id,
-                nama: a.nama,
-                jenjangTerakhir: a.jenjangTerakhir ?? "",
-              }))}
-              kelasOptions={pilihanKelasList}
-            />
-          </CardPad>
-        </Card>
-      )}
+            {/* Ringkasan Kelas */}
+            <div className="hidden sm:flex items-center gap-3 text-xs text-slate-300 bg-white/5 px-3 py-1.5 rounded-lg border border-white/10">
+              <span>{target.guru.name}</span>
+              <span>•</span>
+              <span>{jadwal || tr("text274")}</span>
+              <span>•</span>
+              <span className="text-emerald-300 font-semibold">
+                Sisa {target.kuotaMaksimum - target.kuotaTerisi} kursi
+              </span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Container */}
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
+        <DaftarForm
+          kelasId={target.id}
+          biayaPeriode={Number(target.biayaPeriode)}
+          biayaDp={target.biayaDp == null ? null : Number(target.biayaDp)}
+          tenorMaksimum={target.tenorMaksimum}
+          metodeAwal={metodeAwal}
+          tenorAwal={Number.isFinite(tenorDipilih) ? tenorDipilih : 2}
+          anak={anak.map((a) => ({
+            id: a.id,
+            nama: a.nama,
+            jenjangTerakhir: a.jenjangTerakhir ?? "",
+          }))}
+          kelasOptions={pilihanKelasList}
+        />
+      </main>
     </div>
   );
 }

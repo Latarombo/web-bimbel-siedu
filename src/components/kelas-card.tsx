@@ -1,16 +1,13 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { BookOpen, Calculator, Check, GraduationCap } from "lucide-react";
+import { BookOpen, Calculator, Check } from "lucide-react";
 import { rupiah } from "@/lib/format";
 import type { JenjangKatalog, KelasKatalog } from "@/lib/kelas";
 
 /**
- * Kartu katalog /classes — struktur meniru kartu produk bayar.ruangguru.com:
- * blok atas berwarna (judul + deskripsi di DALAM blok), daftar manfaat bercentang
- * hijau tanpa scroll internal agar jadwal dan biaya langsung terbaca,
- * pemisah putus-putus, harga merah, CTA oranye selebar kartu.
- * Warna: HEX literal di komponen ini (bukan token globals), konsisten dgn pola
- * ClassCatalog landing. Ilustrasi watermark = ikon lucide opacity rendah (flat).
+ * Kartu katalog /classes
+ * Blok atas berwarna dengan judul dan deskripsi.
+ * Daftar manfaat bercentang hijau, pemisah putus-putus, dan tombol CTA.
  */
 const TEMA: Record<JenjangKatalog, { blok: string; aksen: string }> = {
   TK: { blok: "#fde7f0", aksen: "#db4d84" },
@@ -19,24 +16,35 @@ const TEMA: Record<JenjangKatalog, { blok: string; aksen: string }> = {
   SMA: { blok: "#fdf0d4", aksen: "#c07803" },
 };
 
-const ORANYE = "#f26d0f"; // CTA, selevel dgn tombol produk di referensi
+const ORANYE = "#f26d0f"; // CTA
 
 function daftarFitur(k: KelasKatalog, tr: (key: string, values?: Record<string, string | number>) => string): string[] {
+  const sisa = Math.max(0, k.kuota.maksimum - k.kuota.terisi);
+  const kursiLabel = sisa <= 0
+    ? "Kuota kelas sudah penuh"
+    : sisa <= 5 && k.kuota.maksimum > 5
+      ? `${tr("cardAvailableSeats", { available: sisa, total: k.kuota.maksimum })} (hampir penuh)`
+      : tr("cardAvailableSeats", { available: sisa, total: k.kuota.maksimum });
+
   const skema =
     k.biayaDp !== null
-      ? tr("cardDown", {amount: rupiah(k.biayaDp), installments: k.tenorMaksimum ? tr("cardInstallments", {count: Math.max(0, k.tenorMaksimum - 1)}) : ""})
-      : tr("text185");
+      ? tr("cardDown", {
+          amount: rupiah(k.biayaDp),
+          installments: k.tenorMaksimum ? tr("cardInstallments", { count: Math.max(0, k.tenorMaksimum - 1) }) : "",
+        })
+      : "Pembayaran lunas satu kali";
+
   return [
-    tr("schedule", {value: k.jadwal}),
-    tr("teacher", {value: k.guru}),
-    tr("term", {value: k.periode}),
-    tr("cardAvailableSeats", {available: Math.max(0, k.kuota.maksimum - k.kuota.terisi), total: k.kuota.maksimum}),
+    tr("schedule", { value: k.jadwal }),
+    tr("teacher", { value: k.guru }),
+    tr("term", { value: k.periode }),
+    kursiLabel,
     skema,
   ];
 }
 
 export async function KelasCardView({ k }: { k: KelasKatalog }) {
- const tr = await getTranslations("public");
+  const tr = await getTranslations("public");
   const t = TEMA[k.jenjang];
   const penuh = k.kuota.terisi >= k.kuota.maksimum;
   const hampir = !penuh && k.kuota.terisi / k.kuota.maksimum >= 0.85;
@@ -47,37 +55,51 @@ export async function KelasCardView({ k }: { k: KelasKatalog }) {
       className="group flex min-w-0 flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
     >
       {/* Blok atas berwarna */}
-      <div className="relative overflow-hidden px-5 pb-5 pt-5" style={{ backgroundColor: t.blok }}>
-        <BookOpen aria-hidden className="absolute -right-4 -top-4 size-24 text-white/50" strokeWidth={1.5} />
-        <Calculator aria-hidden className="absolute bottom-2 right-10 size-14 text-white/40" strokeWidth={1.5} />
-        <div className="relative flex items-center justify-between gap-2">
-          <span
-            className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-xs font-bold"
-            style={{ color: t.aksen }}
-          >
-            <GraduationCap className="size-3.5" /> {k.tingkat ? `${k.tingkat} · ${k.jenjang}` : k.jenjang}
-          </span>
-          {penuh ? (
-            <span className="rounded-full bg-slate-700 px-3 py-1 text-[11px] font-bold text-white">{tr("text188")}</span>
-          ) : hampir ? (
-            <span className="rounded-full px-3 py-1 text-[11px] font-bold text-white" style={{ backgroundColor: t.aksen }}>
-              {tr("text189")}</span>
+      <div className="relative overflow-hidden p-5" style={{ backgroundColor: t.blok }}>
+        <BookOpen
+          aria-hidden
+          className="pointer-events-none absolute -right-3 -top-3 size-24 opacity-25 transition-transform duration-300 group-hover:scale-105"
+          style={{ color: t.aksen }}
+          strokeWidth={1.75}
+        />
+        <Calculator
+          aria-hidden
+          className="pointer-events-none absolute bottom-1 right-12 size-14 opacity-20 transition-transform duration-300 group-hover:scale-105"
+          style={{ color: t.aksen }}
+          strokeWidth={1.75}
+        />
+
+        {/* Judul mapel + jenjang sebagai teks biasa */}
+        <div className="relative">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-[19px] font-extrabold leading-tight text-[#16213a]">{k.mapel}</h3>
+            <div className="flex shrink-0 flex-col items-end gap-1 text-right">
+              <span className="text-xs font-bold text-[#16213a]">Jenjang {k.jenjang}</span>
+              {penuh ? (
+                <span className="text-xs font-bold text-slate-700">{tr("text188")}</span>
+              ) : hampir ? (
+                <span className="text-xs font-bold" style={{ color: t.aksen }}>{tr("text189")}</span>
+              ) : null}
+            </div>
+          </div>
+          {k.tingkat ? (
+            <p className="mt-1 text-xs font-semibold" style={{ color: t.aksen }}>{k.tingkat}</p>
           ) : null}
         </div>
-        <h3 className="relative mt-3 text-[19px] font-extrabold leading-tight text-[#16213a]">{k.mapel}</h3>
-        <p className="relative mt-1 text-[13px] leading-snug text-[#5b6472]">
-          {k.mapelDeskripsi?.trim() || `${k.guru} · ${k.periode}`}
+
+        <p className="relative mt-2 text-[13px] leading-snug text-[#5b6472]">
+          {k.mapelDeskripsi?.trim() || `${k.guru} - ${k.periode}`}
         </p>
       </div>
 
       <div className="flex flex-1 flex-col p-5">
         <ul className="space-y-3 pb-5">
           {daftarFitur(k, tr).map((f) => (
-            <li key={f} className="flex items-start gap-2 text-sm leading-relaxed text-gray-700">
-              <span className="mt-0.5 grid size-[18px] shrink-0 place-items-center rounded-full bg-emerald-500" aria-hidden="true">
-                <Check className="size-3 text-white" strokeWidth={3} />
+            <li key={f} className="flex items-start gap-2.5 text-sm leading-relaxed text-gray-700">
+              <span className="mt-0.5 grid size-5 shrink-0 place-items-center rounded-full bg-emerald-500 text-white shadow-2xs" aria-hidden="true">
+                <Check className="size-3.5 text-white" strokeWidth={3} />
               </span>
-              {f}
+              <span>{f}</span>
             </li>
           ))}
         </ul>

@@ -5,8 +5,10 @@ import { Inter, Plus_Jakarta_Sans, Geist } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, getTranslations } from "next-intl/server";
 import "../globals.css";
+import "lenis/dist/lenis.css";
 import { cn } from "@/lib/utils";
 import { isLocale, routing } from "@/i18n/routing";
+import SmoothScroll from "@/components/SmoothScroll";
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans", display: "swap" });
 
@@ -60,6 +62,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} data-scroll-behavior="smooth" className={cn("h-full", "antialiased", inter.variable, jakarta.variable, geistSans.variable)}>
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <SmoothScroll />
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-brand text-white px-4 py-2 rounded-lg text-sm">
           {t("skipToContent")}
         </a>

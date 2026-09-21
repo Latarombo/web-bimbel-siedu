@@ -79,7 +79,7 @@ export async function createPendaftaran(input: {
         ),
       );
       if (!periode || periode.status !== 'dibuka')
-        return { ok: false, error: 'Pendaftaran periode ini tidak dibuka.' };
+        return { ok: false, error: 'Pendaftaran semester ini tidak dibuka.' };
 
       // --- BR#12 + BR#28 ---
       if (input.metodeBayar === 'dp_cicilan') {

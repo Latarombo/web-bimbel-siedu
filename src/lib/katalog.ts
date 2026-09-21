@@ -64,7 +64,7 @@ export async function kelasKatalogHalaman(filter: FilterKatalog, locale: string 
         and (${filter.q} = '' or strpos(lower(
           m.nama || ' ' || coalesce(m.deskripsi, '') || ' ' || g.name || ' ' || coalesce((
             select string_agg(
-              (${hariLabels}::jsonb ->> j.hari) || ' ' || left(j.jam_mulai::text, 5) || '–' || left(j.jam_selesai::text, 5),
+              (${hariLabels}::jsonb ->> j.hari) || ' ' || left(j.jam_mulai::text, 5) || '-' || left(j.jam_selesai::text, 5),
               ', ' order by j.hari
             ) from jadwal_item j where j.kelas_id = k.id
           ), ${belumAdaJadwal})

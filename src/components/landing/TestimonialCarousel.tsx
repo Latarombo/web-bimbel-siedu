@@ -23,8 +23,7 @@ import { useEffect, useRef, useState } from "react";
 import { Quote, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const KARTU = "#d7f2fe";
-const KECEPATAN = 55; // px per detik (±8 dtk per kartu 440px)
+const KECEPATAN = 55; // px per detik (±8 dtk per kartu 400px)
 const GAP = 20; // selisih antar kartu/set, kelas gap-5
 
 export type Testimoni = {
@@ -38,29 +37,47 @@ function Kartu({ t, hiasan }: { t: Testimoni; hiasan?: boolean }) {
   return (
     <article
       aria-hidden={hiasan || undefined}
-      className="relative w-[min(84vw,420px)] shrink-0 rounded-2xl p-6 shadow-sm ring-1 ring-foreground/5"
-      style={{ backgroundColor: KARTU }}
+      className="group relative flex w-[min(84vw,400px)] shrink-0 flex-col justify-between overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-md select-none"
     >
-      <Quote className="absolute right-6 top-5 size-8 text-slate-400/40" fill="currentColor" />
-      <div className="flex items-center gap-3">
+      <div className="relative">
+        {/* Baris Atas: 5 Bintang Emas & Ikon Petik Dua Lucide */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star key={i} className="size-4 fill-amber-400 text-amber-400" />
+            ))}
+          </div>
+          <Quote
+            className="size-6 text-brand/30 transition-colors duration-300 group-hover:text-brand shrink-0"
+            strokeWidth={2}
+            aria-hidden="true"
+          />
+        </div>
+
+        {/* Teks Kutipan Testimoni */}
+        <p className="mt-4 text-sm font-medium leading-relaxed text-slate-700">
+          &ldquo;{t.kutip}&rdquo;
+        </p>
+      </div>
+
+      {/* Profil Orang Tua di Bawah (Pemisah Halus) */}
+      <div className="relative mt-5 flex items-center gap-3 border-t border-slate-100 pt-4">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={t.foto}
           alt={hiasan ? "" : t.nama}
           draggable={false}
-          className="size-12 rounded-full object-cover"
+          className="size-11 rounded-full object-cover ring-2 ring-slate-100 shadow-2xs shrink-0"
         />
-        <div>
-          <p className="text-sm font-bold text-foreground">{t.nama}</p>
-          <p className="text-xs text-muted">{t.peran}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-extrabold text-slate-900 leading-snug truncate">
+            {t.nama}
+          </p>
+          <p className="text-xs font-medium text-slate-500 mt-0.5 truncate">
+            {t.peran}
+          </p>
         </div>
       </div>
-      <div className="mt-4 flex gap-1">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Star key={i} className="size-4 fill-accent text-accent" />
-        ))}
-      </div>
-      <p className="mt-3 text-sm italic leading-relaxed text-body">{`"${t.kutip}"`}</p>
     </article>
   );
 }
@@ -123,7 +140,7 @@ export default function TestimonialCarousel({ items }: { items: Testimoni[] }) {
     const set = setRef.current;
     if (!set) return;
     const selebar = set.getBoundingClientRect().width + GAP;
-    const kartu = (set.querySelector("article")?.getBoundingClientRect().width ?? 420) + GAP;
+    const kartu = (set.querySelector("article")?.getBoundingClientRect().width ?? 400) + GAP;
     offset.current = norm(offset.current + (dir === 1 ? -kartu : kartu), selebar);
     oles();
   };

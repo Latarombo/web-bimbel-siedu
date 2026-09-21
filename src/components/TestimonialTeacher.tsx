@@ -5,7 +5,7 @@ import { getTranslations } from "next-intl/server";
  * 16 Sep: layout mengacu guru.png / ruangkelas.com/ruangkelas — panggung PUTIH,
  * kartu tumpang tindih 3 lapis (badge mengampu di tepi atas foto, foto potret di
  * latar lavender, kotak kutipan menutupi bawah foto, ikon kutip menonjol di sudut).
- * Kulitnya palet halaman About (#227195 teal + #e1ecfd chip), bukan cyan mentah.
+ * Kulitnya palet brand Siedu (blue-600 + blue-100 chip), konsisten dengan landing.
  *
  * Perubahan data penting: identitas kartu TIDAK lagi hardcoded. Nama, mapel,
  * jenjang, dan jumlah kelas diambil dari DB lewat guruDariKelasAktif (guru yang
@@ -17,9 +17,9 @@ import Image from "next/image";
 import { Quote, School } from "lucide-react";
 import type { GuruKatalog } from "@/lib/kelas";
 
-const TEAL = "#227195";
-const CHIP = "#e1ecfd";
-const LAVENDER = "#c7d1ee"; // latar foto ala referensi; headshot putih menyatu via multiply
+const BRAND = "#2563eb";
+const CHIP = "#dbeafe";
+const LAVENDER = "#bfdbfe"; // latar foto; headshot putih menyatu via multiply
 
 /* Catatan redaksional — dirotasi ke guru sesuai urutan kartu. */
 
@@ -53,7 +53,7 @@ const KUTIPAN = [
             className="grid size-7 shrink-0 place-items-center rounded-lg sm:size-8"
             style={{ backgroundColor: CHIP }}
           >
-            <School className="size-4" style={{ color: TEAL }} />
+            <School className="size-4" style={{ color: BRAND }} />
           </span>
           <div>
             <p className="text-xs leading-tight text-slate-500">{tr("text151")}</p>
@@ -85,15 +85,15 @@ const KUTIPAN = [
           tumpang tindih tetap ±21% tinggi foto di semua lebar. Angka tetap (72px) bikin
           foto HP yang lebih pendek ketutupan sampai 31%. */}
       <div className="relative -mt-[16.5%] z-10">
-        <div className="relative rounded-2xl border-2 bg-white px-5 pb-5 pt-7 shadow-[0_14px_30px_rgba(14,47,69,0.10)] sm:px-6 sm:pb-6 sm:pt-8" style={{ borderColor: TEAL }}>
+        <div className="relative rounded-2xl border-2 bg-white px-5 pb-5 pt-7 shadow-[0_14px_30px_rgba(15,35,95,0.10)] sm:px-6 sm:pb-6 sm:pt-8" style={{ borderColor: BRAND }}>
           <span
             aria-hidden="true"
             className="absolute -top-5 left-4 grid size-10 place-items-center rounded-full shadow-md sm:left-5"
-            style={{ backgroundColor: TEAL }}
+            style={{ backgroundColor: BRAND }}
           >
             <Quote className="size-5 text-white" fill="currentColor" />
           </span>
-          <p className="text-sm font-semibold leading-relaxed sm:text-[15px]" style={{ color: TEAL }}>
+          <p className="text-sm font-medium leading-relaxed text-slate-700 sm:text-[15px]">
             &ldquo;{kutip}&rdquo;
           </p>
           <div className="mt-5 border-t border-dashed border-slate-200 pt-4">

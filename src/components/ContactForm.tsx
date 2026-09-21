@@ -3,42 +3,31 @@ import { useTranslations } from "next-intl";
 
 
 import { useActionState, useState } from 'react';
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronDown,
+  GraduationCap,
+  Mail,
+  Phone,
+  UserRound,
+  type LucideIcon,
+} from 'lucide-react';
 import { kirimPesanKontak, type KontakState } from '@/app/actions/kontak';
 import { SUBJEK } from '@/lib/kontak';
-import { SITE } from '@/lib/site';
 
 const initial: KontakState = {};
 
-// Ikon feather-style inline — bahasa ikon sama dengan wizard (outline, nol dependency).
-function FieldIcon({ d }: { d: string }) {
- return (
-  <svg
-   className="w-5 h-5 text-slate-400 shrink-0"
-   fill="none"
-   stroke="currentColor"
-   strokeWidth={2}
-   strokeLinecap="round"
-   strokeLinejoin="round"
-   viewBox="0 0 24 24"
-   aria-hidden="true"
-  >
-   <path d={d} />
-  </svg>
- );
+function FieldIcon({ icon: Icon }: { icon: LucideIcon }) {
+ return <Icon className="size-5 shrink-0 text-slate-400" strokeWidth={1.8} aria-hidden="true" />;
 }
-
-const ICON_USER = 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z';
-const ICON_PHONE =
- 'M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z';
-const ICON_MAIL = 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z';
-const ICON_SCHOOL = 'M12 3L2 8l10 5 10-5-10-5zM4 10.5V16c0 2 3.6 4 8 4s8-2 8-4v-5.5';
 
 const JENJANG = ['TK', 'SD', 'SMP', 'SMA'] as const;
 
 const inputBase =
- 'w-full pl-11 pr-4 py-3 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400';
+  'w-full pl-11 pr-4 py-2.5 sm:py-3 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400';
 const inputPlain =
- 'w-full px-4 py-3 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400';
+  'w-full px-4 py-2.5 sm:py-3 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400';
 
 function Label({ htmlFor, children, required }: { htmlFor: string; children: React.ReactNode; required?: boolean }) {
  return (
@@ -75,9 +64,7 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
     role="status"
    >
     <span className="flex size-14 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-7 h-7" aria-hidden="true">
-      <path d="M20 6L9 17l-5-5" />
-     </svg>
+     <CheckCircle2 className="size-7" strokeWidth={1.8} aria-hidden="true" />
     </span>
     <div>
      <h3 className="text-lg font-bold text-slate-900">{tr("text162")}</h3>
@@ -94,10 +81,12 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
   );
  }
 
- return (
-  <div className="rounded-2xl border border-slate-200 bg-white p-8 sm:p-10">
-   <h3 className="text-xl font-bold text-slate-900">{tr("text165")}</h3>
-   <p className="mt-1 text-sm text-body">{tr("text166")}</p>
+  return (
+   <div className="rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-5 sm:p-7 md:p-8 shadow-2xs">
+    <div className="pb-4 border-b border-slate-100">
+    <h3 className="text-base sm:text-lg font-extrabold text-slate-900">{tr("text165")}</h3>
+    <p className="mt-1 text-xs sm:text-sm text-slate-500">{tr("text166")}</p>
+   </div>
 
    {state.error ? (
     <p
@@ -115,7 +104,7 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
        {tr("text167")}</Label>
       <div className="relative">
        <span className="absolute left-3.5 top-1/2 -translate-y-1/2">
-        <FieldIcon d={ICON_USER} />
+        <FieldIcon icon={UserRound} />
        </span>
        <input
         id="nama"
@@ -138,7 +127,7 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
        {tr("text169")}</Label>
       <div className="relative">
        <span className="absolute left-3.5 top-1/2 -translate-y-1/2">
-        <FieldIcon d={ICON_PHONE} />
+        <FieldIcon icon={Phone} />
        </span>
        <input
         id="telepon"
@@ -162,7 +151,7 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
       {tr("text171")}</Label>
      <div className="relative">
       <span className="absolute left-3.5 top-1/2 -translate-y-1/2">
-       <FieldIcon d={ICON_MAIL} />
+       <FieldIcon icon={Mail} />
       </span>
       <input
        id="email"
@@ -199,9 +188,7 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
         ))}
        </select>
        <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4" aria-hidden="true">
-         <path d="M6 9l6 6 6-6" />
-        </svg>
+        <ChevronDown className="size-4" strokeWidth={1.8} aria-hidden="true" />
        </span>
       </div>
       <FieldError error={errors.jenjang} />
@@ -211,7 +198,7 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
       <Label htmlFor="sekolah">{tr("text175")}</Label>
       <div className="relative">
        <span className="absolute left-3.5 top-1/2 -translate-y-1/2">
-        <FieldIcon d={ICON_SCHOOL} />
+       <FieldIcon icon={GraduationCap} />
        </span>
        <input
         id="sekolah"
@@ -269,13 +256,11 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
     <button
      type="submit"
      disabled={pending}
-     className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+     className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm sm:text-base font-bold py-3.5 sm:py-3 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 active:scale-[0.99] cursor-pointer shadow-xs"
     >
      <span>{pending ? tr("sending") : tr("text181")}</span>
      {!pending && (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7-7 7M5 12h14" />
-      </svg>
+      <ArrowRight className="size-5" strokeWidth={1.8} aria-hidden="true" />
      )}
     </button>
    </form>

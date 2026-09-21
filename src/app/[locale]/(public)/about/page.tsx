@@ -9,14 +9,12 @@ import { ArrowRight, Quote } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-// === PALET ABOUT (teal–navy) ===
-// Konsisten dengan TestimonialTeacher.tsx — sumber kebenaran warna halaman ini.
-// TEAL    : aksen utama di atas bg terang (kontras ~4.6:1 di atas putih)
-// TEAL_LT : aksen di atas bg gelap/navy (lebih terang = kontras cukup)
-// NAVY    : heading utama & background section Visi Misi
-const TEAL    = "#227195";
-const TEAL_LT = "#3b9bb8";
-const NAVY    = "#0e2f45";
+// === PALET ABOUT (brand blue) ===
+// Mengikuti landing page: blue-600 sebagai aksen, navy hero untuk bidang gelap,
+// dan blue-300 agar aksen tetap terbaca di atas navy.
+const TEAL    = "#2563eb";
+const TEAL_LT = "#93c5fd";
+const NAVY    = "#0f235f";
 
 /** Frame foto editorial: backdrop glow halus, border putih, shadow premium.
  *  Aspek ratio 3/2 di mobile (lebih landscape & hemat vertikal),
@@ -32,18 +30,15 @@ function EditorialFrame({
 }) {
   return (
     <div className="relative w-full">
-      {/* Soft glow backdrop — rgba mengikuti palet TEAL & amber */}
+      {/* Soft blue backdrop */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-4 rounded-3xl blur-3xl"
-        style={{
-          background: `radial-gradient(ellipse at 60% 40%, rgba(34,113,149,0.18) 0%, rgba(251,191,36,0.12) 60%, transparent 100%)`,
-        }}
+        className="pointer-events-none absolute inset-4 rounded-3xl bg-blue-200/40 blur-3xl"
       />
-      {/* Frame putih — shadow rgba mengikuti NAVY */}
+      {/* Frame putih — shadow mengikuti navy landing */}
       <div
         className="relative overflow-hidden rounded-2xl border border-white/80 bg-white p-2 lg:rounded-3xl lg:p-3"
-        style={{ boxShadow: "0 20px 60px -12px rgba(14,47,69,0.12)" }}
+        style={{ boxShadow: "0 20px 60px -12px rgba(15,35,95,0.12)" }}
       >
         <div className="relative aspect-[3/2] w-full overflow-hidden rounded-xl bg-slate-100 lg:aspect-[4/5] lg:rounded-2xl">
           <Image
@@ -75,7 +70,7 @@ export default async function AboutPage() {
   return (
     <div className="overflow-x-hidden bg-white">
       {/* ─── 1. HERO ─────────────────────────────────────────────────────
-          bg: putih  |  kicker: TEAL  |  H1: NAVY + gradient TEAL→TEAL_LT
+          bg: putih  |  kicker: TEAL  |  H1: NAVY + TEAL
           body: slate-600  |  CTA link: NAVY hover→TEAL
       ─────────────────────────────────────────────────────────────────── */}
       <Section className="pt-16 pb-14 sm:pt-20 sm:pb-20 lg:pt-28 lg:pb-32">
@@ -90,18 +85,13 @@ export default async function AboutPage() {
               Cerita di balik Siedu
             </p>
 
-            {/* H1 — NAVY, gradient highlight TEAL→TEAL_LT */}
+            {/* H1 — NAVY, aksen TEAL */}
             <h1
               className="max-w-xl text-balance text-3xl font-black leading-[1.15] tracking-tight sm:text-4xl lg:max-w-none lg:text-5xl xl:text-6xl"
               style={{ color: NAVY }}
             >
               {t("story.titleBefore")}{" "}
-              <span
-                className="text-transparent bg-clip-text bg-gradient-to-r"
-                style={{
-                  backgroundImage: `linear-gradient(to right, ${TEAL}, ${TEAL_LT})`,
-                }}
-              >
+              <span style={{ color: TEAL }}>
                 {t("story.titleHighlight")}
               </span>
             </h1>

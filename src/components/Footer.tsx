@@ -19,11 +19,11 @@ const Footer = async () => {
     { name: t('companyLinks.1'), href: '/career' },
     { name: t('companyLinks.2'), href: '/teachers' },
     { name: t('companyLinks.3'), href: '/blog' },
-    { name: t('companyLinks.4'), href: '/testimonial' },
+    { name: t('companyLinks.4'), href: '/#testimoni' },
   ];
 
   const bantuan = [
-    { name: t('helpLinks.0'), href: '/faq' },
+    { name: t('helpLinks.0'), href: '/#faq' },
     { name: t('helpLinks.1'), href: '/privacy-policy' },
     { name: t('helpLinks.2'), href: '/terms' },
     { name: t('helpLinks.3'), href: '/contact' },
@@ -194,24 +194,9 @@ const Footer = async () => {
               <li>
                 <Link
                   href="/classes"
-                  className="text-brand font-medium hover:text-brand-strong transition-colors duration-200 inline-flex items-center space-x-1"
+                  className="text-brand font-medium hover:text-brand-strong transition-colors duration-200"
                 >
                   <span>{t('viewAll')}</span>
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                    aria-hidden="true"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                  </svg>
                 </Link>
               </li>
             </ul>

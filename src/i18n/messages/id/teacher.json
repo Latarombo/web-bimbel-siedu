@@ -231,7 +231,7 @@
   "sessionExpired": "Sesi berakhir. Masuk ulang.",
   "checkFields": "Periksa lagi isian.",
   "invalidParameters": "Parameter tidak valid.",
-  "attendanceOutsidePeriod": "Tanggal presensi berada di luar periode pembelajaran kelas.",
+  "attendanceOutsidePeriod": "Tanggal presensi berada di luar semester pembelajaran kelas.",
   "attendanceClassCancelled": "Kelas ini dibatalkan. Presensi tidak dapat disimpan.",
   "invalidDate": "Tanggal tidak valid.",
   "classNotOwned": "Kelas tidak ditemukan / bukan kelas Anda.",

@@ -160,10 +160,14 @@ export function KatalogFilterBar({
             setIsDropdownOpen(false);
             setIsModalOpen(true);
           }}
-          className="flex items-center justify-between gap-3 rounded-xl border border-brand/20 bg-brand-soft px-4 py-2.5 text-sm font-bold text-brand hover:bg-blue-100 hover:border-brand/40 transition cursor-pointer md:min-w-[210px] shrink-0 shadow-2xs"
+          className="flex items-center justify-between gap-3 rounded-xl border-2 border-brand bg-brand-soft px-4 py-2.5 text-sm font-bold text-brand hover:bg-blue-100 hover:border-brand-strong transition cursor-pointer md:min-w-[210px] shrink-0 shadow-2xs"
         >
           <span className="truncate">{triggerLabel}</span>
-          <ChevronDown className="h-4 w-4 text-brand/70 shrink-0" />
+          <span
+            className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-brand text-white transition-transform duration-200 ${isModalOpen ? "rotate-180" : "rotate-0"}`}
+          >
+            <ChevronDown className="h-3.5 w-3.5" />
+          </span>
         </button>
 
         {/* Kolom pencarian teks */}
