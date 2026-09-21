@@ -264,11 +264,10 @@ const baris: Baris[] = [
 
   return (
     <section className="relative overflow-x-clip bg-white">
-      {/* Kisi kotak-kotak yang bergeser pelan satu kotak penuh (loop mulus),
-          pola + ukuran sama dengan HeroSection; ditenggelamkan di tepi lewat mask. */}
+      {/* Kisi kotak-kotak statis; ditenggelamkan di tepi lewat mask. */}
       <div
         aria-hidden
-        className="animate-grid-drift pointer-events-none absolute inset-0"
+        className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage:
             "linear-gradient(to right, #cbd5e1 1px, transparent 1px), linear-gradient(to bottom, #cbd5e1 1px, transparent 1px)",

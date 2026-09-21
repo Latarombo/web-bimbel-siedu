@@ -14,6 +14,7 @@ export type KelasKatalog = {
   guru: string;
   kuota: { terisi: number; maksimum: number };
   biayaPeriode: number;
+  biayaSemester: number;
   biayaDp: number | null;
   tenorMaksimum: number | null;
   kuotaMinimum: number;
@@ -29,17 +30,19 @@ function jamPendek(t: string) {
 
 /** Map row DB (Decimal masih string) → bentuk kartu. */
 export function toKelasKatalog(k: RowKelas, locale: DisplayLocale = "id"): KelasKatalog {
+  const biaya = Number(k.biayaPeriode);
   return {
     id: k.id,
     mapel: k.mataPelajaran.nama,
     jenjang: k.jenjang as JenjangKatalog,
     tingkat: (k as unknown as { tingkat?: string | null }).tingkat ?? null,
     jadwal: (k.jadwalItem ?? [])
-      .map((j) => `${labelHari(j.hari, locale)} ${jamPendek(j.jamMulai)}–${jamPendek(j.jamSelesai)}`)
+      .map((j) => `${labelHari(j.hari, locale)} ${jamPendek(j.jamMulai)}-${jamPendek(j.jamSelesai)}`)
       .join(", ") || (locale === "en" ? "Schedule to follow" : "Jadwal menyusul"),
     guru: k.guru.name,
     kuota: { terisi: k.kuotaTerisi, maksimum: k.kuotaMaksimum },
-    biayaPeriode: Number(k.biayaPeriode),
+    biayaPeriode: biaya,
+    biayaSemester: biaya,
     biayaDp: k.biayaDp == null ? null : Number(k.biayaDp),
     tenorMaksimum: k.tenorMaksimum,
     kuotaMinimum: k.kuotaMinimum,

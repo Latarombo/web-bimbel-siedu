@@ -231,7 +231,7 @@
   "sessionExpired": "Your session has expired. Sign in again.",
   "checkFields": "Please check your entries.",
   "invalidParameters": "Invalid parameters.",
-  "attendanceOutsidePeriod": "The attendance date is outside the class teaching period.",
+  "attendanceOutsidePeriod": "The attendance date is outside the class teaching semester.",
   "attendanceClassCancelled": "This class is cancelled. Attendance cannot be saved.",
   "invalidDate": "Invalid date.",
   "classNotOwned": "Class not found or not assigned to you.",

@@ -114,6 +114,7 @@ const label = (map: Record<string, string>, v: string) =>
 export const labelPendaftaran = (v: string, locale: DisplayLocale = "id") => label(getLabelMaps(locale).LABEL_PENDAFTARAN, v);
 export const labelPresensi = (v: string, locale: DisplayLocale = "id") => label(getLabelMaps(locale).LABEL_PRESENSI, v);
 export const labelPeriode = (v: string, locale: DisplayLocale = "id") => label(getLabelMaps(locale).LABEL_PERIODE, v);
+export const labelSemester = labelPeriode;
 export const labelKelas = (v: string, locale: DisplayLocale = "id") => label(getLabelMaps(locale).LABEL_KELAS, v);
 export const labelMetode = (v: string, locale: DisplayLocale = "id") => label(getLabelMaps(locale).LABEL_METODE, v);
 export const labelPembatalan = (v: string, locale: DisplayLocale = "id") => label(getLabelMaps(locale).LABEL_PEMBATALAN, v);

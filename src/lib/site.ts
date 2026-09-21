@@ -1,17 +1,18 @@
 export const SITE = {
- nama: "Siedu",
- email: "halo@siedu.id",
- telepon: "+62 811 2233 4455",
- alamat: [
-  "Gg. 7 65134 No.47, RT.7/RW.2",
-  "Mergosono, Kec. Kedungkandang",
-  "Kota Malang, Jawa Timur 65134",
- ],
- sosial: [
-  { nama: "Instagram", url: "https://instagram.com" },
-  { nama: "X (Twitter)", url: "https://twitter.com" },
-  { nama: "YouTube", url: "https://youtube.com" },
- ],
+  nama: "Siedu",
+  email: "halo@siedu.id",
+  telepon: "(0341) 752389",
+  whatsapp: "0838-4648-0817",
+  alamat: [
+    "Gg. 7 No.47, RT.7/RW.2",
+    "Mergosono, Kec. Kedungkandang",
+    "Kota Malang, Jawa Timur 65134",
+  ],
+  sosial: [
+    { nama: "Instagram", url: "https://instagram.com" },
+    { nama: "X (Twitter)", url: "https://twitter.com" },
+    { nama: "YouTube", url: "https://youtube.com" },
+  ],
 } as const;
 
 /*
@@ -30,10 +31,11 @@ export const SITE = {
  */
 const mapsQuery = encodeURIComponent(SITE.alamat.join(", "));
 export const MAPS_SEARCH_URL = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
+export const MAPS_DIR_URL = `https://www.google.com/maps/dir/?api=1&destination=${mapsQuery}`;
 
-// Pusat kelurahan Mergosono, hasil geocoding Nominatim (alamat gang tidak ter-gecode).
-export const LOKASI_LAT = -7.9985042;
-export const LOKASI_LNG = 112.6347844;
+// Koordinat Kantor Pusat: Gg. 7 No.47, Mergosono, Kedungkandang, Kota Malang, Jawa Timur
+export const LOKASI_LAT = -7.9996;
+export const LOKASI_LNG = 112.6322;
 const OSM_LAT = LOKASI_LAT;
 const OSM_LNG = LOKASI_LNG;
 const OSM_BBOX = `${(OSM_LNG - 0.01).toFixed(5)},${(OSM_LAT - 0.005).toFixed(5)},${(OSM_LNG + 0.01).toFixed(5)},${(OSM_LAT + 0.005).toFixed(5)}`;
@@ -42,10 +44,8 @@ export const MAPS_ATTRIBUTION_URL = "https://www.openstreetmap.org/copyright";
 
 export type MapsProvider = "google" | "osm";
 
-/* Leaflet + tile CARTO aktif kalau NEXT_PUBLIC_CARTO_BASEMAPS_KEY terisi
-   (gratis, fair use 5 jt tile/bln, atribusi OSM+CARTO melekat di kontrol peta).
-   Tanpa key, komponen PetaLokasi fallback ke iframe OSM di bawah. */
-export const PETA_INTERAKTIF = Boolean(process.env.NEXT_PUBLIC_CARTO_BASEMAPS_KEY?.trim());
+/* Leaflet interaktif aktif secara default menggunakan tile OSM publik resmi. */
+export const PETA_INTERAKTIF = true;
 
 export function mapsEmbed(): { url: string; provider: MapsProvider; title: string } {
  const key = process.env.NEXT_PUBLIC_GMAPS_EMBED_KEY?.trim();

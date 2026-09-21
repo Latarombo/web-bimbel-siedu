@@ -9,8 +9,6 @@ import { KatalogFilterBar } from "@/components/katalog/katalog-filter-bar";
 export const dynamic = "force-dynamic";
 
 
-const TEAL = "#227195";
-
 export default async function ClassesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
  const tr = await getTranslations("public");
  const locale = (await getLocale()) === "en" ? "en" : "id";
@@ -28,17 +26,36 @@ const SORTS = [
 
   return (
     <div className="bg-slate-50 min-h-full">
-      {/* Hero: Deep navy brand gradient with blob decorations */}
-      <section className="relative overflow-hidden rounded-b-[3rem] md:rounded-b-[4.5rem] bg-[#0f235f] pt-10 pb-20 sm:pt-14 sm:pb-24">
-        {/* Blob dekorasi abstrak */}
-        <div className="pointer-events-none absolute -top-16 -right-16 size-72 rounded-full bg-blue-500/20 blur-3xl" aria-hidden />
-        <div className="pointer-events-none absolute bottom-0 -left-12 size-56 rounded-full bg-indigo-400/15 blur-3xl" aria-hidden />
-        <div className="pointer-events-none absolute top-1/2 left-1/3 size-40 rounded-full bg-sky-400/10 blur-2xl" aria-hidden />
-        <Section className="relative flex flex-col items-center text-center px-4">
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white max-w-3xl leading-tight">
-            {tr("text247")} <span className="text-amber-400">{tr("text248")}</span>
+      {/* Hero: pola visual mengikuti hero detail produk */}
+      <section className="relative overflow-hidden bg-[#1d4ed8] pt-6 pb-16 text-white shadow-xs sm:pt-8 sm:pb-20 lg:pt-10 lg:pb-24">
+        {/* Gelombang sudut tanpa gradient */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          <svg
+            className="absolute -right-8 -top-8 w-72 sm:w-96 md:w-[480px]"
+            viewBox="0 0 400 280"
+            fill="none"
+          >
+            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="white" fillOpacity="0.05" />
+            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="white" fillOpacity="0.07" />
+            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="white" fillOpacity="0.09" />
+          </svg>
+
+          <svg
+            className="absolute -left-8 -bottom-8 w-64 sm:w-80 md:w-[420px]"
+            viewBox="0 0 360 260"
+            fill="none"
+          >
+            <path d="M0 60 C90 105, 180 175, 280 260 L0 260 Z" fill="white" fillOpacity="0.05" />
+            <path d="M0 120 C75 155, 145 205, 210 260 L0 260 Z" fill="white" fillOpacity="0.07" />
+            <path d="M0 180 C50 205, 100 230, 140 260 L0 260 Z" fill="white" fillOpacity="0.08" />
+          </svg>
+        </div>
+
+        <Section className="relative flex flex-col items-center px-4 text-center">
+          <h1 className="max-w-3xl text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">
+            {tr("text247")} <span className="text-blue-100">{tr("text248")}</span>
           </h1>
-          <p className="mt-3 max-w-xl text-sm sm:text-base leading-relaxed text-slate-300">
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-blue-100 sm:text-base">
             {tr("text249")}
           </p>
         </Section>
@@ -66,7 +83,7 @@ const SORTS = [
         />
       </Section>
 
-      <Section className="pt-8 pb-8 sm:pb-10">
+      <Section className="-mt-2 pt-0 pb-8 sm:pt-0 sm:pb-10">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-border pb-4">
           <p className="text-sm font-medium text-muted">{tr("classesFound", {count: total})}</p>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

@@ -17,55 +17,57 @@ export default async function TestimonialsSection() {
  const tr = await getTranslations("public");
 const testi: Testimoni[] = [
   {
-    nama: "Ibu Sari",
+    nama: "Sari Wulandari",
     peran: tr("text113"),
-    foto: "/images/02_Teacher.png",
+    foto: "/images/parents/parent_01.webp",
     kutip:
       tr("text114"),
   },
   {
-    nama: "Bapak Hendra",
+    nama: "Hendra Pratama",
     peran: tr("text116"),
-    foto: "/images/03_Teacher.png",
+    foto: "/images/parents/parent_02.webp",
     kutip:
       tr("text117"),
   },
   {
-    nama: "Ibu Anisa",
+    nama: "Anisa Rahmawati",
     peran: tr("text119"),
-    foto: "/images/01_Teacher.png",
+    foto: "/images/parents/parent_03.webp",
     kutip:
       tr("text120"),
   },
   {
-    nama: "Bapak Yusuf",
+    nama: "Yusuf Maulana",
     peran: tr("text122"),
-    foto: "/images/02_Teacher.png",
+    foto: "/images/parents/parent_04.webp",
     kutip:
       tr("text123"),
   },
   {
-    nama: "Ibu Ratna",
+    nama: "Ratna Dewi",
     peran: tr("text125"),
-    foto: "/images/03_Teacher.png",
+    foto: "/images/parents/parent_05.webp",
     kutip:
       tr("text126"),
   },
   {
-    nama: "Bapak Danny",
+    nama: "Danny Hermawan",
     peran: tr("text128"),
-    foto: "/images/01_Teacher.png",
+    foto: "/images/parents/parent_06.webp",
     kutip:
       tr("text129"),
   },
 ];
 
   return (
-    <section id="testimoni" className="scroll-mt-20 bg-white">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+    <section id="testimoni" className="scroll-mt-20 bg-slate-50/70 border-y border-slate-100/80 py-16 sm:py-20">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-            {tr("text130")}</h2>
+            {tr("text130")}{" "}
+            <span className="text-brand">{tr("text130_brand")}</span>
+          </h2>
           <p className="mt-4 text-sm sm:text-base leading-relaxed text-muted">
             {tr("text131")}</p>
         </div>

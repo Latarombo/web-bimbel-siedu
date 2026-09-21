@@ -1,12 +1,17 @@
 "use client";
+
 import { useTranslations } from "next-intl";
-
-
-import { Link } from "@/i18n/navigation";
-import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
-import { Card, CardPad } from "@/components/ui/card";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { Link, useRouter } from "@/i18n/navigation";
+import { AlertCircle, ChevronRight, Plus } from "lucide-react";
+import { daftarKelas, type DaftarState } from "@/app/actions/pendaftaran";
 import { rupiah } from "@/lib/format";
+
+export type PilihanAnak = {
+  id: number;
+  nama: string;
+  jenjangTerakhir: string;
+};
 
 type Skema = "lunas" | "dp";
 
@@ -20,14 +25,14 @@ type Props = {
   kuotaTerisi: number;
   kuotaMaksimum: number;
   manfaat: string[];
+  jenjang: string;
+  isLoggedIn: boolean;
+  isOrangTua: boolean;
+  anak: PilihanAnak[];
 };
 
-/**
- * Layout meniru bayar.ruangguru.com (daftar 'paket' di kiri + ringkasan biaya
- * sticky di kanan), disesuaikan ke model Siedu: yang dipilih bukan paket
- * konten, tapi SKEMA BAYAR. Lunas vs DP+cicilan dua-duanya nyata di DB
- * (BR#12) — tanpa badge diskon palsu.
- */
+const initialDaftarState: DaftarState = {};
+
 export function SkemaPembayaran({
   kelasId,
   periode,
@@ -38,284 +43,420 @@ export function SkemaPembayaran({
   kuotaTerisi,
   kuotaMaksimum,
   manfaat,
+  jenjang,
+  isLoggedIn,
+  isOrangTua,
+  anak,
 }: Props) {
- const tr = useTranslations("public");
+  const tr = useTranslations("public");
+  const router = useRouter();
+  const redirected = useRef(false);
+
+  const [state, formAction, pending] = useActionState(daftarKelas, initialDaftarState);
+
+  // Cari anak yang jenjangnya cocok dengan jenjang kelas
+  const matchingChild = anak.find(
+    (a) => a.jenjangTerakhir && a.jenjangTerakhir.toUpperCase() === jenjang.toUpperCase()
+  );
+  const [selectedAnakId, setSelectedAnakId] = useState<string>(
+    matchingChild ? String(matchingChild.id) : anak[0] ? String(anak[0].id) : ""
+  );
+
+  // Sync selectedAnakId jika anak baru dimuat
+  useEffect(() => {
+    if (!selectedAnakId && anak.length > 0) {
+      const match = anak.find(
+        (a) => a.jenjangTerakhir && a.jenjangTerakhir.toUpperCase() === jenjang.toUpperCase()
+      );
+      setSelectedAnakId(match ? String(match.id) : String(anak[0].id));
+    }
+  }, [anak, jenjang, selectedAnakId]);
+
+  // Redirect otomatis saat pendaftaran berhasil dibuat
+  useEffect(() => {
+    if (state.ok && state.pendaftaranId && !redirected.current) {
+      redirected.current = true;
+      router.push(`/enrollments/${state.pendaftaranId}`);
+    }
+  }, [state, router]);
+
   const cicilanAda = biayaDp != null && tenorMaksimum != null;
   const [skema, setSkema] = useState<Skema>("lunas");
   const [tenor, setTenor] = useState(2);
 
   const opsiTenor = Array.from({ length: (tenorMaksimum ?? 2) - 1 }, (_, i) => i + 2);
   const nCicilan = Math.max(tenor - 1, 1);
-  // Estimasi konservatif: sisa tagihan dibagi rata ke slot tenor, dibulatkan
-  // ke bawah — cicilan terakhir menutup selisihnya (services/pembayaran.ts).
   const estimasiCicilan = cicilanAda
     ? Math.floor((biayaPeriode - (biayaDp ?? 0)) / (tenor - 1))
     : 0;
-  const pct = Math.round((kuotaTerisi / kuotaMaksimum) * 100);
-  const hrefDaftar = `/classes/${kelasId}/daftar`;
+
   const pakaiDp = skema === "dp" && cicilanAda;
   const bayarSekarang = pakaiDp ? (biayaDp ?? 0) : biayaPeriode;
-  const hrefCta = pakaiDp
-    ? `${hrefDaftar}?metode=dp_cicilan&tenor=${tenor}`
-    : hrefDaftar;
+
+  const selectedAnak = anak.find((a) => String(a.id) === selectedAnakId);
+  const isSelectedMismatch = Boolean(
+    selectedAnak?.jenjangTerakhir &&
+      selectedAnak.jenjangTerakhir.toUpperCase() !== jenjang.toUpperCase()
+  );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-12">
-      {/* Kiri: daftar skema, seperti daftar paket Ruangguru */}
-      <div className="lg:col-span-7">
-        <h2 className="text-sm font-bold text-foreground">{tr("text196")}</h2>
-        <div className="mt-3 space-y-4">
-          <KartuSkema
-            id="lunas"
-            dipilih={skema === "lunas"}
-            onSelect={() => setSkema("lunas")}
-            judul={tr("text197")}
-            sub={tr("fullFor", {term: periode})}
-            catatan={tr("onceFor", {term: periode})}
-            manfaat={manfaat}
-            hargaBesar={rupiah(biayaPeriode)}
-            hargaKecil={tr("text198")}
-          />
-          {cicilanAda ? (
-            <KartuSkema
-              id="dp"
-              dipilih={skema === "dp"}
-              onSelect={() => setSkema("dp")}
-              judul={tr("text199")}
-              sub={tr("downFor", {amount: rupiah(biayaDp!)})}
-              catatan={tr("downBalance", {count: nCicilan})}
-              manfaat={manfaat}
-              hargaBesar={rupiah(biayaDp!)}
-              hargaKecil={`+ ± ${rupiah(estimasiCicilan)} × ${nCicilan}`}
-              opsiTenor={opsiTenor}
-              tenor={tenor}
-              onTenor={(t) => {
-                setTenor(t);
-                setSkema("dp");
-              }}
-            />
-          ) : (
-            <p className="rounded-2xl border border-border bg-slate-50 px-5 py-4 text-sm text-muted">
-              {tr("text200")}</p>
-          )}
-        </div>
-      </div>
+    <div className="space-y-6">
+      {/* Sticky Card Checkout */}
+      <div className="lg:sticky lg:top-24 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl transition-all">
+        <form id="form-pendaftaran" action={formAction} noValidate>
+          {/* Hidden inputs untuk server action daftarKelas */}
+          <input type="hidden" name="anak_id" value={selectedAnakId} />
+          <input type="hidden" name="kelas_id" value={kelasId} />
+          <input type="hidden" name="metode_bayar" value={pakaiDp ? "dp_cicilan" : "lunas"} />
+          {pakaiDp ? <input type="hidden" name="tenor_bulan" value={tenor} /> : null}
 
-      {/* Kanan: ringkasan biaya sticky */}
-      <div className="lg:col-span-5">
-        <Card className="lg:sticky lg:top-[76px]">
-          <CardPad>
-            <p className="text-sm font-bold text-foreground">{tr("text201")}</p>
-            <div className="mt-3 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted">{tr("text202")}</span>
-                <span className="font-semibold">
-                  {pakaiDp ? tr("downCount", {count: nCicilan}) : tr("text203")}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted">{tr("text204")}</span>
-                <span className="font-semibold">{rupiah(biayaPeriode)}</span>
-              </div>
-              {pakaiDp ? (
-                <div className="flex justify-between">
-                  <span className="text-muted">{tr("text205")}</span>
-                  <span className="font-semibold">± {rupiah(estimasiCicilan)}</span>
-                </div>
-              ) : null}
+          {/* Header Card */}
+          <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+            <h3 className="font-extrabold text-slate-900 text-base">Pendaftaran Kelas</h3>
+            <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-brand">
+              {pakaiDp ? "DP & Cicilan" : "Bayar Penuh"}
+            </span>
+          </div>
+
+          {/* 1. Bagian: Tujuan Pembelian (Profil Anak) */}
+          <div id="tujuan-pembelian" className="mt-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-bold text-slate-700">Tujuan Pembelian</label>
+              {isOrangTua && anak.length > 0 && (
+                <span className="text-[11px] text-slate-400">Pilih profil siswa</span>
+              )}
             </div>
 
+            {!isLoggedIn ? (
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 text-center">
+                <p className="text-xs text-slate-600 mb-3 leading-relaxed">
+                  Masuk ke akun orang tua untuk memilih profil anak yang akan didaftarkan.
+                </p>
+                <Link
+                  href={`/login?next=/classes/${kelasId}`}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-bold shadow-2xs transition-colors"
+                >
+                  Masuk Akun Orang Tua
+                </Link>
+              </div>
+            ) : !isOrangTua ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs text-amber-800 leading-relaxed">
+                Akun Anda terdaftar bukan sebagai Orang Tua. Pendaftaran kelas bimbel ditujukan untuk akun Orang Tua.
+              </div>
+            ) : anak.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-300 p-4 text-center bg-slate-50/50">
+                <p className="text-xs text-slate-500 mb-2">Belum ada data profil anak.</p>
+                <Link
+                  href={`/children/new?next=/classes/${kelasId}`}
+                  className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline"
+                >
+                  <Plus className="size-3.5" /> Tambah Profil Anak Baru
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {anak.map((a) => {
+                  const isSelected = selectedAnakId === String(a.id);
+                  const isMismatch =
+                    Boolean(a.jenjangTerakhir) &&
+                    a.jenjangTerakhir.toUpperCase() !== jenjang.toUpperCase();
+
+                  return (
+                    <div
+                      key={a.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedAnakId(String(a.id))}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelectedAnakId(String(a.id));
+                        }
+                      }}
+                      className={`flex items-center justify-between p-3 rounded-2xl border-2 transition-all cursor-pointer ${
+                        isSelected
+                          ? "border-blue-500 bg-blue-50/40 shadow-2xs"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="size-8 shrink-0 rounded-full bg-blue-100 text-blue-800 font-bold text-xs grid place-items-center uppercase">
+                          {a.nama.charAt(0)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs sm:text-sm font-bold text-slate-800 truncate leading-tight">
+                            {a.nama}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <span className="text-[11px] font-medium text-slate-400">
+                              Jenjang: {a.jenjangTerakhir || "Belum diatur"}
+                            </span>
+                            {isMismatch && (
+                              <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.2">
+                                Kelas {jenjang}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        className={`size-5 shrink-0 rounded-full border-2 grid place-items-center transition-colors ml-2 ${
+                          isSelected ? "border-blue-600 bg-blue-600" : "border-slate-300"
+                        }`}
+                      >
+                        {isSelected && <div className="size-2 rounded-full bg-white" />}
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {isSelectedMismatch && selectedAnak && (
+                  <div className="rounded-xl bg-amber-50 border border-amber-200/80 p-2.5 text-[11px] text-amber-800 leading-relaxed">
+                    Peringatan: Jenjang profil {selectedAnak.nama} ({selectedAnak.jenjangTerakhir}) berbeda dengan jenjang kelas ini ({jenjang}). Pendaftaran mungkin ditolak oleh sistem bila jenjang tidak sesuai.
+                  </div>
+                )}
+
+                <div className="relative py-1 text-center">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-slate-100" />
+                  </div>
+                  <span className="relative bg-white px-2 text-[11px] text-slate-400 uppercase tracking-wider">
+                    atau
+                  </span>
+                </div>
+
+                <Link
+                  href={`/children/new?next=/classes/${kelasId}`}
+                  className="flex items-center justify-between p-2.5 rounded-2xl border border-slate-200 hover:border-slate-300 bg-slate-50/60 hover:bg-slate-50 transition-colors text-xs font-semibold text-slate-700"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="grid size-6 place-items-center rounded-full bg-white border border-slate-200 text-slate-600">
+                      <Plus className="size-3.5" />
+                    </span>
+                    <span>Buat Profil Anak Baru</span>
+                  </div>
+                  <ChevronRight className="size-4 text-slate-400" />
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* 2. Bagian: Pilihan Metode Bayar (Lunas vs DP) */}
+          <div className="mt-5 pt-4 border-t border-slate-100">
+            <label className="text-xs font-bold text-slate-700 block mb-2">{tr("text196")}</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setSkema("lunas")}
+                className={`rounded-xl py-2.5 px-3 text-xs font-bold text-center border transition-all cursor-pointer ${
+                  skema === "lunas"
+                    ? "border-2 border-brand bg-brand-soft text-brand shadow-xs"
+                    : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                }`}
+              >
+                {tr("text197")}
+              </button>
+              {cicilanAda ? (
+                <button
+                  type="button"
+                  onClick={() => setSkema("dp")}
+                  className={`rounded-xl py-2.5 px-3 text-xs font-bold text-center border transition-all cursor-pointer ${
+                    skema === "dp"
+                      ? "border-2 border-brand bg-brand-soft text-brand shadow-xs"
+                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {tr("text199")}
+                </button>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Pilihan Tenor Cicilan jika memilih DP */}
+          {pakaiDp && opsiTenor.length > 0 ? (
+            <div className="mt-3.5 pt-3 border-t border-dashed border-slate-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-slate-600">{tr("text222")}</span>
+                <span className="text-xs text-brand font-bold">
+                  {tenor} bulan ({nCicilan}x cicilan)
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {opsiTenor.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setTenor(t)}
+                    className={`rounded-lg py-1.5 px-3 text-xs font-bold transition-colors cursor-pointer ${
+                      tenor === t
+                        ? "bg-brand text-white shadow-xs"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {t}x
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {/* 3. Bagian: Rincian Biaya */}
+          <div className="mt-4 space-y-2 text-sm border-t border-slate-100 pt-3">
+            <div className="flex justify-between items-center text-xs sm:text-sm">
+              <span className="text-muted">{tr("text202")}</span>
+              <span className="font-semibold text-foreground">
+                {pakaiDp ? tr("downCount", { count: nCicilan }) : tr("text203")}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-xs sm:text-sm">
+              <span className="text-muted">{tr("text204")}</span>
+              <span className="font-semibold text-foreground">{rupiah(biayaPeriode)}</span>
+            </div>
             {pakaiDp ? (
-              <p className="mt-3 text-sm leading-relaxed text-muted">{tr("classDownPaymentNote")}</p>
+              <div className="flex justify-between items-center text-xs sm:text-sm text-brand">
+                <span>{tr("text205")}</span>
+                <span className="font-bold">± {rupiah(estimasiCicilan)} / bln</span>
+              </div>
             ) : null}
+          </div>
 
-            <hr className="my-4 border-dashed border-border" />
+          {pakaiDp ? (
+            <div className="mt-3 rounded-xl bg-amber-50/90 border border-amber-200/60 p-2.5 text-[11px] leading-relaxed text-amber-900">
+              {tr("classDownPaymentNote")}
+            </div>
+          ) : null}
 
-            <div className="flex items-end justify-between gap-4">
-              <p className="text-sm text-muted">{tr("text207")}</p>
-              <p className="text-2xl font-black tracking-tight text-foreground">
+          <div className="my-4 border-t border-dashed border-slate-200" />
+
+          {/* 4. Total Bayar Sekarang */}
+          <div>
+            <span className="text-xs font-medium text-muted">{tr("text207")}</span>
+            <div className="mt-0.5 flex items-baseline gap-1.5">
+              <p className="text-xl sm:text-2xl font-bold tracking-tight text-[#e11d48]">
                 {rupiah(bayarSekarang)}
               </p>
+              <span className="text-xs font-semibold text-muted">
+                {pakaiDp ? "/ uang muka (DP)" : tr("text191")}
+              </span>
             </div>
+          </div>
 
-            <div className="mt-4">
-              <div className="flex items-center justify-between text-xs text-muted">
-                <span>{tr("text208")}</span>
-                <span>
-                  {kuotaTerisi}/{kuotaMaksimum}
-                </span>
-              </div>
-              <div
-                className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100"
-                role="progressbar"
-                aria-valuenow={pct}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-label={tr("text210")}
-              >
-                <div
-                  className={`h-full rounded-full ${pct >= 85 ? "bg-accent" : "bg-brand"}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              {pct >= 85 ? (
-                <p className="mt-1.5 text-xs font-semibold text-danger">
-                  {tr("seatsPeriod", {count: sisaKuota})}
-                </p>
-              ) : null}
+          {/* Alert Error jika server action gagal */}
+          {state.error ? (
+            <div
+              className="mt-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 flex items-start gap-2"
+              role="alert"
+            >
+              <AlertCircle className="size-4 shrink-0 text-rose-600 mt-0.5" />
+              <span>{state.error}</span>
             </div>
+          ) : null}
 
+          {/* 5. Tombol Aksi Utama */}
+          {!isLoggedIn ? (
             <Link
               id="cta-utama"
-              href={hrefCta}
-              className="mt-5 block text-center rounded-lg bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-strong"
+              href={`/login?next=/classes/${kelasId}`}
+              className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl py-3 text-sm font-bold text-white shadow-xs transition-all active:scale-[0.99] hover:brightness-95"
+              style={{ backgroundColor: "#f26d0f" }}
             >
-              {tr("text213")}</Link>
+              Masuk untuk Mendaftar
+            </Link>
+          ) : !isOrangTua ? (
+            <button
+              id="cta-utama"
+              type="button"
+              disabled
+              className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl py-3 text-sm font-bold text-slate-400 bg-slate-100 cursor-not-allowed"
+            >
+              Khusus Akun Orang Tua
+            </button>
+          ) : sisaKuota <= 0 ? (
+            <button
+              id="cta-utama"
+              type="button"
+              disabled
+              className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl py-3 text-sm font-bold text-slate-400 bg-slate-100 cursor-not-allowed"
+            >
+              Kuota Kelas Penuh
+            </button>
+          ) : anak.length === 0 ? (
             <Link
-              href="/login"
-              className="mt-2 block text-center rounded-lg border border-border py-3 text-sm font-semibold hover:border-foreground"
+              id="cta-utama"
+              href={`/children/new?next=/classes/${kelasId}`}
+              className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl py-3 text-sm font-bold text-white shadow-xs transition-all active:scale-[0.99] hover:brightness-95"
+              style={{ backgroundColor: "#f26d0f" }}
             >
-              {tr("text214")}</Link>
-            <p className="mt-3 text-center text-xs text-muted">
-              {tr("text215")}{" "}
-              <Link href="/#faq" className="text-brand hover:underline">
-                {tr("text217")}</Link>
-            </p>
-          </CardPad>
-        </Card>
+              <Plus className="mr-1.5 size-4" /> Tambah Profil Anak Dulu
+            </Link>
+          ) : (
+            <button
+              id="cta-utama"
+              type="submit"
+              disabled={pending || !selectedAnakId}
+              className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl py-3 text-sm font-bold text-white shadow-xs transition-all active:scale-[0.99] hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              style={{ backgroundColor: "#f26d0f" }}
+            >
+              {pending ? tr("processing") : "Beli"}
+            </button>
+          )}
+
+          <p className="mt-3 text-center text-xs text-slate-500 leading-snug">
+            {tr("text215")}{" "}
+            <Link href="/#faq" className="text-brand font-semibold hover:underline">
+              {tr("text217")}
+            </Link>
+          </p>
+        </form>
       </div>
 
-      {/* Bar harga lengket khusus layar kecil, seperti footer 'Total Harga' di HP */}
+      {/* Bar harga lengket khusus layar kecil */}
       <BarHargaLengket
         anchorId="cta-utama"
         label={pakaiDp ? tr("text218") : tr("text219")}
         harga={rupiah(bayarSekarang)}
-        href={hrefCta}
+        formId="form-pendaftaran"
+        isLoggedIn={isLoggedIn}
+        isOrangTua={isOrangTua}
+        hasAnak={anak.length > 0}
+        hasSelectedAnak={Boolean(selectedAnakId)}
+        kelasId={kelasId}
+        sisaKuota={sisaKuota}
+        pending={pending}
       />
     </div>
   );
 }
 
-/* ---------- kartu satu skema (komponen tingkat modul, bukan inside render) ---------- */
-
-function KartuSkema({
-  id,
-  dipilih,
-  onSelect,
-  judul,
-  sub,
-  catatan,
-  manfaat,
-  hargaBesar,
-  hargaKecil,
-  opsiTenor,
-  tenor,
-  onTenor,
-}: {
-  id: Skema;
-  dipilih: boolean;
-  onSelect: () => void;
-  judul: string;
-  sub: string;
-  catatan: string;
-  manfaat: string[];
-  hargaBesar: string;
-  hargaKecil?: string;
-  opsiTenor?: number[];
-  tenor?: number;
-  onTenor?: (t: number) => void;
-}) {
- const tr = useTranslations("public");
-  return (
-    <div className="relative">
-      <input
-        type="radio"
-        name="skema-bayar"
-        id={`skema-${id}`}
-        className="peer sr-only"
-        checked={dipilih}
-        onChange={onSelect}
-      />
-      <label
-        htmlFor={`skema-${id}`}
-        className={`block cursor-pointer rounded-2xl border bg-surface p-5 transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-brand ${
-          dipilih ? "border-brand shadow-sm" : "border-border hover:border-brand/50"
-        }`}
-      >
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <span className="text-base font-bold text-foreground">{judul}</span>
-            <p className="mt-0.5 text-sm text-muted">{sub}</p>
-          </div>
-          <span
-            aria-hidden
-            className={`mt-1 grid size-5 shrink-0 place-items-center rounded-full border-2 ${
-              dipilih ? "border-brand bg-brand" : "border-slate-300 bg-surface"
-            }`}
-          >
-            {dipilih ? <Check className="size-3 text-white" strokeWidth={3} /> : null}
-          </span>
-        </div>
-
-        <p className="mt-4 text-xs font-semibold text-foreground">{tr("text221")}</p>
-        <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
-          {manfaat.map((m) => (
-            <li key={m} className="flex items-start gap-2 text-sm text-muted">
-              <Check className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
-              <span>{m}</span>
-            </li>
-          ))}
-        </ul>
-
-        {opsiTenor && onTenor ? (
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-semibold text-muted">{tr("text222")}</span>
-            {opsiTenor.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => onTenor(t)}
-                aria-pressed={tenor === t}
-                className={`min-h-9 rounded-lg border px-3 text-sm font-semibold transition-colors ${
-                  tenor === t
-                    ? "border-brand bg-brand text-white"
-                    : "border-border bg-surface text-muted hover:border-foreground"
-                }`}
-              >
-                {t}×
-              </button>
-            ))}
-          </div>
-        ) : null}
-
-        <hr className="my-4 border-dashed border-border" />
-
-        <div className="flex items-end justify-between gap-4">
-          <p className="text-xs text-muted">{catatan}</p>
-          <div className="text-right">
-            <p className="text-xl font-black tracking-tight text-foreground">{hargaBesar}</p>
-            {hargaKecil ? <p className="text-xs text-muted">{hargaKecil}</p> : null}
-          </div>
-        </div>
-      </label>
-    </div>
-  );
-}
-
-/* ---------- bar harga bawah (mobile) ---------- */
+/* ---------- Bar harga bawah (mobile sticky bottom) ---------- */
 
 function BarHargaLengket({
   anchorId,
   label,
   harga,
-  href,
+  formId,
+  isLoggedIn,
+  isOrangTua,
+  hasAnak,
+  hasSelectedAnak,
+  kelasId,
+  sisaKuota,
+  pending,
 }: {
   anchorId: string;
   label: string;
   harga: string;
-  href: string;
+  formId: string;
+  isLoggedIn: boolean;
+  isOrangTua: boolean;
+  hasAnak: boolean;
+  hasSelectedAnak: boolean;
+  kelasId: number;
+  sisaKuota: number;
+  pending: boolean;
 }) {
- const tr = useTranslations("public");
+  const tr = useTranslations("public");
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -330,22 +471,53 @@ function BarHargaLengket({
 
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 backdrop-blur transition-transform duration-200 motion-reduce:transition-none lg:hidden ${
+      className={`fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 backdrop-blur-md transition-transform duration-200 motion-reduce:transition-none lg:hidden shadow-lg ${
         show ? "translate-y-0" : "translate-y-full"
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 lg:px-8 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+      <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 sm:px-6 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-muted">{label}</p>
-          <p className="truncate text-base font-bold text-foreground">{harga}</p>
+          <p className="text-[11px] font-medium text-slate-500">{label}</p>
+          <p className="truncate text-base font-bold text-slate-900">{harga}</p>
         </div>
-        <Link
-          href={href}
-          aria-hidden={!show}
-          tabIndex={show ? 0 : -1}
-          className="shrink-0 rounded-lg bg-brand px-5 py-3 text-sm font-semibold text-white hover:bg-brand-strong"
-        >
-          {tr("text225")}</Link>
+
+        {!isLoggedIn ? (
+          <Link
+            href={`/login?next=/classes/${kelasId}`}
+            aria-hidden={!show}
+            tabIndex={show ? 0 : -1}
+            className="shrink-0 rounded-xl px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-colors"
+            style={{ backgroundColor: "#f26d0f" }}
+          >
+            Masuk
+          </Link>
+        ) : !isOrangTua ? (
+          <span className="shrink-0 text-xs font-semibold text-slate-400">Khusus Ortu</span>
+        ) : sisaKuota <= 0 ? (
+          <span className="shrink-0 text-xs font-bold text-rose-600">Penuh</span>
+        ) : !hasAnak ? (
+          <Link
+            href={`/children/new?next=/classes/${kelasId}`}
+            aria-hidden={!show}
+            tabIndex={show ? 0 : -1}
+            className="shrink-0 rounded-xl px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-colors"
+            style={{ backgroundColor: "#f26d0f" }}
+          >
+            + Profil Anak
+          </Link>
+        ) : (
+          <button
+            form={formId}
+            type="submit"
+            disabled={pending || !hasSelectedAnak}
+            aria-hidden={!show}
+            tabIndex={show ? 0 : -1}
+            className="shrink-0 rounded-xl px-6 py-2.5 text-xs font-bold text-white shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+            style={{ backgroundColor: "#f26d0f" }}
+          >
+            {pending ? tr("processing") : "Beli"}
+          </button>
+        )}
       </div>
     </div>
   );

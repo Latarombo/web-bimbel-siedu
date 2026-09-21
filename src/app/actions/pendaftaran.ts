@@ -24,6 +24,7 @@ const serviceErrorKeys: Record<string, string> = {
   "Jenjang kelas tidak sesuai jenjang anak.": "enrollment.levelMismatch",
   "Kuota kelas sudah penuh.": "enrollment.full",
   "Pendaftaran periode ini tidak dibuka.": "enrollment.periodClosed",
+  "Pendaftaran semester ini tidak dibuka.": "enrollment.periodClosed",
   "Metode cicilan tidak tersedia untuk kelas ini.": "enrollment.installmentsUnavailable",
   "Tenor minimal 2 (DP + minimal 1 cicilan).": "enrollment.minTerm",
   "Tenor hanya untuk metode DP+Cicilan.": "enrollment.termMethod",

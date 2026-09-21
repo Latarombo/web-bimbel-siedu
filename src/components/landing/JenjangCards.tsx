@@ -92,33 +92,41 @@ const JENJANG: JenjangInfo[] = [
             <Link
               key={j}
               href={`/classes?jenjang=${j}`}
-              className="group relative flex min-h-[240px] flex-col overflow-hidden rounded-2xl p-6 transition-transform hover:-translate-y-0.5"
+              className="group relative flex min-h-[200px] flex-col overflow-hidden rounded-2xl p-5 transition-transform hover:-translate-y-0.5"
               style={{ backgroundColor: blok }}
               aria-label={tr("levelClasses", {level: j, availability: n === 0 ? tr("text89") : tr("activeClasses", {count: n})})}
             >
-              <Icon aria-hidden className="absolute -bottom-5 -right-5 size-24 text-white/50" strokeWidth={1.5} />
-              <div className="relative flex items-start justify-between">
-                <span
-                  className="grid size-11 place-items-center rounded-lg bg-white/70"
-                  style={{ color: aksen }}
-                  aria-hidden="true"
-                >
-                  <Icon className="size-5" strokeWidth={2} />
-                </span>
-                <span
-                  className="grid size-9 place-items-center rounded-full text-white transition-transform group-hover:scale-105"
+              {/* Ikon Watermark Latar Belakang (Lebih Besar & Terlihat Jelas) */}
+              <Icon
+                aria-hidden="true"
+                className="pointer-events-none absolute -bottom-4 -right-4 size-28 sm:size-32 transition-all duration-300 group-hover:scale-105 group-hover:opacity-35"
+                style={{ color: aksen, opacity: 0.25 }}
+                strokeWidth={1.75}
+              />
+              <div className="relative flex items-center justify-between">
+                <p className="text-2xl font-extrabold leading-none text-[#16213a]">{j}</p>
+                {/* Expanding Pill Button */}
+                <div
+                  className="flex h-9 items-center rounded-full text-white shadow-2xs transition-all duration-300 ease-out pl-0 pr-0 group-hover:pl-3.5 group-hover:pr-2.5"
                   style={{ backgroundColor: aksen }}
                   aria-hidden="true"
                 >
-                  <ArrowUpRight className="size-4" strokeWidth={2.5} />
-                </span>
+                  <span className="max-w-0 overflow-hidden whitespace-nowrap text-xs font-bold opacity-0 transition-all duration-300 ease-out group-hover:max-w-[100px] group-hover:opacity-100 group-hover:mr-1.5">
+                    {tr("text145")}
+                  </span>
+                  <span className="grid size-9 place-items-center shrink-0">
+                    <ArrowUpRight
+                      className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                      strokeWidth={2.5}
+                    />
+                  </span>
+                </div>
               </div>
-              <p className="relative mt-5 text-xl font-extrabold leading-none text-[#16213a]">{j}</p>
-              <p className="relative mt-1.5 text-[13px] font-semibold" style={{ color: teksAksen }}>
+              <p className="relative mt-2 text-[13px] font-semibold" style={{ color: teksAksen }}>
                 {usia}
               </p>
-              <p className="relative mt-2 text-[13px] leading-snug text-[#5b6472]">{desc}</p>
-              <p className="relative mt-auto pt-4 text-[13px] font-bold text-[#16213a]">
+              <p className="relative mt-1.5 text-[13px] leading-snug text-[#5b6472]">{desc}</p>
+              <p className="relative mt-auto pt-3 text-[13px] font-bold text-[#16213a]">
                 {n === 0 ? tr("text90") : tr("activeClasses", {count: n})}
               </p>
             </Link>
