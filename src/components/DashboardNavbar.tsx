@@ -98,6 +98,11 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
 
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
+  // Rute wizard terisolasi (/children/new) memakai header auth tersendiri agar bebas distraksi.
+  if (pathname.startsWith('/children/new')) {
+    return null;
+  }
+
   return (
     <nav
       className="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100"

@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth';
 import { db } from '@/prisma/db';
 import { collect } from '@/lib/collect';
 import { redirect } from '@/i18n/navigation';
+import { ClearDraft } from '@/components/clear-draft';
 
 export async function generateMetadata() {
     const t = await getTranslations('auth');
@@ -35,6 +36,7 @@ export default async function ChildInfoPage() {
 
     return (
         <RegisterShell heading={t('authHero')}>
+            <ClearDraft storageKey="siedu_draft_account_info" />
             <ChildInfoForm parentPhone={parent?.nomorTelepon ?? ''} />
         </RegisterShell>
     );

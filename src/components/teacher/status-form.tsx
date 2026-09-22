@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { bagikanStatusPembelajaran, hapusStatusPembelajaran } from '@/app/actions/teacher';
+import { CardSelect } from '@/components/ui/card-select';
 
 export interface StudentRecipient {
   pendaftaranId: number;
@@ -174,19 +175,18 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
             <label htmlFor="class-select" className="block text-sm font-medium text-slate-700">
               {t('classSelect')}
             </label>
-            <select
+            <CardSelect
               id="class-select"
-              value={selectedClassId}
-              onChange={(e) => handleClassChange(e.target.value ? Number(e.target.value) : '')}
-              className="mt-1 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-            >
-              <option value="">{t('selectClassPlaceholder')}</option>
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.nama} ({cls.jenjang}) · {cls.students.length} murid
-                </option>
-              ))}
-            </select>
+              value={selectedClassId ? String(selectedClassId) : ''}
+              onChange={(val) => handleClassChange(val ? Number(val) : '')}
+              options={classes.map((cls) => ({
+                value: String(cls.id),
+                label: `${cls.nama} (${cls.jenjang}) · ${cls.students.length} murid`,
+              }))}
+              placeholder={t('selectClassPlaceholder')}
+              modalTitle={t('classSelect')}
+              className="mt-1"
+            />
           </div>
 
           {/* Pemilih Penerima Murid */}

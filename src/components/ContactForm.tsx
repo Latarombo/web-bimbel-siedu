@@ -2,7 +2,7 @@
 import { useTranslations } from "next-intl";
 
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useEffect } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { kirimPesanKontak, type KontakState } from '@/app/actions/kontak';
+import { CardSelect } from '@/components/ui/card-select';
 import { SUBJEK } from '@/lib/kontak';
 
 const initial: KontakState = {};
@@ -46,6 +47,18 @@ function FieldError({ error }: { error?: string }) {
  );
 }
 
+import { useFormDraft } from "@/lib/use-form-draft";
+
+interface ContactDraft {
+  nama: string;
+  telepon: string;
+  email: string;
+  jenjang: string;
+  sekolah: string;
+  subjek: string;
+  pesan: string;
+}
+
 export default function ContactForm() {
  // "Kirim pesan lain" = remount form dengan state awal (tanpa reload halaman).
  const [kunci, setKunci] = useState(0);
@@ -56,6 +69,25 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
  const tr = useTranslations("public");
  const [state, formAction, pending] = useActionState(kirimPesanKontak, initial);
  const errors = state.fieldErrors ?? {};
+
+ const [draft, setDraftField, , clearDraft] = useFormDraft<ContactDraft>(
+   "siedu_draft_contact",
+   {
+     nama: state.nama ?? "",
+     telepon: state.telepon ?? "",
+     email: state.email ?? "",
+     jenjang: state.jenjang ?? "",
+     sekolah: state.sekolah ?? "",
+     subjek: state.subjek ?? "",
+     pesan: state.pesan ?? "",
+   }
+ );
+
+ useEffect(() => {
+   if (state.ok) {
+     clearDraft();
+   }
+ }, [state.ok, clearDraft]);
 
  if (state.ok) {
   return (
@@ -73,8 +105,11 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
     </div>
     <button
      type="button"
-     onClick={onReset}
-     className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+     onClick={() => {
+      clearDraft();
+      onReset();
+     }}
+     className="inline-flex items-center justify-center rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 cursor-pointer"
     >
      {tr("text164")}</button>
    </div>
@@ -115,7 +150,8 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
         placeholder={tr("text168")}
         autoComplete="name"
         aria-invalid={errors.nama ? true : undefined}
-        defaultValue={state.nama ?? ''}
+        value={draft.nama}
+        onChange={(e) => setDraftField("nama", e.target.value)}
         className={inputBase}
        />
       </div>
@@ -138,7 +174,8 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
         placeholder="08XXXXXXXX"
         autoComplete="tel"
         aria-invalid={errors.telepon ? true : undefined}
-        defaultValue={state.telepon ?? ''}
+        value={draft.telepon}
+        onChange={(e) => setDraftField("telepon", e.target.value)}
         className={inputBase}
        />
       </div>
@@ -162,79 +199,71 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
        placeholder="contact@gmail.com"
        autoComplete="email"
        aria-invalid={errors.email ? true : undefined}
-       defaultValue={state.email ?? ''}
+       value={draft.email}
+       onChange={(e) => setDraftField("email", e.target.value)}
        className={inputBase}
       />
      </div>
      <FieldError error={errors.email} />
     </div>
 
-    <div className="grid gap-5 sm:grid-cols-2">
-     <div>
-      <Label htmlFor="jenjang">{tr("text173")}</Label>
-      <div className="relative">
-       <select
+     <div className="grid gap-5 sm:grid-cols-2">
+      <div>
+       <Label htmlFor="jenjang">{tr("text173")}</Label>
+       <CardSelect
         id="jenjang"
         name="jenjang"
-        defaultValue={state.jenjang ?? ''}
-        aria-invalid={errors.jenjang ? true : undefined}
-        className={`${inputPlain} appearance-none pr-10 bg-white`}
-       >
-        <option value="">{tr("text174")}</option>
-        {JENJANG.map((j) => (
-         <option key={j} value={j}>
-          {j}
-         </option>
-        ))}
-       </select>
-       <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-        <ChevronDown className="size-4" strokeWidth={1.8} aria-hidden="true" />
-       </span>
+        value={draft.jenjang}
+        onChange={(val) => setDraftField("jenjang", val)}
+        options={JENJANG.map((j) => ({ value: j, label: j }))}
+        placeholder={tr("text174")}
+        modalTitle={tr("text173")}
+        ariaInvalid={Boolean(errors.jenjang)}
+       />
+       <FieldError error={errors.jenjang} />
       </div>
-      <FieldError error={errors.jenjang} />
+
+      <div>
+       <Label htmlFor="sekolah">{tr("text175")}</Label>
+       <div className="relative">
+        <span className="absolute left-3.5 top-1/2 -translate-y-1/2">
+        <FieldIcon icon={GraduationCap} />
+        </span>
+        <input
+         id="sekolah"
+         name="sekolah"
+         type="text"
+         maxLength={150}
+         placeholder="SMAN 1 Jakarta"
+         aria-invalid={errors.sekolah ? true : undefined}
+         value={draft.sekolah}
+         onChange={(e) => setDraftField("sekolah", e.target.value)}
+         className={inputBase}
+        />
+       </div>
+       <FieldError error={errors.sekolah} />
+      </div>
      </div>
 
      <div>
-      <Label htmlFor="sekolah">{tr("text175")}</Label>
-      <div className="relative">
-       <span className="absolute left-3.5 top-1/2 -translate-y-1/2">
-       <FieldIcon icon={GraduationCap} />
-       </span>
-       <input
-        id="sekolah"
-        name="sekolah"
-        type="text"
-        maxLength={150}
-        placeholder="SMAN 1 Jakarta"
-        aria-invalid={errors.sekolah ? true : undefined}
-        defaultValue={state.sekolah ?? ''}
-        className={inputBase}
-       />
-      </div>
-      <FieldError error={errors.sekolah} />
+      <Label htmlFor="subjek" required>
+       {tr("text177")}</Label>
+      <CardSelect
+       id="subjek"
+       name="subjek"
+       required
+       value={draft.subjek}
+       onChange={(val) => setDraftField("subjek", val)}
+       options={SUBJEK.map((s, idx) => ({
+        value: s,
+        label: tr(`contactSubject${idx}`),
+       }))}
+       placeholder={tr("text178")}
+       modalTitle={tr("text177")}
+       ariaInvalid={Boolean(errors.subjek)}
+      />
+      <FieldError error={errors.subjek} />
      </div>
-    </div>
-
-    <div>
-     <Label htmlFor="subjek" required>
-      {tr("text177")}</Label>
-     <select
-      id="subjek"
-      name="subjek"
-      required
-      defaultValue={state.subjek ?? ''}
-      aria-invalid={errors.subjek ? true : undefined}
-      className={`${inputPlain} appearance-none pr-10 bg-white`}
-     >
-      <option value="">{tr("text178")}</option>
-      {SUBJEK.map((s) => (
-       <option key={s} value={s}>
-        {tr(`contactSubject${SUBJEK.indexOf(s)}`)}
-       </option>
-      ))}
-     </select>
-     <FieldError error={errors.subjek} />
-    </div>
 
     <div>
      <Label htmlFor="pesan" required>
@@ -247,7 +276,8 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
       maxLength={2000}
       placeholder={tr("text180")}
       aria-invalid={errors.pesan ? true : undefined}
-      defaultValue={state.pesan ?? ''}
+      value={draft.pesan}
+      onChange={(e) => setDraftField("pesan", e.target.value)}
       className={`${inputPlain} resize-y`}
      />
      <FieldError error={errors.pesan} />

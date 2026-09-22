@@ -6,11 +6,9 @@ import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { hariDariTanggal, dalamJendela7Hari, tanggalValid } from "@/lib/hari";
-import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { PageShell, PageHeader, Panel } from "@/components/admin/ui";
-import PresensiForm from "@/components/teacher/presensi-form";
-import CatatanPertemuanForm from "@/components/teacher/catatan-pertemuan-form";
+import { SessionStatStrip, TeacherAttendanceManager } from "@/components/teacher/attendance";
 
 export const dynamic = "force-dynamic";
 
@@ -156,78 +154,32 @@ export default async function AttendancePage({
         </nav>
       ) : null}
 
-      <div className="mt-4 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_17rem]">
-        <div className="space-y-5">
-          <Panel>
-            <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("attendanceList")}</h2>
-              <p className="text-xs text-slate-500">
-                {t("attendanceHelp")}
-              </p>
-            </div>
-            <div className="p-4 sm:p-6">
-              <PresensiForm kelasId={kid} jadwalItemId={item.id} tanggal={tanggal} siswa={anakList} />
-            </div>
-          </Panel>
+      <div className="mt-6 space-y-6">
+        {/* Full-width Stat Strip */}
+        <SessionStatStrip
+          totalSiswa={siswa.length}
+          terisi={terisi}
+          perluPerhatian={perluPerhatian}
+          terkunciN={terkunciN}
+        />
 
-          <Panel>
-            <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("sessionNotesTitle")}</h2>
-              <p className="text-xs text-slate-500">
-                {t("sessionNotesHelp")}
-              </p>
-            </div>
-            <div className="p-4 sm:p-6">
-              <CatatanPertemuanForm
-                kelasId={kid}
-                jadwalItemId={item.id}
-                tanggal={tanggal}
-                initialMateri={catatanPertemuan?.materi ?? ""}
-                initialPr={catatanPertemuan?.pr ?? ""}
-                isDraf={catatanPertemuan?.draf ?? true}
-                diterbitkanPada={catatanPertemuan?.diterbitkanPada ?? null}
-              />
-            </div>
-          </Panel>
-        </div>
-
-        <div className="flex flex-col gap-4 lg:sticky lg:top-6">
-          <Panel>
-            <div className="p-4 sm:p-6">
-              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("thisSession")}</h2>
-              <dl className="mt-3 space-y-2.5 text-sm">
-                {[
-                  [t("filled"), t("ofTotal", { count: terisi, total: siswa.length })],
-                  [t("needsAttention"), t("attentionCount", { count: perluPerhatian })],
-                  [t("notRecorded"), t("studentsCount", { count: Math.max(0, siswa.length - terisi) })],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex items-baseline justify-between gap-3">
-                    <dt className="text-slate-500">{k}</dt>
-                    <dd className="font-bold tabular-nums text-slate-900">{v}</dd>
-                  </div>
-                ))}
-              </dl>
-              {terisi === siswa.length && siswa.length > 0 ? (
-                <Badge tone="emerald">{t("sessionAttendanceComplete")}</Badge>
-              ) : null}
-            </div>
-          </Panel>
-
-          <Panel>
-            <div className="p-4 text-[13px] leading-relaxed text-slate-600 sm:p-6">
-              <p className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("sevenDayRule")}</p>
-              <p className="mt-2">
-                {t("sevenDayHelp")}
-                {terkunciN > 0
-                  ? t("sessionLockedCount", { count: terkunciN })
-                  : t("noSessionLocked")}
-              </p>
-              <Link href="/teacher/corrections" className="mt-3 inline-block font-semibold text-blue-700 hover:underline">
-                {t("viewCorrectionFlow")}
-              </Link>
-            </div>
-          </Panel>
-        </div>
+        {/* Dual-Tab Attendance & Session Journal Manager */}
+        <TeacherAttendanceManager
+          kelasId={kid}
+          jadwalItemId={item.id}
+          tanggal={tanggal}
+          siswa={anakList}
+          catatanPertemuan={
+            catatanPertemuan
+              ? {
+                  materi: catatanPertemuan.materi,
+                  pr: catatanPertemuan.pr,
+                  draf: catatanPertemuan.draf,
+                  diterbitkanPada: catatanPertemuan.diterbitkanPada,
+                }
+              : null
+          }
+        />
       </div>
     </PageShell>
   );

@@ -15,6 +15,7 @@ const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.obj
     .regex(/^\d{4}-\d{2}-\d{2}$/, t('birthRequired'))
     .refine((v) => new Date(v) <= new Date(), t('birthFuture')),
   jenjang_terakhir: z.enum(["TK", "SD", "SMP", "SMA"], {error: t('invalidLevel')}),
+  tingkat: z.string({error: t('invalidField')}).trim().min(1, t('invalidField')),
   email_notifikasi: z
     .string({error: t('invalidField')})
     .trim()
@@ -22,12 +23,11 @@ const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.obj
     .optional()
     .or(z.literal("")),
   nomor_telepon: z
-    .string({error: t('invalidField')})
+    .string({error: t('phoneRequired')})
     .trim()
+    .min(8, t('phoneMin') || "Nomor HP minimal 8 digit")
     .max(30, t('phoneMax'))
-    .regex(/^[0-9+\-\s()]*$/, t('phoneCharacters'))
-    .optional()
-    .or(z.literal("")),
+    .regex(/^[0-9+\-\s()]*$/, t('phoneCharacters')),
 });
 
 export type ChildInfoState = {
@@ -36,6 +36,7 @@ export type ChildInfoState = {
   nama?: string;
   tanggal_lahir?: string;
   jenjang_terakhir?: string;
+  tingkat?: string;
   email_notifikasi?: string;
   nomor_telepon?: string;
 };
@@ -73,12 +74,14 @@ export async function saveChildInfo(
 
   const namaKetik = String(formData.get("nama") ?? "");
   const jenjangKetik = String(formData.get("jenjang_terakhir") ?? "");
+  const tingkatKetik = String(formData.get("tingkat") ?? "");
   const emailKetik = String(formData.get("email_notifikasi") ?? "");
   const teleponKetik = String(formData.get("nomor_telepon") ?? "");
   const parsed = schema(t).safeParse({
     nama: namaKetik,
     tanggal_lahir: formData.get("tanggal_lahir"),
     jenjang_terakhir: jenjangKetik,
+    tingkat: tingkatKetik,
     email_notifikasi: emailKetik,
     nomor_telepon: teleponKetik,
   });
@@ -92,22 +95,62 @@ export async function saveChildInfo(
       nama: namaKetik,
       tanggal_lahir: String(formData.get("tanggal_lahir") ?? ""),
       jenjang_terakhir: jenjangKetik,
+      tingkat: tingkatKetik,
       email_notifikasi: emailKetik,
       nomor_telepon: teleponKetik,
     };
   }
   const d = parsed.data;
 
+  // Validasi keunikan nomor telepon jika berbeda dari nomor telepon orang tua
+  const parent = await db.orm.public.User.where({ id: ortuId }).first();
+  const hpOrtu = parent?.nomorTelepon?.trim() ?? "";
+  const hpAnak = d.nomor_telepon.trim();
+
+  if (hpAnak !== hpOrtu) {
+    // 1. Cek apakah nomor telepon sudah terdaftar di akun User lain
+    const userConflict = await db.orm.public.User.where({ nomorTelepon: hpAnak }).first();
+    if (userConflict && userConflict.id !== ortuId) {
+      return {
+        error: t('checkChild'),
+        fieldErrors: { nomor_telepon: t('phoneAlreadyUsed') },
+        nama: namaKetik,
+        tanggal_lahir: String(formData.get("tanggal_lahir") ?? ""),
+        jenjang_terakhir: jenjangKetik,
+        tingkat: tingkatKetik,
+        email_notifikasi: emailKetik,
+        nomor_telepon: teleponKetik,
+      };
+    }
+
+    // 2. Cek apakah nomor telepon sudah terdaftar di Anak orang tua lain
+    const anakConflict = await db.orm.public.Anak.where({ nomorTelepon: hpAnak }).first();
+    if (anakConflict && anakConflict.orangTuaId !== ortuId) {
+      return {
+        error: t('checkChild'),
+        fieldErrors: { nomor_telepon: t('phoneAlreadyUsed') },
+        nama: namaKetik,
+        tanggal_lahir: String(formData.get("tanggal_lahir") ?? ""),
+        jenjang_terakhir: jenjangKetik,
+        tingkat: tingkatKetik,
+        email_notifikasi: emailKetik,
+        nomor_telepon: teleponKetik,
+      };
+    }
+  }
+
   await db.orm.public.Anak.create({
     orangTuaId: ortuId,
     nama: d.nama,
     tanggalLahir: d.tanggal_lahir,
     jenjangTerakhir: d.jenjang_terakhir,
+    tingkat: d.tingkat,
     emailNotifikasi: d.email_notifikasi || null,
-    nomorTelepon: d.nomor_telepon || null,
+    nomorTelepon: d.nomor_telepon,
   });
   revalidatePath(getPathname({href: "/children", locale}));
-  return redirect({href: "/home", locale});
+  const redirectTo = String(formData.get("redirect_to") || "/home");
+  return redirect({href: redirectTo, locale});
 }
 
 // C10 — edit anak. Ditolak kalau ada pendaftaran aktif (Keputusan #5).
@@ -129,12 +172,18 @@ export async function updateChild(
         t('childLocked'),
     };
 
+  const namaKetik = String(formData.get("nama") ?? "");
+  const jenjangKetik = String(formData.get("jenjang_terakhir") ?? "");
+  const tingkatKetik = String(formData.get("tingkat") ?? "");
+  const emailKetik = String(formData.get("email_notifikasi") ?? "");
+  const teleponKetik = String(formData.get("nomor_telepon") ?? "");
   const parsed = schema(t).safeParse({
-    nama: formData.get("nama"),
+    nama: namaKetik,
     tanggal_lahir: formData.get("tanggal_lahir"),
-    jenjang_terakhir: formData.get("jenjang_terakhir"),
-    email_notifikasi: String(formData.get("email_notifikasi") ?? ""),
-    nomor_telepon: String(formData.get("nomor_telepon") ?? ""),
+    jenjang_terakhir: jenjangKetik,
+    tingkat: tingkatKetik,
+    email_notifikasi: emailKetik,
+    nomor_telepon: teleponKetik,
   });
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
@@ -143,6 +192,25 @@ export async function updateChild(
     return { error: t('checkChild'), fieldErrors };
   }
   const d = parsed.data;
+
+  // Validasi keunikan nomor telepon jika berbeda dari nomor telepon orang tua
+  const parent = await db.orm.public.User.where({ id: ortuId }).first();
+  const hpOrtu = parent?.nomorTelepon?.trim() ?? "";
+  const hpAnak = d.nomor_telepon.trim();
+
+  if (hpAnak !== hpOrtu) {
+    // 1. Cek apakah nomor telepon sudah terdaftar di akun User lain
+    const userConflict = await db.orm.public.User.where({ nomorTelepon: hpAnak }).first();
+    if (userConflict && userConflict.id !== ortuId) {
+      return { error: t('checkChild'), fieldErrors: { nomor_telepon: t('phoneAlreadyUsed') } };
+    }
+
+    // 2. Cek apakah nomor telepon sudah terdaftar di Anak lain (di luar anak ini sendiri)
+    const anakConflict = await db.orm.public.Anak.where({ nomorTelepon: hpAnak }).first();
+    if (anakConflict && anakConflict.id !== anakId && anakConflict.orangTuaId !== ortuId) {
+      return { error: t('checkChild'), fieldErrors: { nomor_telepon: t('phoneAlreadyUsed') } };
+    }
+  }
 
   const collect = async <T,>(src: AsyncIterable<T>) => {
     const out: T[] = [];
@@ -161,8 +229,9 @@ export async function updateChild(
     nama: d.nama,
     tanggalLahir: d.tanggal_lahir,
     jenjangTerakhir: d.jenjang_terakhir,
+    tingkat: d.tingkat,
     emailNotifikasi: d.email_notifikasi || null,
-    nomorTelepon: d.nomor_telepon || null,
+    nomorTelepon: d.nomor_telepon,
   });
   revalidatePath(getPathname({href: "/children", locale}));
   return redirect({href: "/children", locale});

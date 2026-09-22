@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useTransition } from "react";
 import Form from "next/form";
 import { useRouter } from "next/navigation";
 import { FilterKatalogModal } from "./filter-katalog-modal";
-import { Search, ChevronDown, ArrowRight, Loader2 } from "lucide-react";
+import { Search, ChevronDown, Loader2 } from "lucide-react";
 
 export type KatalogFilterBarProps = {
   currentJenjang: string;
@@ -205,7 +205,7 @@ export function KatalogFilterBar({
                   <div className="bg-slate-50 px-4 py-2 text-xs font-semibold text-muted">
                     Pilihan Kelas
                   </div>
-                  <div className="max-h-72 overflow-y-auto py-1">
+                  <div className="max-h-72 overflow-y-auto overscroll-contain py-1 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
                     {suggestions.map((item) => (
                       <button
                         key={item.id}
@@ -243,7 +243,6 @@ export function KatalogFilterBar({
                     className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-brand transition-colors cursor-pointer"
                   >
                     <span>Lihat hasil lengkap untuk &quot;{searchQuery.trim()}&quot;</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ) : !isLoadingSuggestions ? (

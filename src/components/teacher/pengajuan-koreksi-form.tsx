@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { ajukanKoreksi } from "@/app/actions/teacher";
 import { Button } from "@/components/ui/button";
+import { CardSelect } from "@/components/ui/card-select";
 
 export interface LockedEntryItem {
   id: number;
@@ -111,20 +112,19 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
         <label htmlFor="select-locked-entry" className="block text-xs font-semibold text-slate-700">
           {t("selectLockedEntry")} <span className="text-red-500">*</span>
         </label>
-        <select
+        <CardSelect
           id="select-locked-entry"
           value={selectedKey}
-          onChange={(e) => handleSelectEntry(e.target.value)}
+          onChange={(val) => handleSelectEntry(val)}
           required
-          className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
-        >
-          <option value="">{t("selectEntryPlaceholder")}</option>
-          {lockedEntries.map((e) => (
-            <option key={`${e.entitas}-${e.id}`} value={`${e.entitas}-${e.id}`}>
-              [{e.entitas === "presensi" ? t("attendance") : t("grades")}] {e.label} — {e.ringkasan}
-            </option>
-          ))}
-        </select>
+          options={lockedEntries.map((e) => ({
+            value: `${e.entitas}-${e.id}`,
+            label: `[${e.entitas === "presensi" ? t("attendance") : t("grades")}] ${e.label} — ${e.ringkasan}`,
+          }))}
+          placeholder={t("selectEntryPlaceholder")}
+          modalTitle={t("selectLockedEntry")}
+          className="mt-1"
+        />
       </div>
 
       {selectedEntry ? (
@@ -140,16 +140,18 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
                 <label className="block text-xs font-semibold text-slate-700">
                   {t("proposedStatus")} <span className="text-red-500">*</span>
                 </label>
-                <select
+                <CardSelect
                   value={proposedStatus}
-                  onChange={(e) => setProposedStatus(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
-                >
-                  <option value="hadir">{t("statusHadir")}</option>
-                  <option value="izin">{t("statusIzin")}</option>
-                  <option value="sakit">{t("statusSakit")}</option>
-                  <option value="alpa">{t("statusAlpa")}</option>
-                </select>
+                  onChange={(val) => setProposedStatus(val)}
+                  options={[
+                    { value: "hadir", label: t("statusHadir") },
+                    { value: "izin", label: t("statusIzin") },
+                    { value: "sakit", label: t("statusSakit") },
+                    { value: "alpa", label: t("statusAlpa") },
+                  ]}
+                  modalTitle={t("proposedStatus")}
+                  className="mt-1"
+                />
               </div>
 
               <div>

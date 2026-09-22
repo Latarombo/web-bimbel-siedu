@@ -46,7 +46,6 @@ export function CabangModalTrigger() {
         className="mt-1 inline-flex items-center gap-1.5 font-bold text-brand hover:text-brand-dark hover:underline transition-colors text-sm cursor-pointer"
       >
         <span>lihat kantor cabang</span>
-        <span aria-hidden="true" className="text-base leading-none">→</span>
       </button>
 
       {isOpen && (

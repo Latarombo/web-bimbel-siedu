@@ -14,7 +14,7 @@
 import { useTranslations } from "next-intl";
 
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 
 const TEAL = "#13939e";
@@ -55,7 +55,8 @@ function FaqItem({
 }) {
   return (
     <div
-      className="overflow-hidden rounded-xl transition-shadow duration-200"
+      id={`faq-item-${id}`}
+      className="overflow-hidden rounded-xl transition-shadow duration-200 scroll-mt-24"
       style={{ backgroundColor: BARIS }}
     >
       <button
@@ -94,69 +95,102 @@ function FaqItem({
   );
 }
 
-export default function FaqSection() {
- const tr = useTranslations("public");
-const faq: [string, string][] = [
- [
- tr("text3"),
- tr("text4"),
- ],
- [
- tr("text5"),
- tr("text6"),
- ],
- [
- tr("text7"),
- tr("text8"),
- ],
- [
- tr("text9"),
- tr("text10"),
- ],
- [
- tr("text11"),
- tr("text12"),
- ],
- // ---- muncul setelah "Baca Selengkapnya" ----
- [
- tr("text13"),
- tr("text14"),
- ],
- [
- tr("text15"),
- tr("text16"),
- ],
- [
- tr("text17"),
- tr("text18"),
- ],
- [
- tr("text19"),
- tr("text20"),
- ],
- [
- tr("text21"),
- tr("text22"),
- ],
-];
+// Simpan state di module level agar saat ganti bahasa (soft navigation Next.js / remount),
+// status FAQ yang sedang dibuka dan daftar yang sedang diexpand tidak tertutup.
+let globalFaqOpenIndex: number | null = null;
+let globalFaqSemua = false;
 
-  const [semua, setSemua] = useState(false);
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
+function parseHashState(): { openIndex: number | null; semua: boolean } {
+  if (typeof window === "undefined") {
+    return { openIndex: globalFaqOpenIndex, semua: globalFaqSemua };
+  }
+  const hash = window.location.hash;
+  if (hash.startsWith("#faq-item-") || hash.startsWith("#faq-")) {
+    const raw = hash.replace("#faq-item-", "").replace("#faq-", "");
+    const parsed = parseInt(raw, 10);
+    if (!isNaN(parsed) && parsed >= 0) {
+      return {
+        openIndex: parsed,
+        semua: parsed >= AWAL || globalFaqSemua,
+      };
+    }
+  }
+  if (hash === "#faq-all") {
+    return { openIndex: globalFaqOpenIndex, semua: true };
+  }
+  return { openIndex: globalFaqOpenIndex, semua: globalFaqSemua };
+}
+
+export default function FaqSection() {
+  const tr = useTranslations("public");
+  const faq: [string, string][] = [
+    [tr("text3"), tr("text4")],
+    [tr("text5"), tr("text6")],
+    [tr("text7"), tr("text8")],
+    [tr("text9"), tr("text10")],
+    [tr("text11"), tr("text12")],
+    // ---- muncul setelah "Baca Selengkapnya" ----
+    [tr("text13"), tr("text14")],
+    [tr("text15"), tr("text16")],
+    [tr("text17"), tr("text18")],
+    [tr("text19"), tr("text20")],
+    [tr("text21"), tr("text22")],
+  ];
+
+  const [semua, setSemua] = useState(() => parseHashState().semua);
+  const [openIndex, setOpenIndex] = useState<number | null>(() => parseHashState().openIndex);
 
   const awalFaq = faq.slice(0, AWAL);
   const sisaFaq = faq.slice(AWAL);
 
+  useEffect(() => {
+    function handleHashChange() {
+      const state = parseHashState();
+      setOpenIndex(state.openIndex);
+      if (state.semua) setSemua(true);
+    }
+    window.addEventListener("hashchange", handleHashChange);
+    return () => window.removeEventListener("hashchange", handleHashChange);
+  }, []);
+
+  // Sinkronkan hash URL hanya setelah render selesai via requestAnimationFrame (mencegah error Next.js Router setState in render)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const currentHash = window.location.hash;
+    if (openIndex !== null) {
+      const targetHash = `#faq-${openIndex}`;
+      if (currentHash !== targetHash) {
+        window.requestAnimationFrame(() => {
+          history.replaceState(null, "", targetHash);
+        });
+      }
+    } else if (currentHash.startsWith("#faq-") && currentHash !== "#faq") {
+      window.requestAnimationFrame(() => {
+        history.replaceState(null, "", window.location.pathname + window.location.search + "#faq");
+      });
+    }
+  }, [openIndex]);
+
+  // Tutup FAQ item jika berada di sisa FAQ dan bagian sisa disembunyikan
+  useEffect(() => {
+    if (!semua && openIndex !== null && openIndex >= AWAL) {
+      setOpenIndex(null);
+      globalFaqOpenIndex = null;
+    }
+  }, [semua, openIndex]);
+
   const handleToggle = (index: number) => {
-    setOpenIndex((prev) => (prev === index ? null : index));
+    setOpenIndex((prev) => {
+      const next = prev === index ? null : index;
+      globalFaqOpenIndex = next;
+      return next;
+    });
   };
 
   const handleToggleSemua = () => {
     setSemua((prev) => {
       const next = !prev;
-      // Jika disembunyikan dan item yang terbuka berada di sisa FAQ (index >= AWAL), tutup item tersebut
-      if (!next && openIndex !== null && openIndex >= AWAL) {
-        setOpenIndex(null);
-      }
+      globalFaqSemua = next;
       return next;
     });
   };
@@ -177,7 +211,7 @@ const faq: [string, string][] = [
         <div className="mt-10 space-y-3">
           {awalFaq.map(([q, a], idx) => (
             <FaqItem
-              key={q}
+              key={`faq-awal-${idx}`}
               id={String(idx)}
               q={q}
               a={a}
@@ -199,7 +233,7 @@ const faq: [string, string][] = [
                 const actualIndex = AWAL + idx;
                 return (
                   <FaqItem
-                    key={q}
+                    key={`faq-sisa-${actualIndex}`}
                     id={String(actualIndex)}
                     q={q}
                     a={a}

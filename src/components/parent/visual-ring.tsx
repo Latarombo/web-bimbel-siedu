@@ -11,28 +11,55 @@ export function RingProgres({
   label,
   tone = "amber",
   size = 120,
+  suffix = "%",
+  variant = "dark",
 }: {
   pct: number;
   label?: string;
-  tone?: "amber" | "emerald" | "blue";
+  tone?: "amber" | "emerald" | "blue" | "gold";
   size?: number;
+  /** Teks setelah angka; "%" untuk persen, "" untuk nilai rata-rata. */
+  suffix?: string;
+  variant?: "dark" | "light";
 }) {
   const stroke = size * 0.09;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const clamped = Math.max(0, Math.min(100, pct));
-  const ringColor =
-    tone === "emerald"
+  const isLight = variant === "light";
+
+  const ringColor = isLight
+    ? tone === "emerald"
+      ? "stroke-emerald-500"
+      : tone === "blue"
+        ? "stroke-blue-600"
+        : tone === "gold"
+          ? "stroke-amber-500"
+          : "stroke-amber-500"
+    : tone === "emerald"
       ? "stroke-emerald-400"
       : tone === "blue"
         ? "stroke-blue-300"
-        : "stroke-amber-400";
-  const textColor =
-    tone === "emerald"
+        : tone === "gold"
+          ? "stroke-amber-300"
+          : "stroke-amber-400";
+
+  const textColor = isLight
+    ? tone === "emerald"
+      ? "text-emerald-700"
+      : tone === "blue"
+        ? "text-blue-700"
+        : tone === "gold"
+          ? "text-amber-700"
+          : "text-amber-700"
+    : tone === "emerald"
       ? "text-emerald-200"
       : tone === "blue"
         ? "text-blue-100"
-        : "text-amber-300";
+        : tone === "gold"
+          ? "text-amber-200"
+          : "text-amber-300";
+
   return (
     <div
       className="relative inline-grid place-items-center"
@@ -45,7 +72,7 @@ export function RingProgres({
           r={r}
           fill="none"
           strokeWidth={stroke}
-          className="stroke-white/20"
+          className={isLight ? "stroke-slate-100" : "stroke-white/20"}
         />
         <circle
           cx={size / 2}
@@ -61,12 +88,12 @@ export function RingProgres({
       </svg>
       <div className="absolute text-center">
         <p
-          className={`text-2xl font-bold tabular-nums text-white ${textColor}`}
+          className={`text-2xl font-bold tabular-nums ${isLight ? "text-slate-900" : `text-white ${textColor}`}`}
         >
-          {Math.round(clamped)}%
+          {Math.round(clamped)}{suffix}
         </p>
         {label ? (
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-white/70">
+          <p className={`text-[11px] font-medium ${isLight ? "text-slate-500" : "text-white/70"}`}>
             {label}
           </p>
         ) : null}

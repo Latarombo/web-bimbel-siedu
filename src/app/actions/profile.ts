@@ -8,7 +8,7 @@ import { db } from '@/prisma/db';
 
 const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
   name: z.string({error: t('invalidField')}).trim().min(2, t('nameMin')),
-  alamat: z.string({error: t('invalidField')}).trim().max(500, t('addressMax')).optional().or(z.literal('')),
+  alamat: z.string({error: t('invalidField')}).trim().min(5, t('streetAddressRequired')).max(500, t('addressMax')),
   nomor_telepon: z
     .string({error: t('invalidField')})
     .trim()
@@ -49,6 +49,15 @@ export async function updateProfile(
     for (const issue of parsed.error.issues)
       fieldErrors[String(issue.path[0])] ??= issue.message;
     return { error: t('checkProfile'), fieldErrors, ...raw };
+  }
+
+  const existingUser = await db.orm.public.User.where({ nomorTelepon: parsed.data.nomor_telepon }).first();
+  if (existingUser && existingUser.id !== Number(session.user.id)) {
+    return {
+      error: t('checkProfile'),
+      fieldErrors: { nomor_telepon: t('phoneAlreadyUsed') },
+      ...raw,
+    };
   }
 
   await db.orm.public.User.where({ id: Number(session.user.id) }).update({

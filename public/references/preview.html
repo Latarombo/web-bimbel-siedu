@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Referensi Desain Dashboard Orang Tua - Versi Terstruktur (v2)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      padding: 40px 20px;
+    }
+    .header {
+      max-width: 1200px;
+      margin: 0 auto 36px;
+      text-align: center;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+    .header p {
+      color: #64748b;
+      font-size: 16px;
+    }
+    .hero-card {
+      max-width: 1200px;
+      margin: 0 auto 40px;
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px -5px rgba(0,0,0,0.08);
+      border: 2px solid #2563eb;
+    }
+    .hero-header {
+      padding: 20px 28px;
+      background: #eff6ff;
+      border-bottom: 1px solid #dbeafe;
+    }
+    .hero-header h2 {
+      font-size: 22px;
+      color: #1e40af;
+      margin-bottom: 6px;
+    }
+    .hero-header p {
+      color: #3b82f6;
+      font-size: 15px;
+    }
+    .img-wrapper {
+      background: #0f172a;
+      padding: 12px;
+      display: flex;
+      justify-content: center;
+    }
+    .img-wrapper img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      display: block;
+    }
+    .features {
+      padding: 24px 28px;
+      background: #fafafa;
+      border-top: 1px solid #f1f5f9;
+      font-size: 14px;
+    }
+    .features ul {
+      margin-left: 20px;
+      color: #334155;
+      line-height: 1.8;
+    }
+    .older-title {
+      max-width: 1200px;
+      margin: 40px auto 20px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 32px;
+      max-width: 1200px;
+      margin: 0 auto;
+      opacity: 0.75;
+    }
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #e2e8f0;
+    }
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .card-header h3 { font-size: 16px; margin-bottom: 4px; }
+    .card-header p { font-size: 13px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Desain Baru: Editorial Learning Hub (Versi 2)</h1>
+    <p>Tata letak 2 kolom terstruktur, bebas tumpukan kartu (card-soup), dan responsif di layar mobile.</p>
+  </div>
+
+  <!-- HASIL DESAIN ULANG V2 -->
+  <div class="hero-card">
+    <div class="hero-header">
+      <h2>⭐ Opsi B (v2): Structured Editorial Hub</h2>
+      <p>Kombinasi ideal: Cerita progres belajar anak yang hidup di kolom kiri + ringkasan agenda & pembayaran yang efisien di kolom kanan.</p>
+    </div>
+    <div class="img-wrapper">
+      <a href="parent_dash_editorial_v2.jpg" target="_blank">
+        <img src="parent_dash_editorial_v2.jpg" alt="Opsi B v2: Structured Editorial Hub" />
+      </a>
+    </div>
+    <div class="features">
+      <strong>Karakteristik & Keunggulan Desain Ini:</strong>
+      <ul>
+        <li><strong>Tanpa Card-Soup:</strong> Tidak ada kotak-kotak bertumpuk dengan border tebal atau shadow berat. Pemisahan bagian menggunakan spasi lega dan garis batas halus (*hairline dividers*).</li>
+        <li><strong>Kolom Kiri (Jurnal & Progres Siswa - ~65%):</strong>
+          <ul>
+            <li>Header santun: Identitas anak, tingkat kelas, dan progres penguasaan mata pelajaran dengan progress bar bersih.</li>
+            <li><strong>Catatan Guru (Teacher Notes):</strong> Menampilkan kutipan observasi kualitatif guru per tanggal tanpa kotak besar.</li>
+            <li><strong>Dokumentasi Foto Belajar (Learning Photo):</strong> Foto berukuran proporsional (16:9) dengan caption materi yang dipelajari.</li>
+          </ul>
+        </li>
+        <li><strong>Kolom Kanan (Agenda & Administrasi - ~35%):</strong>
+          <ul>
+            <li><strong>Upcoming Class Schedule:</strong> Daftar jadwal kelas terdekat (hari ini & mendatang) langsung terbaca jelas.</li>
+            <li><strong>Ring Presensi Minimalis:</strong> Lingkaran kehadiran (95% Hadir, Alpa/Izin tercatat) yang estetik dan ringkas.</li>
+            <li><strong>Status SPP / Tagihan:</strong> Status tagihan terkini + tombol cepat "Bayar Sekarang" tanpa memakan banyak tempat.</li>
+          </ul>
+        </li>
+        <li><strong>Mobile First:</strong> Di HP, susunan kolom akan mengalir alami: Switcher Anak & Jadwal Terdekat di atas &rarr; Foto & Catatan Guru di tengah &rarr; Detail Presensi & Tagihan di bawah.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- REFERENSI SEBELUMNYA (ARSIP) -->
+  <div class="older-title">Referensi Versi Awal (Sebagai Pembanding)</div>
+  <div class="grid">
+    <div class="card">
+      <div class="card-header">
+        <h3>Opsi A: Continuous Canvas</h3>
+        <p>Horizontal strip</p>
+      </div>
+      <div class="img-wrapper">
+        <a href="parent_dash_canvas.jpg" target="_blank">
+          <img src="parent_dash_canvas.jpg" alt="Opsi A" />
+        </a>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h3>Opsi B Awal: Editorial Majalah</h3>
+        <p>Versi sebelum dibuat terstruktur</p>
+      </div>
+      <div class="img-wrapper">
+        <a href="parent_dash_editorial.jpg" target="_blank">
+          <img src="parent_dash_editorial.jpg" alt="Opsi B Awal" />
+        </a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

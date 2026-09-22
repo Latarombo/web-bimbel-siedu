@@ -10,10 +10,11 @@ const ATTR =
 export type PetaLokasiProps = {
   lat: number;
   lng: number;
-  mapsHref: string;
+  mapsHref?: string;
+  className?: string;
 };
 
-export default function PetaLokasi({ lat, lng, mapsHref }: PetaLokasiProps) {
+export default function PetaLokasi({ lat, lng, mapsHref, className }: PetaLokasiProps) {
   const wadahRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -61,6 +62,12 @@ export default function PetaLokasi({ lat, lng, mapsHref }: PetaLokasiProps) {
       });
 
       L.marker([lat, lng], { icon: ikon }).addTo(mapInstance);
+
+      setTimeout(() => {
+        if (!dibatalkan && mapInstance) {
+          mapInstance.invalidateSize();
+        }
+      }, 150);
     })();
 
     return () => {
@@ -74,7 +81,7 @@ export default function PetaLokasi({ lat, lng, mapsHref }: PetaLokasiProps) {
   return (
     <div
       ref={wadahRef}
-      className="h-full w-full min-h-[280px] sm:min-h-[380px] z-0 cursor-grab active:cursor-grabbing"
+      className={className ?? "h-full w-full min-h-[280px] sm:min-h-[380px] z-0 cursor-grab active:cursor-grabbing"}
     />
   );
 }

@@ -53,7 +53,7 @@ const SORTS = [
 
         <Section className="relative flex flex-col items-center px-4 text-center">
           <h1 className="max-w-3xl text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl">
-            {tr("text247")} <span className="text-blue-100">{tr("text248")}</span>
+            {tr("text247")}{tr("text248")}
           </h1>
           <p className="mt-3 max-w-xl text-sm leading-relaxed text-blue-100 sm:text-base">
             {tr("text249")}

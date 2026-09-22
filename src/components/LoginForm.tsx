@@ -1,10 +1,11 @@
 'use client';
 import { useTranslations } from 'next-intl';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useEffect } from 'react';
 import { Link } from '@/i18n/navigation';
 import { login, type LoginState } from '@/app/actions/login';
 import GoogleButton from '@/components/GoogleButton';
+import { useFormDraft } from '@/lib/use-form-draft';
 
 const initial: LoginState = {};
 
@@ -20,6 +21,16 @@ export default function LoginForm({
     const t = useTranslations('auth');
     const [state, formAction, pending] = useActionState(login, initial);
     const [showPassword, setShowPassword] = useState(false);
+
+    const { draft, setDraftField } = useFormDraft('siedu_draft_login', {
+        email: '',
+    });
+
+    useEffect(() => {
+        if (state.email && !draft.email) {
+            setDraftField('email', state.email);
+        }
+    }, [state.email, draft.email, setDraftField]);
 
     return (
         <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md">
@@ -57,7 +68,8 @@ export default function LoginForm({
                         type="email"
                         required
                         autoComplete="email"
-                        defaultValue={state.email ?? ''}
+                        value={draft.email}
+                        onChange={(e) => setDraftField('email', e.target.value)}
                         placeholder={t('emailPlaceholder')}
                         className="w-full px-4 py-3 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400"
                     />
@@ -155,25 +167,9 @@ export default function LoginForm({
                 <button
                     type="submit"
                     disabled={pending}
-                    className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                    className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
                 >
                     <span>{pending ? t('processing') : t('continue')}</span>
-                    {!pending && (
-                        <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M17 8l4 4m0 0l-4 4m4-4H3"
-                            />
-                        </svg>
-                    )}
                 </button>
             </form>
             {/* Divider */}

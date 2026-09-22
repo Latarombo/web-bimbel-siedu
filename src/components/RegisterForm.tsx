@@ -5,6 +5,7 @@ import { useActionState, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { registerParent, type RegisterState } from '@/app/actions/register';
 import GoogleButton from '@/components/GoogleButton';
+import { useFormDraft } from '@/lib/use-form-draft';
 
 const initial: RegisterState = {};
 
@@ -25,6 +26,10 @@ const passwordRules = [
     const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState('');
     const errors = state.fieldErrors ?? {};
+
+    const [draft, setDraftField] = useFormDraft('siedu_draft_register', {
+        email: state.email ?? '',
+    });
 
     return (
         <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md">
@@ -50,7 +55,8 @@ const passwordRules = [
                         required
                         autoComplete="email"
                         placeholder={t('emailPlaceholder')}
-                        defaultValue={state.email ?? ''}
+                        value={draft.email}
+                        onChange={(e) => setDraftField('email', e.target.value)}
                         aria-invalid={errors.email ? true : undefined}
                         aria-describedby={errors.email ? 'email-error' : undefined}
                         className="w-full px-4 py-3 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400"
@@ -199,26 +205,9 @@ const passwordRules = [
                 <button
                     type="submit"
                     disabled={pending}
-                    className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+                    className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
                 >
                     <span>{pending ? t('processing') : t('register')}</span>
-                    {!pending && (
-                        <svg
-                            className="w-5 h-5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                            aria-hidden="true"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M17 8l4 4m0 0l-4 4m4-4H3"
-                            />
-                        </svg>
-                    )}
                 </button>
             </form>
 
