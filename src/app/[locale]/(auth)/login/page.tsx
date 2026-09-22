@@ -65,27 +65,30 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
                 <Image src="/images/Logo-white.png" alt="Siedu" width={110} height={33} className="h-7 w-auto" priority />
                 </Link>
 
-                {/* Bantuan Button */}
-                <Link
-                    href="/#faq"
-                    className="flex items-center space-x-2 bg-white text-gray-800 px-5 py-2.5 rounded-lg font-medium hover:bg-gray-100 transition-colors shadow-md"
-                >
-                    <svg
-                        className="w-5 h-5 text-gray-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
+                {/* Actions: Bantuan Button + Switch Bahasa */}
+                <div className="flex items-center gap-2.5 sm:gap-3">
+                    <Link
+                        href="/#faq"
+                        className="flex items-center space-x-2 bg-white text-gray-800 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium hover:bg-gray-100 transition-colors shadow-md text-xs sm:text-sm"
                     >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                    </svg>
-                    <span>{t('help')}</span>
-                </Link>
+                        <svg
+                            className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+                        <span>{t('help')}</span>
+                    </Link>
+                    <LanguageSwitcher variant="auth" placement="bottom" align="right" />
+                </div>
             </header>
 
             {/* Main Content — container terbatas + center, tetap center saat zoom out */}
@@ -126,12 +129,11 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
                     {t('copyright', {year: new Date().getFullYear(), name: SITE.nama})}
                 </p>
                 <div className="flex items-center space-x-4 text-white/90">
-                    <div className="rounded-lg bg-white px-3 py-2"><LanguageSwitcher /></div>
-                    <Link href="/privacy-policy" className="hover:text-white">
+                    <Link href="/privacy-policy" className="hover:text-white transition-colors">
                         {t('privacy')}
                     </Link>
-                    <span className="hidden sm:inline">•</span>
-                    <Link href="/terms" className="hover:text-white">
+                    <span className="hidden sm:inline opacity-60">•</span>
+                    <Link href="/terms" className="hover:text-white transition-colors">
                         {t('terms')}
                     </Link>
                 </div>

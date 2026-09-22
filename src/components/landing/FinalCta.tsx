@@ -1,6 +1,5 @@
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { ArrowRight } from 'lucide-react';
 
 /**
  * Final CTA Section — Coursera-inspired banner
@@ -63,10 +62,9 @@ export default async function FinalCta() {
                         <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
                             <Link
                                 href="/register"
-                                className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-brand-strong hover:shadow active:scale-[0.98]"
+                                className="inline-flex items-center justify-center rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-brand-strong hover:shadow active:scale-[0.98]"
                             >
                                 <span>{tr('text76')}</span>
-                                <ArrowRight className="size-4" />
                             </Link>
                             <Link
                                 href="/contact"

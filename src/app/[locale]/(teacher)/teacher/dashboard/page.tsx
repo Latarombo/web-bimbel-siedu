@@ -1,47 +1,37 @@
 import { getTranslations, getLocale } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
-import { redirect } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { Badge } from "@/components/ui/badge";
-import { ButtonLink } from "@/components/ui/button";
-import { hariDariTanggal, tanggalWIB, dalamJendela7Hari } from "@/lib/hari";
-import { PageShell, PageHeader, Panel } from "@/components/admin/ui";
+import { tanggalWIB, hariDariTanggal } from "@/lib/hari";
+import { TeacherScheduleWidget, type ScheduleSessionItem } from "@/components/teacher/dashboard/teacher-schedule-widget";
+import {
+  ChevronRight,
+  Calendar,
+  CheckCircle2,
+  GraduationCap,
+  BookOpen,
+} from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
-/*
- * Dashboard guru — gaya sama dengan dashboard admin: panel putih border
- * slate-200 + shadow eksplisit, BUKAN token globals.css. Angka semua dari DB.
- * Pola widget dari referensi (EduFlow 27345877, Kuest 21910109): sesi hari ini
- * dengan pill waktu, quick action presensi, antrean t("ungraded").
- */
+const WIB = "Asia/Jakarta";
 
-function Icon({ d, className }: { d: string; className: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <path d={d} />
-    </svg>
-  );
-}
-const P = {
-  layers: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
-  users: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zm14 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75",
-  calendar: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z",
-  chart: "M18 20V10M12 20V4M6 20v-6",
-  check: "M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11",
-  clipboard:
-    "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+const JENJANG_BADGE: Record<string, { badge: string; text: string }> = {
+  TK: { badge: "bg-pink-50 text-pink-700 border-pink-200", text: "text-pink-700" },
+  SD: { badge: "bg-blue-50 text-blue-700 border-blue-200", text: "text-blue-700" },
+  SMP: { badge: "bg-emerald-50 text-emerald-700 border-emerald-200", text: "text-emerald-700" },
+  SMA: { badge: "bg-amber-50 text-amber-800 border-amber-200", text: "text-amber-800" },
 };
 
-/** Waktu lokal WIB "HH:MM" → menit sejak 00:00, untuk pil "sekarang/mendatang". */
-function toMenit(hhmm: string): number {
-  const [h, m] = hhmm.slice(0, 5).split(":").map(Number);
-  return h * 60 + m;
-}
-
-const WIB = "Asia/Jakarta";
+const AVATAR_COLORS = [
+  "bg-blue-500 text-white",
+  "bg-amber-500 text-white",
+  "bg-emerald-500 text-white",
+  "bg-purple-500 text-white",
+  "bg-rose-500 text-white",
+  "bg-sky-500 text-white",
+];
 
 export default async function TeacherDashboard() {
   const t = await getTranslations("teacher");
@@ -49,312 +39,489 @@ export default async function TeacherDashboard() {
   const session = await auth();
   if (!session?.user) return redirect({ href: "/login?next=/teacher/dashboard", locale });
   const guruId = Number(session.user.id);
+  const teacherName = session.user.name ?? t("teacher");
 
+  // 1. Fetch Classes taught by this teacher
   const kelas = await collect(db.orm.public.Kelas.where((k) => k.guruId.eq(guruId)).all());
   const kelasIds = kelas.map((k) => k.id);
   const sekarang = new Date();
   const hariIniStr = tanggalWIB(sekarang);
   const hari = hariDariTanggal(hariIniStr);
 
-  const [mapel, jadwal, pendaftaran, nilaiAll, presensiSesi, periode] = await Promise.all([
+  // 2. Fetch dependent data
+  const [mapel, jadwal, pendaftaran, penilaian, hasilAll, presensiSesi, periode] = await Promise.all([
     kelas.length ? collect(db.orm.public.MataPelajaran.all()) : Promise.resolve([]),
     kelas.length ? collect(db.orm.public.JadwalItem.where((j) => j.kelasId.in(kelasIds)).all()) : Promise.resolve([]),
     kelas.length
       ? collect(db.orm.public.Pendaftaran.where((p) => p.kelasId.in(kelasIds)).all())
       : Promise.resolve([]),
-    collect(db.orm.public.NilaiProgres.where((n) => n.dicatatOleh.eq(guruId)).all()),
+    kelas.length ? collect(db.orm.public.Penilaian.where((p) => p.dibuatOleh.eq(guruId)).all()) : Promise.resolve([]),
+    kelas.length ? collect(db.orm.public.HasilPenilaian.all()) : Promise.resolve([]),
     collect(db.orm.public.Presensi.where((x) => x.dicatatOleh.eq(guruId)).all()),
-    kelas.length ? collect(db.orm.public.PeriodePendaftaran.where((p) => p.id.in(kelas.map((k) => k.periodeId))).all()) : Promise.resolve([]),
+    kelas.length
+      ? collect(db.orm.public.PeriodePendaftaran.where((p) => p.id.in(kelas.map((k) => k.periodeId))).all())
+      : Promise.resolve([]),
   ]);
+
   const mapelById = new Map(mapel.map((m) => [m.id, m]));
-
   const periodeById = new Map(periode.map((p) => [p.id, p]));
-  const kelasHariIni = new Set(kelas.filter((k) => {
-    const p = periodeById.get(k.periodeId);
-    return k.status === "aktif" && p && hariIniStr >= p.tanggalMulai && hariIniStr <= p.tanggalSelesai;
-  }).map((k) => k.id));
-  const tersimpan = jadwal.length ? await collect(
-    db.orm.public.SesiPertemuan.where((s) => s.jadwalItemId.in(jadwal.map((j) => j.id)))
-      .where((s) => s.tanggalPertemuan.eq(hariIniStr)).all(),
-  ) : [];
-  const sesiBySlot = new Map(tersimpan.map((s) => [s.jadwalItemId, s]));
-  const sesiHariIni = jadwal
-    .filter((j) => kelasHariIni.has(j.kelasId) && (j.hari === hari || sesiBySlot.has(j.id)))
-    .filter((j) => sesiBySlot.get(j.id)?.statusSesi !== "dibatalkan")
-    .map((j) => {
-      const sesi = sesiBySlot.get(j.id);
-      return { ...j, jamMulai: sesi?.jamMulai ?? j.jamMulai, jamSelesai: sesi?.jamSelesai ?? j.jamSelesai };
-    })
-    .sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
+  const kelasById = new Map(kelas.map((k) => [k.id, k]));
 
-  const anakById = new Map(
-    (await collect(db.orm.public.Anak.all())).map((a) => [a.id, a]),
+  // 3. Students by enrollment
+  const anakById = new Map((await collect(db.orm.public.Anak.all())).map((a) => [a.id, a]));
+  const siswaAktif = pendaftaran.filter((p) => ["terdaftar", "tertunggak"].includes(p.status));
+
+  const siswaByKelas = new Map<number, typeof siswaAktif>();
+  for (const p of siswaAktif) {
+    const list = siswaByKelas.get(p.kelasId ?? 0) ?? [];
+    list.push(p);
+    siswaByKelas.set(p.kelasId ?? 0, list);
+  }
+
+  // 4. Grading Queue
+  const penilaianIds = new Set(penilaian.map((p) => p.id));
+  const hasil = hasilAll.filter((h) => penilaianIds.has(h.penilaianId));
+
+  const sudahDinilaiKeys = new Set(
+    hasil
+      .filter((h) => h.statusHasil === "dinilai")
+      .map((h) => `${h.penilaianId}:${h.pendaftaranId}`),
   );
 
-  const siswaAktif = pendaftaran.filter((p) => ["terdaftar", "tertunggak"].includes(p.status));
-  const siswaPerKelas = new Map<number, number>();
-  for (const p of siswaAktif) siswaPerKelas.set(p.kelasId ?? 0, (siswaPerKelas.get(p.kelasId ?? 0) ?? 0) + 1);
+  type AntreanItem = {
+    key: string;
+    pendaftaranId: number;
+    anakNama: string;
+    kelasNama: string;
+    jenjang: string;
+    penilaianJudul: string;
+  };
 
-  // Antrean: siswa aktif yang BELUM punya nilai dari guru ini.
-  const punyaNilai = new Set(nilaiAll.map((n) => n.pendaftaranId));
-  const belumNilai = siswaAktif.filter((p) => !punyaNilai.has(p.id));
+  const antreanPenilaian: AntreanItem[] = [];
+  for (const pen of penilaian) {
+    const siswaKelas = siswaByKelas.get(pen.kelasId) ?? [];
+    const k = kelasById.get(pen.kelasId);
+    const m = k ? mapelById.get(k.mataPelajaranId)?.nama : "Kelas";
 
-  // Presensi sesi hari ini: berapa sudah terisi per jadwal item.
+    for (const s of siswaKelas) {
+      const key = `${pen.id}:${s.id}`;
+      if (!sudahDinilaiKeys.has(key)) {
+        const anak = anakById.get(s.anakId);
+        antreanPenilaian.push({
+          key,
+          pendaftaranId: s.id,
+          anakNama: anak?.nama ?? "Siswa",
+          kelasNama: m ?? "Kelas",
+          jenjang: k?.jenjang ?? "SD",
+          penilaianJudul: pen.nama,
+        });
+      }
+    }
+  }
+
+  // 5. Presensi sesi hari ini
   const presensiHariIni = presensiSesi.filter((x) => x.tanggalPertemuan === hariIniStr);
   const terisiByItem = new Map<number, number>();
-  for (const x of presensiHariIni) terisiByItem.set(x.jadwalItemId, (terisiByItem.get(x.jadwalItemId) ?? 0) + 1);
+  for (const x of presensiHariIni) {
+    terisiByItem.set(x.jadwalItemId, (terisiByItem.get(x.jadwalItemId) ?? 0) + 1);
+  }
 
-  // Entri guru yang terkunci BR#18 (lewat 7 hari) = kandidat koreksi.
-  const terkunciCount =
-    nilaiAll.filter((n) => !dalamJendela7Hari(n.createdAt)).length +
-    presensiSesi.filter((x) => !dalamJendela7Hari(x.createdAt)).length;
+  // 6. Build schedule session list for widget
+  const scheduleSessions: ScheduleSessionItem[] = [];
+  for (const j of jadwal) {
+    const k = kelasById.get(j.kelasId);
+    if (!k || k.status !== "aktif") continue;
+    const p = periodeById.get(k.periodeId);
+    if (!p) continue;
+    const m = mapelById.get(k.mataPelajaranId);
+    const nSiswa = (siswaByKelas.get(k.id) ?? []).length;
+    const nTerisi = terisiByItem.get(j.id) ?? 0;
 
-  const nowWib = sekarang.toLocaleTimeString("en-GB", { timeZone: WIB, hour: "2-digit", minute: "2-digit" });
-  const menitNow = toMenit(nowWib);
+    scheduleSessions.push({
+      id: j.id,
+      kelasId: k.id,
+      kelasNama: m?.nama ?? "Kelas",
+      mapel: m?.nama ?? "Mata Pelajaran",
+      jenjang: k.jenjang as any,
+      tingkat: k.tingkat,
+      hari: j.hari,
+      jamMulai: j.jamMulai,
+      jamSelesai: j.jamSelesai,
+      totalSiswa: nSiswa,
+      terisiCount: nTerisi,
+      periodeMulai: p.tanggalMulai,
+      periodeSelesai: p.tanggalSelesai,
+    });
+  }
 
-  const kelasAktif = kelas.filter((k) => k.status === "aktif").length;
+  const sesiHariIni = scheduleSessions.filter((s) => s.hari === hari && hariIniStr >= s.periodeMulai && hariIniStr <= s.periodeSelesai);
+  const totalSiswaHariIni = sesiHariIni.reduce((acc, s) => acc + s.totalSiswa, 0);
+  const totalTerisiHariIni = sesiHariIni.reduce((acc, s) => acc + Math.min(s.terisiCount, s.totalSiswa), 0);
+  const pctPresensi = totalSiswaHariIni > 0 ? Math.round((totalTerisiHariIni / totalSiswaHariIni) * 100) : 100;
 
-  const kpi = [
-    { icon: P.layers, accent: "border-t-blue-600", tile: "bg-blue-50 text-blue-600", value: kelas.length, label: t("assignedClasses"), sub: t("stillActive", { count: kelasAktif }) },
-    { icon: P.users, accent: "border-t-emerald-500", tile: "bg-emerald-50 text-emerald-600", value: siswaAktif.length, label: t("activeStudents"), sub: t("inClasses", { count: kelas.length }) },
-    { icon: P.calendar, accent: "border-t-amber-500", tile: "bg-amber-50 text-amber-600", value: sesiHariIni.length, label: t("todaySessionsDay", { day: t(`day_${hari}`) }), sub: sesiHariIni.length === 0 ? t("noTeachingSchedule") : t("notStarted", { count: sesiHariIni.filter((j) => toMenit(j.jamSelesai) > menitNow).length }) },
-    { icon: P.check, accent: "border-t-slate-300", tile: "bg-slate-100 text-slate-500", value: nilaiAll.length, label: t("gradeEntries"), sub: t("lockedCountAdmin", { count: terkunciCount }) },
-  ];
+  const kelasAktif = kelas.filter((k) => k.status === "aktif");
+  const uniqueStudentsCount = new Set(siswaAktif.map((s) => s.anakId)).size;
+
+  const tanggalLengkap = sekarang.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: WIB,
+  });
 
   return (
-    <PageShell wide>
-      {/* HEADER + konteks hari */}
-      <PageHeader
-        title={t("teacherDashboard")}
-        desc={t("greeting", { name: session.user.name ?? t("teacher"), day: t(`day_${hari}`), sessions: sesiHariIni.length > 0 ? t("teachingSessions", {count: sesiHariIni.length}) : t("noTeachingSessions") })}
-      >
-        <ButtonLink href="/teacher/calendar" variant="outline">{t("calendarTitle")}</ButtonLink>
-        <ButtonLink href="/teacher/classes">{t("manageClasses")}</ButtonLink>
-      </PageHeader>
+    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        {/* ======================================================= */}
+        {/* LEFT COLUMN: Main Area                                  */}
+        {/* ======================================================= */}
+        <div className="space-y-6 lg:col-span-8 order-1">
+          
+          {/* 1. Header (Pola Hero Katalog: Solid #1d4ed8 dengan aksen gelombang sudut) */}
+          <div className="relative overflow-hidden rounded-2xl bg-[#1d4ed8] p-5 sm:p-6 text-white shadow-xs">
+            {/* Gelombang sudut tanpa gradient */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+              <svg
+                className="absolute -right-6 -top-6 w-64 sm:w-80 md:w-96"
+                viewBox="0 0 400 280"
+                fill="none"
+              >
+                <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="white" fillOpacity="0.05" />
+                <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="white" fillOpacity="0.07" />
+                <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="white" fillOpacity="0.09" />
+              </svg>
 
-      {/* STRIP KONTEKS HARI INI — gelap, sama seperti chip periode admin */}
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 rounded-2xl bg-slate-900 px-4 py-4 text-white sm:px-6">
-        <div className="flex items-center gap-3">
-          <span className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-bold tabular-nums">
-            {sekarang.toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: WIB })}
-          </span>
-          <span className="text-sm text-slate-300">{t("serverTime")} <span className="tabular-nums font-semibold text-white">{nowWib}</span> {t("timeZone")}</span>
-        </div>
-        {sesiHariIni.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            {sesiHariIni.map((j) => {
-              const k = kelas.find((x) => x.id === j.kelasId);
-              const lewat = toMenit(j.jamSelesai) <= menitNow;
-              const sedang = !lewat && toMenit(j.jamMulai) <= menitNow;
-              return (
-                <span
-                  key={j.id}
-                  className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold tabular-nums ${
-                    sedang ? "bg-emerald-500/20 text-emerald-200" : lewat ? "bg-white/5 text-slate-400 line-through decoration-slate-500" : "bg-white/10 text-white"
-                  }`}
-                >
-                  <span aria-hidden="true">{j.jamMulai.slice(0, 5)}–{j.jamSelesai.slice(0, 5)}</span>
-                  <span className="font-medium">{mapelById.get(k?.mataPelajaranId ?? 0)?.nama ?? t("class")} · {k?.jenjang ?? "—"}</span>
-                  {sedang ? <span className="rounded-full bg-emerald-400 px-1.5 text-[10px] font-bold text-emerald-950">{t("ongoing")}</span> : null}
+              <svg
+                className="absolute -left-6 -bottom-6 w-56 sm:w-72 md:w-80"
+                viewBox="0 0 360 260"
+                fill="none"
+              >
+                <path d="M0 60 C90 105, 180 175, 280 260 L0 260 Z" fill="white" fillOpacity="0.05" />
+                <path d="M0 120 C75 155, 145 205, 210 260 L0 260 Z" fill="white" fillOpacity="0.07" />
+                <path d="M0 180 C50 205, 100 230, 140 260 L0 260 Z" fill="white" fillOpacity="0.08" />
+              </svg>
+            </div>
+
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
+                  Selamat datang, {teacherName}
+                </h1>
+                <p className="text-xs sm:text-sm text-blue-100 mt-0.5">
+                  {tanggalLengkap}
+                </p>
+              </div>
+
+              {sesiHariIni.length > 0 ? (
+                <div className="inline-flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 backdrop-blur-xs px-3.5 py-2 self-start sm:self-center">
+                  <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-400/30" />
+                  <span className="text-xs font-bold text-white">
+                    {sesiHariIni.length} sesi hari ini
+                  </span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/15 backdrop-blur-xs px-3.5 py-2 self-start sm:self-center">
+                  <span className="size-2 rounded-full bg-blue-200" />
+                  <span className="text-xs font-semibold text-blue-100">
+                    Tidak ada jadwal hari ini
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 2. 4 Metric Overview Cards (Minimalis Elegan dengan Divider Halus & Interaktif) */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4">
+            {/* Card 1: Kelas Diampu */}
+            <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4.5 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+              <div>
+                <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                  Kelas Diampu
+                </p>
+                <p className="mt-2 text-3xl sm:text-4xl font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
+                  {kelasAktif.length}
+                </p>
+              </div>
+              <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span className="font-medium text-slate-400">Rombel aktif</span>
+                <span className="font-semibold text-slate-600">Total {kelas.length}</span>
+              </div>
+            </div>
+
+            {/* Card 2: Total Murid */}
+            <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4.5 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+              <div>
+                <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                  Total Murid
+                </p>
+                <p className="mt-2 text-3xl sm:text-4xl font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
+                  {uniqueStudentsCount}
+                </p>
+              </div>
+              <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span className="font-medium text-slate-400">Siswa terdaftar</span>
+                <span className="font-semibold text-slate-600">{siswaAktif.length} pendaftaran</span>
+              </div>
+            </div>
+
+            {/* Card 3: Perlu Dinilai */}
+            <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4.5 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+              <div>
+                <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                  Perlu Dinilai
+                </p>
+                <p className={`mt-2 text-3xl sm:text-4xl font-black tracking-tight transition-colors ${antreanPenilaian.length > 0 ? "text-amber-600 group-hover:text-amber-700" : "text-slate-900 group-hover:text-blue-600"}`}>
+                  {antreanPenilaian.length}
+                </p>
+              </div>
+              <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span className="font-medium text-slate-400">Antrean evaluasi</span>
+                {antreanPenilaian.length > 0 ? (
+                  <span className="font-bold text-amber-600">Pending</span>
+                ) : (
+                  <span className="font-semibold text-emerald-600">Tuntas</span>
+                )}
+              </div>
+            </div>
+
+            {/* Card 4: Presensi Sesi */}
+            <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4.5 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+              <div>
+                <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                  Presensi Sesi
+                </p>
+                <p className="mt-2 text-3xl sm:text-4xl font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
+                  {sesiHariIni.length > 0 ? `${pctPresensi}%` : "100%"}
+                </p>
+              </div>
+              <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
+                <span className="font-medium text-slate-400">
+                  {sesiHariIni.length > 0 ? `${totalTerisiHariIni}/${totalSiswaHariIni} siswa` : "Tidak ada jadwal"}
                 </span>
-              );
-            })}
+                <span className="font-semibold text-slate-600">
+                  {sesiHariIni.length > 0 ? `${sesiHariIni.length} sesi` : "Hari ini"}
+                </span>
+              </div>
+            </div>
           </div>
-        ) : (
-          <span className="text-sm text-slate-300">{t("noScheduleTodayPrefix")} <span className="font-semibold text-white">{t("assignedClassesTitle")}</span></span>
-        )}
-      </div>
 
-      {/* KPI */}
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {kpi.map((s) => (
-          <div key={s.label} className={`rounded-2xl border border-slate-200 border-t-4 bg-white p-5 shadow-[0_1px_3px_0_rgba(15,23,42,0.10),0_4px_12px_-6px_rgba(15,23,42,0.08)] ${s.accent}`}>
-            <span className={`inline-grid size-9 place-items-center rounded-lg ${s.tile}`}>
-              <Icon d={s.icon} className="size-5" />
-            </span>
-            <p className="mt-3 font-display text-[26px] font-extrabold leading-none tracking-tight tabular-nums text-slate-900">{s.value}</p>
-            <p className="mt-2.5 text-sm font-bold text-slate-900">{s.label}</p>
-            <p className="mt-0.5 text-[13px] text-slate-600">{s.sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* GRID: sesi + presensi (kiri 2/3) | antrean nilai (kanan 1/3) */}
-      <div className="mt-4 grid items-start gap-4 lg:grid-cols-3">
-        <div className="flex flex-col gap-4 lg:col-span-2">
-          <Panel>
-            <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("todaySessions")}</h2>
-              <p className="text-xs text-slate-500">{t("sessionAttendanceHelp")}</p>
-            </div>
-            {sesiHariIni.length === 0 ? (
-              <div className="px-4 py-10 text-center sm:px-6">
-                <p className="text-sm font-bold text-slate-900">{t("noTeachingToday")}</p>
-                <p className="mt-1 text-[13px] text-slate-500">{t("nextScheduleHelp")}</p>
-                <ButtonLink href="/teacher/classes" size="sm" variant="outline" className="mt-4">{t("viewSchedule")}</ButtonLink>
-              </div>
-            ) : (
-              <ul className="divide-y divide-slate-100">
-                {sesiHariIni.map((j) => {
-                  const k = kelas.find((x) => x.id === j.kelasId);
-                  const nSiswa = siswaPerKelas.get(j.kelasId) ?? 0;
-                  const nTerisi = terisiByItem.get(j.id) ?? 0;
-                  const lewat = toMenit(j.jamSelesai) <= menitNow;
-                  const sedang = !lewat && toMenit(j.jamMulai) <= menitNow;
-                  return (
-                    <li key={j.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-24 flex-shrink-0">
-                          <p className="text-sm font-extrabold tabular-nums text-slate-900">{j.jamMulai.slice(0, 5)}–{j.jamSelesai.slice(0, 5)}</p>
-                          {sedang ? (
-                            <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700">
-                              <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden="true" /> {t("ongoing")}
-                            </span>
-                          ) : lewat ? (
-                            <span className="mt-1 block text-[11px] font-semibold text-slate-400">{t("finished")}</span>
-                          ) : (
-                            <span className="mt-1 block text-[11px] font-semibold text-slate-400">{t("waiting")}</span>
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold text-slate-900">
-                            {mapelById.get(k?.mataPelajaranId ?? 0)?.nama ?? t("class")} · {k?.jenjang ?? "—"}
-                          </p>
-                          <p className="truncate text-xs text-slate-500">
-                            {t("sessionSummary", { count: nSiswa, id: j.kelasId, filled: nTerisi })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="ml-auto flex flex-wrap items-center gap-2">
-                        {nSiswa > 0 && nTerisi === nSiswa ? (
-                          <Badge tone="emerald">{t("attendanceComplete")}</Badge>
-                        ) : null}
-                        <ButtonLink href={`/teacher/classes/${j.kelasId}/sessions/${hariIniStr}/attendance?sesi=${j.id}`} size="sm" variant={sedang && nTerisi < nSiswa ? "default" : "outline"}>
-                          {nTerisi === 0 ? t("fillAttendance") : nTerisi < nSiswa ? t("completeAttendance") : t("openAttendance")}
-                        </ButtonLink>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </Panel>
-
-          {/* KELAS RINGKAS */}
-          <Panel>
-            <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("yourClasses")}</h2>
-                <Link href="/teacher/classes" className="text-sm font-semibold text-blue-700 hover:underline">{t("allClasses")}</Link>
-              </div>
-            </div>
-            {kelas.length === 0 ? (
-              <div className="px-4 py-10 text-center sm:px-6">
-                <p className="text-sm font-bold text-slate-900">{t("noAssignedClasses")}</p>
-                <p className="mt-1 text-[13px] text-slate-500">{t("classAssignmentHelp")}</p>
-              </div>
-            ) : (
-              <ul className="grid gap-3 sm:grid-cols-2">
-                {kelas.slice(0, 4).map((k) => {
-                  const nAktif = siswaPerKelas.get(k.id) ?? 0;
-                  const pct = Math.min(100, Math.round((nAktif / Math.max(k.kuotaMaksimum, 1)) * 100));
-                  const sesi = jadwal.filter((j) => j.kelasId === k.id);
-                  return (
-                    <li key={k.id} className="rounded-xl border border-slate-200 p-5">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-semibold text-slate-900">{mapelById.get(k.mataPelajaranId)?.nama ?? t("class")} · {k.jenjang}</p>
-                          <p className="mt-1 text-xs text-slate-500">
-                            {sesi.map((j) => `${t(`day_${j.hari}`).slice(0, 3)} ${j.jamMulai.slice(0, 5)}`).join(" · ") || t("noSchedule")}
-                          </p>
-                        </div>
-                        <Badge tone={k.status === "aktif" ? "emerald" : "slate"}>{t(`status_${k.status}`)}</Badge>
-                      </div>
-                      <div className="mt-4">
-                        <div className="flex items-baseline justify-between text-xs">
-                          <span className="font-bold tabular-nums text-slate-700">{t("studentCapacity", { count: nAktif, max: k.kuotaMaksimum })}</span>
-                          <span className="tabular-nums text-slate-500">{pct}%</span>
-                        </div>
-                        <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-200/80" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label={t("capacityFilled")}>
-                          <div className={`h-full rounded-full ${pct >= 90 ? "bg-amber-500" : "bg-blue-600"}`} style={{ width: `${pct}%` }} />
-                        </div>
-                      </div>
-                      <Link href={`/teacher/classes/${k.id}`} className="mt-3.5 inline-block text-sm font-semibold text-blue-700 hover:underline">
-                        {t("openRosterAttendance")}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </Panel>
-        </div>
-
-        {/* KANAN: antrean nilai + koreksi */}
-        <div className="flex flex-col gap-4">
-          <Panel>
-            <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("noGrades")}</h2>
-                {belumNilai.length > 0 ? (
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold tabular-nums text-amber-800">{belumNilai.length}</span>
-                ) : null}
-              </div>
-              <p className="text-xs text-slate-500">{t("ungradedStudentsHelp")}</p>
-            </div>
-            {belumNilai.length === 0 ? (
-              <div className="px-4 py-10 text-center sm:px-6">
-                <p className="text-sm font-bold text-slate-900">{t("allStudentsGraded")}</p>
-                <p className="mt-1 text-[13px] text-slate-500">{t("allGradedHelp")}</p>
-              </div>
-            ) : (
-              <ul className="divide-y divide-slate-100">
-                {belumNilai.slice(0, 6).map((p) => {
-                  const a = anakById.get(p.anakId);
-                  const k = kelas.find((x) => x.id === p.kelasId);
-                  return (
-                    <li key={p.id}>
-                      <Link href={`/teacher/grades/${p.id}`} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 sm:px-6">
-                        <span className="grid size-8 flex-shrink-0 place-items-center rounded-full bg-amber-100 text-xs font-bold text-amber-800">
-                          {(a?.nama ?? "?").trim().charAt(0).toUpperCase()}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-semibold text-slate-900">{a?.nama ?? t("childFallback", { id: p.anakId })}</span>
-                          <span className="block truncate text-xs text-slate-500">
-                            {mapelById.get(k?.mataPelajaranId ?? 0)?.nama ?? t("class")} · {k?.jenjang ?? "—"}
-                          </span>
-                        </span>
-                        <span className="flex-shrink-0 text-xs font-bold text-amber-700">{t("ungraded")}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-            {belumNilai.length > 0 ? (
-              <div className="border-t border-slate-100 px-4 py-3 sm:px-6">
-                <Link href="/teacher/grades" className="text-sm font-semibold text-blue-700 hover:underline">
-                  {t("enterGradesNow")}
-                </Link>
-              </div>
-            ) : null}
-          </Panel>
-
-          <Panel>
-            <div className={`p-4 sm:p-6 ${terkunciCount > 0 ? "" : "text-center"}`}>
-              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("correctionsLocks")}</h2>
-              <p className={`mt-1 text-[13px] leading-relaxed text-slate-600 ${terkunciCount > 0 ? "" : "mx-auto max-w-[26ch]"}`}>
-                {terkunciCount > 0
-                  ? t("lockedEntriesHelp", { count: terkunciCount })
-                  : t("noLockedEntriesHelp")}
-              </p>
-              <Link href="/teacher/corrections" className={`mt-3 inline-block text-sm font-semibold text-blue-700 hover:underline`}>
-                {t("viewCorrectionRules")}
+          {/* 3. Kelas Diampu (Clean Grid with Single Detail Action) */}
+          <div className="space-y-3.5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                Kelas Diampu
+              </h2>
+              <Link
+                href="/teacher/classes"
+                className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                <span>Lihat Semua</span>
+                <ChevronRight className="size-3.5" />
               </Link>
             </div>
-          </Panel>
+
+            {kelasAktif.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {kelasAktif.map((k) => {
+                  const m = mapelById.get(k.mataPelajaranId);
+                  const p = periodeById.get(k.periodeId);
+                  const students = siswaByKelas.get(k.id) ?? [];
+                  const tema = JENJANG_BADGE[k.jenjang] || JENJANG_BADGE.SD;
+
+                  const jadwalKelas = jadwal.filter((j) => j.kelasId === k.id);
+                  const jadwalStr = jadwalKelas.length > 0
+                    ? jadwalKelas.map((j) => `${j.hari} (${j.jamMulai} - ${j.jamSelesai})`).join(", ")
+                    : "Jadwal belum ditentukan";
+
+                  return (
+                    <div
+                      key={k.id}
+                      className="group flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:border-blue-200 hover:shadow-sm transition-all"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-bold ${tema.badge}`}>
+                            <GraduationCap className="size-3.5" />
+                            {k.jenjang} {k.tingkat ? `· ${k.tingkat}` : ""}
+                          </span>
+                          <span className="text-[11px] font-semibold text-slate-400 truncate max-w-[140px]">
+                            {p?.nama ?? "Periode Aktif"}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h3 className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                            {m?.nama ?? "Mata Pelajaran"}
+                          </h3>
+                          {m?.deskripsi && (
+                            <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
+                              {m.deskripsi}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs font-medium text-slate-600 bg-slate-50 rounded-xl p-2.5">
+                          <Calendar className="size-4 shrink-0 text-slate-400" />
+                          <span className="line-clamp-1">{jadwalStr}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
+                          <div className="flex items-center">
+                            <div className="flex -space-x-2 overflow-hidden">
+                              {students.slice(0, 3).map((s, idx) => {
+                                const anak = anakById.get(s.anakId);
+                                const initial = (anak?.nama?.[0] || "S").toUpperCase();
+                                const colorClass = AVATAR_COLORS[idx % AVATAR_COLORS.length];
+                                return (
+                                  <div
+                                    key={s.id}
+                                    title={anak?.nama}
+                                    className={`inline-grid size-7 place-items-center rounded-full ring-2 ring-white text-[11px] font-bold ${colorClass}`}
+                                  >
+                                    {initial}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            <span className="ml-2.5 text-xs font-semibold text-slate-600">
+                              {students.length} Siswa
+                            </span>
+                          </div>
+
+                          <span className="text-[11px] font-bold text-slate-400">
+                            Kuota: {students.length}/{k.kuotaMaksimum}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-slate-100">
+                        <Link
+                          href={`/teacher/classes/${k.id}`}
+                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 px-4 text-xs font-bold text-white shadow-xs hover:bg-blue-700 active:scale-[0.99] transition-all cursor-pointer"
+                        >
+                          <span>Detail Kelas</span>
+                          <ChevronRight className="size-3.5" />
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center space-y-1.5">
+                <BookOpen className="size-8 mx-auto text-slate-300" />
+                <p className="text-sm font-bold text-slate-700">Belum ada kelas aktif</p>
+                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  Daftar rombongan belajar Anda akan muncul di sini.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* 4. Antrean Penilaian */}
+          <div className="space-y-3.5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                Antrean Penilaian
+              </h2>
+              <Link
+                href="/teacher/grades"
+                className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
+              >
+                <span>Halaman Nilai</span>
+                <ChevronRight className="size-3.5" />
+              </Link>
+            </div>
+
+            {antreanPenilaian.length > 0 ? (
+              <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+                <div className="divide-y divide-slate-100">
+                  {antreanPenilaian.slice(0, 5).map((item, idx) => {
+                    const initial = (item.anakNama?.[0] || "S").toUpperCase();
+                    const colorClass = AVATAR_COLORS[idx % AVATAR_COLORS.length];
+
+                    return (
+                      <div
+                        key={item.key}
+                        className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 hover:bg-slate-50/70 transition-colors"
+                      >
+                        <div className="flex items-center gap-3.5">
+                          <div className={`grid size-9 shrink-0 place-items-center rounded-xl text-xs font-black shadow-2xs ${colorClass}`}>
+                            {initial}
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900">
+                              {item.anakNama}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                              <span className="text-[11px] text-slate-500">
+                                {item.penilaianJudul}
+                              </span>
+                              <span className="text-slate-300">·</span>
+                              <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.2 text-[10px] font-semibold text-slate-600">
+                                {item.kelasNama}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-end gap-3 self-end sm:self-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                          <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg sm:hidden">
+                            Belum Dinilai
+                          </span>
+                          <Link
+                            href={`/teacher/grades/${item.pendaftaranId}`}
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/80 px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-600 hover:text-white transition-all cursor-pointer"
+                          >
+                            <span>Beri Nilai</span>
+                            <ChevronRight className="size-3" />
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {antreanPenilaian.length > 5 && (
+                  <div className="bg-slate-50/80 p-3 text-center border-t border-slate-100">
+                    <Link
+                      href="/teacher/grades"
+                      className="text-xs font-bold text-blue-600 hover:underline"
+                    >
+                      Lihat semua antrean penilaian ({antreanPenilaian.length})
+                    </Link>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-slate-100 bg-white p-6 text-center space-y-1.5">
+                <div className="grid size-9 place-items-center rounded-full bg-emerald-50 text-emerald-600 mx-auto">
+                  <CheckCircle2 className="size-5 stroke-[2.5]" />
+                </div>
+                <p className="text-xs font-bold text-slate-800">
+                  Semua tugas sudah dinilai
+                </p>
+                <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+                  Belum ada penilaian baru yang perlu diperiksa.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ======================================================= */}
+        {/* RIGHT COLUMN: Interactive Schedule & Calendar Rail       */}
+        {/* ======================================================= */}
+        <div className="lg:col-span-4 order-2 space-y-6">
+          <TeacherScheduleWidget
+            sessions={scheduleSessions}
+            todayStr={hariIniStr}
+            locale={locale}
+          />
         </div>
       </div>
-    </PageShell>
+    </div>
   );
 }

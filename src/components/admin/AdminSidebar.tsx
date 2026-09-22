@@ -161,7 +161,7 @@ export default function AdminSidebar({ role, navSections, userName = 'Admin', us
 
   const brand = (
     <div className="flex h-16 flex-shrink-0 items-center gap-2 border-b border-slate-100 px-5">
-      <Link href="/" className="flex items-center" aria-label={t("brandAria")}>
+      <Link href="/admin/dashboard" className="flex items-center" aria-label={t("brandAria")}>
         <Image src="/images/Logo.png" alt="Siedu" width={120} height={36} className="h-8 w-auto" />
       </Link>
       <span className="ml-auto rounded-full border border-blue-100 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
@@ -182,7 +182,7 @@ export default function AdminSidebar({ role, navSections, userName = 'Admin', us
       {/* Top bar mobile */}
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 lg:hidden">
         <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center" aria-label={t("brandAria")}>
+          <Link href="/admin/dashboard" className="flex items-center" aria-label={t("brandAria")}>
             <Image src="/images/Logo.png" alt="Siedu" width={120} height={36} className="h-8 w-auto" />
           </Link>
           <span className="rounded-full border border-blue-100 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">

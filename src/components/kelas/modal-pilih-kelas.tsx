@@ -30,14 +30,14 @@ const KELAS_PER_JENJANG: Record<string, Array<{ value: string; label: string }>>
     { value: "Kelas 6", label: "Kelas 6" },
   ],
   SMP: [
-    { value: "Kelas 1", label: "Kelas 1" },
-    { value: "Kelas 2", label: "Kelas 2" },
-    { value: "Kelas 3", label: "Kelas 3" },
+    { value: "Kelas 7", label: "Kelas 7" },
+    { value: "Kelas 8", label: "Kelas 8" },
+    { value: "Kelas 9", label: "Kelas 9" },
   ],
   SMA: [
-    { value: "Kelas 1", label: "Kelas 1" },
-    { value: "Kelas 2", label: "Kelas 2" },
-    { value: "Kelas 3", label: "Kelas 3" },
+    { value: "Kelas 10", label: "Kelas 10" },
+    { value: "Kelas 11", label: "Kelas 11" },
+    { value: "Kelas 12", label: "Kelas 12" },
   ],
   TK: [
     { value: "TK A", label: "TK A" },
@@ -51,18 +51,18 @@ function matchesTingkat(cTingkat: string | null | undefined, targetTingkat: stri
   const target = targetTingkat.trim().toLowerCase();
   if (t === target) return true;
 
-  // SMP: Kelas 1 <-> Kelas 7, Kelas 2 <-> Kelas 8, Kelas 3 <-> Kelas 9
+  // SMP: Kelas 7 <-> Kelas 1, Kelas 8 <-> Kelas 2, Kelas 9 <-> Kelas 3
   if (jenjang.toUpperCase() === "SMP") {
-    if (target === "kelas 1" && (t === "kelas 7" || t.includes("7"))) return true;
-    if (target === "kelas 2" && (t === "kelas 8" || t.includes("8"))) return true;
-    if (target === "kelas 3" && (t === "kelas 9" || t.includes("9"))) return true;
+    if ((target === "kelas 7" || target === "kelas 1") && (t === "kelas 7" || t === "kelas 1" || t.includes("7") || t === "1")) return true;
+    if ((target === "kelas 8" || target === "kelas 2") && (t === "kelas 8" || t === "kelas 2" || t.includes("8") || t === "2")) return true;
+    if ((target === "kelas 9" || target === "kelas 3") && (t === "kelas 9" || t === "kelas 3" || t.includes("9") || t === "3")) return true;
   }
 
-  // SMA: Kelas 1 <-> Kelas 10, Kelas 2 <-> Kelas 11, Kelas 3 <-> Kelas 12
+  // SMA: Kelas 10 <-> Kelas 1, Kelas 11 <-> Kelas 2, Kelas 12 <-> Kelas 3
   if (jenjang.toUpperCase() === "SMA") {
-    if (target === "kelas 1" && (t === "kelas 10" || t.includes("10"))) return true;
-    if (target === "kelas 2" && (t === "kelas 11" || t.includes("11"))) return true;
-    if (target === "kelas 3" && (t === "kelas 12" || t.includes("12"))) return true;
+    if ((target === "kelas 10" || target === "kelas 1") && (t === "kelas 10" || t === "kelas 1" || t.includes("10") || t === "1")) return true;
+    if ((target === "kelas 11" || target === "kelas 2") && (t === "kelas 11" || t === "kelas 2" || t.includes("11") || t === "2")) return true;
+    if ((target === "kelas 12" || target === "kelas 3") && (t === "kelas 12" || t === "kelas 3" || t.includes("12") || t === "3")) return true;
   }
 
   return false;

@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'b008c632efad262ec1527d3a9d46b387b7fbad37d1dbd6720be7cffde1e9a9d3'>;
+  StorageHashBase<'7829a85fcbccf9a83afe3a47e17ed5c7fec0f1b6f3638ad4f13c7e3f29a8c39e'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -246,6 +246,7 @@ export type FieldOutputTypes = {
       readonly nama: CodecTypes['pg/text@1']['output'];
       readonly tanggalLahir: CodecTypes['pg/date-string@1']['output'];
       readonly jenjangTerakhir: 'TK' | 'SD' | 'SMP' | 'SMA' | null;
+      readonly tingkat: CodecTypes['pg/text@1']['output'] | null;
       readonly emailNotifikasi: CodecTypes['pg/text@1']['output'] | null;
       readonly nomorTelepon: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -527,6 +528,7 @@ export type FieldInputTypes = {
       readonly nama: CodecTypes['pg/text@1']['input'];
       readonly tanggalLahir: CodecTypes['pg/date-string@1']['input'];
       readonly jenjangTerakhir: 'TK' | 'SD' | 'SMP' | 'SMA' | null;
+      readonly tingkat: CodecTypes['pg/text@1']['input'] | null;
       readonly emailNotifikasi: CodecTypes['pg/text@1']['input'] | null;
       readonly nomorTelepon: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -812,6 +814,7 @@ export type StorageColumnTypes = {
       readonly orang_tua_id: CodecTypes['pg/int4@1']['output'];
       readonly persetujuan_foto: CodecTypes['pg/bool@1']['output'];
       readonly tanggal_lahir: CodecTypes['pg/date-string@1']['output'];
+      readonly tingkat: CodecTypes['pg/text@1']['output'] | null;
       readonly updated_at: CodecTypes['pg/timestamptz-string@1']['output'];
     };
     readonly audit_perubahan: {
@@ -1093,6 +1096,7 @@ export type StorageColumnInputTypes = {
       readonly orang_tua_id: CodecTypes['pg/int4@1']['input'];
       readonly persetujuan_foto: CodecTypes['pg/bool@1']['input'];
       readonly tanggal_lahir: CodecTypes['pg/date-string@1']['input'];
+      readonly tingkat: CodecTypes['pg/text@1']['input'] | null;
       readonly updated_at: CodecTypes['pg/timestamptz-string@1']['input'];
     };
     readonly audit_perubahan: {
@@ -1407,6 +1411,11 @@ type ContractBase = Omit<
                   readonly nullable: false;
                 };
                 readonly jenjang_terakhir: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly tingkat: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
@@ -3707,6 +3716,7 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [
                 { readonly columns: readonly ['email'] },
+                { readonly columns: readonly ['nomor_telepon'] },
                 { readonly columns: readonly ['google_sub'] },
               ];
               indexes: readonly [
@@ -3926,6 +3936,10 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly tingkat: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly emailNotifikasi: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -3994,6 +4008,7 @@ type ContractBase = Omit<
                 readonly nama: { readonly column: 'nama' };
                 readonly tanggalLahir: { readonly column: 'tanggal_lahir' };
                 readonly jenjangTerakhir: { readonly column: 'jenjang_terakhir' };
+                readonly tingkat: { readonly column: 'tingkat' };
                 readonly emailNotifikasi: { readonly column: 'email_notifikasi' };
                 readonly nomorTelepon: { readonly column: 'nomor_telepon' };
                 readonly createdAt: { readonly column: 'created_at' };

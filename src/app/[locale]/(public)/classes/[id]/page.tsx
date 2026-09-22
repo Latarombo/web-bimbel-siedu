@@ -3,16 +3,11 @@ import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
-  CalendarDays,
   Check,
   ExternalLink,
-  MapPin,
-  Users,
-  BookOpen,
-  Target,
-  ShieldCheck,
 } from "lucide-react";
-import { SITE, MAPS_SEARCH_URL } from "@/lib/site";
+import { SITE, MAPS_SEARCH_URL, LOKASI_LAT, LOKASI_LNG } from "@/lib/site";
+import PetaLokasi from "@/components/contact/PetaLokasi";
 import { SkemaPembayaran } from "@/components/kelas/skema-pembayaran";
 import { kelasAktifPublik, toKelasKatalog } from "@/lib/kelas";
 import { labelHari } from "@/lib/label";
@@ -20,6 +15,11 @@ import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { ModalPilihKelas } from "@/components/kelas/modal-pilih-kelas";
+import {
+  FASILITAS_KELAS,
+  getKetentuanPendaftaran,
+  targetPembelajaran,
+} from "@/lib/kelas-konten";
 
 export const dynamic = "force-dynamic";
 
@@ -29,59 +29,6 @@ function durasiMenit(mulai: string | Date, selesai: string | Date): number {
   if (isNaN(h1) || isNaN(m1) || isNaN(h2) || isNaN(m2)) return 90;
   const d = (h2 * 60 + m2) - (h1 * 60 + m1);
   return d > 0 ? d : 90;
-}
-
-function targetPembelajaran(mapel: string, jenjang: string): string[] {
-  const m = mapel.toLowerCase();
-  if (m.includes("matematika")) {
-    if (jenjang === "TK") {
-      return [
-        "Pengenalan angka, hitung dasar, serta logika pola dan bentuk secara ceria dan interaktif.",
-        "Stimulasi pemecahan masalah sederhana dan keterampilan motorik halus anak.",
-        "Membangun rasa suka, percaya diri, dan antusiasme belajar berhitung sejak usia dini.",
-      ];
-    }
-    if (jenjang === "SD") {
-      return [
-        "Penguasaan konsep berhitung esensial (pecahan, desimal, operasi hitung campuran, KPK & FPB).",
-        "Kecakapan menalar soal cerita berbasis literasi numerasi AKM dan penerapan logika matematika.",
-        "Kesiapan optimal menghadapi ulangan harian, ujian sekolah, dan asesmen kenaikan kelas.",
-      ];
-    }
-    if (jenjang === "SMP") {
-      return [
-        "Pemahaman mendalam aljabar, geometri, persamaan linear, statistika, dan fungsi relasi.",
-        "Kemampuan menyelesaikan latihan soal analitis tipe HOTS (Higher Order Thinking Skills).",
-        "Kesiapan menghadapi asesmen sumatif semester dan pemantapan dasar matematika SMA.",
-      ];
-    }
-    if (jenjang === "SMA") {
-      return [
-        "Penguasaan materi kalkulus, trigonometri analitik, matriks, dan peluang statistik.",
-        "Latihan intensif pemecahan pola soal penalaran matematika untuk persiapan ujian dan seleksi PTN.",
-        "Peningkatan penguasaan konsep penting guna mendukung peningkatan nilai rapor akademik.",
-      ];
-    }
-  }
-  if (m.includes("ipa") || m.includes("biologi") || m.includes("fisika") || m.includes("kimia")) {
-    return [
-      `Pemahaman konsep fundamental sains & materi kurikulum sekolah jenjang ${jenjang}.`,
-      "Kemampuan analisis eksperimen, pemahaman rumus, dan penalaran ilmiah berbasis bukti.",
-      "Kesiapan menghadapi ulangan harian, ujian semester, serta praktikum sekolah.",
-    ];
-  }
-  if (m.includes("inggris") || m.includes("english")) {
-    return [
-      "Peningkatan kosakata (vocabulary), tata bahasa (grammar), dan kelancaran membaca teks.",
-      "Kecakapan memahami teks bacaan (reading comprehension) dan menyusun kalimat terstruktur.",
-      "Kesiapan menghadapi ujian sekolah, asesmen bahasa, dan tugas presentasi.",
-    ];
-  }
-  return [
-    `Penguasaan konsep inti kurikulum mata pelajaran ${mapel} jenjang ${jenjang}.`,
-    "Pembahasan latihan soal variatif, penyelesaian tugas sekolah, dan konsultasi PR harian.",
-    "Kesiapan matang menghadapi ulangan harian, asesmen tengah semester, dan ujian sekolah.",
-  ];
 }
 
 export default async function ClassDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -209,7 +156,7 @@ export default async function ClassDetail({ params }: { params: Promise<{ id: st
 
       {/* Konten Utama: 2 Kolom Layout, Melayang Masuk ke Hero */}
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-12 lg:-mt-14 pb-20 lg:pb-16">
-        <div className="grid gap-6 lg:gap-8 lg:grid-cols-12 items-start">
+        <div className="grid gap-6 lg:gap-8 lg:grid-cols-12">
           {/* Kolom Kiri (Lebar 7): Card Utama Terpadu */}
           <div className="lg:col-span-7 space-y-4">
             <div className="rounded-2xl sm:rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-xs">
@@ -234,8 +181,7 @@ export default async function ClassDetail({ params }: { params: Promise<{ id: st
                   {/* Jadwal Sesi Belajar */}
                   <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h3 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900">
-                        <CalendarDays className="size-4 text-blue-600" strokeWidth={1.8} aria-hidden="true" />
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-900">
                         Jadwal Sesi Belajar
                       </h3>
                       <span className="text-xs text-slate-500">
@@ -277,8 +223,7 @@ export default async function ClassDetail({ params }: { params: Promise<{ id: st
                   {/* Kuota & Ketersediaan Kelas */}
                   <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
                     <div className="flex items-center justify-between text-xs sm:text-sm">
-                      <h3 className="flex items-center gap-2 font-bold text-slate-900 text-xs sm:text-sm">
-                        <Users className="size-4 text-blue-600" strokeWidth={1.8} aria-hidden="true" />
+                      <h3 className="font-bold text-slate-900 text-xs sm:text-sm">
                         {tr("text208")}
                       </h3>
                       <span className="text-xs text-slate-600">
@@ -317,97 +262,18 @@ export default async function ClassDetail({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
 
-                {/* 2. Fasilitas & Pendampingan Belajar */}
+                {/* 2. Target Pembelajaran */}
                 <div className="border-t border-slate-100 pt-5 space-y-3">
-                  <h3 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900">
-                    <BookOpen className="size-4 text-blue-600" strokeWidth={1.8} aria-hidden="true" />
-                    Fasilitas & Pendampingan Belajar
-                  </h3>
-                  <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 bg-slate-50 p-4 sm:p-5">
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5">
-                      <li className="flex items-start gap-2.5">
-                        <span className="mt-0.5 grid size-[18px] shrink-0 place-items-center rounded-full bg-emerald-500" aria-hidden="true">
-                          <Check className="size-3 text-white" strokeWidth={3} />
-                        </span>
-                        <div>
-                          <strong className="text-xs sm:text-sm font-semibold text-slate-900 block">Tatap Muka Kelas Intensif</strong>
-                          <span className="text-xs text-slate-500 leading-relaxed block mt-0.5">
-                            Ruang kelas ber-AC dengan rasio tutor dan murid terukur.
-                          </span>
-                        </div>
-                      </li>
-
-                      <li className="flex items-start gap-2.5">
-                        <span className="mt-0.5 grid size-[18px] shrink-0 place-items-center rounded-full bg-emerald-500" aria-hidden="true">
-                          <Check className="size-3 text-white" strokeWidth={3} />
-                        </span>
-                        <div>
-                          <strong className="text-xs sm:text-sm font-semibold text-slate-900 block">Modul Cetak & Bank Soal</strong>
-                          <span className="text-xs text-slate-500 leading-relaxed block mt-0.5">
-                            Bahan ajar kurikulum sekolah terkini dan latihan variatif.
-                          </span>
-                        </div>
-                      </li>
-
-                      <li className="flex items-start gap-2.5">
-                        <span className="mt-0.5 grid size-[18px] shrink-0 place-items-center rounded-full bg-emerald-500" aria-hidden="true">
-                          <Check className="size-3 text-white" strokeWidth={3} />
-                        </span>
-                        <div>
-                          <strong className="text-xs sm:text-sm font-semibold text-slate-900 block">Bimbingan PR & Tugas Sekolah</strong>
-                          <span className="text-xs text-slate-500 leading-relaxed block mt-0.5">
-                            Pendampingan langsung menyelesaikan kesulitan PR harian.
-                          </span>
-                        </div>
-                      </li>
-
-                      <li className="flex items-start gap-2.5">
-                        <span className="mt-0.5 grid size-[18px] shrink-0 place-items-center rounded-full bg-emerald-500" aria-hidden="true">
-                          <Check className="size-3 text-white" strokeWidth={3} />
-                        </span>
-                        <div>
-                          <strong className="text-xs sm:text-sm font-semibold text-slate-900 block">Laporan Progres ke Orang Tua</strong>
-                          <span className="text-xs text-slate-500 leading-relaxed block mt-0.5">
-                            Presensi dan rekap nilai terpantau lewat portal wali.
-                          </span>
-                        </div>
-                      </li>
-
-                      <li className="flex items-start gap-2.5">
-                        <span className="mt-0.5 grid size-[18px] shrink-0 place-items-center rounded-full bg-emerald-500" aria-hidden="true">
-                          <Check className="size-3 text-white" strokeWidth={3} />
-                        </span>
-                        <div>
-                          <strong className="text-xs sm:text-sm font-semibold text-slate-900 block">Simulasi Ujian & Tryout</strong>
-                          <span className="text-xs text-slate-500 leading-relaxed block mt-0.5">
-                            Latihan berkala menjelang PTS, PAS, atau ujian sekolah.
-                          </span>
-                        </div>
-                      </li>
-
-                      <li className="flex items-start gap-2.5">
-                        <span className="mt-0.5 grid size-[18px] shrink-0 place-items-center rounded-full bg-emerald-500" aria-hidden="true">
-                          <Check className="size-3 text-white" strokeWidth={3} />
-                        </span>
-                        <div>
-                          <strong className="text-xs sm:text-sm font-semibold text-slate-900 block">Konsultasi Personal & Remedial</strong>
-                          <span className="text-xs text-slate-500 leading-relaxed block mt-0.5">
-                            Sesi tanya jawab ekstra untuk materi yang belum tuntas.
-                          </span>
-                        </div>
-                      </li>
-                    </ul>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                      Target Pembelajaran
+                    </h3>
+                    <span className="text-[11px] font-semibold text-slate-400">
+                      {kc.mapel} · {kc.jenjang}
+                    </span>
                   </div>
-                </div>
-
-                {/* 3. Target Pembelajaran */}
-                <div className="border-t border-slate-100 pt-5 space-y-3">
-                  <h3 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900">
-                    <Target className="size-4 text-blue-600" strokeWidth={1.8} aria-hidden="true" />
-                    Target Pembelajaran ({kc.mapel} {kc.jenjang})
-                  </h3>
                   <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 bg-slate-50 p-4 sm:p-5">
-                    <ul className="space-y-2 text-xs sm:text-sm text-slate-600">
+                    <ul className="space-y-2.5 text-xs sm:text-sm text-slate-600">
                       {targets.map((t) => (
                         <li key={t} className="flex items-start gap-2.5">
                           <span
@@ -421,65 +287,80 @@ export default async function ClassDetail({ params }: { params: Promise<{ id: st
                   </div>
                 </div>
 
+                {/* 3. Fasilitas & Pendampingan Belajar */}
+                <div className="border-t border-slate-100 pt-5 space-y-3">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                    Fasilitas & Pendampingan Belajar
+                  </h3>
+                  <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 bg-slate-50 p-4 sm:p-5">
+                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5">
+                      {FASILITAS_KELAS.map((item) => (
+                        <li key={item.id} className="flex items-start gap-2.5">
+                          <span className="mt-0.5 grid size-[18px] shrink-0 place-items-center rounded-full bg-emerald-500" aria-hidden="true">
+                            <Check className="size-3 text-white" strokeWidth={3} />
+                          </span>
+                          <div>
+                            <strong className="text-xs sm:text-sm font-semibold text-slate-900 block">{item.judul}</strong>
+                            <span className="text-xs text-slate-500 leading-relaxed block mt-0.5">
+                              {item.deskripsi}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
                 {/* 4. Lokasi Belajar */}
                 <div className="border-t border-slate-100 pt-5 space-y-3">
-                  <h3 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900">
-                    <MapPin className="size-4 text-blue-600" strokeWidth={1.8} aria-hidden="true" />
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900">
                     Lokasi Belajar
                   </h3>
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/80">
-                    <div>
-                      <strong className="text-xs sm:text-sm font-bold text-slate-900 block">{SITE.nama}</strong>
-                      <span className="text-xs text-slate-500 block leading-relaxed mt-0.5">{SITE.alamat.join(", ")}</span>
+                  <div className="rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/80 p-4 sm:p-5 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                      <div>
+                        <strong className="text-xs sm:text-sm font-bold text-slate-900 block">{SITE.nama}</strong>
+                        <span className="text-xs text-slate-500 block leading-relaxed mt-0.5">{SITE.alamat.join(", ")}</span>
+                      </div>
+                      <a
+                        href={MAPS_SEARCH_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 shrink-0 transition-colors shadow-2xs cursor-pointer"
+                      >
+                        <ExternalLink className="size-3.5 text-slate-500" />
+                        Buka di Maps
+                      </a>
                     </div>
-                    <a
-                      href={MAPS_SEARCH_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 hover:text-slate-900 shrink-0 transition-colors shadow-2xs"
-                    >
-                      <ExternalLink className="size-3.5 text-slate-500" />
-                      Buka di Maps
-                    </a>
+
+                    {/* Interactive Leaflet Map Preview */}
+                    <div className="relative h-[260px] w-full rounded-xl overflow-hidden border border-slate-200 shadow-2xs bg-slate-100">
+                      <PetaLokasi
+                        lat={LOKASI_LAT}
+                        lng={LOKASI_LNG}
+                        mapsHref={MAPS_SEARCH_URL}
+                        className="h-full w-full z-0 cursor-grab active:cursor-grabbing"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 {/* 5. Ketentuan Kelas & Pembayaran */}
                 <div className="border-t border-slate-100 pt-5 space-y-3">
-                  <h3 className="flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-900">
-                    <ShieldCheck className="size-4 text-amber-600" strokeWidth={1.8} aria-hidden="true" />
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900">
                     Ketentuan Pendaftaran & Pembayaran
                   </h3>
-                  <div className="rounded-xl sm:rounded-2xl bg-amber-50/80 border border-amber-200/80 p-4 sm:p-5">
+                  <div className="rounded-xl sm:rounded-2xl bg-amber-50/80 border border-amber-200/90 p-4 sm:p-5">
                     <ul className="space-y-3 text-xs sm:text-sm text-slate-700">
-                      <li className="flex items-start gap-2.5">
-                        <span className="font-bold shrink-0 text-amber-600 leading-5">•</span>
-                        <span className="leading-relaxed">
-                          <strong className="text-slate-900 font-semibold">Batas Waktu Pembayaran:</strong>{" "}
-                          Pembayaran harus diselesaikan maksimal 24 jam setelah invoice dibuat agar pendaftaran tidak otomatis dibatalkan sistem.
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2.5">
-                        <span className="font-bold shrink-0 text-amber-600 leading-5">•</span>
-                        <span className="leading-relaxed">
-                          <strong className="text-slate-900 font-semibold">Kuota Minimum Kelas:</strong>{" "}
-                          Kelas dimulai efektif setelah kuota minimum {kc.kuotaMinimum} siswa terpenuhi sebelum jadwal sesi perdana.
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2.5">
-                        <span className="font-bold shrink-0 text-amber-600 leading-5">•</span>
-                        <span className="leading-relaxed">
-                          <strong className="text-slate-900 font-semibold">Pengambilan Modul Materi:</strong>{" "}
-                          Buku panduan dan modul cetak langsung dibagikan kepada siswa pada pertemuan tatap muka pertama di lokasi bimbel.
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-2.5">
-                        <span className="font-bold shrink-0 text-amber-600 leading-5">•</span>
-                        <span className="leading-relaxed">
-                          <strong className="text-slate-900 font-semibold">Skema Pelunasan & Cicilan:</strong>{" "}
-                          Pendaftar yang memilih opsi DP wajib melunasi angsuran berikutnya secara mandiri sebelum tanggal jatuh tempo tiap bulan.
-                        </span>
-                      </li>
+                      {getKetentuanPendaftaran(kc.kuotaMinimum).map((k, idx) => (
+                        <li key={idx} className="flex items-start gap-2.5">
+                          <span className="font-bold shrink-0 text-amber-600 leading-5">•</span>
+                          <span className="leading-relaxed">
+                            <strong className="text-slate-900 font-semibold">{k.judul}:</strong>{" "}
+                            {k.deskripsi}
+                          </span>
+                        </li>
+                      ))}
                     </ul>
                   </div>
                 </div>

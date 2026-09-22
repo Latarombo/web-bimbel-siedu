@@ -302,4 +302,20 @@
      transparent
    );
  }
+
+ /* Penanda "sekarang" di garis waktu dashboard guru: denyut halus sekali
+    momen (frontend-design: motion tunggal yang menarik perhatian). Durasi
+    di-nol-kan otomatis oleh blok prefers-reduced-motion di atas. */
+ .now-pulse {
+   animation: now-pulse 2.2s ease-in-out infinite;
+ }
+}
+
+@keyframes now-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(34, 113, 149, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(34, 113, 149, 0);
+  }
 }

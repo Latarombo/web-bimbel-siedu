@@ -507,6 +507,13 @@
                   "kind": "scalar"
                 }
               },
+              "tingkat": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "updatedAt": {
                 "nullable": false,
                 "type": {
@@ -590,6 +597,9 @@
                 },
                 "tanggalLahir": {
                   "column": "tanggal_lahir"
+                },
+                "tingkat": {
+                  "column": "tingkat"
                 },
                 "updatedAt": {
                   "column": "updated_at"
@@ -4168,6 +4178,11 @@
                   "nativeType": "date",
                   "nullable": false
                 },
+                "tingkat": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "updated_at": {
                   "codecId": "pg/timestamptz-string@1",
                   "default": {
@@ -7373,6 +7388,11 @@
                 },
                 {
                   "columns": [
+                    "nomor_telepon"
+                  ]
+                },
+                {
+                  "columns": [
                     "google_sub"
                   ]
                 }
@@ -7533,7 +7553,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "b008c632efad262ec1527d3a9d46b387b7fbad37d1dbd6720be7cffde1e9a9d3"
+    "storageHash": "7829a85fcbccf9a83afe3a47e17ed5c7fec0f1b6f3638ad4f13c7e3f29a8c39e"
   },
   "capabilities": {
     "postgres": {

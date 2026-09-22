@@ -1,0 +1,86 @@
+[
+  {
+    "id": "column.public.anak.tingkat",
+    "label": "Add column \"tingkat\" to \"anak\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "tingkat",
+        "table": "anak"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"tingkat\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "anak",
+          "tingkat"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"tingkat\"",
+        "sql": "ALTER TABLE \"public\".\"anak\" ADD COLUMN \"tingkat\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"tingkat\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "anak",
+          "tingkat"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unique.users.users_nomor_telepon_key",
+    "label": "Add unique constraint on \"users\" (nomor_telepon)",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "unique",
+        "name": "users_nomor_telepon_key",
+        "table": "users"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"users_nomor_telepon_key\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "users_nomor_telepon_key",
+          "public",
+          "\"public\".\"users\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add unique constraint \"users_nomor_telepon_key\"",
+        "sql": "ALTER TABLE \"public\".\"users\" ADD CONSTRAINT \"users_nomor_telepon_key\" UNIQUE (\"nomor_telepon\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"users_nomor_telepon_key\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "users_nomor_telepon_key",
+          "public",
+          "\"public\".\"users\""
+        ]
+      }
+    ]
+  }
+]

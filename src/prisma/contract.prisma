@@ -92,7 +92,7 @@ model User {
   name               String
   email              String             @unique
   alamat             String?
-  nomorTelepon       String             @map("nomor_telepon")
+  nomorTelepon       String             @unique @map("nomor_telepon")
   emailVerifiedAt    TimestamptzString? @map("email_verified_at")
   password           String
   googleSub          String?            @unique @map("google_sub")
@@ -126,6 +126,7 @@ model Anak {
   nama            String
   tanggalLahir    DateString        @map("tanggal_lahir")
   jenjangTerakhir Jenjang?          @map("jenjang_terakhir")
+  tingkat         String?           @map("tingkat")
   emailNotifikasi String?           @map("email_notifikasi")
   nomorTelepon    String?           @map("nomor_telepon")
   createdAt       TimestamptzString @default(now()) @map("created_at")

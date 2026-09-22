@@ -17,6 +17,18 @@ const intlMiddleware = createMiddleware(routing);
 // Prefix halaman area Orang Tua (harus role orang_tua).
 const PARENT_PREFIXES = ['/home', '/children', '/enrollments', '/payments', '/profile', '/schedule-attendance'];
 
+// Halaman publik dan autentikasi
+const PUBLIC_PREFIXES = ['/about', '/classes', '/contact', '/privacy-policy', '/terms'];
+const AUTH_PREFIXES = ['/login', '/register', '/forgot-password', '/reset-password'];
+
+function isPublic(base: string): boolean {
+  if (base === '/') return true;
+  return (
+    PUBLIC_PREFIXES.some((p) => base === p || base.startsWith(`${p}/`)) ||
+    AUTH_PREFIXES.some((p) => base === p || base.startsWith(`${p}/`))
+  );
+}
+
 // Dashboard sesuai role — dipakai buat menendang user yang masuk area bukan miliknya.
 function homeFor(role: string): string {
   return role === 'admin' ? '/admin/dashboard' : role === 'guru' ? '/teacher/dashboard' : '/home';
@@ -65,9 +77,15 @@ export default auth((req) => {
     const role = session.user.role;
     const home = homeFor(role);
     const diParent = PARENT_PREFIXES.some((p) => base === p || base.startsWith(`${p}/`));
-    if ((base.startsWith('/admin') && role !== 'admin') ||
-        (base.startsWith('/teacher') && role !== 'guru') ||
-        (diParent && role !== 'orang_tua')) {
+
+    // Admin dan guru tidak boleh mengakses halaman public maupun auth
+    if ((role === 'admin' || role === 'guru') && isPublic(base)) {
+      redirectRes = NextResponse.redirect(ke(home));
+    } else if (
+      (base.startsWith('/admin') && role !== 'admin') ||
+      (base.startsWith('/teacher') && role !== 'guru') ||
+      (diParent && role !== 'orang_tua')
+    ) {
       redirectRes = NextResponse.redirect(ke(home));
     }
   }

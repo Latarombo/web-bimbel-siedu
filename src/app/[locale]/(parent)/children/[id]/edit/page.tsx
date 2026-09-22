@@ -27,6 +27,7 @@ export default async function EditChildPage({
   if (!Number.isInteger(anakId)) notFound();
 
   const ortuId = Number(session.user.id);
+  const parent = await db.orm.public.User.where({ id: ortuId }).first();
   const collect = async <T,>(src: AsyncIterable<T>) => {
     const out: T[] = [];
     for await (const r of src) out.push(r);
@@ -68,11 +69,13 @@ export default async function EditChildPage({
           </Card>
         ) : (
           <ChildForm
+            parentPhone={parent?.nomorTelepon ?? ""}
             anak={{
               id: a.id,
               nama: a.nama,
               tanggalLahir: a.tanggalLahir,
               jenjangTerakhir: a.jenjangTerakhir ?? "",
+              tingkat: (a as { tingkat?: string | null }).tingkat ?? "",
               emailNotifikasi: a.emailNotifikasi ?? "",
               nomorTelepon: a.nomorTelepon ?? "",
             }}

@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
-import { Link, usePathname } from '@/i18n/navigation';
+import { Link, usePathname, useRouter } from '@/i18n/navigation';
 import { routing } from '@/i18n/routing';
+import { Languages, Globe, ChevronDown, Check } from 'lucide-react';
 
 /**
  * Dropdown ganti bahasa ala next-intl resmi: Link dengan prop `locale`
@@ -12,18 +13,116 @@ import { routing } from '@/i18n/routing';
  * soft navigation, tanpa reload penuh, tanpa menulis cookie manual
  * (NEXT_LOCALE disinkronkan proxy).
  */
-export function LanguageSwitcher({ placement = 'top', compact = false }: { placement?: 'top' | 'bottom'; compact?: boolean }) {
+export function LanguageSwitcher({
+  placement = 'top',
+  compact = false,
+  variant = 'default',
+  align = 'left',
+}: {
+  placement?: 'top' | 'bottom';
+  compact?: boolean;
+  variant?: 'default' | 'auth' | 'toggle';
+  align?: 'left' | 'right';
+}) {
   const [open, setOpen] = useState(false);
   const [suffix, setSuffix] = useState('');
   const locale = useLocale();
+  const [activeLocale, setActiveLocale] = useState(locale);
   const pathname = usePathname();
+  const router = useRouter();
   const t = useTranslations('chrome.switcher');
   const others = routing.locales.filter((l) => l !== locale);
-  // Toggle selalu menampilkan bahasa AKTIF; daftar isi aktif (check) + lainnya.
   const all = [locale, ...others];
 
+  const refreshSuffix = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      const current = window.location.search + window.location.hash;
+      setSuffix(current);
+      return current;
+    }
+    return '';
+  }, []);
+
+  useEffect(() => {
+    setActiveLocale(locale);
+  }, [locale]);
+
+  useEffect(() => {
+    refreshSuffix();
+    window.addEventListener('popstate', refreshSuffix);
+    window.addEventListener('hashchange', refreshSuffix);
+    return () => {
+      window.removeEventListener('popstate', refreshSuffix);
+      window.removeEventListener('hashchange', refreshSuffix);
+    };
+  }, [refreshSuffix]);
+
+  const handleLocaleChange = (targetLocale: string) => {
+    if (activeLocale === targetLocale) return;
+    const latestSuffix = typeof window !== 'undefined'
+      ? (window.location.search + window.location.hash)
+      : suffix;
+    setActiveLocale(targetLocale);
+    router.replace((pathname + latestSuffix) as any, { locale: targetLocale as any, scroll: false });
+  };
+
+  // Segmented iOS / macOS Glass Pill (Clean, symmetrical, white floating thumb with micro-shadow)
+  if (variant === 'auth' || variant === 'toggle') {
+    return (
+      <div
+        role="group"
+        aria-label="Pilih bahasa / Select language"
+        onMouseEnter={refreshSuffix}
+        onTouchStart={refreshSuffix}
+        className="relative inline-flex h-7.5 w-[76px] items-center rounded-lg bg-slate-100/90 p-0.5 select-none"
+      >
+        {/* iOS-style Floating White Thumb */}
+        <div
+          aria-hidden="true"
+          className={`absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded-md bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/5 transition-transform duration-200 ease-out pointer-events-none ${
+            activeLocale === 'id' ? 'translate-x-0' : 'translate-x-full'
+          }`}
+        />
+
+        {/* Tombol ID */}
+        <button
+          type="button"
+          aria-pressed={activeLocale === 'id'}
+          onClick={() => handleLocaleChange('id')}
+          className={`relative z-10 flex h-full flex-1 items-center justify-center text-[11px] tracking-wide transition-colors duration-150 cursor-pointer ${
+            activeLocale === 'id'
+              ? 'font-bold text-slate-900'
+              : 'font-medium text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          ID
+        </button>
+
+        {/* Tombol EN */}
+        <button
+          type="button"
+          aria-pressed={activeLocale === 'en'}
+          onClick={() => handleLocaleChange('en')}
+          className={`relative z-10 flex h-full flex-1 items-center justify-center text-[11px] tracking-wide transition-colors duration-150 cursor-pointer ${
+            activeLocale === 'en'
+              ? 'font-bold text-slate-900'
+              : 'font-medium text-slate-500 hover:text-slate-700'
+          }`}
+        >
+          EN
+        </button>
+      </div>
+    );
+  }
+
+  const menuClasses = `absolute ${
+    placement === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
+  } ${
+    align === 'right' ? 'right-0' : 'left-0'
+  } z-30 min-w-48 rounded-xl border border-gray-200 bg-white py-1 shadow-lg`;
+
   return (
-    <div className="relative">
+    <div className="relative inline-block text-left">
       {open && (
         <button
           type="button"
@@ -42,34 +141,45 @@ export function LanguageSwitcher({ placement = 'top', compact = false }: { place
           setSuffix(window.location.search + window.location.hash);
           setOpen((v) => !v);
         }}
-        className="relative z-20 flex items-center space-x-1.5 text-gray-700 hover:text-gray-900 transition-colors duration-200"
+        className="relative z-20 flex items-center space-x-1.5 text-gray-700 hover:text-gray-900 transition-colors duration-200 cursor-pointer"
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 21a9 9 0 100-18 9 9 0 000 18zm0-18c2.5 2.5 2.5 15.5 0 18m0-18c-2.5 2.5-2.5 15.5 0 18M3.5 9h17M3.5 15h17" />
-        </svg>
-        <span className="text-sm font-medium">{compact ? locale.toUpperCase() : t(locale)}</span>
-        <svg className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <Languages className="w-4 h-4 shrink-0 stroke-[1.8]" />
+        <span className="text-sm font-medium">
+          {compact ? locale.toUpperCase() : t(locale)}
+        </span>
+        <ChevronDown
+          className={`w-3.5 h-3.5 transition-transform duration-200 ${
+            open ? 'rotate-180 text-blue-600' : ''
+          }`}
+        />
       </button>
+
       {open && (
-        <ul role="listbox" aria-label={t('listAria')} className={`absolute ${placement === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'} left-0 z-30 min-w-48 rounded-xl border border-gray-200 bg-white py-1 shadow-lg`}>
+        <ul role="listbox" aria-label={t('listAria')} className={menuClasses}>
           {all.map((l) => (
-            <li key={l} role="option" aria-selected={l === locale}>
-              <Link
-                href={pathname + suffix}
-                scroll={false}
-                locale={l}
-                onClick={() => setOpen(false)}
-                className={`flex w-full items-center justify-between px-4 py-2 text-sm transition-colors ${l === locale ? 'font-semibold text-blue-600' : 'text-gray-700 hover:bg-gray-50'}`}
+            <li key={l} role="none">
+              <button
+                type="button"
+                role="option"
+                aria-selected={l === locale}
+                onClick={() => {
+                  setOpen(false);
+                  handleLocaleChange(l);
+                }}
+                className={`flex w-full items-center justify-between px-4 py-2 text-sm transition-colors cursor-pointer ${
+                  l === locale
+                    ? 'font-semibold text-blue-600'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
               >
-                {t(l)}
+                <div className="flex items-center gap-2">
+                  <Languages className="w-3.5 h-3.5 opacity-60" />
+                  <span>{t(l)}</span>
+                </div>
                 {l === locale && (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <Check className="w-4 h-4 text-blue-600 stroke-[2.5]" />
                 )}
-              </Link>
+              </button>
             </li>
           ))}
         </ul>

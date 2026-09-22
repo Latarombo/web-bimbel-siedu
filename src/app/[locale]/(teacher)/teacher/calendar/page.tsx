@@ -7,9 +7,28 @@ import { rencanakanSesi } from "@/lib/rencana-sesi";
 import { tanggalWIB, hariDariTanggal } from "@/lib/hari";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
-import { PageShell, PageHeader, Panel } from "@/components/admin/ui";
 
 export const dynamic = "force-dynamic";
+
+/*
+ * Jadwal mengajar guru — bahasa visual sama dengan dashboard baru (hero
+ * gradient, kartu putih rounded, sorot border kiri per status), sengaja beda
+ * dari shell admin. Agenda dikelompokkan per tanggal; logika data (planner
+ * sesi, merge stored, filter tab/kelas) TIDAK diubah. GET tetap read-only.
+ */
+
+function Icon({ d, className }: { d: string; className: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d={d} />
+    </svg>
+  );
+}
+const P = {
+  calendar: "M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z",
+  clock: "M12 6v6l4 2M12 22a10 10 0 100-20 10 10 0 000 20z",
+  check: "M20 6L9 17l-5-5",
+};
 
 interface CalendarPageProps {
   searchParams: Promise<{
@@ -36,12 +55,15 @@ export default async function TeacherCalendarPage({ searchParams }: CalendarPage
 
   if (kelasList.length === 0) {
     return (
-      <PageShell>
-        <PageHeader title={t("calendarTitle")} desc={t("calendarDescription")} />
-        <Panel className="mt-6 p-8 text-center text-slate-500">
-          <p className="text-sm font-medium">{t("noClasses")}</p>
-        </Panel>
-      </PageShell>
+      <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <header className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-600 p-6 text-white shadow-lg shadow-blue-600/20 sm:p-8">
+          <h1 className="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{t("calendarTitle")}</h1>
+          <p className="mt-2 text-sm text-blue-100">{t("calendarDescription")}</p>
+        </header>
+        <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+          <p className="text-sm font-semibold text-slate-500">{t("noAssignedClasses")}</p>
+        </div>
+      </div>
     );
   }
 
@@ -182,74 +204,95 @@ export default async function TeacherCalendarPage({ searchParams }: CalendarPage
     sessionsByDate.set(s.tanggalPertemuan, list);
   }
 
-  return (
-    <PageShell>
-      <PageHeader
-        title={t("calendarTitle")}
-        desc={t("calendarDescription")}
-      />
+  const upcomingCount = allSessions.filter((s) => !s.isPast).length;
+  const pastCount = allSessions.filter((s) => s.isPast).length;
+  const todayCount = allSessions.filter((s) => s.isToday && s.statusSesi !== "dibatalkan").length;
 
-      {/* Filter and Tab navigation */}
-      <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-200/80 bg-slate-100/70 p-1 text-xs">
-          {[
-            { key: "all", label: `${t("viewAll")} (${allSessions.length})` },
-            { key: "upcoming", label: `${t("upcomingSession")} (${allSessions.filter((s) => !s.isPast).length})` },
-            { key: "past", label: `${t("pastSession")} (${allSessions.filter((s) => s.isPast).length})` },
-          ].map((tab) => (
+  const tabs = [
+    { key: "all", label: t("viewAll"), count: allSessions.length },
+    { key: "upcoming", label: t("upcomingSession"), count: upcomingCount },
+    { key: "past", label: t("pastSession"), count: pastCount },
+  ];
+
+  const heroStats = [
+    { icon: P.calendar, value: allSessions.length, label: t("viewAll") },
+    { icon: P.clock, value: todayCount, label: t("todaySessions") },
+    { icon: P.check, value: upcomingCount, label: t("upcomingSession") },
+  ];
+
+  return (
+    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      {/* HERO + STAT STRIP (bahasa visual dashboard) */}
+      <header className="overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/20">
+        <div className="flex flex-col gap-6 p-6 sm:p-8 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <h1 className="font-display text-3xl font-extrabold tracking-tight text-balance sm:text-4xl">{t("calendarTitle")}</h1>
+            <p className="mt-2 text-sm text-blue-100">{t("calendarDescription")}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-2.5">
+            {heroStats.map((s) => (
+              <div key={s.label} className="rounded-2xl bg-white/15 px-4 py-3 backdrop-blur">
+                <Icon d={s.icon} className="size-4 text-blue-100" />
+                <p className="mt-1.5 font-display text-2xl font-extrabold leading-none tabular-nums">{s.value}</p>
+                <p className="mt-1 text-[11px] font-medium text-blue-100">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </header>
+
+      {/* Filter tab + kelas */}
+      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <nav aria-label={t("viewAll")} className="inline-flex flex-wrap rounded-full bg-slate-200/70 p-1">
+          {tabs.map((tab) => (
             <Link
               key={tab.key}
               href={`/teacher/calendar?tab=${tab.key}${selectedKelasId ? `&kelas=${selectedKelasId}` : ""}`}
-              className={`rounded-md px-3 py-1.5 font-medium transition-colors ${
-                activeTab === tab.key
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-600 hover:text-slate-900"
+              aria-current={activeTab === tab.key ? "page" : undefined}
+              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+                activeTab === tab.key ? "bg-white text-blue-700 shadow-sm" : "text-slate-700 hover:text-slate-900"
               }`}
             >
               {tab.label}
+              <span className={`rounded-full px-1.5 text-[11px] font-bold tabular-nums ${activeTab === tab.key ? "bg-blue-100 text-blue-800" : "bg-white/70 text-slate-600"}`}>
+                {tab.count}
+              </span>
             </Link>
           ))}
-        </div>
+        </nav>
 
-        {/* Class Filter */}
         {kelasList.length > 1 ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500">{t("filterClass")}:</span>
-            <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-semibold text-slate-500">{t("filterClass")}</span>
+            <Link
+              href={`/teacher/calendar?tab=${activeTab}`}
+              className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                selectedKelasId === null ? "bg-blue-600 text-white" : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {t("allClasses")}
+            </Link>
+            {kelasList.map((k) => (
               <Link
-                href={`/teacher/calendar?tab=${activeTab}`}
-                className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                  selectedKelasId === null
-                    ? "bg-slate-900 text-white"
-                    : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                key={k.id}
+                href={`/teacher/calendar?tab=${activeTab}&kelas=${k.id}`}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                  selectedKelasId === k.id ? "bg-blue-600 text-white" : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                {t("allClasses")}
+                {mapelMap.get(k.mataPelajaranId)} {k.jenjang}
               </Link>
-              {kelasList.map((k) => (
-                <Link
-                  key={k.id}
-                  href={`/teacher/calendar?tab=${activeTab}&kelas=${k.id}`}
-                  className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                    selectedKelasId === k.id
-                      ? "bg-slate-900 text-white"
-                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  {mapelMap.get(k.mataPelajaranId)} {k.jenjang}
-                </Link>
-              ))}
-            </div>
+            ))}
           </div>
         ) : null}
       </div>
 
-      {/* Sessions list */}
+      {/* Agenda per tanggal */}
       <div className="mt-6 space-y-6">
         {sessionsByDate.size === 0 ? (
-          <Panel className="p-10 text-center text-slate-500">
-            <p className="text-sm">{t("noUpcomingSessions")}</p>
-          </Panel>
+          <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+            <p className="text-sm font-semibold text-slate-500">{t("noUpcomingSessions")}</p>
+          </div>
         ) : (
           [...sessionsByDate.entries()].map(([dateStr, items]) => {
             const hariNama = t(`day_${hariDariTanggal(dateStr)}`);
@@ -260,14 +303,14 @@ export default async function TeacherCalendarPage({ searchParams }: CalendarPage
             const isDateToday = dateStr === hariIni;
 
             return (
-              <div key={dateStr} className="space-y-3">
+              <section key={dateStr} className="space-y-3">
                 <div className="flex items-center gap-2 px-1">
-                  <h3 className="text-sm font-bold text-slate-800">
+                  <h2 className="font-display text-sm font-bold tracking-tight text-slate-900">
                     {hariNama}, {dateFormatted}
-                  </h3>
-                  {isDateToday ? (
-                    <Badge tone="brand">{t("todaySession")}</Badge>
-                  ) : null}
+                  </h2>
+                  <span className="text-xs text-slate-400">·</span>
+                  <span className="text-xs font-medium text-slate-500">{t("sessionsCount", { count: items.length })}</span>
+                  {isDateToday ? <Badge tone="brand">{t("todaySession")}</Badge> : null}
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -275,25 +318,28 @@ export default async function TeacherCalendarPage({ searchParams }: CalendarPage
                     const isCancelled = item.statusSesi === "dibatalkan";
                     const isFilled = item.presensiCount > 0;
                     const attendanceUrl = `/teacher/classes/${item.kelasId}/sessions/${item.tanggalPertemuan}/attendance?sesi=${item.jadwalItemId}`;
+                    // Sorot border kiri per status: merah batal, hijau terisi, biru hari ini, netral sisanya
+                    const accent = isCancelled
+                      ? "border-l-rose-400"
+                      : isFilled
+                        ? "border-l-emerald-500"
+                        : item.isToday
+                          ? "border-l-blue-600"
+                          : "border-l-slate-200";
 
                     return (
-                      <Panel
+                      <div
                         key={`${item.jadwalItemId}-${item.tanggalPertemuan}`}
-                        className={`p-4 transition-shadow hover:shadow-md ${
-                          isCancelled ? "border-rose-200 bg-rose-50/20" : ""
-                        }`}
+                        className={`flex flex-col rounded-2xl border border-slate-200 border-l-4 bg-white p-4 shadow-sm transition-shadow hover:shadow-md ${accent} ${isCancelled ? "bg-rose-50/30" : ""}`}
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-semibold text-slate-700">
-                              {item.jamMulai} - {item.jamSelesai} {t("timeZone")}
+                          <div className="min-w-0">
+                            <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-0.5 text-xs font-semibold tabular-nums text-slate-700">
+                              {item.jamMulai}s.d.{item.jamSelesai}
                             </span>
-                            <h4 className="mt-2 text-sm font-bold text-slate-900">
-                              {item.kelasNama}
-                            </h4>
+                            <h3 className="mt-2 truncate text-sm font-bold text-slate-900">{item.kelasNama}</h3>
                             <p className="text-xs text-slate-500">{item.jenjang}</p>
                           </div>
-
                           {isCancelled ? (
                             <Badge tone="red">{t("sessionCancelled")}</Badge>
                           ) : isFilled ? (
@@ -303,32 +349,27 @@ export default async function TeacherCalendarPage({ searchParams }: CalendarPage
                           )}
                         </div>
 
-                        <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs text-slate-500">
-                          <span>
+                        <div className="mt-4 flex items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                          <span className="text-xs tabular-nums text-slate-500">
                             {item.presensiCount}/{item.pesertaCount} {t("present")}
                           </span>
-
                           {isCancelled ? (
-                            <span className="font-semibold text-rose-600">{t("sessionCancelled")}</span>
+                            <span className="text-xs font-semibold text-rose-600">{t("sessionCancelled")}</span>
                           ) : (
-                            <ButtonLink
-                              href={attendanceUrl}
-                              variant={isFilled ? "outline" : "default"}
-                              className="h-8 px-3 text-xs"
-                            >
+                            <ButtonLink href={attendanceUrl} size="sm" variant={isFilled ? "outline" : "default"}>
                               {isFilled ? t("viewSession") : t("recordAttendance")}
                             </ButtonLink>
                           )}
                         </div>
-                      </Panel>
+                      </div>
                     );
                   })}
                 </div>
-              </div>
+              </section>
             );
           })
         )}
       </div>
-    </PageShell>
+    </div>
   );
 }

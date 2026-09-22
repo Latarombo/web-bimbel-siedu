@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import "leaflet/dist/leaflet.css";
 import {
-  MapPin,
   Building2,
   Search,
   Phone,
@@ -23,12 +22,54 @@ const ATTR =
 // Gabungkan Kantor Pusat di urutan pertama beserta seluruh cabang Malang Raya
 const SEMUA_CABANG: Cabang[] = [KANTOR_PUSAT, ...DAFTAR_CABANG];
 
+// Simpan state di module level agar saat switch bahasa, cabang & tab aktif tidak reset
+let globalSelectedCabangId = "pusat";
+let globalActiveCabangTab: "list" | "map" = "list";
+
+function getInitialCabangState(): { id: string; tab: "list" | "map" } {
+  if (typeof window === "undefined") {
+    return { id: globalSelectedCabangId, tab: globalActiveCabangTab };
+  }
+  const params = new URLSearchParams(window.location.search);
+  const c = params.get("cabang");
+  const tab = params.get("tab");
+  const validId = c && SEMUA_CABANG.some((cb) => cb.id === c) ? c : globalSelectedCabangId;
+  const validTab = tab === "map" || tab === "list" ? tab : globalActiveCabangTab;
+  return { id: validId, tab: validTab };
+}
+
 export default function PetaCabangExplorer() {
   const [search, setSearch] = useState("");
-  const [selectedId, setSelectedId] = useState<string>("pusat");
-  const [activeTab, setActiveTab] = useState<"list" | "map">("list");
+  const [selectedId, setSelectedId] = useState<string>(() => getInitialCabangState().id);
+  const [activeTab, setActiveTab] = useState<"list" | "map">(() => getInitialCabangState().tab);
   const [isHighlighted, setIsHighlighted] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
+
+  const updateUrl = (newId: string, newTab: "list" | "map") => {
+    globalSelectedCabangId = newId;
+    globalActiveCabangTab = newTab;
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (newId && newId !== "pusat") {
+        url.searchParams.set("cabang", newId);
+      } else {
+        url.searchParams.delete("cabang");
+      }
+      if (newTab === "map") {
+        url.searchParams.set("tab", "map");
+      } else {
+        url.searchParams.delete("tab");
+      }
+      window.requestAnimationFrame(() => {
+        history.replaceState(null, "", url.toString());
+      });
+    }
+  };
+
+  const handleSelectTab = (tab: "list" | "map") => {
+    setActiveTab(tab);
+    updateUrl(selectedId, tab);
+  };
 
   const selectedCabang = useMemo(
     () => SEMUA_CABANG.find((c) => c.id === selectedId) || KANTOR_PUSAT,
@@ -137,6 +178,7 @@ export default function PetaCabangExplorer() {
         // Saat marker diklik di peta, pusatkan peta ke cabang dan pilih kartu di list
         marker.on("click", () => {
           setSelectedId(c.id);
+          updateUrl(c.id, activeTab);
           if (mapRef.current) {
             mapRef.current.panTo([c.lat, c.lng], { animate: true });
           }
@@ -157,17 +199,20 @@ export default function PetaCabangExplorer() {
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [activeTab]);
 
   // Handler saat kartu cabang di list diklik
   function handleSelectCabang(c: Cabang) {
     setSelectedId(c.id);
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
+    const nextTab = isMobile ? "map" : activeTab;
+    updateUrl(c.id, nextTab);
     if (mapRef.current) {
       mapRef.current.flyTo([c.lat, c.lng], 16, { duration: 1.2 });
     }
 
     // Di layar smartphone, otomatis alihkan tampilan ke tab peta
-    if (typeof window !== "undefined" && window.innerWidth < 640) {
+    if (isMobile) {
       setActiveTab("map");
       setTimeout(() => {
         mapRef.current?.invalidateSize();
@@ -222,7 +267,7 @@ export default function PetaCabangExplorer() {
       <div className="flex sm:hidden border-b border-slate-200 bg-slate-100 p-1">
         <button
           type="button"
-          onClick={() => setActiveTab("list")}
+          onClick={() => handleSelectTab("list")}
           className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all ${
             activeTab === "list"
               ? "bg-white text-slate-900 shadow-2xs"
@@ -234,7 +279,7 @@ export default function PetaCabangExplorer() {
         <button
           type="button"
           onClick={() => {
-            setActiveTab("map");
+            handleSelectTab("map");
             setTimeout(() => {
               mapRef.current?.invalidateSize();
             }, 100);
@@ -301,8 +346,6 @@ export default function PetaCabangExplorer() {
             {filteredCabang.length > 0 ? (
               filteredCabang.map((c) => {
                 const isSelected = selectedId === c.id;
-                const isPusat = c.id === "pusat";
-
                 return (
                   <div
                     id={`cabang-card-${c.id}`}
@@ -314,43 +357,24 @@ export default function PetaCabangExplorer() {
                         : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80"
                     }`}
                   >
-                    <div className="flex items-start gap-2.5">
-                      <div
-                        className={`grid size-7 place-items-center rounded-lg shrink-0 mt-0.5 transition-all ${
-                          isSelected
-                            ? "bg-brand text-white shadow-2xs"
-                            : isPusat
-                            ? "bg-brand/10 text-brand border border-brand/20 group-hover:bg-brand group-hover:text-white"
-                            : "bg-blue-50/80 text-brand border border-blue-100 group-hover:bg-brand group-hover:text-white"
-                        }`}
-                      >
-                        {isPusat ? (
-                          <Building2 className="size-3.5" />
-                        ) : (
-                          <MapPin className="size-3.5" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-brand transition-colors">
-                            {c.nama}
-                          </h4>
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
-                            {c.wilayah}
-                          </span>
-                        </div>
-                        <p className="mt-0.5 text-[11px] sm:text-xs text-slate-600 leading-relaxed line-clamp-2">
-                          {c.alamat}
-                        </p>
-                        {c.telepon && (
-                          <div className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-600">
-                            <Phone className="size-3 text-brand shrink-0" />
-                            <span className="text-slate-500 font-semibold text-[10px]">Telp:</span>
-                            <span className="font-medium text-slate-700">{c.telepon}</span>
-                          </div>
-                        )}
-                      </div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-brand transition-colors">
+                        {c.nama}
+                      </h4>
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                        {c.wilayah}
+                      </span>
                     </div>
+                    <p className="mt-0.5 text-[11px] sm:text-xs text-slate-600 leading-relaxed line-clamp-2">
+                      {c.alamat}
+                    </p>
+                    {c.telepon && (
+                      <div className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-600">
+                        <Phone className="size-3 text-brand shrink-0" />
+                        <span className="text-slate-500 font-semibold text-[10px]">Telp:</span>
+                        <span className="font-medium text-slate-700">{c.telepon}</span>
+                      </div>
+                    )}
                   </div>
                 );
               })

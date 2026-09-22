@@ -1,10 +1,9 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
-import { AlertCircle, ChevronRight, Plus } from "lucide-react";
-import { daftarKelas, type DaftarState } from "@/app/actions/pendaftaran";
+import { ChevronRight, Plus, UserPlus } from "lucide-react";
 import { rupiah } from "@/lib/format";
 
 export type PilihanAnak = {
@@ -31,7 +30,10 @@ type Props = {
   anak: PilihanAnak[];
 };
 
-const initialDaftarState: DaftarState = {};
+const globalSkemaState: { skema: Skema; tenor: number } = {
+  skema: "lunas",
+  tenor: 2,
+};
 
 export function SkemaPembayaran({
   kelasId,
@@ -50,9 +52,16 @@ export function SkemaPembayaran({
 }: Props) {
   const tr = useTranslations("public");
   const router = useRouter();
-  const redirected = useRef(false);
 
-  const [state, formAction, pending] = useActionState(daftarKelas, initialDaftarState);
+  const handleLanjutCheckout = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAnakId) return;
+    const search = new URLSearchParams();
+    search.set("anakId", selectedAnakId);
+    search.set("metode", pakaiDp ? "dp_cicilan" : "lunas");
+    if (pakaiDp) search.set("tenor", String(tenor));
+    router.push(`/classes/${kelasId}/daftar?${search.toString()}`);
+  };
 
   // Cari anak yang jenjangnya cocok dengan jenjang kelas
   const matchingChild = anak.find(
@@ -72,17 +81,19 @@ export function SkemaPembayaran({
     }
   }, [anak, jenjang, selectedAnakId]);
 
-  // Redirect otomatis saat pendaftaran berhasil dibuat
-  useEffect(() => {
-    if (state.ok && state.pendaftaranId && !redirected.current) {
-      redirected.current = true;
-      router.push(`/enrollments/${state.pendaftaranId}`);
-    }
-  }, [state, router]);
-
   const cicilanAda = biayaDp != null && tenorMaksimum != null;
-  const [skema, setSkema] = useState<Skema>("lunas");
-  const [tenor, setTenor] = useState(2);
+  const [skema, setSkema] = useState<Skema>(() => globalSkemaState.skema);
+  const [tenor, setTenor] = useState(() => globalSkemaState.tenor);
+
+  const handleSelectSkema = (s: Skema) => {
+    setSkema(s);
+    globalSkemaState.skema = s;
+  };
+
+  const handleSelectTenor = (t: number) => {
+    setTenor(t);
+    globalSkemaState.tenor = t;
+  };
 
   const opsiTenor = Array.from({ length: (tenorMaksimum ?? 2) - 1 }, (_, i) => i + 2);
   const nCicilan = Math.max(tenor - 1, 1);
@@ -103,13 +114,7 @@ export function SkemaPembayaran({
     <div className="space-y-6">
       {/* Sticky Card Checkout */}
       <div className="lg:sticky lg:top-24 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl transition-all">
-        <form id="form-pendaftaran" action={formAction} noValidate>
-          {/* Hidden inputs untuk server action daftarKelas */}
-          <input type="hidden" name="anak_id" value={selectedAnakId} />
-          <input type="hidden" name="kelas_id" value={kelasId} />
-          <input type="hidden" name="metode_bayar" value={pakaiDp ? "dp_cicilan" : "lunas"} />
-          {pakaiDp ? <input type="hidden" name="tenor_bulan" value={tenor} /> : null}
-
+        <form id="form-pendaftaran" onSubmit={handleLanjutCheckout} noValidate>
           {/* Header Card */}
           <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
             <h3 className="font-extrabold text-slate-900 text-base">Pendaftaran Kelas</h3>
@@ -128,27 +133,29 @@ export function SkemaPembayaran({
             </div>
 
             {!isLoggedIn ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 text-center">
-                <p className="text-xs text-slate-600 mb-3 leading-relaxed">
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-center">
+                <p className="text-xs text-amber-800 leading-relaxed">
                   Masuk ke akun orang tua untuk memilih profil anak yang akan didaftarkan.
                 </p>
-                <Link
-                  href={`/login?next=/classes/${kelasId}`}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-xs font-bold shadow-2xs transition-colors"
-                >
-                  Masuk Akun Orang Tua
-                </Link>
               </div>
             ) : !isOrangTua ? (
               <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-3.5 text-xs text-amber-800 leading-relaxed">
                 Akun Anda terdaftar bukan sebagai Orang Tua. Pendaftaran kelas bimbel ditujukan untuk akun Orang Tua.
               </div>
             ) : anak.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 p-4 text-center bg-slate-50/50">
-                <p className="text-xs text-slate-500 mb-2">Belum ada data profil anak.</p>
+              <div className="rounded-2xl border border-blue-100/80 bg-gradient-to-b from-blue-50/50 to-slate-50/50 p-5 text-center">
+                <div className="mx-auto mb-3 flex size-11 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-xs border border-blue-100/80">
+                  <UserPlus className="size-5" />
+                </div>
+                <h4 className="text-sm font-bold text-slate-800">
+                  Belum Ada Profil Anak
+                </h4>
+                <p className="mt-1 mb-4 text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                  Daftarkan profil putra-putri Anda terlebih dahulu untuk memilih kelas bimbel ini.
+                </p>
                 <Link
                   href={`/children/new?next=/classes/${kelasId}`}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 text-xs font-bold shadow-xs hover:shadow-sm transition-all duration-150 active:scale-[0.98]"
                 >
                   <Plus className="size-3.5" /> Tambah Profil Anak Baru
                 </Link>
@@ -157,9 +164,6 @@ export function SkemaPembayaran({
               <div className="space-y-2">
                 {anak.map((a) => {
                   const isSelected = selectedAnakId === String(a.id);
-                  const isMismatch =
-                    Boolean(a.jenjangTerakhir) &&
-                    a.jenjangTerakhir.toUpperCase() !== jenjang.toUpperCase();
 
                   return (
                     <div
@@ -191,11 +195,6 @@ export function SkemaPembayaran({
                             <span className="text-[11px] font-medium text-slate-400">
                               Jenjang: {a.jenjangTerakhir || "Belum diatur"}
                             </span>
-                            {isMismatch && (
-                              <span className="text-[10px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.2">
-                                Kelas {jenjang}
-                              </span>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -248,7 +247,7 @@ export function SkemaPembayaran({
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => setSkema("lunas")}
+                onClick={() => handleSelectSkema("lunas")}
                 className={`rounded-xl py-2.5 px-3 text-xs font-bold text-center border transition-all cursor-pointer ${
                   skema === "lunas"
                     ? "border-2 border-brand bg-brand-soft text-brand shadow-xs"
@@ -260,7 +259,7 @@ export function SkemaPembayaran({
               {cicilanAda ? (
                 <button
                   type="button"
-                  onClick={() => setSkema("dp")}
+                  onClick={() => handleSelectSkema("dp")}
                   className={`rounded-xl py-2.5 px-3 text-xs font-bold text-center border transition-all cursor-pointer ${
                     skema === "dp"
                       ? "border-2 border-brand bg-brand-soft text-brand shadow-xs"
@@ -287,7 +286,7 @@ export function SkemaPembayaran({
                   <button
                     key={t}
                     type="button"
-                    onClick={() => setTenor(t)}
+                    onClick={() => handleSelectTenor(t)}
                     className={`rounded-lg py-1.5 px-3 text-xs font-bold transition-colors cursor-pointer ${
                       tenor === t
                         ? "bg-brand text-white shadow-xs"
@@ -342,17 +341,6 @@ export function SkemaPembayaran({
             </div>
           </div>
 
-          {/* Alert Error jika server action gagal */}
-          {state.error ? (
-            <div
-              className="mt-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 flex items-start gap-2"
-              role="alert"
-            >
-              <AlertCircle className="size-4 shrink-0 text-rose-600 mt-0.5" />
-              <span>{state.error}</span>
-            </div>
-          ) : null}
-
           {/* 5. Tombol Aksi Utama */}
           {!isLoggedIn ? (
             <Link
@@ -394,11 +382,11 @@ export function SkemaPembayaran({
             <button
               id="cta-utama"
               type="submit"
-              disabled={pending || !selectedAnakId}
+              disabled={!selectedAnakId}
               className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl py-3 text-sm font-bold text-white shadow-xs transition-all active:scale-[0.99] hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               style={{ backgroundColor: "#f26d0f" }}
             >
-              {pending ? tr("processing") : "Beli"}
+              Lanjut ke Pembayaran
             </button>
           )}
 
@@ -423,7 +411,6 @@ export function SkemaPembayaran({
         hasSelectedAnak={Boolean(selectedAnakId)}
         kelasId={kelasId}
         sisaKuota={sisaKuota}
-        pending={pending}
       />
     </div>
   );
@@ -442,7 +429,6 @@ function BarHargaLengket({
   hasSelectedAnak,
   kelasId,
   sisaKuota,
-  pending,
 }: {
   anchorId: string;
   label: string;
@@ -454,7 +440,6 @@ function BarHargaLengket({
   hasSelectedAnak: boolean;
   kelasId: number;
   sisaKuota: number;
-  pending: boolean;
 }) {
   const tr = useTranslations("public");
   const [show, setShow] = useState(false);
@@ -509,13 +494,13 @@ function BarHargaLengket({
           <button
             form={formId}
             type="submit"
-            disabled={pending || !hasSelectedAnak}
+            disabled={!hasSelectedAnak}
             aria-hidden={!show}
             tabIndex={show ? 0 : -1}
             className="shrink-0 rounded-xl px-6 py-2.5 text-xs font-bold text-white shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
             style={{ backgroundColor: "#f26d0f" }}
           >
-            {pending ? tr("processing") : "Beli"}
+            Lanjut
           </button>
         )}
       </div>
