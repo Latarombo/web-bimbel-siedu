@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useSchedule } from "./schedule-context";
 import { Card, CardPad } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -70,9 +70,11 @@ export function DailyAgenda() {
   const [selectedHari, setSelectedHari] = useState<string>(defaultHari);
 
   // Sync when records change or first loaded
-  React.useEffect(() => {
+  const [prevDefaultHari, setPrevDefaultHari] = useState(defaultHari);
+  if (defaultHari !== prevDefaultHari) {
+    setPrevDefaultHari(defaultHari);
     setSelectedHari(defaultHari);
-  }, [defaultHari]);
+  }
 
   const recordsForHari = state.records.filter((r) => r.hari === selectedHari);
 

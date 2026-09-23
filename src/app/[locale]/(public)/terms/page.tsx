@@ -4,7 +4,6 @@ import { BlokHukumView } from "@/components/ui/legal-block";
 import { TableOfContents } from "@/components/ui/table-of-contents";
 import { getSyarat } from "@/lib/syarat-ketentuan";
 import { LegalHeader } from "@/components/legal/legal-header";
-import { LegalTakeaways } from "@/components/legal/legal-takeaways";
 import { LegalSectionCard } from "@/components/legal/legal-section-card";
 import { LegalContactCard } from "@/components/legal/legal-contact-card";
 import { BackToTop } from "@/components/ui/back-to-top";
@@ -49,30 +48,6 @@ export default async function TermsPage() {
   const tr = await getTranslations("public");
   const { meta: SYARAT_META, sections: SYARAT_SECTIONS } = getSyarat(tr);
 
-  // 4 Poin Kunci Ketentuan Layanan
-  const termsTakeaways = [
-    {
-      icon: UserCheck,
-      title: tr("termsTakeaway1Title"),
-      description: tr("termsTakeaway1Desc"),
-    },
-    {
-      icon: Receipt,
-      title: tr("termsTakeaway2Title"),
-      description: tr("termsTakeaway2Desc"),
-    },
-    {
-      icon: RotateCcw,
-      title: tr("termsTakeaway3Title"),
-      description: tr("termsTakeaway3Desc"),
-    },
-    {
-      icon: BookMarked,
-      title: tr("termsTakeaway4Title"),
-      description: tr("termsTakeaway4Desc"),
-    },
-  ];
-
   return (
     <div className="relative min-h-screen bg-slate-50/70">
       {/* Ambient Lighting Glow Bersih & Elegan */}
@@ -96,16 +71,8 @@ export default async function TermsPage() {
           termsLabel={tr("legalTermsTab")}
           lastUpdatedLabel={tr("text316")}
           readTimeLabel={tr("text317")}
+          pills={false}
         />
-
-        {/* 4 Kartu Poin Kunci (TL;DR) */}
-        <div className="mt-8">
-          <LegalTakeaways
-            sectionTitle={tr("legalTakeawaysTitle")}
-            sectionSubtitle={tr("legalTakeawaysSubtitle")}
-            items={termsTakeaways}
-          />
-        </div>
 
         {/* Layout Dokumen Utama (TOC Sidebar + Pasal Terstruktur) */}
         <div className="mt-10 grid gap-8 lg:mt-12 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-10 items-start">
@@ -141,6 +108,7 @@ export default async function TermsPage() {
             {/* Banner Kontak Legal di Akhir Dokumen */}
             <div className="pt-4">
               <LegalContactCard
+                badge={tr("legalBadge")}
                 title={tr("legalNeedHelpTitle")}
                 description={tr("legalNeedHelpDesc")}
                 contactButtonText={tr("legalContactButton")}

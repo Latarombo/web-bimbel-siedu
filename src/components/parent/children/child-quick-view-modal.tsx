@@ -30,7 +30,10 @@ interface ChildQuickViewModalProps {
   onClose: () => void;
 }
 
-function hitungUmur(tanggalLahir: string, isEn: boolean): string {
+function hitungUmur(
+  tanggalLahir: string,
+  t: (key: string, values?: Record<string, string | number>) => string
+): string {
   try {
     const lahir = new Date(tanggalLahir);
     const now = new Date();
@@ -39,8 +42,8 @@ function hitungUmur(tanggalLahir: string, isEn: boolean): string {
     if (m < 0 || (m === 0 && now.getDate() < lahir.getDate())) {
       umur--;
     }
-    if (umur <= 0) return isEn ? '< 1 yr old' : '< 1 tahun';
-    return isEn ? `${umur} yrs old` : `${umur} tahun`;
+    if (umur <= 0) return t('ageBaby');
+    return t('ageYears', { age: umur });
   } catch {
     return '';
   }
@@ -71,11 +74,13 @@ export function ChildQuickViewModal({
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Reset tab saat child berganti atau modal dibuka
-  useEffect(() => {
+  const [prevTabSync, setPrevTabSync] = useState({ isOpen, childId: child?.id });
+  if (isOpen !== prevTabSync.isOpen || child?.id !== prevTabSync.childId) {
+    setPrevTabSync({ isOpen, childId: child?.id });
     if (isOpen) {
       setActiveTab('overview');
     }
-  }, [isOpen, child?.id]);
+  }
 
   // Listener tombol Escape
   useEffect(() => {
@@ -97,7 +102,7 @@ export function ChildQuickViewModal({
     : 'DEFAULT';
   const style = JENJANG_STYLES[jenjangKey] ?? JENJANG_STYLES.DEFAULT;
   const inisial = child.nama.trim().slice(0, 2).toUpperCase();
-  const umur = hitungUmur(child.tanggalLahir, isEn);
+  const umur = hitungUmur(child.tanggalLahir, t);
 
   return (
     <div

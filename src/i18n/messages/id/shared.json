@@ -59,5 +59,10 @@
     "logout": "Log Out",
     "user": "Pengguna"
   },
-  "user": "Pengguna"
+  "user": "Pengguna",
+  "cancel": "Batal",
+  "close": "Tutup",
+  "saving": "Menyimpan...",
+  "previous": "Sebelumnya",
+  "next": "Berikutnya"
 }

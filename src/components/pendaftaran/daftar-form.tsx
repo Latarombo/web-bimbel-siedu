@@ -264,7 +264,7 @@ export default function DaftarForm({
 
             {selectedChild ? (
               <div className="flex items-center gap-3.5 p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/90 bg-slate-50/70 hover:bg-slate-50 transition-colors">
-                <div className="size-11 rounded-full border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 grid place-items-center text-blue-600 shrink-0 shadow-2xs">
+                <div className="size-11 rounded-full border border-blue-200 bg-blue-50 grid place-items-center text-blue-600 shrink-0 shadow-2xs">
                   <User className="size-5" />
                 </div>
                 <div className="min-w-0 flex-1">

@@ -22,7 +22,6 @@ import { StudentAvatar } from "@/components/parent/student-avatar";
 import { SITE } from "@/lib/site";
 import {
   Calendar,
-  Clock,
   Camera,
   Sparkles,
   Quote,
@@ -86,16 +85,13 @@ function alertMendesak(
 
 function BelumAdaProfilState({
   userName,
-  locale,
+  tr,
 }: {
   userName: string | null;
-  locale: string;
+  tr: (k: string, v?: Record<string, string | number>) => string;
 }) {
-  const isEn = locale === "en";
   const waHref = `https://wa.me/${SITE.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
-    isEn
-      ? "Hello Siedu Admin, I would like to ask about tutoring programs."
-      : "Halo Admin Siedu, saya ingin bertanya tentang program bimbingan belajar."
+    tr("waTextParentNoProfile")
   )}`;
 
   return (
@@ -127,12 +123,12 @@ function BelumAdaProfilState({
 
         <div className="relative mx-auto max-w-5xl">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight text-white">
-            {isEn ? `Welcome, ${userName ?? "Parent"}!` : `Selamat Datang, ${userName ?? "Bapak/Ibu Orang Tua"}!`}
+            {tr("welcomeTitle", {
+              name: userName ?? tr("defaultParentGreeting"),
+            })}
           </h1>
           <p className="mt-2.5 max-w-2xl text-xs sm:text-sm lg:text-base text-blue-100/90 leading-relaxed font-medium">
-            {isEn
-              ? "Your centralized dashboard to monitor face-to-face sessions, real-time attendance, teacher notes, homework progress, and tuition payments for your children."
-              : "Portal terpadu untuk memantau sesi belajar tatap muka, presensi kehadiran real-time, catatan guru, hasil tugas harian, dan pembayaran bimbel putra-putri Anda."}
+            {tr("welcomeDesc")}
           </p>
         </div>
       </section>
@@ -143,11 +139,11 @@ function BelumAdaProfilState({
         <div className="rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 lg:p-10 shadow-sm space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-                {isEn ? "Quick Start Guide" : "Panduan Langkah Awal"}
+              <span className="text-xs font-semibold text-blue-600">
+                {tr("quickStartBadge")}
               </span>
               <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 mt-0.5 tracking-tight">
-                {isEn ? "3 Easy Steps to Start Learning at Siedu" : "3 Langkah Mudah Memulai Belajar di Siedu"}
+                {tr("quickStartTitle")}
               </h2>
             </div>
             <Link
@@ -156,7 +152,7 @@ function BelumAdaProfilState({
               style={{ backgroundColor: "#f26d0f" }}
             >
               <UserPlus className="size-4" />
-              {isEn ? "Add Child Profile" : "Tambah Profil Anak"}
+              {tr("bentoAddChildTitle")}
             </Link>
           </div>
 
@@ -170,16 +166,14 @@ function BelumAdaProfilState({
                     1
                   </span>
                   <span className="rounded-full bg-blue-100 border border-blue-200 px-2 py-0.5 text-[10px] font-bold text-blue-800">
-                    {isEn ? "Step 1 (Now)" : "Langkah 1 (Sekarang)"}
+                    {tr("step1Badge")}
                   </span>
                 </div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                  {isEn ? "Create Child Profile" : "Buat Profil Anak"}
+                  {tr("step1Title")}
                 </h3>
                 <p className="mt-1.5 text-xs text-slate-600 leading-relaxed">
-                  {isEn
-                    ? "Enter your child's name, school level (Kindergarten, Elementary, Junior High, or Senior High), and birth date."
-                    : "Masukkan data putra/putri Anda: nama lengkap, jenjang sekolah (TK, SD, SMP, atau SMA), dan tanggal lahir."}
+                  {tr("step1Desc")}
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t border-blue-100">
@@ -187,7 +181,7 @@ function BelumAdaProfilState({
                   href="/children/new"
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 group cursor-pointer"
                 >
-                  <span>{isEn ? "Create profile now" : "Daftarkan profil sekarang"}</span>
+                  <span>{tr("step1Cta")}</span>
                   <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </div>
@@ -201,16 +195,14 @@ function BelumAdaProfilState({
                     2
                   </span>
                   <span className="text-[11px] font-medium text-slate-400">
-                    {isEn ? "Step 2" : "Langkah 2"}
+                    {tr("step2Badge")}
                   </span>
                 </div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                  {isEn ? "Choose Tutoring Class" : "Pilih Kelas Bimbel"}
+                  {tr("step2Title")}
                 </h3>
                 <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
-                  {isEn
-                    ? "Browse the catalog for subjects, teacher profiles, and weekly schedules that best fit your child."
-                    : "Pilih mata pelajaran, jadwal sesi belajar mingguan, dan pengajar yang paling pas dengan jadwal sekolah anak."}
+                  {tr("step2Desc")}
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t border-slate-200/60">
@@ -218,7 +210,7 @@ function BelumAdaProfilState({
                   href="/classes"
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-blue-600 group cursor-pointer"
                 >
-                  <span>{isEn ? "Explore catalog" : "Lihat katalog kelas"}</span>
+                  <span>{tr("step2Cta")}</span>
                   <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
                 </Link>
               </div>
@@ -232,21 +224,19 @@ function BelumAdaProfilState({
                     3
                   </span>
                   <span className="text-[11px] font-medium text-slate-400">
-                    {isEn ? "Step 3" : "Langkah 3"}
+                    {tr("step3Badge")}
                   </span>
                 </div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                  {isEn ? "Monitor Progress" : "Pantau Perkembangan"}
+                  {tr("step3Title")}
                 </h3>
                 <p className="mt-1.5 text-xs text-slate-500 leading-relaxed">
-                  {isEn
-                    ? "Track live attendance, teacher documentation, and academic test scores directly on this portal."
-                    : "Dapatkan modul cetak, pantau kehadiran saat sesi tatap muka, dan evaluasi hasil belajar berkala langsung di sini."}
+                  {tr("step3Desc")}
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t border-slate-200/60">
                 <span className="text-xs text-slate-400 font-medium">
-                  {isEn ? "Active once enrolled" : "Aktif setelah terdaftar"}
+                  {tr("step3Note")}
                 </span>
               </div>
             </div>
@@ -257,12 +247,10 @@ function BelumAdaProfilState({
         <div>
           <div className="text-center max-w-xl mx-auto mb-6">
             <h3 className="text-base sm:text-lg font-bold text-slate-900">
-              {isEn ? "What You Can Monitor in This Portal" : "Apa Saja yang Bisa Dipantau Orang Tua?"}
+              {tr("monitorTitle")}
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              {isEn
-                ? "Designed to keep you closely connected with your child's learning journey."
-                : "Dirancang agar orang tua selalu terhubung dengan kegiatan dan kemajuan belajar anak setiap hari."}
+              {tr("monitorDesc")}
             </p>
           </div>
 
@@ -272,12 +260,10 @@ function BelumAdaProfilState({
                 <Camera className="size-5" />
               </div>
               <h4 className="text-sm font-bold text-slate-900">
-                {isEn ? "Session Stories & Photos" : "Jurnal & Dokumentasi Sesi"}
+                {tr("monitorStoriesTitle")}
               </h4>
               <p className="text-xs text-slate-500 leading-relaxed">
-                {isEn
-                  ? "Visual updates and learning summary photos shared by teachers after each tutoring session."
-                  : "Dokumentasi foto kegiatan belajar dan rangkuman materi dari tutor yang dapat dilihat layaknya status story."}
+                {tr("monitorStoriesDesc")}
               </p>
             </div>
 
@@ -286,12 +272,10 @@ function BelumAdaProfilState({
                 <Calendar className="size-5" />
               </div>
               <h4 className="text-sm font-bold text-slate-900">
-                {isEn ? "Real-Time Attendance" : "Rekap Presensi & Jadwal"}
+                {tr("monitorAttendanceTitle")}
               </h4>
               <p className="text-xs text-slate-500 leading-relaxed">
-                {isEn
-                  ? "Transparent check-in records for every face-to-face class along with automated upcoming schedule reminders."
-                  : "Catatan kehadiran murid saat sesi tatap muka secara transparan disertai jadwal sesi les mingguan."}
+                {tr("monitorAttendanceDesc")}
               </p>
             </div>
 
@@ -300,12 +284,10 @@ function BelumAdaProfilState({
                 <Quote className="size-5" />
               </div>
               <h4 className="text-sm font-bold text-slate-900">
-                {isEn ? "Teacher Notes & Grades" : "Catatan Guru & Evaluasi Nilai"}
+                {tr("monitorNotesTitle")}
               </h4>
               <p className="text-xs text-slate-500 leading-relaxed">
-                {isEn
-                  ? "Personalized feedback from tutors, homework evaluation, and test score progress trends."
-                  : "Pesan dan saran personal dari tutor pembimbing serta grafik perkembangan nilai tugas harian dan tryout."}
+                {tr("monitorNotesDesc")}
               </p>
             </div>
           </div>
@@ -319,12 +301,10 @@ function BelumAdaProfilState({
             </div>
             <div>
               <h4 className="text-sm font-bold text-slate-900">
-                {isEn ? "Need help choosing the right program?" : "Butuh bantuan memilih kelas yang sesuai?"}
+                {tr("helpChoosingTitle")}
               </h4>
               <p className="text-xs text-slate-500 mt-0.5">
-                {isEn
-                  ? "Our education counselors are ready to help you find the best learning path for your child."
-                  : "Tim konselor Siedu siap membantu konsultasi kurikulum dan jadwal bimbingan belajar terbaik."}
+                {tr("helpChoosingDesc")}
               </p>
             </div>
           </div>
@@ -334,7 +314,7 @@ function BelumAdaProfilState({
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs shrink-0 cursor-pointer"
           >
-            {isEn ? "Consult via WhatsApp" : "Konsultasi via WhatsApp"}
+            {tr("consultWhatsapp")}
           </a>
         </div>
       </div>
@@ -345,11 +325,12 @@ function BelumAdaProfilState({
 function BelumDaftarKelasState({
   anak,
   locale,
+  tr,
 }: {
   anak: AnakDashboard;
   locale: string;
+  tr: (k: string, v?: Record<string, string | number>) => string;
 }) {
-  const isEn = locale === "en";
   const catalogUrl = anak.jenjang
     ? `/classes?jenjang=${encodeURIComponent(anak.jenjang)}`
     : "/classes";
@@ -357,22 +338,21 @@ function BelumDaftarKelasState({
   return (
     <div className="space-y-8">
       {/* Banner Langkah Selanjutnya */}
-      <div className="rounded-2xl sm:rounded-3xl border border-blue-200/80 bg-gradient-to-br from-blue-50/90 via-white to-indigo-50/50 p-6 sm:p-8 lg:p-10 shadow-xs relative overflow-hidden">
+      <div className="rounded-2xl sm:rounded-3xl border border-blue-200/80 bg-blue-50/70 p-6 sm:p-8 lg:p-10 shadow-xs relative overflow-hidden">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           <div className="max-w-2xl space-y-3.5">
             <div className="inline-flex items-center gap-2 rounded-full bg-blue-100/90 border border-blue-200 px-3 py-1 text-xs font-bold text-blue-800">
               <CheckCircle2 className="size-3.5 text-blue-600" />
-              {isEn ? "Child Profile Created" : "Profil Siswa Berhasil Dibuat"}
+              {tr("profileCreatedBadge")}
             </div>
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight leading-snug">
-              {isEn
-                ? `Next Step: Choose a Class for ${anak.nama}`
-                : `Langkah Selanjutnya: Pilih Kelas Bimbel untuk ${anak.nama}`}
+              {tr("nextStepChooseClass", { name: anak.nama })}
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
-              {isEn
-                ? `Enroll ${anak.nama} into a tutoring class matching their school level (${anak.jenjang || "General"}) to secure seat quota, receive weekly face-to-face schedules, and obtain study modules.`
-                : `Daftarkan ${anak.nama} ke kelas bimbingan belajar sesuai jenjangnya (${anak.jenjang || "Umum"}) untuk mengamankan kuota kursi, mendapatkan jadwal sesi tatap muka ber-AC, dan modul materi cetak.`}
+              {tr("enrollClassHint", {
+                name: anak.nama,
+                level: anak.jenjang || (locale === "en" ? "General" : "Umum"),
+              })}
             </p>
 
             <div className="pt-2 flex flex-wrap items-center gap-3">
@@ -382,15 +362,13 @@ function BelumDaftarKelasState({
                 style={{ backgroundColor: "#f26d0f" }}
               >
                 <BookOpen className="size-4" />
-                {isEn
-                  ? `Choose Class for ${anak.nama}`
-                  : `Pilih Kelas untuk ${anak.nama}`}
+                {tr("chooseClassFor", { name: anak.nama })}
               </Link>
               <Link
                 href="/classes"
                 className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-3 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
               >
-                {isEn ? "Explore All Programs" : "Lihat Semua Program"}
+                {tr("exploreAllPrograms")}
               </Link>
             </div>
           </div>
@@ -404,22 +382,22 @@ function BelumDaftarKelasState({
               <div className="min-w-0">
                 <h4 className="font-bold text-sm text-slate-900 truncate">{anak.nama}</h4>
                 <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded mt-0.5 inline-block">
-                  Jenjang: {anak.jenjang || "Belum diatur"}
+                  {tr("levelBadge", { level: anak.jenjang || tr("levelNotSet") })}
                 </span>
               </div>
             </div>
             <div className="text-xs text-slate-500 border-t border-slate-100 pt-3 space-y-2">
               <div className="flex items-center gap-2 text-slate-700">
                 <Check className="size-3.5 text-emerald-600 shrink-0" />
-                <span>Modul cetak & bank soal</span>
+                <span>{tr("benefitModules")}</span>
               </div>
               <div className="flex items-center gap-2 text-slate-700">
                 <Check className="size-3.5 text-emerald-600 shrink-0" />
-                <span>Kelas tatap muka ruang AC</span>
+                <span>{tr("benefitAcClass")}</span>
               </div>
               <div className="flex items-center gap-2 text-slate-700">
                 <Check className="size-3.5 text-emerald-600 shrink-0" />
-                <span>Bimbingan PR & konsultasi</span>
+                <span>{tr("benefitHomework")}</span>
               </div>
             </div>
           </div>
@@ -433,12 +411,10 @@ function BelumDaftarKelasState({
             1
           </span>
           <h4 className="font-bold text-sm text-slate-900">
-            {isEn ? "Select Subject & Schedule" : "Pilih Mata Pelajaran & Jadwal"}
+            {tr("flowStep1Title")}
           </h4>
           <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-            {isEn
-              ? "Choose the learning program and weekly schedule that best fits your family routine."
-              : "Tentukan mata pelajaran yang ingin dipelajari dan hari sesi belajar yang sesuai."}
+            {tr("flowStep1Desc")}
           </p>
         </div>
 
@@ -447,12 +423,10 @@ function BelumDaftarKelasState({
             2
           </span>
           <h4 className="font-bold text-sm text-slate-900">
-            {isEn ? "Flexible Payment" : "Metode Bayar Fleksibel"}
+            {tr("flowStep2Title")}
           </h4>
           <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-            {isEn
-              ? "Pay in full or start with a down payment and easy monthly installments."
-              : "Pilih opsi bayar penuh atau DP ringan dengan cicilan terjangkau tiap bulan."}
+            {tr("flowStep2Desc")}
           </p>
         </div>
 
@@ -461,12 +435,10 @@ function BelumDaftarKelasState({
             3
           </span>
           <h4 className="font-bold text-sm text-slate-900">
-            {isEn ? "Start Learning & Track" : "Mulai Belajar & Pantau"}
+            {tr("flowStep3Title")}
           </h4>
           <p className="mt-1 text-xs text-slate-500 leading-relaxed">
-            {isEn
-              ? "Once enrolled, live attendance, grades, and teacher notes activate automatically here."
-              : "Setelah terdaftar, dashboard ini otomatis menampilkan rekap jadwal, presensi, dan nilai."}
+            {tr("flowStep3Desc")}
           </p>
         </div>
       </div>
@@ -494,7 +466,7 @@ export default async function ParentHome({
     return (
       <BelumAdaProfilState
         userName={session.user.name ?? null}
-        locale={locale}
+        tr={tr}
       />
     );
   }
@@ -635,7 +607,7 @@ export default async function ParentHome({
                 className="h-10 px-3.5 text-xs rounded-xl gap-2.5 bg-white text-brand hover:bg-blue-50 font-bold border-transparent shadow-md transition-colors"
               >
                 <Users className="size-3.5" />
-                <span>Kelola Akun Anak</span>
+                <span>{tr("manageChildAccounts")}</span>
               </ButtonLink>
             </div>
           </div>
@@ -733,7 +705,7 @@ export default async function ParentHome({
       {/* 2. KONTEN DASHBOARD ATAU ONBOARDING PILIH KELAS                          */}
       {/* ========================================================================= */}
       {!dipilih.pendaftaranId ? (
-        <BelumDaftarKelasState anak={dipilih} locale={locale} />
+        <BelumDaftarKelasState anak={dipilih} locale={locale} tr={tr} />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
         {/* ----------------------------------------------------------------------- */}
@@ -744,12 +716,12 @@ export default async function ParentHome({
           {/* DOKUMENTASI & STATUS PEMBELAJARAN (WhatsApp/Instagram Status Inline) */}
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900">
+              <h3 className="text-sm font-semibold text-slate-900">
                 {tr("learningStatusFeedTitle")}
               </h3>
               {learningStatuses.length > 0 && (
                 <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-700">
-                  {learningStatuses.length} Update Terbaru
+                  {tr("latestUpdates", { count: learningStatuses.length })}
                 </span>
               )}
             </div>
@@ -760,7 +732,7 @@ export default async function ParentHome({
 
           {/* CATATAN PERKEMBANGAN GURU (Editorial Quote) */}
           <section className="space-y-3 pt-2">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900">
+            <h3 className="text-sm font-semibold text-slate-900">
               {tr("text124")}
             </h3>
 
@@ -801,7 +773,7 @@ export default async function ParentHome({
                   className="mx-auto h-20 w-20 sm:h-24 sm:w-24 object-contain"
                 />
                 <h4 className="mt-3 text-sm font-bold text-slate-800">
-                  Belum Ada Catatan Guru
+                  {tr("noTeacherNotesTitle")}
                 </h4>
                 <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
                   {tr("text125")}
@@ -813,7 +785,7 @@ export default async function ParentHome({
           {/* PERKEMBANGAN NILAI AKADEMIK (Minimalist Trend Chart) */}
           <section className="space-y-3 pt-2">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900">
+              <h3 className="text-sm font-semibold text-slate-900">
                 {tr("text120")}
               </h3>
               <div className="flex items-center gap-2">
@@ -861,7 +833,7 @@ export default async function ParentHome({
                     className="mx-auto h-20 w-20 sm:h-24 sm:w-24 object-contain"
                   />
                   <h4 className="mt-3 text-sm font-bold text-slate-800">
-                    Belum Ada Riwayat Nilai
+                    {tr("noGradesHistoryTitle")}
                   </h4>
                   <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
                     {tr("text123")}
@@ -900,7 +872,7 @@ export default async function ParentHome({
                   className="mx-auto h-20 w-20 sm:h-24 sm:w-24 object-contain"
                 />
                 <h4 className="mt-3 text-sm font-bold text-slate-800">
-                  Belum Ada Jadwal Sesi
+                  {tr("noSessionScheduleTitle")}
                 </h4>
                 <p className="mt-1 text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
                   {tr("text110")}
@@ -941,11 +913,11 @@ export default async function ParentHome({
                       </div>
 
                       {sekarang ? (
-                        <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
+                        <span className="shrink-0 rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-bold text-white">
                           {tr("dashJadwalSekarang")}
                         </span>
                       ) : berikut ? (
-                        <span className="shrink-0 rounded-full border border-brand/40 bg-brand/5 px-2 py-0.5 text-[10px] font-bold text-brand uppercase tracking-wider">
+                        <span className="shrink-0 rounded-full border border-brand/40 bg-brand/5 px-2 py-0.5 text-[10px] font-bold text-brand">
                           {tr("dashJadwalBerikut")}
                         </span>
                       ) : null}
@@ -973,7 +945,7 @@ export default async function ParentHome({
                 {tr("text115")}
               </h3>
               <span className="text-xs font-semibold text-slate-500">
-                {dipilih.presensi.total} Pertemuan
+                {tr("meetingsCount", { count: dipilih.presensi.total })}
               </span>
             </div>
 
@@ -987,7 +959,7 @@ export default async function ParentHome({
                   className="mx-auto h-20 w-20 sm:h-24 sm:w-24 object-contain"
                 />
                 <h4 className="mt-3 text-sm font-bold text-slate-800">
-                  Belum Ada Rekap Presensi
+                  {tr("noAttendanceRecapTitle")}
                 </h4>
                 <p className="mt-1 text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
                   {tr("text114")}
@@ -998,14 +970,14 @@ export default async function ParentHome({
                 <div className="flex items-center justify-around gap-4 py-2">
                   <RingProgres
                     pct={dipilih.persenHadir ?? 0}
-                    label="Kehadiran"
+                    label={tr("attendanceLabel")}
                     tone={ringTone}
                     size={104}
                     variant="light"
                   />
                   <div className="grid grid-cols-2 gap-2 text-center text-xs">
                     <div className="rounded-xl bg-emerald-50 p-2 border border-emerald-100">
-                      <p className="text-[10px] uppercase font-semibold text-emerald-600">
+                      <p className="text-[10px] font-semibold text-emerald-600">
                         {tr("text116")}
                       </p>
                       <p className="text-base font-bold text-emerald-950 tabular-nums">
@@ -1013,7 +985,7 @@ export default async function ParentHome({
                       </p>
                     </div>
                     <div className="rounded-xl bg-amber-50 p-2 border border-amber-100">
-                      <p className="text-[10px] uppercase font-semibold text-amber-600">
+                      <p className="text-[10px] font-semibold text-amber-600">
                         {tr("text117")}/{tr("text118")}
                       </p>
                       <p className="text-base font-bold text-amber-950 tabular-nums">
@@ -1021,7 +993,7 @@ export default async function ParentHome({
                       </p>
                     </div>
                     <div className="col-span-2 rounded-xl bg-rose-50 p-2 border border-rose-100">
-                      <p className="text-[10px] uppercase font-semibold text-rose-600">
+                      <p className="text-[10px] font-semibold text-rose-600">
                         {tr("text119")}
                       </p>
                       <p className="text-base font-bold text-rose-950 tabular-nums">
@@ -1073,7 +1045,7 @@ export default async function ParentHome({
                   className="mx-auto h-20 w-20 sm:h-24 sm:w-24 object-contain"
                 />
                 <h4 className="mt-3 text-sm font-bold text-slate-800">
-                  Tidak Ada Tagihan Terbuka
+                  {tr("noOpenBillsTitle")}
                 </h4>
                 <p className="mt-1 text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
                   {tr("text096")}

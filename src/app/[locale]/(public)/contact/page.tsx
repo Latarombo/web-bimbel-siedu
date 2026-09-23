@@ -20,7 +20,7 @@ export default async function ContactPage() {
   const tr = await getTranslations("public");
   const telpHref = `tel:${SITE.telepon.replace(/\D/g, "")}`;
   const waHref = `https://wa.me/${SITE.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(
-    "Halo Admin Siedu, saya ingin bertanya seputar bimbingan belajar Siedu."
+    tr("contactWaText")
   )}`;
 
   return (
@@ -75,11 +75,11 @@ export default async function ContactPage() {
                 <span className="grid size-9 place-items-center rounded-xl bg-slate-100 text-slate-900 border border-slate-200 shadow-2xs shrink-0">
                   <MapPin className="size-4.5" strokeWidth={2.2} />
                 </span>
-                <h3 className="font-bold text-slate-900 text-sm sm:text-base">Lokasi:</h3>
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base">{tr("contactLocationHeading")}</h3>
               </div>
               <div className="space-y-3.5 text-xs sm:text-sm text-slate-600">
                 <div>
-                  <span className="font-bold text-slate-900 block">(Kantor Pusat)</span>
+                  <span className="font-bold text-slate-900 block">{tr("contactHeadOffice")}</span>
                   <p className="mt-1 leading-relaxed">
                     {KANTOR_PUSAT.alamat}
                   </p>
@@ -90,11 +90,11 @@ export default async function ContactPage() {
                     className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-brand hover:underline"
                   >
                     <ExternalLink className="size-3.5 text-slate-900" />
-                    Buka di Google Maps
+                    {tr("openGoogleMaps")}
                   </a>
                 </div>
                 <div className="pt-3 border-t border-dashed border-slate-200/80">
-                  <span className="font-bold text-slate-900 block">(Kantor Cabang)</span>
+                  <span className="font-bold text-slate-900 block">{tr("contactBranchOffice")}</span>
                   <div className="mt-0.5">
                     <CabangScrollTrigger />
                   </div>
@@ -108,7 +108,7 @@ export default async function ContactPage() {
                 <span className="grid size-9 place-items-center rounded-xl bg-slate-100 text-slate-900 border border-slate-200 shadow-2xs shrink-0">
                   <Phone className="size-4.5" strokeWidth={2.2} />
                 </span>
-                <h3 className="font-bold text-slate-900 text-sm sm:text-base">Telepon Kami:</h3>
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base">{tr("contactPhoneHeading")}</h3>
               </div>
               <div className="space-y-1.5 text-xs sm:text-sm">
                 <div>
@@ -138,7 +138,7 @@ export default async function ContactPage() {
                 <span className="grid size-9 place-items-center rounded-xl bg-slate-100 text-slate-900 border border-slate-200 shadow-2xs shrink-0">
                   <Mail className="size-4.5" strokeWidth={2.2} />
                 </span>
-                <h3 className="font-bold text-slate-900 text-sm sm:text-base">Email Kami:</h3>
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base">{tr("contactEmailHeading")}</h3>
               </div>
               <p className="text-xs sm:text-sm text-slate-600">
                 <a
@@ -156,11 +156,11 @@ export default async function ContactPage() {
                 <span className="grid size-9 place-items-center rounded-xl bg-slate-100 text-slate-900 border border-slate-200 shadow-2xs shrink-0">
                   <Clock className="size-4.5" strokeWidth={2.2} />
                 </span>
-                <h3 className="font-bold text-slate-900 text-sm sm:text-base">Jam Kerja:</h3>
+                <h3 className="font-bold text-slate-900 text-sm sm:text-base">{tr("contactHoursHeading")}</h3>
               </div>
               <div className="text-xs sm:text-sm text-slate-600 space-y-0.5">
-                <p className="font-medium text-slate-800">Senin hingga Sabtu, 09.00 – 17.00 WIB</p>
-                <p className="text-xs text-slate-500">Minggu & Libur Nasional: Tutup</p>
+                <p className="font-medium text-slate-800">{tr("contactHoursWeekdays")}</p>
+                <p className="text-xs text-slate-500">{tr("contactHoursClosed")}</p>
               </div>
             </div>
           </div>

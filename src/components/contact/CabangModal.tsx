@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Search, MapPin, Phone, MessageCircle, ExternalLink, X } from "lucide-react";
 import { DAFTAR_CABANG, type Cabang } from "@/lib/cabang";
 import { useScrollLock } from "@/lib/use-scroll-lock";
 
 export function CabangModalTrigger() {
+  const t = useTranslations("public");
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -45,7 +47,7 @@ export function CabangModalTrigger() {
         onClick={() => setIsOpen(true)}
         className="mt-1 inline-flex items-center gap-1.5 font-bold text-brand hover:text-brand-dark hover:underline transition-colors text-sm cursor-pointer"
       >
-        <span>lihat kantor cabang</span>
+        <span>{t("cabangViewOffice")}</span>
       </button>
 
       {isOpen && (
@@ -72,10 +74,10 @@ export function CabangModalTrigger() {
                 </div>
                 <div>
                   <h3 id="modal-cabang-title" className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
-                    Daftar Kantor Cabang Siedu
+                    {t("branchModalTitle")}
                   </h3>
                   <p className="text-[11px] sm:text-xs text-slate-500">
-                    Temukan lokasi bimbingan belajar Siedu terdekat di wilayah Anda
+                    {t("branchModalSubtitle")}
                   </p>
                 </div>
               </div>
@@ -83,7 +85,7 @@ export function CabangModalTrigger() {
                 type="button"
                 onClick={() => setIsOpen(false)}
                 className="grid size-8 place-items-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer shrink-0"
-                aria-label="Tutup dialog"
+                aria-label={t("catalogFilterClose")}
               >
                 <X className="size-4" />
               </button>
@@ -97,7 +99,7 @@ export function CabangModalTrigger() {
                   type="search"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Cari berdasarkan nama cabang, wilayah, atau jalan..."
+                  placeholder={t("branchSearchPlaceholder")}
                   className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-4 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
                   autoFocus
                 />
@@ -107,13 +109,13 @@ export function CabangModalTrigger() {
                     onClick={() => setSearch("")}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400 hover:text-slate-600"
                   >
-                    Hapus
+                    {t("branchSearchClear")}
                   </button>
                 )}
               </div>
               <div className="mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] sm:text-xs text-slate-500">
-                <span>Menampilkan {filteredCabang.length} dari {DAFTAR_CABANG.length} kantor cabang</span>
-                <span className="font-medium text-slate-600">Wilayah Malang Raya & Sekitarnya</span>
+                <span>{t("branchShowingCount", { filtered: filteredCabang.length, total: DAFTAR_CABANG.length })}</span>
+                <span className="font-medium text-slate-600">{t("branchRegionMalang")}</span>
               </div>
             </div>
 
@@ -123,7 +125,7 @@ export function CabangModalTrigger() {
                 filteredCabang.map((cabang) => {
                   const waUrl = cabang.wa
                     ? `https://wa.me/${cabang.wa}?text=${encodeURIComponent(
-                        `Halo Kak, saya tertarik dan ingin bertanya mengenai program bimbingan belajar Siedu di cabang ${cabang.nama}!`
+                        t("branchWaMessage", { name: cabang.nama })
                       )}`
                     : null;
 
@@ -147,7 +149,7 @@ export function CabangModalTrigger() {
                         {cabang.telepon && (
                           <div className="flex items-center gap-1.5 text-xs text-slate-500 pt-0.5">
                             <Phone className="size-3 text-slate-400" />
-                            <span>Telp: {cabang.telepon}</span>
+                            <span>{t("branchPhonePrefix")} {cabang.telepon}</span>
                           </div>
                         )}
                       </div>
@@ -187,10 +189,10 @@ export function CabangModalTrigger() {
                     <Search className="size-6" />
                   </div>
                   <h4 className="text-sm font-bold text-slate-800">
-                    Cabang tidak ditemukan
+                    {t("branchNotFoundTitle")}
                   </h4>
                   <p className="text-xs text-slate-500 max-w-xs mt-1">
-                    Tidak ada cabang yang cocok dengan kata kunci &quot;{search}&quot;. Coba cari dengan nama wilayah lain.
+                    {t("branchNotFoundDesc", { search })}
                   </p>
                 </div>
               )}
@@ -198,14 +200,14 @@ export function CabangModalTrigger() {
 
             {/* Footer Dialog */}
             <div className="border-t border-slate-100 bg-slate-50 px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-slate-500 text-center sm:text-left shrink-0">
-              <span>Butuh bantuan memilih cabang terdekat?</span>
+              <span>{t("branchNeedHelp")}</span>
               <a
                 href="https://wa.me/6283846480817?text=Halo%20Admin%20Siedu%2C%20saya%20ingin%20konsultasi%20mengenai%20cabang%20terdekat"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-bold text-brand hover:underline inline-flex items-center justify-center sm:justify-start gap-1"
               >
-                Tanya Admin Pusat
+                {t("branchAskHeadOffice")}
               </a>
             </div>
           </div>

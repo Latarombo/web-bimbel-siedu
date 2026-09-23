@@ -54,9 +54,11 @@ export function KatalogFilterBar({
   const containerRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
+  const [prevCurrentQ, setPrevCurrentQ] = useState(currentQ);
+  if (currentQ !== prevCurrentQ) {
+    setPrevCurrentQ(currentQ);
     setSearchQuery(currentQ);
-  }, [currentQ]);
+  }
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -77,12 +79,16 @@ export function KatalogFilterBar({
 
     const trimmed = searchQuery.trim();
     if (trimmed.length < 2) {
-      setSuggestions([]);
-      setIsLoadingSuggestions(false);
+      queueMicrotask(() => {
+        setSuggestions([]);
+        setIsLoadingSuggestions(false);
+      });
       return;
     }
 
-    setIsLoadingSuggestions(true);
+    queueMicrotask(() => {
+      setIsLoadingSuggestions(true);
+    });
     debounceTimerRef.current = setTimeout(async () => {
       try {
         const params = new URLSearchParams({

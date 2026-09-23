@@ -225,7 +225,7 @@ export function SessionJournalForm({
               ) : (
                 <Save className="size-3.5" />
               )}
-              <span>{isPending ? t('saving') : 'Simpan Perubahan'}</span>
+              <span>{isPending ? t('saving') : t('sessionJournalSaveChanges')}</span>
             </button>
           </>
         ) : (

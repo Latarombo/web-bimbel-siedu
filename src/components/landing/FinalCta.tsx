@@ -14,7 +14,7 @@ export default async function FinalCta() {
         <section className="relative overflow-hidden bg-white pt-24 pb-12 sm:pt-28 sm:pb-14 lg:pt-36 lg:pb-16">
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                 {/* Coursera-style Soft Blue Card Container — Ringkas & Proporsional */}
-                <div className="relative rounded-2xl border border-blue-200/70 bg-gradient-to-br from-[#ebf3ff] via-[#f2f7ff] to-[#e6f0ff] px-6 pt-8 pb-0 sm:px-8 sm:pt-10 sm:pb-0 lg:px-12 lg:py-12 xl:px-16 shadow-sm">
+                <div className="relative rounded-2xl border border-blue-200/70 bg-[#ebf3ff] px-6 pt-8 pb-0 sm:px-8 sm:pt-10 sm:pb-0 lg:px-12 lg:py-12 xl:px-16 shadow-sm">
                     {/* Efek melengkung ribbon khas Coursera di sisi kanan — digeser lebih ke kanan */}
                     <div
                         aria-hidden="true"

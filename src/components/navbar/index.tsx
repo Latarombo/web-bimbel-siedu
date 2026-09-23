@@ -44,10 +44,7 @@ export function Navbar({ dashboardHref = null }: NavbarProps) {
 
   // Deteksi scroll halaman (threshold 20px)
   useEffect(() => {
-    // Sinkronkan posisi aktual saat mount
-    const currentScrolled = window.scrollY > 20;
-    globalIsScrolled = currentScrolled;
-    setIsScrolled(currentScrolled);
+    globalIsScrolled = window.scrollY > 20;
 
     const handleScroll = () => {
       const scrolled = window.scrollY > 20;
@@ -68,10 +65,11 @@ export function Navbar({ dashboardHref = null }: NavbarProps) {
     };
   }, []);
 
-  // Tutup menu mobile setiap kali halaman berpindah
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setIsMobileMenuOpen(false);
-  }, [pathname]);
+  }
 
   const transitionClass = enableTransition
     ? 'transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]'

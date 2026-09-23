@@ -371,7 +371,7 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
 
               {/* Nav items */}
               <div className="flex-1 overflow-y-auto px-4 py-3.5 space-y-1 overscroll-contain">
-                <span className="block px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                <span className="block px-3 py-1 text-[11px] font-medium text-slate-400">
                   Menu Utama
                 </span>
                 <ul className="flex flex-col space-y-1">

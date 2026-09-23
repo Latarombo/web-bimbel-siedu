@@ -59,5 +59,10 @@
     "logout": "Log out",
     "user": "User"
   },
-  "user": "User"
+  "user": "User",
+  "cancel": "Cancel",
+  "close": "Close",
+  "saving": "Saving...",
+  "previous": "Previous",
+  "next": "Next"
 }

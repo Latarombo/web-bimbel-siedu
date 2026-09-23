@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type {
   EnrollmentBillingGroup,
@@ -46,6 +47,7 @@ export function PaymentCenterClient({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const t = useTranslations("parent");
 
   // Tab state: "belum-lunas" or "riwayat"
   const [tab, setTab] = useState<"belum-lunas" | "riwayat">(
@@ -183,11 +185,10 @@ export function PaymentCenterClient({
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
-            Riwayat & Tagihan Pembayaran
+            {t("paymentsHeroTitle")}
           </h1>
           <p className="mt-2.5 max-w-2xl text-xs sm:text-sm lg:text-base text-blue-100/90 leading-relaxed font-medium">
-            Pantau rincian biaya kursus semua anak Anda, lakukan pelunasan instan
-            via Midtrans / transfer, dan unduh kwitansi digital resmi.
+            {t("paymentsHeroDesc")}
           </p>
         </div>
       </section>
@@ -203,7 +204,7 @@ export function PaymentCenterClient({
         <section className="space-y-4 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Status Tabs */}
-          <nav aria-label="Tab Status Pembayaran" className="inline-flex rounded-xl bg-slate-100 p-1">
+          <nav aria-label={t("paymentsTabAria")} className="inline-flex rounded-xl bg-slate-100 p-1">
             <button
               type="button"
               onClick={() => handleTabChange("belum-lunas")}
@@ -213,7 +214,7 @@ export function PaymentCenterClient({
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <span>Belum Lunas</span>
+              <span>{t("paymentsTabUnpaid")}</span>
               <span
                 className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
                   tab === "belum-lunas"
@@ -234,7 +235,7 @@ export function PaymentCenterClient({
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <span>Riwayat Lunas</span>
+              <span>{t("paymentsTabPaid")}</span>
               <span
                 className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
                   tab === "riwayat"
@@ -254,7 +255,7 @@ export function PaymentCenterClient({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari anak, kelas, mapel..."
+              placeholder={t("paymentsSearchPlaceholder")}
               className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-8 text-xs sm:text-sm text-slate-800 placeholder-slate-400 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
             />
             {searchQuery && (
@@ -274,7 +275,7 @@ export function PaymentCenterClient({
           <div className="pt-3 border-t border-slate-100 flex items-center flex-wrap gap-2">
             <span className="text-xs font-semibold text-slate-500 mr-1 flex items-center gap-1">
               <Filter className="size-3 text-slate-400" />
-              Filter Anak:
+              {t("paymentsFilterChild")}
             </span>
 
             <button
@@ -286,7 +287,7 @@ export function PaymentCenterClient({
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
-              Semua Anak ({anakList.length})
+              {t("paymentsAllChildren", { count: anakList.length })}
             </button>
 
             {anakList.map((anak) => (
@@ -316,11 +317,10 @@ export function PaymentCenterClient({
           </div>
           <div className="max-w-md mx-auto space-y-1">
             <h3 className="text-lg font-bold text-slate-900">
-              Belum Ada Pendaftaran Kelas
+              {t("paymentsEmptyNoEnrollmentTitle")}
             </h3>
             <p className="text-xs sm:text-sm text-slate-500">
-              Putra-putri Anda belum terdaftar pada kelas bimbel. Daftarkan anak
-              ke kelas pilihan untuk melihat jadwal dan tagihan pembayaran.
+              {t("paymentsEmptyNoEnrollmentDesc")}
             </p>
           </div>
           <div className="pt-2">
@@ -328,7 +328,7 @@ export function PaymentCenterClient({
               href="/classes"
               className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-blue-700 transition-colors"
             >
-              <span>Jelajahi Katalog Kelas</span>
+              <span>{t("paymentsBrowseCatalog")}</span>
               <ArrowRight className="size-4" />
             </Link>
           </div>
@@ -337,21 +337,20 @@ export function PaymentCenterClient({
         /* Contextual Empty State */
         tab === "belum-lunas" && stats.totalPendingCount === 0 ? (
           /* Semua Tagihan Lunas (Appreciative) */
-          <div className="rounded-2xl border border-emerald-200 bg-gradient-to-b from-emerald-50/40 to-white p-10 text-center space-y-4 shadow-xs">
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50/40 p-10 text-center space-y-4 shadow-xs">
             <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600 shadow-xs">
               <CheckCircle2 className="size-8" />
             </div>
             <div className="max-w-md mx-auto space-y-1.5">
               <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-0.5 text-xs font-bold text-emerald-800">
                 <Sparkles className="size-3" />
-                <span>Semua Tagihan Beres!</span>
+                <span>{t("paymentsAllPaidBadge")}</span>
               </div>
               <h3 className="text-xl font-extrabold text-slate-900">
-                Tidak Ada Tagihan Belum Dibayar
+                {t("paymentsAllPaidTitle")}
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                Luar biasa! Seluruh pembayaran kursus putra-putri Anda telah lunas.
-                Anak Anda siap mengikuti seluruh sesi pembelajaran dengan tenang.
+                {t("paymentsAllPaidDesc")}
               </p>
             </div>
             <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
@@ -360,7 +359,7 @@ export function PaymentCenterClient({
                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs hover:bg-emerald-700 transition-colors"
               >
                 <Calendar className="size-4" />
-                <span>Lihat Jadwal & Presensi Anak</span>
+                <span>{t("paymentsViewSchedule")}</span>
               </Link>
               <button
                 type="button"
@@ -368,7 +367,7 @@ export function PaymentCenterClient({
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs sm:text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
               >
                 <Receipt className="size-4 text-slate-500" />
-                <span>Buka Riwayat Kwitansi Lunas</span>
+                <span>{t("paymentsOpenReceipts")}</span>
               </button>
             </div>
           </div>
@@ -380,11 +379,10 @@ export function PaymentCenterClient({
             </div>
             <div className="max-w-md mx-auto space-y-1">
               <h3 className="text-base font-bold text-slate-900">
-                Belum Ada Riwayat Pembayaran
+                {t("paymentsEmptyHistoryTitle")}
               </h3>
               <p className="text-xs text-slate-500">
-                Setelah pembayaran pertama diverifikasi berhasil, kwitansi dan
-                arsip transaksi akan tersimpan rapi di sini.
+                {t("paymentsEmptyHistoryDesc")}
               </p>
             </div>
             <div className="pt-2">
@@ -393,7 +391,7 @@ export function PaymentCenterClient({
                 onClick={() => handleTabChange("belum-lunas")}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 cursor-pointer"
               >
-                <span>Lihat tagihan yang perlu dibayar</span>
+                <span>{t("paymentsViewBillsToPay")}</span>
                 <ArrowRight className="size-3.5" />
               </button>
             </div>
@@ -406,11 +404,10 @@ export function PaymentCenterClient({
             </div>
             <div className="max-w-md mx-auto space-y-1">
               <h3 className="text-base font-bold text-slate-900">
-                Tidak Ada Tagihan Ditemukan
+                {t("paymentsNoBillsFound")}
               </h3>
               <p className="text-xs text-slate-500">
-                Tidak ada data yang sesuai dengan kata kunci pencarian atau filter
-                anak yang dipilih.
+                {t("paymentsNoBillsFoundDesc")}
               </p>
             </div>
             <div className="pt-2">
@@ -422,7 +419,7 @@ export function PaymentCenterClient({
                 }}
                 className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
               >
-                Reset Filter Pencarian
+                {t("paymentsResetFilter")}
               </button>
             </div>
           </div>
@@ -432,7 +429,10 @@ export function PaymentCenterClient({
         <div className="space-y-6">
           <div className="flex items-center justify-between text-xs text-slate-500 px-1">
             <span>
-              Menampilkan {filteredGroups.length} program kelas ({totalBillsCount} tagihan)
+              {t("paymentsShowing", {
+                count: filteredGroups.length,
+                bills: totalBillsCount,
+              })}
             </span>
           </div>
 

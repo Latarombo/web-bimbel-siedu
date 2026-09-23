@@ -54,7 +54,6 @@ export default async function ScheduleAttendancePage({
 }) {
   const tr = await getTranslations("parent");
   const locale = await getLocale();
-  const isEn = locale === "en";
   const statusLabels: Record<string, string> = {
     hadir: tr("text116"),
     izin: tr("text117"),
@@ -245,15 +244,13 @@ export default async function ScheduleAttendancePage({
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-xs border border-white/20">
               <CalendarDays className="size-3.5" />
-              <span>{isEn ? "Academic Schedule & Attendance Portal" : "Portal Jadwal & Presensi Belajar"}</span>
+              <span>{tr("saHeroBadge")}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              {isEn ? "Student Schedule & Attendance" : "Jadwal & Presensi Siswa"}
+              {tr("saHeroTitle")}
             </h1>
             <p className="text-xs sm:text-sm text-blue-100 max-w-xl leading-relaxed">
-              {isEn
-                ? "Monitor offline class schedules, real-time attendance, teacher notes, and learning progress."
-                : "Pantau jadwal kelas tatap muka, kehadiran real-time, materi modul, serta evaluasi perkembangan anak."}
+              {tr("saHeroDesc")}
             </p>
           </div>
 
@@ -261,7 +258,7 @@ export default async function ScheduleAttendancePage({
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
             <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
               <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
-                {isEn ? "Classes" : "Kelas"}
+                {tr("saStatClasses")}
               </span>
               <span className="text-xl font-extrabold text-white tabular-nums">
                 {milikSaya.length}
@@ -269,7 +266,7 @@ export default async function ScheduleAttendancePage({
             </div>
             <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
               <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
-                {isEn ? "Sessions/Wk" : "Sesi / Pekan"}
+                {tr("saStatSessions")}
               </span>
               <span className="text-xl font-extrabold text-white tabular-nums">
                 {jadwalRecords.length}
@@ -277,7 +274,7 @@ export default async function ScheduleAttendancePage({
             </div>
             <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
               <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
-                {isEn ? "Attendance" : "Presensi"}
+                {tr("saStatAttendance")}
               </span>
               <span className="text-xl font-extrabold text-white tabular-nums">
                 {presensiRecords.length}
@@ -292,7 +289,7 @@ export default async function ScheduleAttendancePage({
         <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/60">
           <span className="text-xs font-bold text-slate-500 pl-3 pr-1 flex items-center gap-1.5">
             <Users className="size-3.5" />
-            {isEn ? "Student:" : "Filter Siswa:"}
+            {tr("saFilterStudent")}
           </span>
           <Link
             href={`/schedule-attendance?tab=${tabAktif}`}
@@ -302,7 +299,7 @@ export default async function ScheduleAttendancePage({
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            {isEn ? "All Children" : "Semua Anak"}
+            {tr("saAllChildren")}
           </Link>
           {anak.map((a) => (
             <Link
@@ -333,8 +330,8 @@ export default async function ScheduleAttendancePage({
       {/* Modern Card Tabs Switcher */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
         {[
-          { key: "jadwal", label: isEn ? "Class Schedule" : "Jadwal Belajar", count: jadwalRecords.length, icon: CalendarDays },
-          { key: "presensi", label: isEn ? "Attendance History" : "Presensi & Kehadiran", count: presensiRecords.length, icon: UserCheck },
+          { key: "jadwal", label: tr("saTabSchedule"), count: jadwalRecords.length, icon: CalendarDays },
+          { key: "presensi", label: tr("saTabAttendance"), count: presensiRecords.length, icon: UserCheck },
           { key: "nilai", label: tr("classAssessmentsTitle"), count: hasilMilikSaya.length, icon: Award },
           { key: "laporan", label: tr("progressTabTitle"), count: laporanMilikSaya.length, icon: BookOpen },
         ].map(({ key, label, count, icon: Icon }) => {
@@ -443,9 +440,7 @@ export default async function ScheduleAttendancePage({
               </div>
               <p className="text-base font-bold text-slate-800">{tr("classAssessmentsTitle")}</p>
               <p className="mx-auto mt-1 max-w-sm text-xs sm:text-sm text-muted leading-relaxed">
-                {locale === "en"
-                  ? "No assessments or test assignments published by teachers yet."
-                  : "Belum ada tugas atau evaluasi belajar yang diterbitkan oleh guru."}
+                {tr("saNoAssessments")}
               </p>
             </CardPad>
           </Card>
@@ -457,9 +452,7 @@ export default async function ScheduleAttendancePage({
                   ? `${h.nilai} / ${pen.nilaiMaksimum}`
                   : h.statusHasil === "tidak_ikut"
                     ? tr("notParticipated")
-                    : locale === "en"
-                      ? "Not Graded"
-                      : "Belum Dinilai";
+                    : tr("notGraded");
 
               return (
                 <li key={h.id}>

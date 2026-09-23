@@ -6,12 +6,14 @@ interface LegalContactCardProps {
   title?: string;
   description?: string;
   contactButtonText?: string;
+  badge?: string;
 }
 
 export function LegalContactCard({
   title = "Ada pertanyaan atau butuh klarifikasi?",
   description = "Tim kami siap membantu menjawab pertanyaan terkait privasi data, perbaikan data, atau syarat layanan.",
   contactButtonText = "Hubungi Tim Legal Siedu",
+  badge = "Bantuan Hukum & Kebijakan",
 }: LegalContactCardProps) {
   return (
     <div className="relative overflow-hidden rounded-2xl border border-blue-200/80 bg-linear-to-br from-blue-600 via-blue-700 to-indigo-800 p-6 sm:p-8 text-white shadow-md">
@@ -30,7 +32,7 @@ export function LegalContactCard({
           <div className="flex items-center gap-2 text-blue-200">
             <MessageSquareQuote className="size-4" />
             <span className="text-xs font-semibold uppercase tracking-wider">
-              Bantuan Hukum & Kebijakan
+              {badge}
             </span>
           </div>
           <h3 className="text-xl font-bold tracking-tight text-white sm:text-2xl">

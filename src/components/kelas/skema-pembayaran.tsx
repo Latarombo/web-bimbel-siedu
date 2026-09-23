@@ -35,6 +35,11 @@ const globalSkemaState: { skema: Skema; tenor: number } = {
   tenor: 2,
 };
 
+function persistSkema(skema: Skema, tenor: number) {
+  globalSkemaState.skema = skema;
+  globalSkemaState.tenor = tenor;
+}
+
 export function SkemaPembayaran({
   kelasId,
   periode,
@@ -55,9 +60,9 @@ export function SkemaPembayaran({
 
   const handleLanjutCheckout = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedAnakId) return;
+    if (!resolvedAnakId) return;
     const search = new URLSearchParams();
-    search.set("anakId", selectedAnakId);
+    search.set("anakId", resolvedAnakId);
     search.set("metode", pakaiDp ? "dp_cicilan" : "lunas");
     if (pakaiDp) search.set("tenor", String(tenor));
     router.push(`/classes/${kelasId}/daftar?${search.toString()}`);
@@ -71,15 +76,9 @@ export function SkemaPembayaran({
     matchingChild ? String(matchingChild.id) : anak[0] ? String(anak[0].id) : ""
   );
 
-  // Sync selectedAnakId jika anak baru dimuat
-  useEffect(() => {
-    if (!selectedAnakId && anak.length > 0) {
-      const match = anak.find(
-        (a) => a.jenjangTerakhir && a.jenjangTerakhir.toUpperCase() === jenjang.toUpperCase()
-      );
-      setSelectedAnakId(match ? String(match.id) : String(anak[0].id));
-    }
-  }, [anak, jenjang, selectedAnakId]);
+  const fallbackAnakId =
+    anak.length > 0 ? String((matchingChild ?? anak[0]).id) : "";
+  const resolvedAnakId = selectedAnakId || fallbackAnakId;
 
   const cicilanAda = biayaDp != null && tenorMaksimum != null;
   const [skema, setSkema] = useState<Skema>(() => globalSkemaState.skema);
@@ -87,12 +86,12 @@ export function SkemaPembayaran({
 
   const handleSelectSkema = (s: Skema) => {
     setSkema(s);
-    globalSkemaState.skema = s;
+    persistSkema(s, tenor);
   };
 
   const handleSelectTenor = (t: number) => {
     setTenor(t);
-    globalSkemaState.tenor = t;
+    persistSkema(skema, t);
   };
 
   const opsiTenor = Array.from({ length: (tenorMaksimum ?? 2) - 1 }, (_, i) => i + 2);
@@ -104,7 +103,7 @@ export function SkemaPembayaran({
   const pakaiDp = skema === "dp" && cicilanAda;
   const bayarSekarang = pakaiDp ? (biayaDp ?? 0) : biayaPeriode;
 
-  const selectedAnak = anak.find((a) => String(a.id) === selectedAnakId);
+  const selectedAnak = anak.find((a) => String(a.id) === resolvedAnakId);
   const isSelectedMismatch = Boolean(
     selectedAnak?.jenjangTerakhir &&
       selectedAnak.jenjangTerakhir.toUpperCase() !== jenjang.toUpperCase()
@@ -143,7 +142,7 @@ export function SkemaPembayaran({
                 Akun Anda terdaftar bukan sebagai Orang Tua. Pendaftaran kelas bimbel ditujukan untuk akun Orang Tua.
               </div>
             ) : anak.length === 0 ? (
-              <div className="rounded-2xl border border-blue-100/80 bg-gradient-to-b from-blue-50/50 to-slate-50/50 p-5 text-center">
+              <div className="rounded-2xl border border-blue-100/80 bg-slate-50 p-5 text-center">
                 <div className="mx-auto mb-3 flex size-11 items-center justify-center rounded-2xl bg-white text-blue-600 shadow-xs border border-blue-100/80">
                   <UserPlus className="size-5" />
                 </div>
@@ -163,7 +162,7 @@ export function SkemaPembayaran({
             ) : (
               <div className="space-y-2">
                 {anak.map((a) => {
-                  const isSelected = selectedAnakId === String(a.id);
+                  const isSelected = resolvedAnakId === String(a.id);
 
                   return (
                     <div
@@ -220,7 +219,7 @@ export function SkemaPembayaran({
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-slate-100" />
                   </div>
-                  <span className="relative bg-white px-2 text-[11px] text-slate-400 uppercase tracking-wider">
+                  <span className="relative bg-white px-2 text-[11px] text-slate-400">
                     atau
                   </span>
                 </div>
@@ -382,7 +381,7 @@ export function SkemaPembayaran({
             <button
               id="cta-utama"
               type="submit"
-              disabled={!selectedAnakId}
+              disabled={!resolvedAnakId}
               className="mt-5 flex min-h-12 w-full items-center justify-center rounded-xl py-3 text-sm font-bold text-white shadow-xs transition-all active:scale-[0.99] hover:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               style={{ backgroundColor: "#f26d0f" }}
             >
@@ -408,7 +407,7 @@ export function SkemaPembayaran({
         isLoggedIn={isLoggedIn}
         isOrangTua={isOrangTua}
         hasAnak={anak.length > 0}
-        hasSelectedAnak={Boolean(selectedAnakId)}
+        hasSelectedAnak={Boolean(resolvedAnakId)}
         kelasId={kelasId}
         sisaKuota={sisaKuota}
       />

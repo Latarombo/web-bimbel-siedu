@@ -154,11 +154,14 @@ export default function FaqSection() {
   }, []);
 
   // Sinkronkan hash URL hanya setelah render selesai via requestAnimationFrame (mencegah error Next.js Router setState in render)
+  const effectiveOpenIndex =
+    !semua && openIndex !== null && openIndex >= AWAL ? null : openIndex;
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const currentHash = window.location.hash;
-    if (openIndex !== null) {
-      const targetHash = `#faq-${openIndex}`;
+    if (effectiveOpenIndex !== null) {
+      const targetHash = `#faq-${effectiveOpenIndex}`;
       if (currentHash !== targetHash) {
         window.requestAnimationFrame(() => {
           history.replaceState(null, "", targetHash);
@@ -169,15 +172,7 @@ export default function FaqSection() {
         history.replaceState(null, "", window.location.pathname + window.location.search + "#faq");
       });
     }
-  }, [openIndex]);
-
-  // Tutup FAQ item jika berada di sisa FAQ dan bagian sisa disembunyikan
-  useEffect(() => {
-    if (!semua && openIndex !== null && openIndex >= AWAL) {
-      setOpenIndex(null);
-      globalFaqOpenIndex = null;
-    }
-  }, [semua, openIndex]);
+  }, [effectiveOpenIndex]);
 
   const handleToggle = (index: number) => {
     setOpenIndex((prev) => {
@@ -188,11 +183,13 @@ export default function FaqSection() {
   };
 
   const handleToggleSemua = () => {
-    setSemua((prev) => {
-      const next = !prev;
-      globalFaqSemua = next;
-      return next;
-    });
+    const next = !semua;
+    if (!next && openIndex !== null && openIndex >= AWAL) {
+      setOpenIndex(null);
+      globalFaqOpenIndex = null;
+    }
+    setSemua(next);
+    globalFaqSemua = next;
   };
 
   return (
@@ -215,7 +212,7 @@ export default function FaqSection() {
               id={String(idx)}
               q={q}
               a={a}
-              isOpen={openIndex === idx}
+              isOpen={effectiveOpenIndex === idx}
               onToggle={() => handleToggle(idx)}
             />
           ))}
@@ -237,7 +234,7 @@ export default function FaqSection() {
                     id={String(actualIndex)}
                     q={q}
                     a={a}
-                    isOpen={openIndex === actualIndex}
+                    isOpen={effectiveOpenIndex === actualIndex}
                     onToggle={() => handleToggle(actualIndex)}
                   />
                 );

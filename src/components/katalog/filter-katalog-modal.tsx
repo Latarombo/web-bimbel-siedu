@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useScrollLock } from "@/lib/use-scroll-lock";
 
@@ -72,6 +73,7 @@ export function FilterKatalogModal({
   currentSort = "terbaru",
   translations,
 }: FilterKatalogModalProps) {
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -85,7 +87,13 @@ export function FilterKatalogModal({
   );
 
   // Sinkronisasi state saat modal dibuka
-  useEffect(() => {
+  const [prevSync, setPrevSync] = useState({ isOpen, currentJenjang, currentTingkat });
+  if (
+    isOpen !== prevSync.isOpen ||
+    currentJenjang !== prevSync.currentJenjang ||
+    currentTingkat !== prevSync.currentTingkat
+  ) {
+    setPrevSync({ isOpen, currentJenjang, currentTingkat });
     if (isOpen) {
       const validJenjang =
         currentJenjang === "TK" || currentJenjang === "SD" || currentJenjang === "SMP" || currentJenjang === "SMA"
@@ -94,7 +102,7 @@ export function FilterKatalogModal({
       setSelectedJenjang(validJenjang);
       setSelectedTingkat(currentTingkat || "Semua");
     }
-  }, [isOpen, currentJenjang, currentTingkat]);
+  }
 
   // Tutup dengan tombol Escape
   useEffect(() => {
@@ -171,7 +179,7 @@ export function FilterKatalogModal({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Tutup dialog"
+          aria-label={tCommon("closeDialog")}
           className="absolute top-5 right-5 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
         >
           <svg

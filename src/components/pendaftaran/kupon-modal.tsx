@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Ticket, X, Check, Tag } from "lucide-react";
 import { rupiah } from "@/lib/format";
 import { useScrollLock } from "@/lib/use-scroll-lock";
@@ -68,6 +69,7 @@ export default function KuponModal({
   kuponTerpilih,
   onPilihKupon,
 }: KuponModalProps) {
+  const tCommon = useTranslations('common');
   const [kodeInput, setKodeInput] = useState("");
   const [errorText, setErrorText] = useState("");
 
@@ -133,7 +135,7 @@ export default function KuponModal({
             type="button"
             onClick={onClose}
             className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
-            aria-label="Tutup"
+            aria-label={tCommon('close')}
           >
             <X className="size-5" />
           </button>
@@ -173,7 +175,7 @@ export default function KuponModal({
 
         {/* List Kupon Tersedia */}
         <div data-lenis-prevent className="mt-2 overflow-y-auto pr-1 space-y-3 flex-1">
-          <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+          <p className="text-xs font-semibold text-slate-600">
             Kupon Tersedia Untuk Anda
           </p>
 

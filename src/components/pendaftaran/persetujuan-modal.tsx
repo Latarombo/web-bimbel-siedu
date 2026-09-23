@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { X, Check, Loader2 } from "lucide-react";
 import { useScrollLock } from "@/lib/use-scroll-lock";
@@ -20,6 +21,7 @@ export default function PersetujuanModal({
   isSubmitting = false,
   namaAnak,
 }: PersetujuanModalProps) {
+  const tCommon = useTranslations("common");
   const [checkedPribadi, setCheckedPribadi] = useState(false);
   const [checkedSyarat, setCheckedSyarat] = useState(false);
 
@@ -27,12 +29,14 @@ export default function PersetujuanModal({
   useScrollLock(isOpen);
 
   // Reset checkboxes when modal opens
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setCheckedPribadi(false);
       setCheckedSyarat(false);
     }
-  }, [isOpen]);
+  }
 
   // Handle escape key
   useEffect(() => {
@@ -88,7 +92,7 @@ export default function PersetujuanModal({
             onClick={onClose}
             disabled={isSubmitting}
             className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
-            aria-label="Tutup dialog"
+            aria-label={tCommon("closeDialog")}
           >
             <X className="size-5" />
           </button>

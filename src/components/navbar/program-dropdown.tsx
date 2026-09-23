@@ -8,18 +8,15 @@ import { ChevronDown, ArrowRight } from 'lucide-react';
 
 interface ProgramDropdownProps {
   isActive: boolean;
-  locale: string;
+  locale?: string;
 }
 
 interface ProgramContentProps {
-  locale: string;
-  t: (key: any) => string;
+  t: (key: string) => string;
   onClose: () => void;
 }
 
-const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
-  const isEn = locale === 'en';
-
+const ProgramContent = ({ t, onClose }: ProgramContentProps) => {
   return (
     <div className="w-[560px] p-6 sm:p-7 select-none">
       {/* 3 Kolom Sesuai Referensi Screenshot */}
@@ -27,7 +24,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
         {/* Kolom 1: Jenjang Dasar */}
         <div>
           <h4 className="text-sm font-bold text-slate-900 mb-3.5 tracking-tight">
-            {isEn ? 'Primary' : 'Jenjang Dasar'}
+            {t('primaryLevel')}
           </h4>
           <ul className="space-y-2.5">
             <li>
@@ -36,7 +33,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
                 onClick={onClose}
                 className="block text-xs sm:text-[13px] text-slate-500 hover:text-blue-600 transition-colors leading-relaxed"
               >
-                {isEn ? 'Kindergarten (TK)' : 'TK (Taman Kanak-kanak)'}
+                {t('kindergarten')}
               </Link>
             </li>
             <li>
@@ -45,7 +42,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
                 onClick={onClose}
                 className="block text-xs sm:text-[13px] text-slate-500 hover:text-blue-600 transition-colors leading-relaxed"
               >
-                {isEn ? 'Elementary Grade 1–3' : 'SD Kelas 1–3 (Dasar)'}
+                {t('elementaryLow')}
               </Link>
             </li>
             <li>
@@ -54,7 +51,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
                 onClick={onClose}
                 className="block text-xs sm:text-[13px] text-slate-500 hover:text-blue-600 transition-colors leading-relaxed"
               >
-                {isEn ? 'Elementary Grade 4–6' : 'SD Kelas 4–6 (Lanjutan)'}
+                {t('elementaryHigh')}
               </Link>
             </li>
             <li>
@@ -63,7 +60,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
                 onClick={onClose}
                 className="block text-xs sm:text-[13px] text-slate-500 hover:text-blue-600 transition-colors leading-relaxed"
               >
-                {isEn ? 'Math & Reading Foundation' : 'Calistung & Matematika'}
+                {t('calistungMath')}
               </Link>
             </li>
           </ul>
@@ -72,7 +69,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
         {/* Kolom 2: Jenjang Menengah */}
         <div>
           <h4 className="text-sm font-bold text-slate-900 mb-3.5 tracking-tight">
-            {isEn ? 'Secondary' : 'Jenjang Menengah'}
+            {t('secondaryLevel')}
           </h4>
           <ul className="space-y-2.5">
             <li>
@@ -81,7 +78,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
                 onClick={onClose}
                 className="block text-xs sm:text-[13px] text-slate-500 hover:text-blue-600 transition-colors leading-relaxed"
               >
-                {isEn ? 'Junior High (Grade 7–9)' : 'SMP (Kelas 7, 8, 9)'}
+                {t('juniorHigh')}
               </Link>
             </li>
             <li>
@@ -90,7 +87,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
                 onClick={onClose}
                 className="block text-xs sm:text-[13px] text-slate-500 hover:text-blue-600 transition-colors leading-relaxed"
               >
-                {isEn ? 'Senior High (Grade 10–12)' : 'SMA (Kelas 10, 11, 12)'}
+                {t('seniorHigh')}
               </Link>
             </li>
             <li>
@@ -99,7 +96,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
                 onClick={onClose}
                 className="block text-xs sm:text-[13px] text-slate-500 hover:text-blue-600 transition-colors leading-relaxed"
               >
-                {isEn ? 'School Exam Preparation' : 'Persiapan Ujian Sekolah'}
+                {t('schoolExamPrep')}
               </Link>
             </li>
             <li>
@@ -108,7 +105,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
                 onClick={onClose}
                 className="block text-xs sm:text-[13px] text-slate-500 hover:text-blue-600 transition-colors leading-relaxed"
               >
-                {isEn ? 'Intensive College Exam' : 'Intensif UTBK & SNBT'}
+                {t('utbkPrep')}
               </Link>
             </li>
           </ul>
@@ -117,7 +114,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
         {/* Kolom 3: Layanan Belajar */}
         <div>
           <h4 className="text-sm font-bold text-slate-900 mb-3.5 tracking-tight">
-            {isEn ? 'Services' : 'Layanan Belajar'}
+            {t('servicesLevel')}
           </h4>
           <ul className="space-y-2.5">
             <li>
@@ -126,7 +123,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
                 onClick={onClose}
                 className="block text-xs sm:text-[13px] text-slate-500 hover:text-blue-600 transition-colors leading-relaxed"
               >
-                {isEn ? 'Daily Homework Help' : 'Bimbingan PR & Tugas'}
+                {t('homeworkHelp')}
               </Link>
             </li>
             <li>
@@ -135,7 +132,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
                 onClick={onClose}
                 className="block text-xs sm:text-[13px] text-slate-500 hover:text-blue-600 transition-colors leading-relaxed"
               >
-                {isEn ? 'Printed Modules & Bank' : 'Modul Cetak & Bank Soal'}
+                {t('printedModules')}
               </Link>
             </li>
             <li>
@@ -144,7 +141,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
                 onClick={onClose}
                 className="block text-xs sm:text-[13px] text-slate-500 hover:text-blue-600 transition-colors leading-relaxed"
               >
-                {isEn ? 'Periodic Tryouts' : 'Simulasi Tryout Berkala'}
+                {t('periodicTryouts')}
               </Link>
             </li>
             <li>
@@ -153,7 +150,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
                 onClick={onClose}
                 className="block text-xs sm:text-[13px] text-slate-500 hover:text-blue-600 transition-colors leading-relaxed"
               >
-                {isEn ? '1-on-1 Consultation' : 'Konsultasi & Remedial'}
+                {t('consultRemedial')}
               </Link>
             </li>
           </ul>
@@ -167,7 +164,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
           onClick={onClose}
           className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 hover:gap-2 transition-all duration-150 group"
         >
-          <span>{isEn ? 'View more' : 'Lihat semua'}</span>
+          <span>{t('viewMore')}</span>
           <ArrowRight className="size-3.5 transition-transform duration-150 group-hover:translate-x-0.5" />
         </Link>
       </div>
@@ -175,7 +172,7 @@ const ProgramContent = ({ locale, t, onClose }: ProgramContentProps) => {
   );
 };
 
-export function ProgramDropdown({ isActive, locale }: ProgramDropdownProps) {
+export function ProgramDropdown({ isActive }: ProgramDropdownProps) {
   const [open, setOpen] = useState(false);
   const t = useTranslations('chrome.nav');
 
@@ -231,7 +228,6 @@ export function ProgramDropdown({ isActive, locale }: ProgramDropdownProps) {
 
             {/* Konten Dropdown Multi-Kolom */}
             <ProgramContent
-              locale={locale}
               t={t}
               onClose={() => setOpen(false)}
             />

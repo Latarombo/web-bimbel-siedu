@@ -7,6 +7,8 @@ const OSM_TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const ATTR =
   '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors';
 
+type LeafletHost = HTMLDivElement & { _leaflet_id?: number | null };
+
 export type PetaLokasiProps = {
   lat: number;
   lng: number;
@@ -24,8 +26,9 @@ export default function PetaLokasi({ lat, lng, mapsHref, className }: PetaLokasi
     let mapInstance: import("leaflet").Map | null = null;
 
     // Bersihkan _leaflet_id jika ada sisa dari hot-reload / React StrictMode
-    if ((wadahRef.current as any)._leaflet_id) {
-      (wadahRef.current as any)._leaflet_id = null;
+    const el = wadahRef.current as LeafletHost;
+    if (el._leaflet_id) {
+      el._leaflet_id = null;
     }
 
     (async () => {
@@ -33,7 +36,8 @@ export default function PetaLokasi({ lat, lng, mapsHref, className }: PetaLokasi
       if (dibatalkan || !wadahRef.current) return;
 
       // Cek ulang agar tidak inisialisasi ganda
-      if ((wadahRef.current as any)._leaflet_id) return;
+      const host = wadahRef.current as LeafletHost;
+      if (host._leaflet_id) return;
 
       mapInstance = L.map(wadahRef.current, {
         center: [lat, lng],

@@ -11,7 +11,10 @@ interface ChildBentoCardProps {
   onSelect: (child: ChildData) => void;
 }
 
-function hitungUmur(tanggalLahir: string, isEn: boolean): string {
+function hitungUmur(
+  tanggalLahir: string,
+  t: (key: string, values?: Record<string, string | number>) => string
+): string {
   try {
     const lahir = new Date(tanggalLahir);
     const now = new Date();
@@ -20,8 +23,8 @@ function hitungUmur(tanggalLahir: string, isEn: boolean): string {
     if (m < 0 || (m === 0 && now.getDate() < lahir.getDate())) {
       umur--;
     }
-    if (umur <= 0) return isEn ? '< 1 yr' : '< 1 thn';
-    return isEn ? `${umur} yrs` : `${umur} thn`;
+    if (umur <= 0) return t('ageBaby');
+    return t('ageYears', { age: umur });
   } catch {
     return '';
   }
@@ -43,14 +46,13 @@ function formatTanggalPendek(tanggalLahir: string, locale: string): string {
 export function ChildBentoCard({ child, onSelect }: ChildBentoCardProps) {
   const t = useTranslations('parent');
   const locale = useLocale();
-  const isEn = locale === 'en';
 
   const jenjangKey = (child.jenjangTerakhir?.toUpperCase() ?? 'DEFAULT') in JENJANG_STYLES
     ? (child.jenjangTerakhir?.toUpperCase() as keyof typeof JENJANG_STYLES)
     : 'DEFAULT';
   const style = JENJANG_STYLES[jenjangKey] ?? JENJANG_STYLES.DEFAULT;
   const inisial = child.nama.trim().slice(0, 2).toUpperCase();
-  const umur = hitungUmur(child.tanggalLahir, isEn);
+  const umur = hitungUmur(child.tanggalLahir, t);
 
   return (
     <article className="group relative flex flex-col justify-between rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm hover:shadow-lg hover:shadow-blue-500/10 hover:border-blue-400 hover:-translate-y-1 transition-all duration-200">
@@ -78,7 +80,7 @@ export function ChildBentoCard({ child, onSelect }: ChildBentoCardProps) {
           {child.isLocked && (
             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-md shrink-0">
               <Lock className="size-3 text-amber-600" />
-              <span>{isEn ? 'Locked' : 'Terkunci'}</span>
+              <span>{t('bentoLocked')}</span>
             </span>
           )}
         </div>
@@ -88,10 +90,10 @@ export function ChildBentoCard({ child, onSelect }: ChildBentoCardProps) {
           <div className="rounded-xl border border-blue-200 bg-blue-50/80 p-4 space-y-2.5 shadow-2xs">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-blue-900 tracking-wide">
-                {isEn ? 'Tutoring Class' : 'Kelas Bimbingan'}
+                {t('bentoTutoringClass')}
               </span>
               <span className="font-black text-blue-700 bg-white border border-blue-200 px-2.5 py-0.5 rounded-md text-[11px] shadow-2xs">
-                {child.jumlahKelasAktif} {isEn ? 'Active' : 'Aktif'}
+                {t('bentoActiveCount', { count: child.jumlahKelasAktif })}
               </span>
             </div>
 
@@ -101,7 +103,7 @@ export function ChildBentoCard({ child, onSelect }: ChildBentoCardProps) {
               </p>
               {child.kelasAktif?.guru && (
                 <p className="text-xs font-semibold text-blue-700 truncate">
-                  {isEn ? 'Teacher' : 'Guru'}: {child.kelasAktif.guru}
+                  {t('bentoTeacher')}: {child.kelasAktif.guru}
                 </p>
               )}
               {child.jadwal && child.jadwal.length > 0 && (
@@ -117,10 +119,10 @@ export function ChildBentoCard({ child, onSelect }: ChildBentoCardProps) {
           <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 space-y-2.5 shadow-2xs">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-amber-950 tracking-wide">
-                {isEn ? 'Tutoring Class' : 'Kelas Bimbingan'}
+                {t('bentoTutoringClass')}
               </span>
               <span className="font-bold text-amber-800 bg-white border border-amber-200 px-2.5 py-0.5 rounded-md text-[11px] shadow-2xs">
-                {isEn ? 'Not enrolled' : 'Belum terdaftar'}
+                {t('bentoNotEnrolled')}
               </span>
             </div>
 
@@ -129,7 +131,7 @@ export function ChildBentoCard({ child, onSelect }: ChildBentoCardProps) {
                 href={`/classes?jenjang=${child.jenjangTerakhir ?? ''}`}
                 className="inline-block text-xs font-bold text-white bg-brand hover:bg-brand-strong px-3.5 py-1.5 rounded-lg shadow-xs hover:shadow transition-all"
               >
-                {isEn ? 'Browse classes' : 'Pilih kelas bimbel'}
+                {t('bentoBrowseClasses')}
               </Link>
             </div>
           </div>
@@ -139,9 +141,9 @@ export function ChildBentoCard({ child, onSelect }: ChildBentoCardProps) {
         <div className="flex items-center justify-between text-xs text-slate-600 font-semibold px-0.5">
           <span>{umur} · {formatTanggalPendek(child.tanggalLahir, locale)}</span>
           <span>
-            {isEn ? 'Photo' : 'Foto'}:{' '}
+            {t('bentoPhoto')}:{' '}
             <span className={child.persetujuanFoto ? 'text-emerald-700 font-bold' : 'text-slate-500 font-semibold'}>
-              {child.persetujuanFoto ? (isEn ? 'Allowed' : 'Diizinkan') : (isEn ? 'Off' : 'Nonaktif')}
+              {child.persetujuanFoto ? t('photoAllowed') : t('photoOff')}
             </span>
           </span>
         </div>

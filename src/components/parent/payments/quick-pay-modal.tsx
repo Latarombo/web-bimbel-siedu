@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition, useEffect, useRef } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { rupiah } from "@/lib/format";
 import { SITE } from "@/lib/site";
 import type { PaymentItem } from "./payment-types";
@@ -39,6 +40,9 @@ export function QuickPayModal({
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const redirectedRef = useRef(false);
+  const t = useTranslations("parent");
+  const locale = useLocale();
+  const dateLocale = locale === "en" ? "en-US" : "id-ID";
 
   // Kunci scroll body saat modal terbuka
   useScrollLock(isOpen);
@@ -76,7 +80,7 @@ export function QuickPayModal({
         redirectedRef.current = true;
         window.location.assign(res.url);
       } else if (!res.ok) {
-        setErrorMsg(res.error || "Gagal memulai transaksi gateway.");
+        setErrorMsg(res.error || t("quickPayGatewayStartError"));
       }
     });
   };
@@ -90,17 +94,17 @@ export function QuickPayModal({
         await konfirmasiManual(formData);
         onClose();
       } catch (err: unknown) {
-        setErrorMsg(err instanceof Error ? err.message : "Gagal mengonfirmasi pembayaran.");
+        setErrorMsg(err instanceof Error ? err.message : t("quickPayConfirmError"));
       }
     });
   };
 
   const tipeLabel =
     bill.tipe === "dp"
-      ? "Uang Muka (DP)"
+      ? t("billTypeDp")
       : bill.tipe === "cicilan"
-      ? `Cicilan ke-${bill.cicilanKe ?? "-"}`
-      : "Pelunasan Penuh";
+      ? t("billTypeInstallment", { n: bill.cicilanKe ?? "-" })
+      : t("billTypeFull");
 
   const bankAccount = "8290-1123-8899";
   const bankName = "BCA (Bank Central Asia)";
@@ -123,24 +127,24 @@ export function QuickPayModal({
       {/* Modal Dialog Card */}
       <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="relative border-b border-slate-100 bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 text-white">
+        <div className="relative border-b border-slate-100 bg-blue-700 px-6 py-5 text-white">
           <button
             type="button"
             onClick={onClose}
-            aria-label="Tutup dialog"
+            aria-label={t("quickPayCloseAria")}
             className="absolute top-4 right-4 flex size-8 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors cursor-pointer"
           >
             <X className="size-4" />
           </button>
           <div className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-0.5 text-xs font-semibold text-blue-100 mb-2">
             <CreditCard className="size-3.5" />
-            <span>Pembayaran Instan</span>
+            <span>{t("quickPayBadge")}</span>
           </div>
           <h2 id="quick-pay-title" className="text-xl font-bold tracking-tight">
-            Ringkasan Pembayaran
+            {t("quickPayTitle")}
           </h2>
           <p className="mt-1 text-xs text-blue-100/90">
-            Periksa kembali detail tagihan bimbel sebelum melanjutkan transaksi.
+            {t("quickPayDesc")}
           </p>
         </div>
 
@@ -151,14 +155,14 @@ export function QuickPayModal({
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5 font-medium text-slate-500">
                 <User className="size-3.5 text-slate-400" />
-                Nama Siswa
+                {t("quickPayStudentName")}
               </span>
               <span className="font-bold text-slate-900">{bill.namaAnak}</span>
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5 font-medium text-slate-500">
                 <BookOpen className="size-3.5 text-slate-400" />
-                Program Kelas
+                {t("quickPayProgram")}
               </span>
               <span className="font-semibold text-slate-800">
                 {bill.namaMapel}
@@ -168,7 +172,7 @@ export function QuickPayModal({
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5 font-medium text-slate-500">
                 <Calendar className="size-3.5 text-slate-400" />
-                Jenis Tagihan
+                {t("quickPayBillType")}
               </span>
               <span className="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
                 {tipeLabel}
@@ -176,7 +180,7 @@ export function QuickPayModal({
             </div>
             {bill.jatuhTempo && (
               <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60">
-                <span className="font-medium text-slate-500">Batas Waktu</span>
+                <span className="font-medium text-slate-500">{t("quickPayDeadline")}</span>
                 <span
                   className={`font-semibold ${
                     bill.isOverdue
@@ -186,12 +190,12 @@ export function QuickPayModal({
                       : "text-slate-700"
                   }`}
                 >
-                  {new Date(bill.jatuhTempo).toLocaleDateString("id-ID", {
+                  {new Date(bill.jatuhTempo).toLocaleDateString(dateLocale, {
                     day: "numeric",
                     month: "long",
                     year: "numeric",
                   })}
-                  {bill.isOverdue ? " (Terlambat)" : ""}
+                  {bill.isOverdue ? t("quickPayOverdue") : ""}
                 </span>
               </div>
             )}
@@ -199,8 +203,8 @@ export function QuickPayModal({
 
           {/* Nominal Tagihan */}
           <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 text-center">
-            <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800">
-              Total yang Harus Dibayar
+            <span className="text-xs font-semibold text-emerald-800">
+              {t("quickPayTotalDue")}
             </span>
             <p className="mt-1 text-3xl font-black tracking-tight text-emerald-900 tabular-nums">
               {rupiah(bill.jumlah)}
@@ -230,12 +234,11 @@ export function QuickPayModal({
                     </span>
                   </div>
                   <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800">
-                    Otomatis & Real-time
+                    {t("quickPayAutoBadge")}
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Tersedia pembayaran via QRIS, GoPay, ShopeePay, Virtual Account
-                  (BCA, Mandiri, BRI, BNI), dan Kartu Kredit dengan konfirmasi instan.
+                  {t("quickPayMethodsDesc")}
                 </p>
                 <div className="pt-2">
                   <button
@@ -245,10 +248,10 @@ export function QuickPayModal({
                     className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 py-3 px-4 text-sm font-bold text-white shadow-xs transition-all hover:bg-blue-700 active:scale-[0.99] disabled:opacity-60 cursor-pointer"
                   >
                     {isPending ? (
-                      <span>Menyiapkan Gateway...</span>
+                      <span>{t("quickPayPreparingGateway")}</span>
                     ) : (
                       <>
-                        <span>Bayar {rupiah(bill.jumlah)}</span>
+                        <span>{t("quickPayPayAmount", { amount: rupiah(bill.jumlah) })}</span>
                         <ArrowRight className="size-4" />
                       </>
                     )}
@@ -258,7 +261,7 @@ export function QuickPayModal({
 
               <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-500">
                 <ShieldCheck className="size-3.5 text-emerald-600" />
-                <span>Transaksi aman dengan enkripsi standar industri</span>
+                <span>{t("quickPaySecureNote")}</span>
               </div>
             </div>
           ) : (
@@ -267,21 +270,21 @@ export function QuickPayModal({
               <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                   <span className="text-xs font-bold text-slate-800">
-                    Transfer Manual ke Rekening Lembaga
+                    {t("quickPayManualTitle")}
                   </span>
                   <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
-                    Verifikasi Manual
+                    {t("quickPayManualBadge")}
                   </span>
                 </div>
 
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Bank Penerima</span>
+                    <span className="text-slate-500">{t("quickPayBankLabel")}</span>
                     <span className="font-bold text-slate-900">{bankName}</span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Nomor Rekening</span>
+                    <span className="text-slate-500">{t("quickPayAccountLabel")}</span>
                     <div className="flex items-center gap-2">
                       <code className="rounded-md bg-slate-100 px-2 py-1 font-mono font-bold text-slate-900">
                         {bankAccount}
@@ -290,7 +293,7 @@ export function QuickPayModal({
                         type="button"
                         onClick={() => copyToClipboard(bankAccount, "acc")}
                         className="flex size-7 items-center justify-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
-                        title="Salin Nomor Rekening"
+                        title={t("quickPayCopyAccount")}
                       >
                         {copiedField === "acc" ? (
                           <Check className="size-3.5 text-emerald-600" />
@@ -302,14 +305,14 @@ export function QuickPayModal({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Atas Nama</span>
+                    <span className="text-slate-500">{t("quickPayHolderLabel")}</span>
                     <span className="font-semibold text-slate-800">
                       {bankHolder}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                    <span className="text-slate-500">Nominal Transfer</span>
+                    <span className="text-slate-500">{t("quickPayTransferAmount")}</span>
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-emerald-700">
                         {rupiah(bill.jumlah)}
@@ -320,7 +323,7 @@ export function QuickPayModal({
                           copyToClipboard(String(bill.jumlah), "amt")
                         }
                         className="flex size-7 items-center justify-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer"
-                        title="Salin Nominal"
+                        title={t("quickPayCopyAmount")}
                       >
                         {copiedField === "amt" ? (
                           <Check className="size-3.5 text-emerald-600" />
@@ -349,10 +352,10 @@ export function QuickPayModal({
                     className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 px-4 text-sm font-bold text-white shadow-xs transition-all hover:bg-emerald-700 active:scale-[0.99] disabled:opacity-60 cursor-pointer"
                   >
                     {isPending ? (
-                      <span>Memverifikasi Konfirmasi...</span>
+                      <span>{t("quickPayVerifying")}</span>
                     ) : (
                       <>
-                        <span>Konfirmasi Saya Sudah Transfer</span>
+                        <span>{t("quickPayConfirmTransfer")}</span>
                         <Check className="size-4" />
                       </>
                     )}
@@ -361,11 +364,7 @@ export function QuickPayModal({
               </div>
 
               <p className="text-[11px] text-center text-slate-500">
-                Punya pertanyaan kendala pembayaran? Hubungi kami via WhatsApp di{" "}
-                <span className="font-semibold text-slate-700">
-                  {SITE.whatsapp}
-                </span>
-                .
+                {t("quickPayWhatsappHelp", { phone: SITE.whatsapp })}
               </p>
             </div>
           )}
@@ -376,7 +375,7 @@ export function QuickPayModal({
               href={`/enrollments/${bill.pendaftaranId}/pay`}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors"
             >
-              <span>Buka halaman instruksi pembayaran lengkap</span>
+              <span>{t("quickPayFullInstructions")}</span>
               <ExternalLink className="size-3.5" />
             </Link>
           </div>

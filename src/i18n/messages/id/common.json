@@ -5,5 +5,15 @@
     "description": "Platform pendaftaran bimbel untuk orang tua: kelola anak, pilih kelas, bayar cicilan, pantau presensi & nilai real-time."
   },
   "skipToContent": "Lompat ke konten",
-  "locale": "Bahasa"
+  "locale": "Bahasa",
+  "loading": "Memuat...",
+  "close": "Tutup",
+  "cancel": "Batal",
+  "save": "Simpan",
+  "search": "Cari",
+  "clear": "Hapus",
+  "closeDialog": "Tutup dialog",
+  "searchOptions": "Cari opsi...",
+  "noMatchingOptions": "Tidak ada opsi yang sesuai",
+  "clearSearch": "Hapus pencarian"
 }

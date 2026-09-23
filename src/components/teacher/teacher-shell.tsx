@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { TeacherSidebar } from './teacher-sidebar';
 
 interface TeacherShellProps {
@@ -29,9 +29,11 @@ export function TeacherShell({
   const [isCollapsed, setIsCollapsed] = useState(initialCollapsed);
 
   // Sync state if initialCollapsed changes from SSR
-  useEffect(() => {
+  const [prevInitialCollapsed, setPrevInitialCollapsed] = useState(initialCollapsed);
+  if (initialCollapsed !== prevInitialCollapsed) {
+    setPrevInitialCollapsed(initialCollapsed);
     setIsCollapsed(initialCollapsed);
-  }, [initialCollapsed]);
+  }
 
   const handleToggleCollapse = () => {
     setIsCollapsed((prev) => {

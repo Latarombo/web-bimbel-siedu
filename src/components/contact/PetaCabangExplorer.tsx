@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import "leaflet/dist/leaflet.css";
 import {
   Building2,
@@ -18,6 +19,8 @@ import { MAPS_SEARCH_URL, MAPS_DIR_URL, MAPS_ATTRIBUTION_URL } from "@/lib/site"
 const OSM_TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const ATTR =
   '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors';
+
+type LeafletHost = HTMLDivElement & { _leaflet_id?: number | null };
 
 // Gabungkan Kantor Pusat di urutan pertama beserta seluruh cabang Malang Raya
 const SEMUA_CABANG: Cabang[] = [KANTOR_PUSAT, ...DAFTAR_CABANG];
@@ -39,6 +42,7 @@ function getInitialCabangState(): { id: string; tab: "list" | "map" } {
 }
 
 export default function PetaCabangExplorer() {
+  const t = useTranslations("public");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string>(() => getInitialCabangState().id);
   const [activeTab, setActiveTab] = useState<"list" | "map">(() => getInitialCabangState().tab);
@@ -120,15 +124,17 @@ export default function PetaCabangExplorer() {
     let dibatalkan = false;
 
     // Cegah duplikasi _leaflet_id saat React StrictMode atau fast refresh
-    if ((wadahRef.current as any)._leaflet_id) {
-      (wadahRef.current as any)._leaflet_id = null;
+    const el = wadahRef.current as LeafletHost;
+    if (el._leaflet_id) {
+      el._leaflet_id = null;
     }
 
     (async () => {
       const L = (await import("leaflet")).default;
       if (dibatalkan || !wadahRef.current) return;
 
-      if ((wadahRef.current as any)._leaflet_id) return;
+      const host = wadahRef.current as LeafletHost;
+      if (host._leaflet_id) return;
 
       // Inisialisasi peta berpusat pada koordinat Kantor Pusat Siedu
       const map = L.map(wadahRef.current, {
@@ -252,11 +258,11 @@ export default function PetaCabangExplorer() {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
-                Lokasi Kantor Siedu
+                {t("branchExplorerTitle")}
               </h3>
             </div>
             <p className="text-xs text-slate-500">
-              Kedungkandang, Kota Malang · Jawa Timur
+              {t("branchExplorerSubtitle")}
             </p>
           </div>
         </div>
@@ -274,7 +280,7 @@ export default function PetaCabangExplorer() {
               : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          Daftar Cabang ({filteredCabang.length})
+          {t("branchTabList", { count: filteredCabang.length })}
         </button>
         <button
           type="button"
@@ -290,7 +296,7 @@ export default function PetaCabangExplorer() {
               : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          Peta Interaktif
+          {t("branchTabMap")}
         </button>
       </div>
 
@@ -317,14 +323,14 @@ export default function PetaCabangExplorer() {
                 enterKeyHint="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Cari lokasi cabang..."
+                placeholder={t("branchSearchExplorerPlaceholder")}
                 className="w-full rounded-xl border border-slate-200 bg-white py-1.5 pl-10 pr-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
               />
             </div>
 
             <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
               <span>
-                Menampilkan <strong>{filteredCabang.length}</strong> cabang
+                {t("branchShowingExplorer", { count: filteredCabang.length })}
               </span>
               <button
                 type="button"
@@ -332,7 +338,7 @@ export default function PetaCabangExplorer() {
                 className="text-[11px] font-bold text-brand hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
                 <Compass className="size-3" />
-                <span>Lihat Semua</span>
+                <span>{t("branchViewAll")}</span>
               </button>
             </div>
           </div>
@@ -371,7 +377,7 @@ export default function PetaCabangExplorer() {
                     {c.telepon && (
                       <div className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-600">
                         <Phone className="size-3 text-brand shrink-0" />
-                        <span className="text-slate-500 font-semibold text-[10px]">Telp:</span>
+                        <span className="text-slate-500 font-semibold text-[10px]">{t("branchPhonePrefix")}</span>
                         <span className="font-medium text-slate-700">{c.telepon}</span>
                       </div>
                     )}
@@ -381,7 +387,7 @@ export default function PetaCabangExplorer() {
             ) : (
               <div className="py-12 text-center text-xs text-slate-400">
                 <Search className="size-6 mx-auto mb-2 opacity-40" />
-                <p>Tidak ada cabang yang cocok dengan &quot;{search}&quot;</p>
+                <p>{t("branchExplorerNotFound", { search })}</p>
               </div>
             )}
           </div>
@@ -421,11 +427,11 @@ export default function PetaCabangExplorer() {
                 <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-100/90 border border-slate-200 px-2.5 py-1.5 text-xs">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Phone className="size-3.5 text-brand shrink-0" />
-                    <span className="text-[11px] font-bold text-slate-800 shrink-0">Telp:</span>
+                    <span className="text-[11px] font-bold text-slate-800 shrink-0">{t("branchPhonePrefix")}</span>
                     <a
                       href={`tel:${selectedCabang.telepon.replace(/[^0-9+]/g, "")}`}
                       className="font-bold text-slate-900 hover:text-brand hover:underline truncate text-[11px] transition-colors"
-                      title="Hubungi melalui telepon"
+                      title={t("branchCallPhone")}
                     >
                       {selectedCabang.telepon}
                     </a>
@@ -438,18 +444,18 @@ export default function PetaCabangExplorer() {
                         ? "bg-emerald-100 text-emerald-700 border border-emerald-300"
                         : "bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs"
                     }`}
-                    title="Salin nomor telepon"
-                    aria-label="Salin nomor telepon"
+                    title={t("branchCopyPhone")}
+                    aria-label={t("branchCopyPhone")}
                   >
                     {copiedPhone ? (
                       <>
                         <Check className="size-3 text-emerald-600" />
-                        <span>Tersalin</span>
+                        <span>{t("branchCopied")}</span>
                       </>
                     ) : (
                       <>
                         <Copy className="size-3 text-slate-500" />
-                        <span>Salin</span>
+                        <span>{t("branchCopy")}</span>
                       </>
                     )}
                   </button>
@@ -465,13 +471,13 @@ export default function PetaCabangExplorer() {
                   className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[11px] font-bold text-white shadow-2xs hover:bg-brand-strong active:scale-95 transition-all cursor-pointer"
                 >
                   <Navigation className="size-3 shrink-0" />
-                  <span>Petunjuk Arah</span>
+                  <span>{t("branchDirections")}</span>
                 </a>
 
                 {selectedCabang.wa && (
                   <a
                     href={`https://wa.me/${selectedCabang.wa}?text=${encodeURIComponent(
-                      `Halo Kak, saya ingin bertanya tentang bimbel Siedu di ${selectedCabang.nama}`
+                      t("branchExplorerWaText", { name: selectedCabang.nama })
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -489,7 +495,7 @@ export default function PetaCabangExplorer() {
 
       {/* 4. Attribution Bar OpenStreetMap */}
       <div className="border-t border-slate-100 bg-slate-50/80 px-4 py-2 text-center text-[11px] text-slate-500">
-        Peta dipersembahkan oleh{" "}
+        {t("branchMapAttribution")}{" "}
         <a
           href={MAPS_ATTRIBUTION_URL}
           target="_blank"
@@ -498,7 +504,7 @@ export default function PetaCabangExplorer() {
         >
           OpenStreetMap
         </a>
-        . Untuk navigasi lengkap, buka di{" "}
+        . {t("branchMapGoogle")}{" "}
         <a
           href={MAPS_SEARCH_URL}
           target="_blank"

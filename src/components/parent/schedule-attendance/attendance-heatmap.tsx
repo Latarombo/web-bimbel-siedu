@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useAttendance } from "./attendance-context";
+import { useAttendance, type PresensiRecord } from "./attendance-context";
 import { Card, CardPad } from "@/components/ui/card";
 import { useTranslations, useLocale } from "next-intl";
 
@@ -24,16 +24,16 @@ export function AttendanceHeatmap() {
     };
   });
 
-  const recordMap = new Map();
+  const recordMap = new Map<string, PresensiRecord[]>();
   state.records.forEach((r) => {
     const dateStr = r.tanggal.split("T")[0];
     if (!recordMap.has(dateStr)) {
       recordMap.set(dateStr, []);
     }
-    recordMap.get(dateStr).push(r);
+    recordMap.get(dateStr)?.push(r);
   });
 
-  const getStatusColor = (records: any[]) => {
+  const getStatusColor = (records: PresensiRecord[] | undefined) => {
     if (!records || records.length === 0) return "bg-slate-100";
     if (records.some((r) => r.status === "alpa")) return "bg-rose-500";
     if (records.some((r) => r.status === "sakit" || r.status === "izin")) return "bg-amber-400";

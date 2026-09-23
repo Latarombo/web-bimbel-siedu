@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import type { KelasKatalog } from "@/lib/kelas";
@@ -83,6 +84,7 @@ export function ModalPilihKelas({
   currentMapel,
   classes,
 }: Props) {
+  const tCommon = useTranslations("common");
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedJenjang, setSelectedJenjang] = useState<string>(currentJenjang || "SD");
@@ -94,13 +96,19 @@ export function ModalPilihKelas({
   useScrollLock(isOpen);
 
   // Sinkronisasi jenjang & tingkat saat modal dibuka
-  useEffect(() => {
+  const [prevSync, setPrevSync] = useState({ isOpen, currentJenjang, currentTingkat });
+  if (
+    isOpen !== prevSync.isOpen ||
+    currentJenjang !== prevSync.currentJenjang ||
+    currentTingkat !== prevSync.currentTingkat
+  ) {
+    setPrevSync({ isOpen, currentJenjang, currentTingkat });
     if (isOpen) {
       const validJenjang = currentJenjang || "SD";
       setSelectedJenjang(validJenjang);
       setSelectedTingkat(resolveInitialTingkat(currentTingkat, validJenjang));
     }
-  }, [isOpen, currentJenjang, currentTingkat]);
+  }
 
   // Tutup dengan tombol Escape
   useEffect(() => {
@@ -206,7 +214,7 @@ export function ModalPilihKelas({
             <button
               type="button"
               onClick={() => setIsOpen(false)}
-              aria-label="Tutup dialog"
+              aria-label={tCommon("closeDialog")}
               className="absolute top-5 right-5 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
             >
               <X className="size-5" />

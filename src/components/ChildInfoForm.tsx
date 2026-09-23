@@ -1,13 +1,12 @@
 'use client';
 
 import { useTranslations, useLocale } from 'next-intl';
-import { useActionState, useState, useEffect } from 'react';
+import { useActionState, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { saveChildInfo, type ChildInfoState } from '@/app/actions/child-info';
 import { DatePicker } from '@/components/ui/date-picker';
 import { CardSelect } from '@/components/ui/card-select';
 import { useFormDraft } from '@/lib/use-form-draft';
-import { StudentAvatar } from '@/components/parent/student-avatar';
 
 const initial: ChildInfoState = {};
 
@@ -158,7 +157,7 @@ export default function ChildInfoForm({
 
     const ortuPunyaHp = parentPhone.trim() !== '';
 
-    const [draft, setDraftField, setMultipleDraft, clearDraft] = useFormDraft<ChildDraft>(
+    const [draft, setDraftField, setMultipleDraft] = useFormDraft<ChildDraft>(
         'siedu_draft_child_info',
         {
             nama: state.nama ?? '',
@@ -183,8 +182,10 @@ export default function ChildInfoForm({
     const [hpValue, setHpValue] = useState(draft.nomor_telepon);
     const hpTerkunci = hpSama && ortuPunyaHp;
 
-    // Sinkronkan state lokal saat draft selesai dibaca dari sessionStorage
-    useEffect(() => {
+    // Sinkronkan state lokal saat draft berubah
+    const [prevDraft, setPrevDraft] = useState(draft);
+    if (draft !== prevDraft) {
+        setPrevDraft(draft);
         if (draft.nama) setNama(draft.nama);
         if (draft.tanggal_lahir) setTanggalLahir(draft.tanggal_lahir);
         if (draft.jenjang_terakhir) setJenjang(draft.jenjang_terakhir);
@@ -192,9 +193,23 @@ export default function ChildInfoForm({
         if (draft.nomor_telepon) setHpValue(draft.nomor_telepon);
         if (draft.email_notifikasi) setEmailNotifikasi(draft.email_notifikasi);
         if (typeof draft.hpSama === 'boolean') setHpSama(draft.hpSama);
-    }, [draft]);
+    }
 
-    useEffect(() => {
+    const [prevServerFields, setPrevServerFields] = useState({
+        tanggal_lahir: state.tanggal_lahir,
+        jenjang_terakhir: state.jenjang_terakhir,
+        tingkat: state.tingkat,
+    });
+    if (
+        state.tanggal_lahir !== prevServerFields.tanggal_lahir ||
+        state.jenjang_terakhir !== prevServerFields.jenjang_terakhir ||
+        state.tingkat !== prevServerFields.tingkat
+    ) {
+        setPrevServerFields({
+            tanggal_lahir: state.tanggal_lahir,
+            jenjang_terakhir: state.jenjang_terakhir,
+            tingkat: state.tingkat,
+        });
         if (state.tanggal_lahir) {
             setTanggalLahir(state.tanggal_lahir);
         }
@@ -204,7 +219,7 @@ export default function ChildInfoForm({
         if (state.tingkat) {
             setTingkat(state.tingkat);
         }
-    }, [state.tanggal_lahir, state.jenjang_terakhir, state.tingkat]);
+    }
 
     const handleDateChange = (date: string) => {
         setTanggalLahir(date);
@@ -252,17 +267,6 @@ export default function ChildInfoForm({
             ) : (
                 <div className="mb-5" />
             )}
-
-            {/* Preview foto profil — seed nama+jenjang, identik dgn hasil setelah save */}
-            <div className="mb-5 flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/60 p-3">
-                <StudentAvatar nama={nama} jenjang={jenjang || null} size="md" />
-                <div className="min-w-0">
-                    {nama.trim() ? (
-                        <p className="truncate text-sm font-bold text-slate-800">{nama.trim()}</p>
-                    ) : null}
-                    <p className="text-xs text-slate-500">{t('photoAuto')}</p>
-                </div>
-            </div>
 
             <form action={formAction} className="space-y-4 sm:space-y-4.5">
                 {redirectTo ? (
@@ -566,7 +570,7 @@ export default function ChildInfoForm({
                             href={backHref}
                             className="w-full flex items-center justify-center py-2.5 sm:py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-semibold transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-xs"
                         >
-                            <span>{backLabel ?? (locale.startsWith('en') ? 'Cancel & Back to Dashboard' : 'Batal & Kembali ke Dashboard')}</span>
+                            <span>{backLabel ?? t('cancelBackDashboard')}</span>
                         </Link>
                     ) : showSkip ? (
                         <Link

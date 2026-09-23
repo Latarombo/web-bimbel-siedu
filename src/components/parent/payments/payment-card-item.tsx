@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations, useLocale } from "next-intl";
 import { rupiah } from "@/lib/format";
 import type { PaymentItem } from "./payment-types";
 import {
@@ -19,19 +20,22 @@ interface Props {
 }
 
 export function PaymentCardItem({ bill, onPayClick, onReceiptClick }: Props) {
+  const t = useTranslations("parent");
+  const locale = useLocale();
+  const dateLocale = locale === "en" ? "en-US" : "id-ID";
   const isPending = bill.status === "pending";
   const isFailed = bill.status === "gagal";
   const isPaid = bill.status === "berhasil";
 
   const tipeLabel =
     bill.tipe === "dp"
-      ? "Uang Muka (DP)"
+      ? t("billTypeDp")
       : bill.tipe === "cicilan"
-      ? `Cicilan ke-${bill.cicilanKe ?? "-"}`
-      : "Pelunasan Penuh";
+      ? t("billTypeInstallment", { n: bill.cicilanKe ?? "-" })
+      : t("billTypeFull");
 
   const dueDateFormatted = bill.jatuhTempo
-    ? new Date(bill.jatuhTempo).toLocaleDateString("id-ID", {
+    ? new Date(bill.jatuhTempo).toLocaleDateString(dateLocale, {
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -39,7 +43,7 @@ export function PaymentCardItem({ bill, onPayClick, onReceiptClick }: Props) {
     : "-";
 
   const paidDateFormatted = bill.dibayarPada
-    ? new Date(bill.dibayarPada).toLocaleDateString("id-ID", {
+    ? new Date(bill.dibayarPada).toLocaleDateString(dateLocale, {
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -59,14 +63,14 @@ export function PaymentCardItem({ bill, onPayClick, onReceiptClick }: Props) {
           {isPaid && (
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 border border-emerald-200">
               <CheckCircle2 className="size-3" />
-              <span>Lunas</span>
+              <span>{t("text148")}</span>
             </span>
           )}
 
           {isPending && bill.isOverdue && (
             <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-bold text-rose-700 border border-rose-200">
               <AlertTriangle className="size-3" />
-              <span>Terlambat</span>
+              <span>{t("billStatusLate")}</span>
             </span>
           )}
 
@@ -75,22 +79,22 @@ export function PaymentCardItem({ bill, onPayClick, onReceiptClick }: Props) {
               <Clock className="size-3" />
               <span>
                 {bill.daysUntilDue === 0
-                  ? "Jatuh Tempo Hari Ini"
-                  : `${bill.daysUntilDue} Hari Lagi`}
+                  ? t("billDueToday")
+                  : t("billDaysLeft", { n: bill.daysUntilDue })}
               </span>
             </span>
           )}
 
           {isPending && !bill.isOverdue && (bill.daysUntilDue === null || bill.daysUntilDue > 3) && (
             <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700 border border-blue-200">
-              <span>Menunggu</span>
+              <span>{t("text149")}</span>
             </span>
           )}
 
           {isFailed && (
             <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-bold text-rose-700 border border-rose-200">
               <AlertTriangle className="size-3" />
-              <span>Gagal</span>
+              <span>{t("text150")}</span>
             </span>
           )}
         </div>
@@ -100,13 +104,13 @@ export function PaymentCardItem({ bill, onPayClick, onReceiptClick }: Props) {
           {isPaid ? (
             <span className="flex items-center gap-1">
               <Calendar className="size-3.5 text-slate-400" />
-              <span>Lunas pada {paidDateFormatted}</span>
+              <span>{t("billPaidOn", { date: paidDateFormatted })}</span>
             </span>
           ) : (
             <span className="flex items-center gap-1">
               <Calendar className="size-3.5 text-slate-400" />
               <span>
-                Jatuh tempo:{" "}
+                {t("billDueOn")}{" "}
                 <strong className={bill.isOverdue ? "text-rose-600 font-bold" : "text-slate-700 font-semibold"}>
                   {dueDateFormatted}
                 </strong>
@@ -125,8 +129,8 @@ export function PaymentCardItem({ bill, onPayClick, onReceiptClick }: Props) {
       {/* Right: Nominal & Action Buttons */}
       <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
         <div className="text-left sm:text-right">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block sm:hidden">
-            Nominal
+          <span className="text-[10px] font-semibold text-slate-400 block sm:hidden">
+            {t("billAmountLabel")}
           </span>
           <span className="text-base sm:text-lg font-black tracking-tight text-slate-900 tabular-nums">
             {rupiah(bill.jumlah)}
@@ -141,7 +145,7 @@ export function PaymentCardItem({ bill, onPayClick, onReceiptClick }: Props) {
               className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-blue-700 active:scale-[0.98] cursor-pointer"
             >
               <CreditCard className="size-3.5" />
-              <span>Bayar Sekarang</span>
+              <span>{t("payNowButton")}</span>
             </button>
           )}
 
@@ -152,7 +156,7 @@ export function PaymentCardItem({ bill, onPayClick, onReceiptClick }: Props) {
               className="inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-xs transition-all hover:bg-rose-700 active:scale-[0.98] cursor-pointer"
             >
               <RefreshCw className="size-3.5" />
-              <span>Coba Bayar Lagi</span>
+              <span>{t("billPayRetry")}</span>
             </button>
           )}
 
@@ -163,7 +167,7 @@ export function PaymentCardItem({ bill, onPayClick, onReceiptClick }: Props) {
               className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:text-blue-600 transition-colors cursor-pointer"
             >
               <Receipt className="size-3.5" />
-              <span>Lihat Kwitansi</span>
+              <span>{t("billViewReceipt")}</span>
             </button>
           )}
         </div>

@@ -97,7 +97,9 @@ export function DatePicker({
     );
 
     // Sinkronisasi view saat selectedValue berubah
-    useEffect(() => {
+    const [prevSelectedValue, setPrevSelectedValue] = useState(selectedValue);
+    if (selectedValue !== prevSelectedValue) {
+        setPrevSelectedValue(selectedValue);
         if (selectedValue) {
             const parsed = parseISODate(selectedValue);
             if (parsed) {
@@ -105,7 +107,7 @@ export function DatePicker({
                 setCurrentMonth(parsed.month);
             }
         }
-    }, [selectedValue]);
+    }
 
     const isEn = locale.toLowerCase().startsWith('en');
     const months = isEn ? MONTHS_EN : MONTHS_ID;
@@ -515,7 +517,7 @@ export function DatePicker({
                         {viewMode === 'years' && (
                             <div className="flex flex-col h-[288px]">
                                 <div className="flex items-center justify-between mb-2.5 px-1 shrink-0">
-                                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                    <span className="text-xs font-semibold text-slate-500">
                                         {isEn ? 'Select Year' : 'Pilih Tahun'}
                                     </span>
                                     <span className="text-xs text-slate-400">

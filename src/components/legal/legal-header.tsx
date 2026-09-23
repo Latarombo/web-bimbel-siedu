@@ -11,6 +11,7 @@ interface LegalHeaderProps {
   termsLabel: string;
   lastUpdatedLabel?: string;
   readTimeLabel?: string;
+  pills?: boolean;
 }
 
 export function LegalHeader({
@@ -23,6 +24,7 @@ export function LegalHeader({
   termsLabel,
   lastUpdatedLabel = "Terakhir diperbarui",
   readTimeLabel = "Estimasi baca",
+  pills = true,
 }: LegalHeaderProps) {
   return (
     <header className="relative space-y-6">
@@ -80,14 +82,29 @@ export function LegalHeader({
 
       {/* Meta Badges */}
       <div className="flex flex-wrap items-center gap-2.5 pt-1 text-xs text-muted">
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white/80 px-3 py-1 font-medium shadow-2xs">
-          <Calendar className="size-3.5 text-brand" />
-          <span>{lastUpdatedLabel} {updatedAt}</span>
-        </div>
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white/80 px-3 py-1 font-medium shadow-2xs">
-          <Clock className="size-3.5 text-brand" />
-          <span>{readTimeLabel} {readTime}</span>
-        </div>
+        {pills ? (
+          <>
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white/80 px-3 py-1 font-medium shadow-2xs">
+              <Calendar className="size-3.5 text-brand" />
+              <span>{lastUpdatedLabel} {updatedAt}</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white/80 px-3 py-1 font-medium shadow-2xs">
+              <Clock className="size-3.5 text-brand" />
+              <span>{readTimeLabel} {readTime}</span>
+            </div>
+          </>
+        ) : (
+          <>
+            <span className="inline-flex items-center gap-1.5 font-medium">
+              <Calendar className="size-3.5 text-brand" />
+              {lastUpdatedLabel} {updatedAt}
+            </span>
+            <span className="inline-flex items-center gap-1.5 font-medium">
+              <Clock className="size-3.5 text-brand" />
+              {readTimeLabel} {readTime}
+            </span>
+          </>
+        )}
       </div>
     </header>
   );

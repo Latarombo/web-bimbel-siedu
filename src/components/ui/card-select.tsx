@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useId, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronsUpDown, Check, X, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +50,7 @@ export function CardSelect({
   searchable,
   size = "md",
 }: CardSelectProps) {
+  const t = useTranslations('common');
   const generatedId = useId();
   const inputId = id || generatedId;
   const isControlled = controlledValue !== undefined;
@@ -140,19 +142,22 @@ export function CardSelect({
   }, [isOpen]);
 
   // Focus search input on open
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setSearchQuery("");
-      setActiveIndex(
-        filteredOptions.findIndex((opt) => opt.value === selectedValue)
-      );
-      if (isSearchable) {
-        setTimeout(() => {
-          searchInputRef.current?.focus();
-        }, 50);
-      }
+      setActiveIndex(options.findIndex((opt) => opt.value === selectedValue));
     }
-  }, [isOpen, isSearchable, selectedValue, filteredOptions]);
+  }
+
+  useEffect(() => {
+    if (!isOpen || !isSearchable) return;
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [isOpen, isSearchable]);
 
   // Handle select option
   const handleSelect = (option: CardSelectOption) => {
@@ -302,7 +307,7 @@ export function CardSelect({
                 type="button"
                 onClick={() => setIsOpen(false)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
-                aria-label="Tutup"
+                aria-label={t('close')}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -322,7 +327,7 @@ export function CardSelect({
                     setSearchQuery(e.target.value);
                     setActiveIndex(0);
                   }}
-                  placeholder="Cari opsi..."
+                  placeholder={t('searchOptions')}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
                 />
               </div>
@@ -335,7 +340,7 @@ export function CardSelect({
             >
               {filteredOptions.length === 0 ? (
                 <div className="py-6 text-center text-xs text-slate-400">
-                  Tidak ada opsi yang sesuai
+                  {t('noMatchingOptions')}
                 </div>
               ) : (
                 filteredOptions.map((opt, idx) => {

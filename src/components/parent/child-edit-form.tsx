@@ -44,7 +44,10 @@ const JENJANG_LIST = [
   { value: 'SMA', label: 'SMA' },
 ] as const;
 
-function hitungUmur(tanggalLahir: string, isEn: boolean): string {
+function hitungUmur(
+  tanggalLahir: string,
+  tr: (key: string, values?: Record<string, string | number>) => string
+): string {
   try {
     const lahir = new Date(tanggalLahir);
     const now = new Date();
@@ -53,8 +56,8 @@ function hitungUmur(tanggalLahir: string, isEn: boolean): string {
     if (m < 0 || (m === 0 && now.getDate() < lahir.getDate())) {
       umur--;
     }
-    if (umur <= 0) return isEn ? '< 1 yr old' : '< 1 tahun';
-    return isEn ? `${umur} yrs old` : `${umur} tahun`;
+    if (umur <= 0) return tr('ageBaby');
+    return tr('ageYears', { age: umur });
   } catch {
     return '';
   }
@@ -68,7 +71,6 @@ export function ChildEditForm({
   const t = useTranslations('auth');
   const tr = useTranslations('parent');
   const locale = useLocale();
-  const isEn = locale === 'en';
 
   const [state, formAction, pending] = useActionState(updateChild, {});
 
@@ -93,7 +95,7 @@ export function ChildEditForm({
     : 'DEFAULT';
   const style = JENJANG_STYLES[jenjangKey] ?? JENJANG_STYLES.DEFAULT;
   const inisial = anak.nama.trim().slice(0, 2).toUpperCase();
-  const umur = hitungUmur(anak.tanggalLahir, isEn);
+  const umur = hitungUmur(anak.tanggalLahir, tr);
 
   const inputBase =
     'w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-slate-400 bg-white';
@@ -105,16 +107,10 @@ export function ChildEditForm({
       {/* Header Form — rata kiri, konsisten dgn form tambah anak */}
       <div className="mb-6">
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-1.5 sm:mb-2">
-          {isEn ? `Edit Profile ${anak.nama}` : `Ubah Profil ${anak.nama}`}
+          {tr('editProfileTitle', { name: anak.nama })}
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 mb-6 leading-relaxed">
-          {isLocked
-            ? isEn
-              ? 'Update communication contact and documentation preferences.'
-              : 'Perbarui kontak komunikasi dan izin dokumentasi kegiatan anak.'
-            : isEn
-              ? 'Update child profile and education information.'
-              : 'Perbarui data identitas dan jenjang belajar anak.'}
+          {isLocked ? tr('editDescLocked') : tr('editDesc')}
         </p>
       </div>
 
@@ -158,9 +154,7 @@ export function ChildEditForm({
               <div className="flex items-start gap-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 p-3 text-xs text-amber-800">
                 <Lock className="size-4 text-amber-600 shrink-0 mt-0.5" />
                 <p className="leading-relaxed">
-                  {isEn
-                    ? 'Academic identity (name, date of birth, level) is locked because this child is enrolled in an active class. Contact admin for official corrections.'
-                    : 'Identitas akademik (nama, tanggal lahir, jenjang) terkunci otomatis karena terdaftar di kelas aktif. Hubungi admin bimbel untuk koreksi data resmi.'}
+                  {tr('editLockedNotice')}
                 </p>
               </div>
             </div>
@@ -430,14 +424,14 @@ export function ChildEditForm({
             disabled={pending}
             className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm sm:text-base font-semibold py-3 sm:py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center active:scale-[0.99] cursor-pointer"
           >
-            <span>{pending ? t('processing') : isEn ? 'Save Changes' : 'Simpan Perubahan'}</span>
+            <span>{pending ? t('processing') : tr('saveChanges')}</span>
           </button>
 
           <Link
             href="/children"
             className="w-full flex items-center justify-center py-2.5 sm:py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-semibold transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-xs"
           >
-            <span>{isEn ? 'Cancel & Back to Children List' : 'Batal & Kembali ke Daftar Anak'}</span>
+            <span>{tr('cancelBackChildren')}</span>
           </Link>
         </div>
       </form>

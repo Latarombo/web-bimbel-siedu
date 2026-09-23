@@ -161,7 +161,7 @@ export function LearningStatusFeed({ statuses }: Props) {
                     onClick={() => setReportingStatusId(null)}
                     className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
                   >
-                    Batal
+                    {t('cancel')}
                   </button>
                   <button
                     type="submit"

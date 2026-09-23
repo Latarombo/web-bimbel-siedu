@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   ChevronLeft,
   ChevronRight,
@@ -32,6 +32,7 @@ interface Props {
 
 export function LearningStatusInlineStory({ statuses }: Props) {
   const t = useTranslations('parent');
+  const locale = useLocale();
   const [activeStoryIdx, setActiveStoryIdx] = useState(0);
   const [activeMediaIdx, setActiveMediaIdx] = useState(0);
   const [reportingStatusId, setReportingStatusId] = useState<number | null>(null);
@@ -51,15 +52,15 @@ export function LearningStatusInlineStory({ statuses }: Props) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h4 className="text-sm font-bold text-slate-900">
-              Belum Ada Cerita Belajar Hari Ini
+              {t("noStoriesTitle")}
             </h4>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-white/90 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700 border border-blue-100 shadow-2xs">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Update Otomatis
+              {t("autoUpdateBadge")}
             </span>
           </div>
           <p className="mt-1 text-xs text-slate-600 leading-relaxed max-w-2xl">
-            {t('noStatusFeed')} Dokumentasi foto kegiatan dan catatan dari tutor akan tampil di sini setelah sesi kelas berlangsung.
+            {t("noStatusFeed")} {t("noStoriesDesc")}
           </p>
         </div>
       </div>
@@ -117,12 +118,12 @@ export function LearningStatusInlineStory({ statuses }: Props) {
   };
 
   const timeFormatted = new Date(currentStatus.diterbitkanPada).toLocaleDateString(
-    'id-ID',
+    locale === "en" ? "en-US" : "id-ID",
     {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
     },
   );
 
@@ -257,7 +258,7 @@ export function LearningStatusInlineStory({ statuses }: Props) {
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={currentMediaUrl}
-                alt={currentStatus.kontenTeks || 'Dokumentasi kegiatan'}
+                alt={currentStatus.kontenTeks || t("activityDocsAlt")}
                 className="h-full w-full object-cover select-none"
               />
             ) : (
@@ -267,7 +268,7 @@ export function LearningStatusInlineStory({ statuses }: Props) {
                   <Camera className="h-10 w-10 text-teal-300" />
                 </div>
                 <p className="mt-4 text-base font-semibold text-white/95">
-                  Dokumentasi Foto Sesi Kelas
+                  {t("sessionPhotoDocs")}
                 </p>
                 <p className="mt-1 text-xs text-white/60">{currentMediaUrl}</p>
               </div>
@@ -290,7 +291,7 @@ export function LearningStatusInlineStory({ statuses }: Props) {
                 onClick={handlePrevMedia}
                 disabled={activeStoryIdx === 0 && activeMediaIdx === 0}
                 className="absolute left-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs transition-opacity hover:bg-black/70 disabled:opacity-0"
-                aria-label="Previous story"
+                aria-label={t('prevStory')}
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
@@ -304,7 +305,7 @@ export function LearningStatusInlineStory({ statuses }: Props) {
                   activeMediaIdx === mediaList.length - 1
                 }
                 className="absolute right-2 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-xs transition-opacity hover:bg-black/70 disabled:opacity-0"
-                aria-label="Next story"
+                aria-label={t('nextStory')}
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
@@ -379,7 +380,7 @@ export function LearningStatusInlineStory({ statuses }: Props) {
                   onClick={() => setReportingStatusId(null)}
                   className="rounded-lg border border-slate-700 px-3 py-1 text-xs text-slate-300 hover:bg-slate-800"
                 >
-                  Batal
+                  {t('cancel')}
                 </button>
                 <button
                   type="submit"
