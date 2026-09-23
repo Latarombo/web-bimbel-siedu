@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 // Namespace yang boleh disuntik ke client. Tambah di sini HANYA saat komponen
 // 'use client' benar-benar memanggil useTranslations untuk namespace tsb.
-const CLIENT_NAMESPACES = ["chrome", "about", "shared", "auth", "parent", "teacher", "admin", "adminForms", "public"] as const;
+const CLIENT_NAMESPACES = ["common", "chrome", "about", "shared", "auth", "parent", "teacher", "admin", "adminForms", "public"] as const;
 
 // Kedua locale di-render saat build (untuk halaman yang memang statis).
 export function generateStaticParams() {

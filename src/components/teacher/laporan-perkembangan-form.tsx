@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Field, Input, Textarea } from '@/components/ui/field';
 import { Badge } from '@/components/ui/badge';
-import { saveLaporanPerkembangan, tarikLaporanPerkembangan } from '@/app/actions/teacher';
+import { saveLaporanPerkembangan, tarikLaporanPerkembangan, type GuruState } from '@/app/actions/teacher';
 
 interface LaporanPerkembanganFormProps {
   pendaftaranId: number;
@@ -41,8 +41,8 @@ export default function LaporanPerkembanganForm({
   const [showPreview, setShowPreview] = useState(false);
 
   const [state, formAction, isPending] = useActionState(
-    async (prev: any, formData: FormData) => {
-      let result;
+    async (prev: GuruState, formData: FormData): Promise<GuruState> => {
+      let result: GuruState;
       if (actionType === 'tarik' && laporanId) {
         result = await tarikLaporanPerkembangan({ laporanId });
       } else {
@@ -54,7 +54,7 @@ export default function LaporanPerkembanganForm({
       }
       return result;
     },
-    { ok: false }
+    { ok: false } as GuruState
   );
 
   const isPublished = !initialDraf && diterbitkanPada !== null;

@@ -153,7 +153,7 @@ export function MobileDrawer({
 
             {/* Scrollable Navigation Body */}
             <div className="flex-1 overflow-y-auto px-4 py-3.5 space-y-1 overscroll-contain">
-              <span className="block px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              <span className="block px-3 py-1 text-[11px] font-medium text-slate-400">
                 {isEn ? 'Main Menu' : 'Menu Utama'}
               </span>
 
@@ -230,7 +230,7 @@ export function MobileDrawer({
                           <div className="px-3.5 py-2.5 space-y-3.5">
                             {PROGRAM_CATEGORIES.map((category) => (
                               <div key={category.titleId} className="space-y-1">
-                                <span className="block px-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                <span className="block px-2 text-[11px] font-medium text-slate-400">
                                   {isEn ? category.titleEn : category.titleId}
                                 </span>
                                 <div className="space-y-0.5">

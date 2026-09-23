@@ -30,7 +30,9 @@ export function AttendanceHistory() {
         <select 
           className="text-xs border border-slate-200 rounded-md py-1 pl-2 pr-6 bg-white focus:outline-none focus:ring-1 focus:ring-brand"
           value={filter}
-          onChange={(e) => setFilter(e.target.value as any)}
+          onChange={(e) =>
+            setFilter(e.target.value as "semua" | "hadir" | "izin" | "sakit" | "alpa")
+          }
         >
           <option value="semua">{tr("allStatuses")}</option>
           <option value="hadir">{tr("text116")}</option>

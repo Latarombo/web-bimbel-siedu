@@ -329,7 +329,7 @@ export default async function GradeInputPage({
                           >
                             {h.statusHasil === "dinilai"
                               ? `${h.nilai} / ${pen?.nilaiMaksimum ?? 100}`
-                              : t(`status${h.statusHasil.charAt(0).toUpperCase() + h.statusHasil.slice(1)}` as any) ?? h.statusHasil}
+                              : t(`status${h.statusHasil.charAt(0).toUpperCase() + h.statusHasil.slice(1)}` as Parameters<typeof t>[0]) ?? h.statusHasil}
                           </span>
                         </div>
                       </li>

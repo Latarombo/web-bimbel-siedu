@@ -75,12 +75,14 @@ export function TeacherSidebar({
   const [currentSearch, setCurrentSearch] = useState('');
 
   // Clear pendingHref and track query search params
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname);
     setPendingHref(null);
     if (typeof window !== 'undefined') {
       setCurrentSearch(window.location.search);
     }
-  }, [pathname]);
+  }
 
   const isSubItemActive = (subHref: string) => {
     const current =
@@ -274,8 +276,8 @@ export function TeacherSidebar({
             <button
               type="button"
               onClick={onToggleCollapse}
-              aria-label="Tutup sidebar"
-              title="Tutup sidebar"
+              aria-label={t("sidebarClose")}
+              title={t("sidebarClose")}
               className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
             >
               <PanelLeft className="size-5" />

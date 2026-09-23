@@ -134,6 +134,7 @@ export default async function PrivacyPage() {
             {/* Banner Kontak Legal di Akhir Dokumen */}
             <div className="pt-4">
               <LegalContactCard
+                badge={tr("legalBadge")}
                 title={tr("legalNeedHelpTitle")}
                 description={tr("legalNeedHelpDesc")}
                 contactButtonText={tr("legalContactButton")}

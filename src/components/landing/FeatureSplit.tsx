@@ -64,7 +64,7 @@ function Feature({ b }: { b: Baris }) {
   const teks = (
     <div className="max-w-lg">
       <p
-        className="text-sm font-bold tracking-widest uppercase"
+        className="text-sm font-semibold"
         style={{ color: b.eyebrowColor }}
       >
         {b.eyebrow}

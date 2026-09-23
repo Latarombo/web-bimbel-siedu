@@ -33,7 +33,6 @@ export default function CountUp({
     const el = ref.current;
     if (!el) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setTampil(value);
       return;
     }
     const io = new IntersectionObserver(
@@ -58,9 +57,13 @@ export default function CountUp({
     return () => io.disconnect();
   }, [value]);
 
+  const reducedMotion =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   return (
     <span ref={ref} className={className}>
-      {fmt.format(tampil)}
+      {fmt.format(reducedMotion ? value : tampil)}
     </span>
   );
 }

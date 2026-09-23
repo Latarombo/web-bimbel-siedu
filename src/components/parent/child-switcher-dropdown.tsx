@@ -22,11 +22,11 @@ interface Props {
 }
 
 const JENJANG_AVATAR: Record<string, string> = {
-  TK: 'bg-gradient-to-br from-amber-400 to-orange-500 text-white',
-  SD: 'bg-gradient-to-br from-sky-400 to-blue-600 text-white',
-  SMP: 'bg-gradient-to-br from-indigo-500 to-violet-600 text-white',
-  SMA: 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white',
-  DEFAULT: 'bg-gradient-to-br from-blue-600 to-slate-700 text-white',
+  TK: 'bg-amber-500 text-white',
+  SD: 'bg-sky-600 text-white',
+  SMP: 'bg-indigo-500 text-white',
+  SMA: 'bg-emerald-600 text-white',
+  DEFAULT: 'bg-blue-600 text-white',
 };
 
 function getJenjangAvatar(jenjang?: string | null) {
@@ -124,7 +124,7 @@ export function ChildSwitcherDropdown({
       {isOpen && (
         <div className="absolute right-0 mt-2.5 w-72 origin-top-right overflow-hidden rounded-2xl border border-white/60 bg-white/95 p-2 shadow-xl ring-1 ring-black/5 backdrop-blur-md z-50 animate-in fade-in-0 zoom-in-95 duration-100">
           <div className="mb-1 flex items-center justify-between gap-2 rounded-xl bg-brand/5 px-3 py-2">
-            <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-brand">
+            <span className="flex items-center gap-2 text-[11px] font-semibold text-brand">
               <span className="size-1.5 rounded-full bg-brand" />
               {label}
             </span>

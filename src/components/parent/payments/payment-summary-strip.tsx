@@ -26,7 +26,7 @@ export function PaymentSummaryStrip({ stats }: Props) {
       {/* 1. Total Tagihan Aktif */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all hover:shadow-md">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+          <span className="text-xs font-semibold text-slate-500">
             Total Tagihan Aktif
           </span>
           <div className="flex size-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
@@ -58,7 +58,7 @@ export function PaymentSummaryStrip({ stats }: Props) {
       >
         <div className="flex items-center justify-between">
           <span
-            className={`text-xs font-bold uppercase tracking-wider ${
+            className={`text-xs font-semibold ${
               hasOverdue
                 ? "text-rose-700"
                 : isUrgent
@@ -125,7 +125,7 @@ export function PaymentSummaryStrip({ stats }: Props) {
       {/* 3. Total Investasi Belajar / Terbayar */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs transition-all hover:shadow-md">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">
+          <span className="text-xs font-semibold text-emerald-700">
             Total Terbayar
           </span>
           <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">

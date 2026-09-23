@@ -142,7 +142,7 @@ export default async function TeacherDashboard() {
       kelasId: k.id,
       kelasNama: m?.nama ?? "Kelas",
       mapel: m?.nama ?? "Mata Pelajaran",
-      jenjang: k.jenjang as any,
+      jenjang: k.jenjang,
       tingkat: k.tingkat,
       hari: j.hari,
       jamMulai: j.jamMulai,
@@ -207,7 +207,7 @@ export default async function TeacherDashboard() {
             <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-                  Selamat datang, {teacherName}
+                  {t("welcomeTeacher", { name: teacherName })}
                 </h1>
                 <p className="text-xs sm:text-sm text-blue-100 mt-0.5">
                   {tanggalLengkap}
@@ -218,14 +218,14 @@ export default async function TeacherDashboard() {
                 <div className="inline-flex items-center gap-2 rounded-xl bg-white/15 border border-white/20 backdrop-blur-xs px-3.5 py-2 self-start sm:self-center">
                   <span className="size-2 rounded-full bg-emerald-400 ring-2 ring-emerald-400/30" />
                   <span className="text-xs font-bold text-white">
-                    {sesiHariIni.length} sesi hari ini
+                    {t("sessionsCountToday", { count: sesiHariIni.length })}
                   </span>
                 </div>
               ) : (
                 <div className="inline-flex items-center gap-2 rounded-xl bg-white/10 border border-white/15 backdrop-blur-xs px-3.5 py-2 self-start sm:self-center">
                   <span className="size-2 rounded-full bg-blue-200" />
                   <span className="text-xs font-semibold text-blue-100">
-                    Tidak ada jadwal hari ini
+                    {t("noScheduleToday")}
                   </span>
                 </div>
               )}
@@ -238,15 +238,15 @@ export default async function TeacherDashboard() {
             <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4.5 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
               <div>
                 <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                  Kelas Diampu
+                  {t("taughtClasses")}
                 </p>
                 <p className="mt-2 text-3xl sm:text-4xl font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
                   {kelasAktif.length}
                 </p>
               </div>
               <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="font-medium text-slate-400">Rombel aktif</span>
-                <span className="font-semibold text-slate-600">Total {kelas.length}</span>
+                <span className="font-medium text-slate-400">{t("activeGroups")}</span>
+                <span className="font-semibold text-slate-600">{t("totalClassesCount", { count: kelas.length })}</span>
               </div>
             </div>
 
@@ -254,15 +254,15 @@ export default async function TeacherDashboard() {
             <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4.5 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
               <div>
                 <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                  Total Murid
+                  {t("totalStudents")}
                 </p>
                 <p className="mt-2 text-3xl sm:text-4xl font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
                   {uniqueStudentsCount}
                 </p>
               </div>
               <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="font-medium text-slate-400">Siswa terdaftar</span>
-                <span className="font-semibold text-slate-600">{siswaAktif.length} pendaftaran</span>
+                <span className="font-medium text-slate-400">{t("registeredStudents")}</span>
+                <span className="font-semibold text-slate-600">{t("enrollmentsCount", { count: siswaAktif.length })}</span>
               </div>
             </div>
 
@@ -270,18 +270,18 @@ export default async function TeacherDashboard() {
             <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4.5 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
               <div>
                 <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                  Perlu Dinilai
+                  {t("needsGrading")}
                 </p>
                 <p className={`mt-2 text-3xl sm:text-4xl font-black tracking-tight transition-colors ${antreanPenilaian.length > 0 ? "text-amber-600 group-hover:text-amber-700" : "text-slate-900 group-hover:text-blue-600"}`}>
                   {antreanPenilaian.length}
                 </p>
               </div>
               <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="font-medium text-slate-400">Antrean evaluasi</span>
+                <span className="font-medium text-slate-400">{t("evaluationQueue")}</span>
                 {antreanPenilaian.length > 0 ? (
-                  <span className="font-bold text-amber-600">Pending</span>
+                  <span className="font-bold text-amber-600">{t("statusPending")}</span>
                 ) : (
-                  <span className="font-semibold text-emerald-600">Tuntas</span>
+                  <span className="font-semibold text-emerald-600">{t("statusDone")}</span>
                 )}
               </div>
             </div>
@@ -290,7 +290,7 @@ export default async function TeacherDashboard() {
             <div className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-4.5 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
               <div>
                 <p className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                  Presensi Sesi
+                  {t("sessionAttendanceMetric")}
                 </p>
                 <p className="mt-2 text-3xl sm:text-4xl font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors">
                   {sesiHariIni.length > 0 ? `${pctPresensi}%` : "100%"}
@@ -298,10 +298,10 @@ export default async function TeacherDashboard() {
               </div>
               <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
                 <span className="font-medium text-slate-400">
-                  {sesiHariIni.length > 0 ? `${totalTerisiHariIni}/${totalSiswaHariIni} siswa` : "Tidak ada jadwal"}
+                  {sesiHariIni.length > 0 ? t("studentsRatio", { filled: totalTerisiHariIni, total: totalSiswaHariIni }) : t("noScheduleToday")}
                 </span>
                 <span className="font-semibold text-slate-600">
-                  {sesiHariIni.length > 0 ? `${sesiHariIni.length} sesi` : "Hari ini"}
+                  {sesiHariIni.length > 0 ? t("sessionsCountStat", { count: sesiHariIni.length }) : t("todayLabel")}
                 </span>
               </div>
             </div>
@@ -311,13 +311,13 @@ export default async function TeacherDashboard() {
           <div className="space-y-3.5">
             <div className="flex items-center justify-between">
               <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                Kelas Diampu
+                {t("taughtClasses")}
               </h2>
               <Link
                 href="/teacher/classes"
                 className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
               >
-                <span>Lihat Semua</span>
+                <span>{t("viewAll")}</span>
                 <ChevronRight className="size-3.5" />
               </Link>
             </div>
@@ -333,7 +333,7 @@ export default async function TeacherDashboard() {
                   const jadwalKelas = jadwal.filter((j) => j.kelasId === k.id);
                   const jadwalStr = jadwalKelas.length > 0
                     ? jadwalKelas.map((j) => `${j.hari} (${j.jamMulai} - ${j.jamSelesai})`).join(", ")
-                    : "Jadwal belum ditentukan";
+                    : t("scheduleNotSet");
 
                   return (
                     <div
@@ -347,13 +347,13 @@ export default async function TeacherDashboard() {
                             {k.jenjang} {k.tingkat ? `· ${k.tingkat}` : ""}
                           </span>
                           <span className="text-[11px] font-semibold text-slate-400 truncate max-w-[140px]">
-                            {p?.nama ?? "Periode Aktif"}
+                            {p?.nama ?? t("activePeriodDefault")}
                           </span>
                         </div>
 
                         <div>
                           <h3 className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
-                            {m?.nama ?? "Mata Pelajaran"}
+                            {m?.nama ?? t("subjectDefault")}
                           </h3>
                           {m?.deskripsi && (
                             <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
@@ -386,12 +386,12 @@ export default async function TeacherDashboard() {
                               })}
                             </div>
                             <span className="ml-2.5 text-xs font-semibold text-slate-600">
-                              {students.length} Siswa
+                              {t("studentsCount", { count: students.length })}
                             </span>
                           </div>
 
                           <span className="text-[11px] font-bold text-slate-400">
-                            Kuota: {students.length}/{k.kuotaMaksimum}
+                            {t("quotaRatio", { count: students.length, max: k.kuotaMaksimum })}
                           </span>
                         </div>
                       </div>
@@ -401,7 +401,7 @@ export default async function TeacherDashboard() {
                           href={`/teacher/classes/${k.id}`}
                           className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 py-2.5 px-4 text-xs font-bold text-white shadow-xs hover:bg-blue-700 active:scale-[0.99] transition-all cursor-pointer"
                         >
-                          <span>Detail Kelas</span>
+                          <span>{t("classDetail")}</span>
                           <ChevronRight className="size-3.5" />
                         </Link>
                       </div>
@@ -412,9 +412,9 @@ export default async function TeacherDashboard() {
             ) : (
               <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center space-y-1.5">
                 <BookOpen className="size-8 mx-auto text-slate-300" />
-                <p className="text-sm font-bold text-slate-700">Belum ada kelas aktif</p>
+                <p className="text-sm font-bold text-slate-700">{t("noActiveClassesYet")}</p>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  Daftar rombongan belajar Anda akan muncul di sini.
+                  {t("noActiveClassesDesc")}
                 </p>
               </div>
             )}
@@ -424,13 +424,13 @@ export default async function TeacherDashboard() {
           <div className="space-y-3.5">
             <div className="flex items-center justify-between">
               <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
-                Antrean Penilaian
+                {t("gradingQueue")}
               </h2>
               <Link
                 href="/teacher/grades"
                 className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
               >
-                <span>Halaman Nilai</span>
+                <span>{t("gradesPage")}</span>
                 <ChevronRight className="size-3.5" />
               </Link>
             </div>
@@ -469,13 +469,13 @@ export default async function TeacherDashboard() {
 
                         <div className="flex items-center justify-between sm:justify-end gap-3 self-end sm:self-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                           <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg sm:hidden">
-                            Belum Dinilai
+                            {t("notYetGraded")}
                           </span>
                           <Link
                             href={`/teacher/grades/${item.pendaftaranId}`}
                             className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/80 px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-600 hover:text-white transition-all cursor-pointer"
                           >
-                            <span>Beri Nilai</span>
+                            <span>{t("giveGrade")}</span>
                             <ChevronRight className="size-3" />
                           </Link>
                         </div>
@@ -490,7 +490,7 @@ export default async function TeacherDashboard() {
                       href="/teacher/grades"
                       className="text-xs font-bold text-blue-600 hover:underline"
                     >
-                      Lihat semua antrean penilaian ({antreanPenilaian.length})
+                      {t("viewAllGradingQueue", { count: antreanPenilaian.length })}
                     </Link>
                   </div>
                 )}
@@ -501,10 +501,10 @@ export default async function TeacherDashboard() {
                   <CheckCircle2 className="size-5 stroke-[2.5]" />
                 </div>
                 <p className="text-xs font-bold text-slate-800">
-                  Semua tugas sudah dinilai
+                  {t("allTasksGraded")}
                 </p>
                 <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
-                  Belum ada penilaian baru yang perlu diperiksa.
+                  {t("noNewAssessments")}
                 </p>
               </div>
             )}

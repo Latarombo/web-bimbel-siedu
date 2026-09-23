@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname, useRouter } from '@/i18n/navigation';
-import { routing } from '@/i18n/routing';
+import { routing, type Locale } from '@/i18n/routing';
 import { Languages, Globe, ChevronDown, Check } from 'lucide-react';
 
 /**
@@ -32,7 +32,7 @@ export function LanguageSwitcher({
   const router = useRouter();
   const t = useTranslations('chrome.switcher');
   const others = routing.locales.filter((l) => l !== locale);
-  const all = [locale, ...others];
+  const all: Locale[] = [locale as Locale, ...others];
 
   const refreshSuffix = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -43,12 +43,16 @@ export function LanguageSwitcher({
     return '';
   }, []);
 
-  useEffect(() => {
+  const [prevLocale, setPrevLocale] = useState(locale);
+  if (locale !== prevLocale) {
+    setPrevLocale(locale);
     setActiveLocale(locale);
-  }, [locale]);
+  }
 
   useEffect(() => {
-    refreshSuffix();
+    queueMicrotask(() => {
+      refreshSuffix();
+    });
     window.addEventListener('popstate', refreshSuffix);
     window.addEventListener('hashchange', refreshSuffix);
     return () => {
@@ -57,13 +61,13 @@ export function LanguageSwitcher({
     };
   }, [refreshSuffix]);
 
-  const handleLocaleChange = (targetLocale: string) => {
+  const handleLocaleChange = (targetLocale: Locale) => {
     if (activeLocale === targetLocale) return;
     const latestSuffix = typeof window !== 'undefined'
       ? (window.location.search + window.location.hash)
       : suffix;
     setActiveLocale(targetLocale);
-    router.replace((pathname + latestSuffix) as any, { locale: targetLocale as any, scroll: false });
+    router.replace(pathname + latestSuffix, { locale: targetLocale, scroll: false });
   };
 
   // Segmented iOS / macOS Glass Pill (Clean, symmetrical, white floating thumb with micro-shadow)

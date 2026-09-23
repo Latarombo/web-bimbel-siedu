@@ -81,7 +81,7 @@ export default async function ClassDetail({ params }: { params: Promise<{ id: st
   return (
     <div className="min-h-full bg-slate-50 pb-20">
       {/* Header Kelas: Warna Biru Murni Brand Siedu (Blue-800 -> Blue-700 -> Blue-600) */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-[#1e40af] via-[#1d4ed8] to-[#2563eb] pt-6 pb-16 sm:pt-8 sm:pb-20 lg:pt-10 lg:pb-24 text-white border-b border-blue-900/20 shadow-xs">
+      <section className="relative overflow-hidden bg-brand pt-6 pb-16 sm:pt-8 sm:pb-20 lg:pt-10 lg:pb-24 text-white border-b border-blue-900/20 shadow-xs">
         {/* Vektor kurva gelombang organik berlapis (clean & elegan di tepi sudut) */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
           {/* Gelombang sudut kanan atas */}

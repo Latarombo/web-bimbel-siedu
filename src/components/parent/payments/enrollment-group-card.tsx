@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { rupiah } from "@/lib/format";
 import type { EnrollmentBillingGroup, PaymentItem } from "./payment-types";
@@ -18,6 +19,7 @@ export function EnrollmentGroupCard({
   onPayClick,
   onReceiptClick,
 }: Props) {
+  const t = useTranslations("parent");
   const isInstallment = group.metodeBayar === "dp_cicilan";
   const allPaid = group.countLunas === group.countTotal && group.countTotal > 0;
 
@@ -45,11 +47,11 @@ export function EnrollmentGroupCard({
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">
-                Metode:{" "}
+                {t("groupMethodLabel")}{" "}
                 <span className="font-medium text-slate-700">
                   {isInstallment
-                    ? `DP + Cicilan (${group.tenorBulan ?? "-"} Bulan)`
-                    : "Lunas (Sekali Bayar)"}
+                    ? t("groupMethodInstallment", { tenor: group.tenorBulan ?? "-" })
+                    : t("groupMethodFull")}
                 </span>
               </p>
             </div>
@@ -60,7 +62,7 @@ export function EnrollmentGroupCard({
               href={`/enrollments/${group.pendaftaranId}`}
               className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
             >
-              <span>Detail Pendaftaran</span>
+              <span>{t("text074")}</span>
               <ArrowUpRight className="size-3.5" />
             </Link>
           </div>
@@ -77,7 +79,10 @@ export function EnrollmentGroupCard({
                   <Clock className="size-3.5 text-blue-600" />
                 )}
                 <span>
-                  Progres Pembayaran: {group.countLunas} dari {group.countTotal} Termin Selesai
+                  {t("groupPaymentProgress", {
+                    done: group.countLunas,
+                    total: group.countTotal,
+                  })}
                 </span>
               </span>
               <span className="font-bold text-slate-800 tabular-nums">

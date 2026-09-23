@@ -1,6 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 export function CabangScrollTrigger() {
+  const t = useTranslations("public");
+
   function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
     const el = document.getElementById("peta-lokasi");
@@ -17,7 +21,7 @@ export function CabangScrollTrigger() {
       onClick={handleClick}
       className="mt-1 inline-flex items-center font-bold text-brand hover:text-brand-dark hover:underline transition-colors text-sm cursor-pointer"
     >
-      <span>lihat kantor cabang</span>
+      <span>{t("cabangViewOffice")}</span>
     </button>
   );
 }

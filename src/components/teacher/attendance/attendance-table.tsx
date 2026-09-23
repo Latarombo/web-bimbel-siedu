@@ -359,7 +359,7 @@ export function AttendanceTable({
 
         {filteredSiswa.length === 0 && (
           <div className="p-8 text-center text-xs text-slate-500">
-            Tidak ada siswa yang cocok dengan pencarian "{search}".
+            Tidak ada siswa yang cocok dengan pencarian &quot;{search}&quot;.
           </div>
         )}
       </div>

@@ -100,11 +100,11 @@ const JENJANG_RINGS: Record<string, string> = {
 };
 
 const JENJANG_FALLBACK_BG: Record<string, string> = {
-  TK: 'bg-gradient-to-br from-amber-400 to-orange-500 text-white',
-  SD: 'bg-gradient-to-br from-sky-400 to-blue-600 text-white',
-  SMP: 'bg-gradient-to-br from-indigo-500 to-violet-600 text-white',
-  SMA: 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white',
-  DEFAULT: 'bg-gradient-to-br from-blue-600 to-slate-700 text-white',
+  TK: 'bg-amber-500 text-white',
+  SD: 'bg-sky-600 text-white',
+  SMP: 'bg-indigo-500 text-white',
+  SMA: 'bg-emerald-600 text-white',
+  DEFAULT: 'bg-blue-600 text-white',
 };
 
 export function StudentAvatar({

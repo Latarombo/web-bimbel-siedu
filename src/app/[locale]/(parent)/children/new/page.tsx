@@ -11,6 +11,7 @@ export const dynamic = "force-dynamic";
 
 export default async function NewChildPage() {
   const tAuth = await getTranslations("auth");
+  const tParent = await getTranslations("parent");
   const locale = await getLocale();
   const session = await auth();
   if (!session?.user) {
@@ -20,8 +21,6 @@ export default async function NewChildPage() {
 
   const ortuId = Number(session.user.id);
   const parent = await db.orm.public.User.where({ id: ortuId }).first();
-
-  const isEn = locale.startsWith("en");
 
   return (
     <div className="relative flex min-h-dvh flex-col overflow-x-clip bg-linear-to-br from-blue-700 via-blue-600 to-cyan-400">
@@ -35,16 +34,12 @@ export default async function NewChildPage() {
         <div className="w-full flex justify-center items-center">
           <ChildInfoForm
             parentPhone={parent?.nomorTelepon ?? ""}
-            title={isEn ? "Add Child Profile" : "Tambah Profil Anak"}
-            subtitle={
-              isEn
-                ? "Enter your child's information to get started with classes."
-                : "Masukkan informasi putra-putri Anda untuk memulai bimbingan belajar."
-            }
-            submitLabel={isEn ? "Save Profile" : "Simpan Profil Anak"}
+            title={tParent("bentoAddChildTitle")}
+            subtitle={tParent("addChildSubtitle")}
+            submitLabel={tParent("saveChildProfile")}
             redirectTo="/children"
             backHref="/children"
-            backLabel={isEn ? "Cancel & Back to Children List" : "Batal & Kembali ke Daftar Anak"}
+            backLabel={tParent("cancelBackChildren")}
             showSkip={false}
           />
         </div>

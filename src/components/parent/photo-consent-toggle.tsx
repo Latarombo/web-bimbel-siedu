@@ -76,20 +76,20 @@ export function PhotoConsentToggle({ anakId, initialConsent }: Props) {
           />
         </button>
         <span className="text-xs text-slate-700">
-          {consent ? 'Izin publikasi foto diberikan' : 'Izin publikasi foto dicabut'}
+          {consent ? t('consentPhotoGranted') : t('consentPhotoRevokedText')}
         </span>
       </div>
 
       {showReasonInput && (
         <div className="mt-4 rounded-lg border border-indigo-100 bg-indigo-50/40 p-3 space-y-3">
           <label className="block text-xs font-medium text-slate-700">
-            Alasan perubahan izin foto (opsional):
+            {t('consentReasonLabel')}
           </label>
           <input
             type="text"
             value={alasan}
             onChange={(e) => setAlasan(e.target.value)}
-            placeholder="cth: Permintaan privasi keluarga..."
+            placeholder={t('consentReasonPlaceholder')}
             className="block w-full rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
           <div className="flex justify-end gap-2">
@@ -101,7 +101,7 @@ export function PhotoConsentToggle({ anakId, initialConsent }: Props) {
               }}
               className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
             >
-              Batal
+              {t('cancel')}
             </button>
             <button
               type="button"
@@ -109,7 +109,7 @@ export function PhotoConsentToggle({ anakId, initialConsent }: Props) {
               disabled={isPending}
               className="rounded-md bg-indigo-600 px-3 py-1 text-xs font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
             >
-              {isPending ? 'Menyimpan...' : 'Simpan Perubahan Izin'}
+              {isPending ? t('savingShort') : t('saveConsentChanges')}
             </button>
           </div>
         </div>
@@ -119,7 +119,7 @@ export function PhotoConsentToggle({ anakId, initialConsent }: Props) {
         <p className="mt-3 text-xs text-red-600">{feedback.error}</p>
       )}
       {feedback?.ok && (
-        <p className="mt-3 text-xs text-emerald-600">Persetujuan foto berhasil diperbarui.</p>
+        <p className="mt-3 text-xs text-emerald-600">{t('consentUpdatedSuccess')}</p>
       )}
     </div>
   );

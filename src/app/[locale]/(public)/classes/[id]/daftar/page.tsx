@@ -77,7 +77,7 @@ export default async function DaftarKelasPage({
             <Link
               href={`/classes/${kelasId}`}
               className="absolute left-0 grid size-9 sm:size-10 place-items-center rounded-full bg-white text-slate-800 hover:bg-slate-50 shadow-sm transition-transform active:scale-95 z-10 shrink-0"
-              aria-label="Kembali ke detail kelas"
+              aria-label={tr("daftarBackToDetail")}
             >
               <ArrowLeft className="size-4 sm:size-5" aria-hidden />
             </Link>

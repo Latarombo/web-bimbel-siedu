@@ -5,5 +5,15 @@
     "description": "A tutoring enrollment platform for parents: manage children, pick classes, pay in installments, and follow attendance and grades in real time."
   },
   "skipToContent": "Skip to content",
-  "locale": "Language"
+  "locale": "Language",
+  "loading": "Loading...",
+  "close": "Close",
+  "cancel": "Cancel",
+  "save": "Save",
+  "search": "Search",
+  "clear": "Clear",
+  "closeDialog": "Close dialog",
+  "searchOptions": "Search options...",
+  "noMatchingOptions": "No matching options",
+  "clearSearch": "Clear search"
 }

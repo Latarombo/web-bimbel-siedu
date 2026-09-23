@@ -134,7 +134,7 @@ export function GridKehadiran({
         {HARI_LABEL.map((h, i) => (
           <span
             key={i}
-            className="min-w-0 text-[10px] font-semibold uppercase text-muted"
+            className="min-w-0 text-[10px] font-semibold text-muted"
           >
             {h}
           </span>

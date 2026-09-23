@@ -73,11 +73,14 @@ export default function AccountInfoForm({
   }, [state.name, state.nomor_telepon, state.wilayah, state.detail_alamat, draft, setDraftField]);
 
   // Jika server mengembalikan error pada field nama atau nomor HP, otomatis arahkan kembali ke Langkah 1
-  useEffect(() => {
-    if (errors.name || errors.nomor_telepon) {
+  const hasServerStep1Error = Boolean(errors.name || errors.nomor_telepon);
+  const [prevHasServerStep1Error, setPrevHasServerStep1Error] = useState(hasServerStep1Error);
+  if (hasServerStep1Error !== prevHasServerStep1Error) {
+    setPrevHasServerStep1Error(hasServerStep1Error);
+    if (hasServerStep1Error) {
       setStep(1);
     }
-  }, [errors.name, errors.nomor_telepon]);
+  }
 
   const handleNextStep = async () => {
     const errs: { name?: string; nomor_telepon?: string } = {};

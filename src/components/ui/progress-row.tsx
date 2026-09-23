@@ -30,7 +30,7 @@ export function ProgressRow({
     <div>
       <div className="flex items-baseline justify-between gap-2 sm:gap-3">
         {/* min-w-0 + truncate: label panjang tidak mendorong/menabrak nilai di HP */}
-        <p className="min-w-0 truncate text-xs font-semibold uppercase text-muted">{label}</p>
+        <p className="min-w-0 truncate text-xs font-semibold text-muted">{label}</p>
         <p className="shrink-0 text-sm font-bold tabular-nums">{value}</p>
       </div>
       <div

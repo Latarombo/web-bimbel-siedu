@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Search, X, ListCollapse } from "lucide-react";
 
 type TableOfContentsProps = {
@@ -16,6 +17,7 @@ export function TableOfContents({
   searchPlaceholder = "Cari topik pasal...",
   emptySearchText = "Tidak ada seksi yang cocok",
 }: TableOfContentsProps) {
+  const t = useTranslations("common");
   const [activeId, setActiveId] = useState<string>(sections[0]?.id || "");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -157,7 +159,7 @@ export function TableOfContents({
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                aria-label="Hapus pencarian"
+                aria-label={t("clearSearch")}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-muted hover:text-foreground"
               >
                 <X className="size-3.5" />

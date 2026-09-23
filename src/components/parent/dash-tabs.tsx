@@ -9,6 +9,7 @@
  * target sentuh >= 44px. Di layar lebar tab tetap satu baris rapat.
  */
 import { useId, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export type DashTab = {
   key: string;
@@ -19,6 +20,7 @@ export type DashTab = {
 };
 
 export function DashTabs({ tabs }: { tabs: DashTab[] }) {
+  const t = useTranslations("parent");
   const [aktif, setAktif] = useState(tabs[0]?.key);
   const base = useId();
 
@@ -26,7 +28,7 @@ export function DashTabs({ tabs }: { tabs: DashTab[] }) {
     <div>
       <div
         role="tablist"
-        aria-label="Bagian dashboard"
+        aria-label={t("dashTabsAria")}
         className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {tabs.map((t) => {

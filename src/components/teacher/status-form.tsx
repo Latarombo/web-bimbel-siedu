@@ -85,7 +85,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
     const trimmed = photoInput.trim();
     if (!trimmed) return;
     if (photos.length >= 5) {
-      setErrorMsg('Maksimal 5 foto per unggahan.');
+      setErrorMsg(t('statusMaxPhotos'));
       return;
     }
     setPhotos([...photos, trimmed]);
@@ -200,7 +200,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                   className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
                 >
                   {selectedRecipients.length === currentClass.students.length
-                    ? 'Batalkan Semua'
+                    ? t('statusCancelAll')
                     : t('selectAllRecipients')}
                 </button>
               </div>
