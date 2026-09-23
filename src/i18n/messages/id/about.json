@@ -124,5 +124,11 @@
       "Melaporkan kehadiran dan nilai lewat input guru di setiap pertemuan.",
       "Menjaga data siswa milik satu lembaga: tidak dicampur pihak lain, dengan persetujuan orang tua lebih dulu."
     ]
+  },
+  "teachers": {
+    "kicker": "Tim Pengajar",
+    "titleBefore": "Wajah di Balik",
+    "titleHighlight": "Kelas",
+    "lead": "Merekalah yang mewujudkan visi dan misi kami di ruang belajar setiap harinya."
   }
 }

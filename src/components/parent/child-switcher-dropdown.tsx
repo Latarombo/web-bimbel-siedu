@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Link } from '@/i18n/navigation';
-import { ChevronDown, Check, UserPlus } from 'lucide-react';
+import { ChevronDown, UserPlus } from 'lucide-react';
+import { StudentAvatar } from '@/components/parent/student-avatar';
 
 export interface ChildItem {
   id: number;
@@ -72,7 +73,7 @@ export function ChildSwitcherDropdown({
     };
   }, [isOpen]);
 
-  if (!dipilih || anakList.length <= 1) {
+  if (!dipilih || anakList.length === 0) {
     return null;
   }
 
@@ -90,16 +91,16 @@ export function ChildSwitcherDropdown({
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
         aria-haspopup="true"
-        className="group inline-flex items-center gap-2.5 rounded-xl border border-slate-200/90 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 shadow-2xs transition-all hover:border-slate-300 hover:bg-slate-50 focus:outline-hidden focus:ring-2 focus:ring-brand/20 active:scale-[0.98]"
+        className="group inline-flex items-center gap-2.5 rounded-xl border border-white/25 bg-white/10 px-3.5 py-2 text-xs font-semibold text-white shadow-2xs backdrop-blur-xs transition-all hover:border-white/40 hover:bg-white/15 focus:outline-hidden focus:ring-2 focus:ring-white/40 active:scale-[0.98]"
       >
-        <div
-          className={`flex size-5.5 items-center justify-center rounded-lg text-[10px] font-black shadow-2xs ${getJenjangAvatar(
-            dipilih.jenjang
-          )}`}
-        >
-          {dipilih.nama.slice(0, 2).toUpperCase()}
-        </div>
-        <span className="max-w-[130px] truncate text-slate-900 font-bold">
+        <StudentAvatar
+          nama={dipilih.nama}
+          jenjang={dipilih.jenjang}
+          size="xs"
+          showRing={false}
+          className="size-6 shrink-0"
+        />
+        <span className="max-w-[130px] truncate text-white font-bold">
           {dipilih.nama}
         </span>
         <span
@@ -113,21 +114,22 @@ export function ChildSwitcherDropdown({
           }
         />
         <ChevronDown
-          className={`size-3.5 text-slate-400 transition-transform duration-200 ${
-            isOpen ? 'rotate-180 text-brand' : 'group-hover:text-slate-600'
+          className={`size-3.5 text-white/70 transition-transform duration-200 ${
+            isOpen ? 'rotate-180 text-white' : 'group-hover:text-white'
           }`}
         />
       </button>
 
       {/* Dropdown Menu Flyout */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 origin-top-right rounded-2xl border border-slate-200/90 bg-white p-2 shadow-2xl ring-1 ring-black/5 z-50 animate-in fade-in-0 zoom-in-95 duration-100">
-          <div className="px-2.5 py-1.5 border-b border-slate-100 flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="absolute right-0 mt-2.5 w-72 origin-top-right overflow-hidden rounded-2xl border border-white/60 bg-white/95 p-2 shadow-xl ring-1 ring-black/5 backdrop-blur-md z-50 animate-in fade-in-0 zoom-in-95 duration-100">
+          <div className="mb-1 flex items-center justify-between gap-2 rounded-xl bg-brand/5 px-3 py-2">
+            <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-brand">
+              <span className="size-1.5 rounded-full bg-brand" />
               {label}
             </span>
-            <span className="text-[11px] text-slate-400 font-medium">
-              {anakList.length} Profil
+            <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-bold text-brand">
+              {anakList.length} profil
             </span>
           </div>
 
@@ -140,22 +142,25 @@ export function ChildSwitcherDropdown({
                   href={`/home?anak=${child.id}`}
                   scroll={false}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center justify-between rounded-xl px-2.5 py-2 text-xs transition-colors ${
+                  aria-current={isSelected ? 'true' : undefined}
+                  className={`group flex items-center justify-between gap-2 rounded-xl border px-2.5 py-2 text-xs transition-all ${
                     isSelected
-                      ? 'bg-blue-50/80 text-slate-900 font-semibold border border-blue-100'
-                      : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                      ? 'border-brand/30 bg-brand/10 text-slate-900 shadow-xs'
+                      : 'border-transparent text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:shadow-xs'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div
-                      className={`flex size-8 shrink-0 items-center justify-center rounded-xl text-xs font-black shadow-2xs ${getJenjangAvatar(
-                        child.jenjang
-                      )}`}
-                    >
-                      {child.nama.slice(0, 2).toUpperCase()}
-                    </div>
+                    <StudentAvatar
+                      nama={child.nama}
+                      jenjang={child.jenjang}
+                      size="sm"
+                    />
                     <div className="min-w-0">
-                      <p className="truncate font-bold text-slate-900">
+                      <p
+                        className={`truncate font-bold ${
+                          isSelected ? 'text-slate-900' : 'text-slate-800'
+                        }`}
+                      >
                         {child.nama}
                       </p>
                       <p className="truncate text-[11px] text-slate-500 font-medium">
@@ -164,21 +169,19 @@ export function ChildSwitcherDropdown({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0 pl-2">
-                    <span
-                      className={`size-2 rounded-full ${getDotColor(child)}`}
-                      title={
-                        child.tertunggak
-                          ? 'Ada tunggakan'
-                          : child.belumDibayar > 0
-                            ? 'Ada tagihan aktif'
-                            : 'Semua aman'
-                      }
-                    />
+                  <span
+                    role="radio"
+                    aria-checked={isSelected}
+                    className={`flex size-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                      isSelected
+                        ? 'border-brand'
+                        : 'border-slate-300 group-hover:border-slate-400'
+                    }`}
+                  >
                     {isSelected && (
-                      <Check className="size-3.5 text-brand stroke-[2.5]" />
+                      <span className="size-1.5 rounded-full bg-brand" />
                     )}
-                  </div>
+                  </span>
                 </Link>
               );
             })}
@@ -188,9 +191,11 @@ export function ChildSwitcherDropdown({
             <Link
               href="/children/new"
               onClick={() => setIsOpen(false)}
-              className="flex items-center gap-2 rounded-xl px-2.5 py-2 text-xs font-bold text-brand hover:bg-brand/5 transition-colors"
+              className="mt-1 flex items-center gap-2.5 rounded-xl bg-brand/5 px-2.5 py-2 text-xs font-bold text-brand transition-colors hover:bg-brand/10"
             >
-              <UserPlus className="size-3.5" />
+              <span className="flex size-6 items-center justify-center rounded-full bg-brand/10">
+                <UserPlus className="size-3.5" />
+              </span>
               <span>{addChildLabel}</span>
             </Link>
           </div>

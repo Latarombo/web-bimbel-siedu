@@ -7,6 +7,7 @@ import { saveChildInfo, type ChildInfoState } from '@/app/actions/child-info';
 import { DatePicker } from '@/components/ui/date-picker';
 import { CardSelect } from '@/components/ui/card-select';
 import { useFormDraft } from '@/lib/use-form-draft';
+import { StudentAvatar } from '@/components/parent/student-avatar';
 
 const initial: ChildInfoState = {};
 
@@ -251,6 +252,17 @@ export default function ChildInfoForm({
             ) : (
                 <div className="mb-5" />
             )}
+
+            {/* Preview foto profil — seed nama+jenjang, identik dgn hasil setelah save */}
+            <div className="mb-5 flex items-center gap-3 rounded-xl border border-slate-200/80 bg-slate-50/60 p-3">
+                <StudentAvatar nama={nama} jenjang={jenjang || null} size="md" />
+                <div className="min-w-0">
+                    {nama.trim() ? (
+                        <p className="truncate text-sm font-bold text-slate-800">{nama.trim()}</p>
+                    ) : null}
+                    <p className="text-xs text-slate-500">{t('photoAuto')}</p>
+                </div>
+            </div>
 
             <form action={formAction} className="space-y-4 sm:space-y-4.5">
                 {redirectTo ? (

@@ -9,8 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
 import { StatusBadge, type StatusPendaftaran } from "@/components/status-badge";
 import { Clock } from "lucide-react";
-import { rupiah } from "@/lib/format";
+import { rupiah, fmtTanggal } from "@/lib/format";
+import { getLabelMaps } from "@/lib/label";
 import { sisaWaktu24Jam } from "@/lib/hari";
+import { ClassTicket } from "@/components/parent/class-ticket";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +31,7 @@ export default async function EnrollmentDetailPage({
   const locale = await getLocale();
   const session = await auth();
   if (!session?.user) {
-    return redirect({href: "/login?next=/home", locale});
+    return redirect({ href: "/login?next=/home", locale });
   }
   const { id } = await params;
   const pid = Number(id);
@@ -43,17 +45,21 @@ export default async function EnrollmentDetailPage({
   );
   if (!p) notFound();
 
-  const [anak, kelas, tagihan, pengajuan] = await Promise.all([
-  COLLECT(db.orm.public.Anak.where((a) => a.id.eq(p.anakId)).all()),
-  COLLECT(db.orm.public.Kelas.where((k) => k.id.eq(p.kelasId)).all()),
-  COLLECT(
-  db.orm.public.Pembayaran.where((b) => b.pendaftaranId.eq(pid))
-  .orderBy((b) => b.cicilanKe.asc())
-  .all(),
-  ),
-  COLLECT(
-  db.orm.public.PengajuanPembatalan.where((q) => q.pendaftaranId.eq(pid)).all(),
-  ),
+  const [anak, kelas, tagihan, pengajuan, jadwal] = await Promise.all([
+    COLLECT(db.orm.public.Anak.where((a) => a.id.eq(p.anakId)).all()),
+    COLLECT(db.orm.public.Kelas.where((k) => k.id.eq(p.kelasId)).all()),
+    COLLECT(
+      db.orm.public.Pembayaran.where((b) => b.pendaftaranId.eq(pid))
+        .orderBy((b) => b.cicilanKe.asc())
+        .all(),
+    ),
+    COLLECT(
+      db.orm.public.PengajuanPembatalan.where((q) => q.pendaftaranId.eq(pid))
+        .all(),
+    ),
+    COLLECT(
+      db.orm.public.JadwalItem.where((j) => j.kelasId.eq(p.kelasId)).all(),
+    ),
   ]);
   const a = anak[0];
   const k = kelas[0];
@@ -62,12 +68,14 @@ export default async function EnrollmentDetailPage({
   // Pastikan pendaftaran benar milik orang tua yang login.
   if (!a || a.orangTuaId !== ortuId) notFound();
 
-  const mapel = k
-    ? await COLLECT(
-        db.orm.public.MataPelajaran.where((m) => m.id.eq(k.mataPelajaranId)).all(),
-      )
-    : [];
+  const [mapel, guru] = k
+    ? await Promise.all([
+        COLLECT(db.orm.public.MataPelajaran.where((m) => m.id.eq(k.mataPelajaranId)).all()),
+        COLLECT(db.orm.public.User.where((u) => u.id.eq(k.guruId)).all()),
+      ])
+    : [[], []];
   const mapelNama = mapel[0]?.nama ?? `Kelas #${p.kelasId}`;
+  const guruNama = guru[0]?.name ?? "Pengajar Siedu";
 
   const status = p.status as StatusPendaftaran;
   const aktif = ["menunggu_pembayaran", "terdaftar", "tertunggak"].includes(status);
@@ -98,176 +106,227 @@ export default async function EnrollmentDetailPage({
         ? tr("text046")
         : tr("paymentSummaryAmount");
 
+  const tanggal = (v: string | Date | null | undefined) =>
+    v ? fmtTanggal(typeof v === "string" ? v : v.toISOString(), locale) : "-";
+
+  const labelTagihan = (b: { tipe: string; cicilanKe: number | null }) =>
+    b.tipe === "cicilan"
+      ? tr("enrollInstallment", { number: b.cicilanKe ?? 0 })
+      : b.tipe === "dp"
+        ? tr("text045")
+        : tr("text046");
+
+  const alasanBatal =
+    status === "dibatalkan_timeout"
+      ? tr("text034")
+      : status === "dibatalkan_tunggakan"
+        ? tr("text035")
+        : status === "dibatalkan_orang_tua"
+          ? tr("text036")
+          : status === "dibatalkan_kelas"
+            ? tr("enrollCancelledClass")
+            : `${tr("text028")} ${status.replaceAll("_", " ")}.`;
+
+  const kategoriPengajuan =
+    getLabelMaps(locale).LABEL_KATEGORI_BATAL[pengajuanMenunggu?.kategori ?? ""] ??
+    (pengajuanMenunggu?.kategori ?? "").replaceAll("_", " ");
+
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10">
-      <p className="text-sm text-muted">
-        <Link href="/home" className="underline">{tr("text027")}</Link>
+      <p className="text-sm">
+        <Link href="/home" className="text-muted underline underline-offset-4 hover:text-foreground">
+          {tr("text027")}
+        </Link>
       </p>
-      <header className="mt-3 flex flex-wrap items-center justify-between gap-3">
+
+      <header className="mt-3 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
         <div className="min-w-0">
           <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-3xl">
-             {tr("text028")} {a.nama}  {tr("text029")}{p.kelasId}
+            {tr("text028")} {mapelNama}
           </h1>
-          <p className="mt-1 text-sm text-muted">
-            {k ? `${k.jenjang} · metode ${p.metodeBayar}` : ""}  {tr("text030")}{" "}
-            {new Date(p.createdAt).toLocaleDateString("id-ID")}
+          <p className="mt-1.5 text-sm text-muted">
+            {a.nama}
+            {k ? ` · ${k.jenjang}` : ""}
+          </p>
+          <p className="mt-0.5 text-xs text-muted">
+            {tr("enrollSubmitted", { date: tanggal(p.createdAt) })}
           </p>
         </div>
         <StatusBadge status={status} />
       </header>
 
-      {/* Card Utama: Menunggu Pembayaran (Prominent Amber Card) */}
+      {/* Menunggu pembayaran: panel utama dengan hitung mundur 24 jam */}
       {status === "menunggu_pembayaran" ? (
-        <div className="mt-6 rounded-2xl border-2 border-amber-300 bg-amber-50/90 p-5 sm:p-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-            <div className="min-w-0">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-100/90 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-900">
-                <Clock className="size-3.5 text-amber-700 shrink-0" aria-hidden="true" />
-                {tr("pendingPaymentTitle")}
-              </span>
-              <h2 className="mt-2 text-xl font-bold tracking-tight text-amber-950 sm:text-2xl">
-                {tr("pendingPaymentTitle")}
-              </h2>
-              <p className="mt-1.5 text-xs sm:text-sm leading-relaxed text-amber-800">
-                {tr("pendingPaymentNotice")}
-              </p>
+        <section className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5 sm:p-6">
+          <h2 className="text-lg font-semibold tracking-tight text-amber-950 sm:text-xl">
+            {tr("pendingPaymentTitle")}
+          </h2>
+          <p className="mt-1.5 max-w-prose text-sm leading-relaxed text-amber-900/80">
+            {tr("pendingPaymentNotice")}
+          </p>
+          <p
+            className={`mt-3 flex items-center gap-1.5 text-sm font-semibold tabular-nums ${
+              isExpired ? "text-rose-700" : "text-amber-900"
+            }`}
+          >
+            <Clock className="size-4 shrink-0" aria-hidden="true" />
+            <span>{sisaWaktuTeks}</span>
+          </p>
+
+          <dl className="mt-5 grid gap-x-6 gap-y-4 border-t border-amber-200 pt-4 sm:grid-cols-2">
+            <div>
+              <dt className="text-xs font-medium text-amber-800/80">{tr("paymentSummaryStudent")}</dt>
+              <dd className="mt-0.5 text-sm font-semibold text-slate-900">{a.nama}</dd>
             </div>
-
-            <div className={`inline-flex shrink-0 items-center gap-2 rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-semibold shadow-xs ${
-              isExpired
-                ? "border-red-300 bg-red-50 text-red-800"
-                : "border-amber-300 bg-amber-100 text-amber-950"
-            }`}>
-              <Clock className={`size-4 shrink-0 ${isExpired ? "text-red-600" : "text-amber-700"}`} aria-hidden="true" />
-              <span>{sisaWaktuTeks}</span>
+            <div>
+              <dt className="text-xs font-medium text-amber-800/80">{tr("paymentSummaryClass")}</dt>
+              <dd className="mt-0.5 text-sm font-semibold text-slate-900">
+                {mapelNama}
+                {k ? ` · ${k.jenjang}` : ""}
+              </dd>
             </div>
-          </div>
-
-          <div className="my-5 border-t border-amber-200/80" />
-
-          {/* Ringkasan Pendaftaran */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-amber-200/70 bg-white/80 p-3.5 shadow-xs">
-              <span className="block text-xs font-medium text-amber-800/80">{tr("paymentSummaryStudent")}</span>
-              <span className="mt-0.5 block font-semibold text-slate-900">{a.nama}</span>
+            <div>
+              <dt className="text-xs font-medium text-amber-800/80">{tr("paymentSummaryMethod")}</dt>
+              <dd className="mt-0.5 text-sm font-semibold text-slate-900">{metodeBayarTeks}</dd>
             </div>
-
-            <div className="rounded-xl border border-amber-200/70 bg-white/80 p-3.5 shadow-xs">
-              <span className="block text-xs font-medium text-amber-800/80">{tr("paymentSummaryClass")}</span>
-              <span className="mt-0.5 block font-semibold text-slate-900">{mapelNama} · {k?.jenjang ?? ""}</span>
-            </div>
-
-            <div className="rounded-xl border border-amber-200/70 bg-white/80 p-3.5 shadow-xs">
-              <span className="block text-xs font-medium text-amber-800/80">{tr("paymentSummaryMethod")}</span>
-              <span className="mt-0.5 block font-semibold text-slate-900">{metodeBayarTeks}</span>
-            </div>
-
-            <div className="rounded-xl border border-amber-300 bg-white p-3.5 shadow-xs ring-1 ring-amber-300/40">
-              <span className="block text-xs font-medium text-amber-900">{tagihanAwalLabel}</span>
-              <span className="mt-0.5 block text-lg font-bold tabular-nums text-amber-950 sm:text-xl">
+            <div>
+              <dt className="text-xs font-medium text-amber-900">{tagihanAwalLabel}</dt>
+              <dd className="mt-0.5 text-lg font-bold tabular-nums text-amber-950 sm:text-xl">
                 {rupiah(tagihanAwalNominal)}
-              </span>
+              </dd>
             </div>
-          </div>
+          </dl>
 
-          {/* Tombol Bayar Sekarang */}
-          <div className="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-1">
-            <p className="text-xs text-amber-800 leading-relaxed">
+          <div className="mt-5 flex flex-col gap-3 border-t border-amber-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="max-w-md text-xs leading-relaxed text-amber-900/75">
               {tr("payInstructionHint")}
             </p>
             <ButtonLink
               href={`/enrollments/${p.id}/pay`}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-amber-600 px-6 py-2.5 text-center text-sm sm:text-base font-bold text-white shadow-sm transition-all hover:bg-amber-700 hover:shadow-md active:scale-[0.99] shrink-0"
+              size="lg"
+              className="min-h-11 px-6 shrink-0"
             >
-              <span>{tr("payNowButton")}</span>
+              {tr("payNowButton")}
             </ButtonLink>
           </div>
+        </section>
+      ) : null}
+
+      {/* Tiket masuk & panduan ruang belajar (saat sudah terdaftar) */}
+      {status === "terdaftar" && k ? (
+        <div className="mt-6">
+          <ClassTicket
+            enrollmentId={p.id}
+            childName={a.nama}
+            subjectName={mapelNama}
+            grade={k.jenjang}
+            teacherName={guruNama}
+            ruangan={k.ruangan}
+            jadwal={jadwal.map((j) => ({
+              hari: j.hari,
+              mulai: j.jamMulai,
+              selesai: j.jamSelesai,
+            }))}
+          />
         </div>
       ) : null}
 
       {status === "tertunggak" ? (
-        <Card className="mt-4">
-          <CardPad>
-            <p className="text-sm text-red-700">
-               {tr("text032")} </p>
-          </CardPad>
-        </Card>
-      ) : null}
-      {status.startsWith("dibatalkan") ? (
-        <Card className="mt-4">
-          <CardPad>
-            <p className="text-sm text-muted">
-               {tr("text033")} {status === "dibatalkan_timeout"
-                ? tr("text034")
-                : status === "dibatalkan_tunggakan"
-                  ? tr("text035")
-                  : status === "dibatalkan_orang_tua"
-                    ? tr("text036")
-                    : status.replaceAll("_", " ")}
-              ).{status === "dibatalkan_orang_tua" ? tr("text037") : ""}
-            </p>
-          </CardPad>
-        </Card>
+        <p className="mt-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm leading-relaxed text-rose-800">
+          {tr("text032")}
+        </p>
       ) : null}
 
-      {/* Tagihan aktif — tampil saat status aktif TAPI bukan menunggu_pembayaran (misal cicilan ke-2 dst, atau tertunggak) */}
+      {status.startsWith("dibatalkan") ? (
+        <p className="mt-6 rounded-xl border border-slate-200 bg-surface p-5 text-sm leading-relaxed text-muted shadow-sm">
+          {alasanBatal}
+        </p>
+      ) : null}
+
+      {/* Tagihan terbuka: cicilan berikutnya atau pelunasan yang belum dibayar */}
       {nextBill && aktif && status !== "menunggu_pembayaran" ? (
-        <Card className="mt-6 border-brand">
-          <CardPad className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase text-muted">{tr("text038")}</p>
-              <p className="mt-1 text-lg font-bold">
-                {nextBill.tipe === "cicilan" ? `Cicilan ke-${nextBill.cicilanKe}` : nextBill.tipe}{" "}
-                — {rupiah(Number(nextBill.jumlah))}
-              </p>
-              <p className="text-sm text-muted">
-                 {tr("text039")} {nextBill.jatuhTempo ? new Date(nextBill.jatuhTempo).toLocaleDateString("id-ID") : "-"}
-              </p>
-            </div>
-            <ButtonLink href={`/enrollments/${p.id}/pay`}>{tr("text040")}</ButtonLink>
-          </CardPad>
-        </Card>
+        <section className="mt-8">
+          <h2 className="text-base font-semibold text-foreground">{tr("text038")}</h2>
+          <Card className="mt-3">
+            <CardPad className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-base font-semibold text-foreground">{labelTagihan(nextBill)}</p>
+                <p className="mt-1 text-sm text-muted">
+                  {nextBill.jatuhTempo
+                    ? `${tr("text039")}: ${tanggal(nextBill.jatuhTempo)}`
+                    : tr("text049")}
+                </p>
+                <p className="mt-0.5 text-xs text-muted">{metodeBayarTeks}</p>
+              </div>
+              <div className="flex shrink-0 items-center gap-4">
+                <span className="text-lg font-bold tabular-nums text-foreground">
+                  {rupiah(Number(nextBill.jumlah))}
+                </span>
+                <ButtonLink href={`/enrollments/${p.id}/pay`} size="lg" className="min-h-11 px-5">
+                  {tr("text040")}
+                </ButtonLink>
+              </div>
+            </CardPad>
+          </Card>
+        </section>
       ) : null}
 
       {/* Riwayat tagihan */}
       {riwayat.length > 0 ? (
         <section className="mt-8">
-          <h2 className="text-sm font-bold uppercase text-muted">{tr("text041")}</h2>
-          <ul className="mt-3 grid gap-2">
-            {riwayat.map((b) => (
-              <li key={b.id}>
-                <Card>
-                  <CardPad className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 py-3">
-                    <span className="min-w-0 text-sm">
-                      {b.tipe === "cicilan" ? `Cicilan ke-${b.cicilanKe}` : b.tipe} —{" "}
+          <h2 className="text-base font-semibold text-foreground">{tr("text041")}</h2>
+          <Card className="mt-3 overflow-hidden">
+            <ul className="divide-y divide-slate-100">
+              {riwayat.map((b) => (
+                <li
+                  key={b.id}
+                  className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-5 py-4 sm:px-6"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground">{labelTagihan(b)}</p>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {b.dibayarPada
+                        ? tr("enrollPaidOn", { date: tanggal(b.dibayarPada) })
+                        : b.jatuhTempo
+                          ? `${tr("text039")}: ${tanggal(b.jatuhTempo)}`
+                          : tr("text049")}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-bold tabular-nums text-foreground">
                       {rupiah(Number(b.jumlah))}
                     </span>
                     <Badge tone={b.status === "berhasil" ? "emerald" : "red"}>
-                      {b.status}
+                      {b.status === "berhasil" ? tr("text148") : tr("text150")}
                     </Badge>
-                  </CardPad>
-                </Card>
-              </li>
-            ))}
-          </ul>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Card>
         </section>
       ) : null}
 
+      {/* Pembatalan */}
       {aktif && status === "terdaftar" && !pengajuanMenunggu ? (
-      <p className="mt-8 text-sm">
-      <Link href={`/enrollments/${p.id}/cancel`} className="underline">
-       {tr("text017")} </Link>{" "}
-       {tr("text042")} </p>
+        <div className="mt-8 border-t border-slate-200 pt-6">
+          <Link
+            href={`/enrollments/${p.id}/cancel`}
+            className="text-sm text-foreground underline underline-offset-4 hover:text-brand"
+          >
+            {tr("text017")}
+          </Link>
+          <p className="mt-1 text-xs text-muted">{tr("text042")}</p>
+        </div>
       ) : null}
+
       {pengajuanMenunggu ? (
-      <Card className="mt-8 border-amber-200 bg-amber-50">
-      <CardPad className="py-3">
-      <p className="text-sm text-amber-800">
-       {tr("text043")}{pengajuanMenunggu.kategori.replaceAll("_", " ")}{tr("text044")}{" "}
-      {new Date(pengajuanMenunggu.createdAt).toLocaleDateString("id-ID")}.
-      </p>
-      </CardPad>
-      </Card>
+        <p className="mt-8 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900">
+          {tr("enrollCancelPending", {
+            kategori: kategoriPengajuan,
+            date: tanggal(pengajuanMenunggu.createdAt),
+          })}
+        </p>
       ) : null}
     </div>
   );

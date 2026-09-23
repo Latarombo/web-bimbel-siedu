@@ -69,57 +69,8 @@ export default async function DaftarKelasPage({
 
   return (
     <div className="min-h-full bg-slate-50 pb-20">
-      {/* Header Kelas: Gradien Brand Siedu dengan Aksen Gelombang Organik */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-[#1e40af] via-[#1d4ed8] to-[#2563eb] pt-6 pb-16 sm:pt-8 sm:pb-20 lg:pt-10 lg:pb-24 text-white border-b border-blue-900/20 shadow-xs">
-        {/* Vektor kurva gelombang organik berlapis (clean & elegan di tepi sudut) */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          {/* Gelombang sudut kanan atas */}
-          <svg
-            className="absolute -right-8 -top-8 w-72 sm:w-96 md:w-[480px] h-auto text-white"
-            viewBox="0 0 400 280"
-            fill="none"
-          >
-            <path
-              d="M120 0 C200 45, 290 110, 400 240 L400 0 Z"
-              fill="currentColor"
-              fillOpacity="0.05"
-            />
-            <path
-              d="M190 0 C260 40, 330 95, 400 180 L400 0 Z"
-              fill="currentColor"
-              fillOpacity="0.07"
-            />
-            <path
-              d="M270 0 C325 30, 365 65, 400 120 L400 0 Z"
-              fill="currentColor"
-              fillOpacity="0.09"
-            />
-          </svg>
-
-          {/* Gelombang sudut kiri bawah */}
-          <svg
-            className="absolute -left-8 -bottom-8 w-64 sm:w-80 md:w-[420px] h-auto text-white"
-            viewBox="0 0 360 260"
-            fill="none"
-          >
-            <path
-              d="M0 60 C90 105, 180 175, 280 260 L0 260 Z"
-              fill="currentColor"
-              fillOpacity="0.05"
-            />
-            <path
-              d="M0 120 C75 155, 145 205, 210 260 L0 260 Z"
-              fill="currentColor"
-              fillOpacity="0.07"
-            />
-            <path
-              d="M0 180 C50 205, 100 230, 140 260 L0 260 Z"
-              fill="currentColor"
-              fillOpacity="0.08"
-            />
-          </svg>
-        </div>
-
+      {/* Header kelas: bidang solid brand, tombol kembali + judul tagihan */}
+      <section className="relative overflow-hidden bg-brand pt-6 pb-16 sm:pt-8 sm:pb-20 lg:pt-10 lg:pb-24 text-white border-b border-blue-900/20 shadow-xs">
         <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Bar Atas: Tombol Bulat Putih di Kiri & Judul Kelas di Tengah */}
           <div className="relative flex items-center justify-center min-h-11 sm:min-h-12">
@@ -133,7 +84,7 @@ export default async function DaftarKelasPage({
 
             <div className="text-center px-10 sm:px-14 max-w-2xl mx-auto">
               <h1 className="text-base sm:text-lg lg:text-xl font-bold text-white tracking-tight leading-snug">
-                Draft Invoice
+                Ringkasan pendaftaran
               </h1>
               <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/85 truncate">
                 {judulKelas}

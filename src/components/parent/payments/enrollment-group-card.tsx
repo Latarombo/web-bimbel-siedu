@@ -5,6 +5,7 @@ import { rupiah } from "@/lib/format";
 import type { EnrollmentBillingGroup, PaymentItem } from "./payment-types";
 import { PaymentCardItem } from "./payment-card-item";
 import { ArrowUpRight, CheckCircle, Clock } from "lucide-react";
+import { StudentAvatar } from "@/components/parent/student-avatar";
 
 interface Props {
   group: EnrollmentBillingGroup;
@@ -20,24 +21,18 @@ export function EnrollmentGroupCard({
   const isInstallment = group.metodeBayar === "dp_cicilan";
   const allPaid = group.countLunas === group.countTotal && group.countTotal > 0;
 
-  // Generate color hash for child initials
-  const initials = group.namaAnak
-    .split(" ")
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase();
-
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xs transition-all hover:shadow-sm">
       {/* Header Grup Pendaftaran */}
       <div className="border-b border-slate-100 bg-slate-50/60 p-4 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            {/* Child Initials Avatar */}
-            <div className="flex size-10 items-center justify-center rounded-xl bg-blue-600 font-black text-white text-xs shadow-2xs">
-              {initials}
-            </div>
+            {/* Foto anak — StudentAvatar, komponen sama dgn halaman home */}
+            <StudentAvatar
+              nama={group.namaAnak}
+              jenjang={group.jenjang}
+              size="sm"
+            />
 
             <div>
               <div className="flex items-center gap-2">

@@ -5,6 +5,7 @@ import { rupiah } from "@/lib/format";
 import { SITE } from "@/lib/site";
 import type { PaymentItem } from "./payment-types";
 import { X, Printer, CheckCircle2, ShieldCheck } from "lucide-react";
+import { useScrollLock } from "@/lib/use-scroll-lock";
 
 interface Props {
   bill: PaymentItem | null;
@@ -14,21 +15,19 @@ interface Props {
 }
 
 export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
-  // Handle ESC key & scroll locking
+  // Kunci scroll body saat modal terbuka
+  useScrollLock(isOpen);
+
+  // Handle ESC key
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Escape") onClose();
-      };
-      window.addEventListener("keydown", handleKeyDown);
-      return () => {
-        document.body.style.overflow = "";
-        window.removeEventListener("keydown", handleKeyDown);
-      };
-    } else {
-      document.body.style.overflow = "";
-    }
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen || !bill) return null;
@@ -79,7 +78,10 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150 print:m-0 print:w-full print:max-w-none print:rounded-none print:border-none print:shadow-none">
+      <div
+        data-lenis-prevent
+        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150 print:m-0 print:w-full print:max-w-none print:max-h-none print:overflow-visible print:rounded-none print:border-none print:shadow-none"
+      >
         {/* Top Control Bar — hidden during print */}
         <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-3.5 print:hidden">
           <div className="flex items-center gap-2 text-xs font-semibold text-slate-700">

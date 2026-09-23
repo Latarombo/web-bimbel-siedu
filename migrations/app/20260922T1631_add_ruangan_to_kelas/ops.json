@@ -1,0 +1,44 @@
+[
+  {
+    "id": "column.public.kelas.ruangan",
+    "label": "Add column \"ruangan\" to \"kelas\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "ruangan",
+        "table": "kelas"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"ruangan\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "ruangan"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"ruangan\"",
+        "sql": "ALTER TABLE \"public\".\"kelas\" ADD COLUMN \"ruangan\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"ruangan\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "kelas",
+          "ruangan"
+        ]
+      }
+    ]
+  }
+]

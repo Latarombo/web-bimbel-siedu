@@ -124,5 +124,11 @@
       "Report attendance and grades through teacher input at every session.",
       "Keep one institution's student data its own: never mixed with other parties, with parental consent obtained first."
     ]
+  },
+  "teachers": {
+    "kicker": "Teaching Team",
+    "titleBefore": "Faces Behind the",
+    "titleHighlight": "Classroom",
+    "lead": "They bring our vision and mission to life in the learning spaces every day."
   }
 }

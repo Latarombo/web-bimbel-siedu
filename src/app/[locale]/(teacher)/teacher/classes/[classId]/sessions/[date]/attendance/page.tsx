@@ -116,6 +116,8 @@ export default async function AttendancePage({
     return {
       pendaftaranId: s.id,
       nama: anakById.get(s.anakId)?.nama ?? t("childFallback", { id: s.anakId }),
+      anakId: s.anakId,
+      jenjangTerakhir: anakById.get(s.anakId)?.jenjangTerakhir ?? null,
       status: lama?.status,
       catatan: lama?.catatan ?? "",
       terkunci: lama ? !dalamJendela7Hari(lama.createdAt) : false,

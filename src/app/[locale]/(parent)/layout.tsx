@@ -31,10 +31,11 @@ export default async function ParentLayout({ children }: { children: React.React
         accountRole={session.user.role}
         profileVariant="popover"
         navItems={[
-          { name: tr("text144"), href: "/home", icon: "home" },
-          { name: tr("text145"), href: "/classes", icon: "search" },
-          { name: tr("text146"), href: "/payments", icon: "credit" },
-          { name: tr("text147"), href: "/schedule-attendance", icon: "calendar" },
+          { name: tr("text144"), href: "/home" },
+          { name: tr("text145"), href: "/classes" },
+          { name: tr("navChildren"), href: "/children" },
+          { name: tr("text146"), href: "/payments" },
+          { name: tr("text147"), href: "/schedule-attendance" },
         ]}
       />
       <main id="main" className="flex-1">{children}</main>

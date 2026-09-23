@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { useScrollLock } from "@/lib/use-scroll-lock";
 
 export type FilterKatalogModalProps = {
   isOpen: boolean;
@@ -106,6 +107,9 @@ export function FilterKatalogModal({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [isOpen, onClose]);
 
+  // Kunci scroll body saat modal terbuka
+  useScrollLock(isOpen);
+
   if (!isOpen) return null;
 
   function handleSelectJenjang(jenjang: JenjangKey) {
@@ -159,7 +163,10 @@ export function FilterKatalogModal({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="relative w-full max-w-md rounded-3xl bg-white p-6 sm:p-7 shadow-2xl transition-all border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div
+        data-lenis-prevent
+        className="relative w-full max-w-md rounded-3xl bg-white p-6 sm:p-7 shadow-2xl transition-all border border-slate-100 max-h-[90vh] overflow-y-auto"
+      >
         {/* Tombol Tutup Silang di pojok kanan atas */}
         <button
           type="button"

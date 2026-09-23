@@ -2,17 +2,8 @@
 
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import {
-  Calendar,
-  BookOpen,
-  Camera,
-  GraduationCap,
-  Lock,
-  ArrowRight,
-  Pencil,
-  Clock,
-  Sparkles,
-} from 'lucide-react';
+import { Lock } from 'lucide-react';
+import { StudentAvatar } from '@/components/parent/student-avatar';
 import { ChildData, JENJANG_STYLES } from './types';
 
 interface ChildBentoCardProps {
@@ -62,157 +53,116 @@ export function ChildBentoCard({ child, onSelect }: ChildBentoCardProps) {
   const umur = hitungUmur(child.tanggalLahir, isEn);
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => onSelect(child)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onSelect(child);
-        }
-      }}
-      aria-label={`${child.nama}, ${t('bentoQuickView')}`}
-      className={`group relative flex flex-col justify-between rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${style.cardBorderHover} cursor-pointer focus-visible:outline-none ${style.ringColor} focus-visible:ring-2`}
-    >
-      {/* Background dekoratif aksen halus di sudut kartu */}
-      <div
-        className={`pointer-events-none absolute -top-10 -right-10 size-32 rounded-full ${style.lightGlow} blur-2xl transition-opacity group-hover:opacity-100 opacity-60`}
-        aria-hidden="true"
-      />
-
-      {/* Bagian Atas: Avatar, Nama, Jenjang, & Tombol Aksi Cepat Edit */}
-      <div>
+    <article className="group relative flex flex-col justify-between rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm hover:shadow-lg hover:shadow-blue-500/10 hover:border-blue-400 hover:-translate-y-1 transition-all duration-200">
+      <div className="space-y-4">
+        {/* Header: Avatar, Nama, Jenjang */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3.5 min-w-0">
-            {/* Avatar besar dengan warna khas Jenjang */}
-            <div
-              className={`flex size-12 sm:size-13 items-center justify-center rounded-2xl ${style.avatarBg} font-black text-base sm:text-lg shadow-2xs shrink-0 transition-transform group-hover:scale-105`}
-            >
-              {inisial}
-            </div>
+            <StudentAvatar
+              nama={child.nama}
+              jenjang={child.jenjangTerakhir}
+              size="md"
+            />
 
-            <div className="min-w-0 flex-1">
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate group-hover:text-brand transition-colors">
+            <div className="min-w-0">
+              <h3 className="text-lg font-black text-slate-900 group-hover:text-brand tracking-tight truncate transition-colors">
                 {child.nama}
               </h3>
-              {/* Badge Jenjang & Tingkat */}
-              <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                <span
-                  className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${style.badgeBg} ${style.badgeText} ${style.badgeBorder}`}
-                >
-                  <BookOpen className="size-3" />
-                  {child.jenjangTerakhir ?? t('text011')}
-                  {child.tingkat ? ` • ${child.tingkat}` : ''}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Tombol Edit di sudut kanan atas kartu (StopPropagation agar tidak membuka modal) */}
-          <Link
-            href={`/children/${child.id}/edit`}
-            onClick={(e) => e.stopPropagation()}
-            aria-label={`${t('text014')} ${child.nama}`}
-            title={child.isLocked ? t('bentoLockedNotice') : t('bentoEditableNotice')}
-            className="grid size-8 sm:size-9 place-items-center rounded-xl bg-slate-50 text-slate-500 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80 transition-all active:scale-95 shrink-0"
-          >
-            {child.isLocked ? (
-              <Lock className="size-3.5 text-slate-400" />
-            ) : (
-              <Pencil className="size-3.5 text-slate-600" />
-            )}
-          </Link>
-        </div>
-
-        {/* Bento Grid 2 Kolom Mini di dalam kartu */}
-        <div className="mt-4.5 grid grid-cols-2 gap-2.5">
-          {/* Kolom Mini 1: Status Kelas Aktif */}
-          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 flex flex-col justify-between min-h-[82px] transition-colors group-hover:bg-slate-50">
-            <div className="flex items-center justify-between text-xs text-slate-500 font-semibold">
-              <span className="flex items-center gap-1.5">
-                <GraduationCap className="size-3.5 text-slate-400" />
-                <span className="truncate">Kelas</span>
-              </span>
-              {child.jumlahKelasAktif > 0 && (
-                <span className="size-1.5 rounded-full bg-emerald-500" />
-              )}
-            </div>
-
-            <div className="mt-1">
-              {child.jumlahKelasAktif > 0 ? (
-                <>
-                  <p className="text-xs font-bold text-blue-700 truncate">
-                    {child.jumlahKelasAktif} {t('text013')}
-                  </p>
-                  {child.kelasAktif?.mapel && (
-                    <p className="text-[11px] text-slate-500 font-medium truncate mt-0.5">
-                      {child.kelasAktif.mapel}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="text-[11px] text-slate-400 font-medium">
-                  {t('bentoNoActiveClasses')}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Kolom Mini 2: Umur, Tanggal Lahir, & Izin Foto */}
-          <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 flex flex-col justify-between min-h-[82px] transition-colors group-hover:bg-slate-50">
-            {/* Tanggal Lahir & Umur */}
-            <div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
-                <Calendar className="size-3.5 text-slate-400" />
-                <span className="truncate">{umur}</span>
-              </div>
-              <p className="text-[11px] text-slate-500 font-medium truncate mt-1">
-                {formatTanggalPendek(child.tanggalLahir, locale)}
+              <p className="text-xs font-semibold text-slate-600 mt-0.5">
+                {child.jenjangTerakhir ?? t('text011')}
+                {child.tingkat ? ` · ${child.tingkat}` : ''}
               </p>
             </div>
-
-            {/* Micro badge Izin Dokumentasi Foto */}
-            <div className="mt-1.5 pt-1 border-t border-slate-200/50 flex items-center justify-between text-[10px] text-slate-500">
-              <span className="flex items-center gap-1">
-                <Camera className="size-3 text-slate-400" />
-                <span>Foto</span>
-              </span>
-              <span
-                className={`inline-flex items-center gap-1 font-semibold ${
-                  child.persetujuanFoto ? 'text-emerald-700' : 'text-slate-400'
-                }`}
-              >
-                <span
-                  className={`size-1.5 rounded-full ${
-                    child.persetujuanFoto ? 'bg-emerald-500' : 'bg-slate-400'
-                  }`}
-                />
-                {child.persetujuanFoto ? 'Aktif' : 'Off'}
-              </span>
-            </div>
           </div>
-        </div>
-      </div>
 
-      {/* Bagian Bawah: Footer Bar Halus "Lihat Detail →" */}
-      <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs">
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
-          {child.isLocked ? (
-            <>
-              <Lock className="size-3 text-amber-500/80 shrink-0" />
-              <span className="truncate text-amber-700/80">{t('bentoLockedNotice')}</span>
-            </>
-          ) : (
-            <span className="truncate text-slate-400">{t('bentoClickToView')}</span>
+          {child.isLocked && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-md shrink-0">
+              <Lock className="size-3 text-amber-600" />
+              <span>{isEn ? 'Locked' : 'Terkunci'}</span>
+            </span>
           )}
         </div>
 
-        <div className="inline-flex items-center gap-1 font-bold text-brand group-hover:text-brand-strong transition-colors shrink-0">
-          <span>{t('bentoQuickView')}</span>
-          <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+        {/* Status Kelas & Belajar (Berwarna tegas & kontras tinggi) */}
+        {child.jumlahKelasAktif > 0 ? (
+          <div className="rounded-xl border border-blue-200 bg-blue-50/80 p-4 space-y-2.5 shadow-2xs">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-blue-900 tracking-wide">
+                {isEn ? 'Tutoring Class' : 'Kelas Bimbingan'}
+              </span>
+              <span className="font-black text-blue-700 bg-white border border-blue-200 px-2.5 py-0.5 rounded-md text-[11px] shadow-2xs">
+                {child.jumlahKelasAktif} {isEn ? 'Active' : 'Aktif'}
+              </span>
+            </div>
+
+            <div className="pt-2 border-t border-blue-200 space-y-1">
+              <p className="text-base font-black text-blue-950 tracking-tight truncate">
+                {child.kelasAktif?.mapel}
+              </p>
+              {child.kelasAktif?.guru && (
+                <p className="text-xs font-semibold text-blue-700 truncate">
+                  {isEn ? 'Teacher' : 'Guru'}: {child.kelasAktif.guru}
+                </p>
+              )}
+              {child.jadwal && child.jadwal.length > 0 && (
+                <div className="mt-2 pt-0.5">
+                  <span className="inline-block rounded-lg bg-white border border-blue-200 px-3 py-1.5 text-xs font-bold text-blue-950 shadow-2xs">
+                    {child.jadwal[0].hari}, {child.jadwal[0].mulai}–{child.jadwal[0].selesai} WIB
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 space-y-2.5 shadow-2xs">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-amber-950 tracking-wide">
+                {isEn ? 'Tutoring Class' : 'Kelas Bimbingan'}
+              </span>
+              <span className="font-bold text-amber-800 bg-white border border-amber-200 px-2.5 py-0.5 rounded-md text-[11px] shadow-2xs">
+                {isEn ? 'Not enrolled' : 'Belum terdaftar'}
+              </span>
+            </div>
+
+            <div className="pt-2 border-t border-amber-200/80">
+              <Link
+                href={`/classes?jenjang=${child.jenjangTerakhir ?? ''}`}
+                className="inline-block text-xs font-bold text-white bg-brand hover:bg-brand-strong px-3.5 py-1.5 rounded-lg shadow-xs hover:shadow transition-all"
+              >
+                {isEn ? 'Browse classes' : 'Pilih kelas bimbel'}
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* Biodata Singkat (kontras jelas & tajam) */}
+        <div className="flex items-center justify-between text-xs text-slate-600 font-semibold px-0.5">
+          <span>{umur} · {formatTanggalPendek(child.tanggalLahir, locale)}</span>
+          <span>
+            {isEn ? 'Photo' : 'Foto'}:{' '}
+            <span className={child.persetujuanFoto ? 'text-emerald-700 font-bold' : 'text-slate-500 font-semibold'}>
+              {child.persetujuanFoto ? (isEn ? 'Allowed' : 'Diizinkan') : (isEn ? 'Off' : 'Nonaktif')}
+            </span>
+          </span>
         </div>
       </div>
-    </div>
+
+      {/* Action Buttons: Tombol solid & berbayang tegas */}
+      <div className="pt-4 mt-4 border-t border-slate-100 flex items-center gap-2.5">
+        <Link
+          href={`/children/${child.id}/edit`}
+          className="flex-1 py-2.5 px-3 text-center text-xs font-bold rounded-xl border border-slate-300 bg-white hover:border-brand hover:text-brand hover:bg-blue-50/40 text-slate-800 transition-all shadow-2xs active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+        >
+          {t('modalEditProfile')}
+        </Link>
+        <button
+          type="button"
+          onClick={() => onSelect(child)}
+          className="flex-1 py-2.5 px-3 text-center text-xs font-bold rounded-xl bg-brand hover:bg-brand-strong text-white transition-all shadow-xs hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand cursor-pointer"
+        >
+          {t('bentoQuickView')}
+        </button>
+      </div>
+    </article>
   );
 }

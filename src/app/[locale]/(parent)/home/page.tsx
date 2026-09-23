@@ -18,6 +18,7 @@ import {
   type LearningStatusItem,
 } from "@/components/parent/learning-status-inline-story";
 import { ChildSwitcherDropdown } from "@/components/parent/child-switcher-dropdown";
+import { StudentAvatar } from "@/components/parent/student-avatar";
 import { SITE } from "@/lib/site";
 import {
   Calendar,
@@ -606,51 +607,59 @@ export default async function ParentHome({
         </div>
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          {/* Baris Konteks & Salam Orang Tua */}
-          <div className="flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm text-blue-100/90 font-medium mb-4 pb-3 border-b border-blue-400/20">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span>
-                {tr("text078")} <b>{session.user.name ?? tr("text079")}</b>
-              </span>
-              <span className="text-blue-300">•</span>
-              <span>
-                {anakList.length} {tr("text083")}
-              </span>
+          {/* Baris Salam Orang Tua + Aksi Kanan (lurus sejajar) */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 text-xs sm:text-sm text-blue-100/90 font-medium mb-4 pb-3 border-b border-blue-400/20">
+            <span>
+              {tr("text078")} <b>{session.user.name ?? tr("text079")}</b>
+            </span>
+
+            {/* Dropdown Profil Anak & Kelola Akun Anak */}
+            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+              <ChildSwitcherDropdown
+                anakList={anakList.map((a) => ({
+                  id: a.id,
+                  nama: a.nama,
+                  jenjang: a.jenjang,
+                  kelas: a.kelas,
+                  tertunggak: a.tertunggak,
+                  belumDibayar: a.tagihan?.belumDibayar ?? 0,
+                }))}
+                dipilihId={dipilih.id}
+                label={tr("dashSwitcherLabel")}
+                addChildLabel={tr("text008")}
+              />
+
+              <ButtonLink
+                href="/children"
+                size="sm"
+                className="h-10 px-3.5 text-xs rounded-xl gap-2.5 bg-white text-brand hover:bg-blue-50 font-bold border-transparent shadow-md transition-colors"
+              >
+                <Users className="size-3.5" />
+                <span>Kelola Akun Anak</span>
+              </ButtonLink>
             </div>
-            {anakList.filter((a) => (a.tagihan?.belumDibayar ?? 0) > 0).length > 0 ? (
-              <span className="inline-flex items-center gap-1 rounded-md bg-rose-500/20 border border-rose-400/30 px-2 py-0.5 text-xs font-semibold text-rose-200">
-                {anakList.filter((a) => (a.tagihan?.belumDibayar ?? 0) > 0).length}{" "}
-                {tr("text084")}
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/20 border border-emerald-400/30 px-2 py-0.5 text-xs font-semibold text-emerald-200">
-                <Check className="size-3" />
-                {tr("text085")}
-              </span>
-            )}
           </div>
 
-          {/* Blok Utama: Identitas Anak Aktif & Aksi Cepat */}
+          {/* Blok Utama: Identitas Anak Aktif */}
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             {/* Sisi Kiri: Avatar + Nama Anak + Detail Kelas + Status Pendaftaran */}
             <div className="flex items-start sm:items-center gap-4 min-w-0">
-              <div className="flex size-14 sm:size-16 items-center justify-center rounded-2xl bg-white/15 text-white font-black text-xl sm:text-2xl border border-white/25 backdrop-blur-xs shadow-xs shrink-0">
-                {dipilih.nama.slice(0, 2).toUpperCase()}
-              </div>
+              <StudentAvatar
+                nama={dipilih.nama}
+                jenjang={dipilih.jenjang}
+                size="lg"
+                className="ring-2 ring-white/70 shadow-md"
+              />
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2.5">
                   <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight truncate">
                     {dipilih.nama}
                   </h1>
-                  <div>
-                    {dipilih.status ? (
+                  {dipilih.status ? (
+                    <div>
                       <StatusBadge status={dipilih.status as StatusPendaftaran} />
-                    ) : (
-                      <span className="inline-flex items-center rounded-full bg-blue-100 text-blue-800 border border-blue-200 px-3 py-1 text-xs font-medium">
-                        {tr("text088")}
-                      </span>
-                    )}
-                  </div>
+                    </div>
+                  ) : null}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 mt-1 text-xs sm:text-sm text-blue-100/90 font-medium">
@@ -670,58 +679,16 @@ export default async function ParentHome({
                       </span>
                     </>
                   )}
+                  {dipilih.kelas?.ruangan && (
+                    <>
+                      <span>•</span>
+                      <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-0.5 text-xs font-semibold text-white border border-white/20">
+                        🚪 {dipilih.kelas.ruangan}
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
-            </div>
-
-            {/* Sisi Kanan: Switcher & Tombol Aksi */}
-            <div className="flex flex-wrap items-center gap-2.5 shrink-0">
-              {/* Dropdown Switcher Anak (Jika anak > 1) */}
-              {anakList.length > 1 && (
-                <ChildSwitcherDropdown
-                  anakList={anakList.map((a) => ({
-                    id: a.id,
-                    nama: a.nama,
-                    jenjang: a.jenjang,
-                    kelas: a.kelas,
-                    tertunggak: a.tertunggak,
-                    belumDibayar: a.tagihan?.belumDibayar ?? 0,
-                  }))}
-                  dipilihId={dipilih.id}
-                  label={tr("dashSwitcherLabel")}
-                  addChildLabel={tr("text008")}
-                />
-              )}
-
-              {/* Tombol Kelola Akun Anak */}
-              <ButtonLink
-                href="/children"
-                size="sm"
-                className="bg-white text-brand hover:bg-blue-50 font-bold border-transparent shadow-xs transition-colors inline-flex items-center gap-1.5"
-              >
-                <Users className="size-3.5" />
-                <span>Kelola Akun Anak</span>
-              </ButtonLink>
-
-              {/* Tombol Detail Pendaftaran / Pilih Kelas */}
-              {dipilih.pendaftaranId ? (
-                <ButtonLink
-                  href={`/enrollments/${dipilih.pendaftaranId}`}
-                  size="sm"
-                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-xs font-semibold transition-colors"
-                >
-                  {tr("dashActionDetail")}
-                </ButtonLink>
-              ) : (
-                <ButtonLink
-                  href={`/classes?jenjang=${dipilih.jenjang ?? ""}`}
-                  size="sm"
-                  className="bg-white/10 hover:bg-white/20 text-white border border-white/20 backdrop-blur-xs font-semibold transition-colors inline-flex items-center gap-1.5"
-                >
-                  <BookOpen className="size-3.5" />
-                  <span>Pilih Kelas</span>
-                </ButtonLink>
-              )}
             </div>
           </div>
         </div>
@@ -963,8 +930,13 @@ export default async function ParentHome({
                             {j.mulai}–{j.selesai}
                           </span>
                         </div>
-                        <p className="truncate text-xs text-slate-500 mt-0.5">
-                          {j.mapel} {j.guru ? `· ${j.guru}` : ""}
+                        <p className="truncate text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                          <span>{j.mapel} {j.guru ? `· ${j.guru}` : ""}</span>
+                          {j.ruangan ? (
+                            <span className="inline-flex items-center gap-0.5 rounded-md bg-blue-50 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200/60">
+                              🚪 {j.ruangan}
+                            </span>
+                          ) : null}
                         </p>
                       </div>
 

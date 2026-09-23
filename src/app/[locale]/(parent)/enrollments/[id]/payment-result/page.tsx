@@ -16,10 +16,11 @@ import {
   terapkanStatusMidtrans,
   tagihanBerikutinya,
 } from "@/lib/services/pembayaran";
+import { ClassTicket } from "@/components/parent/class-ticket";
 
 export const dynamic = "force-dynamic";
 
-// C5 — Halaman kembali (finish URL Midtrans) + ringkasan status. Webhook adalah
+// C5 — Halaman kembali (finish URL Midtrans) + ringkasan status & Tiket Kelas. Webhook adalah
 // sumber kebenaran; halaman ini hanya menyegar satu transaksi kalau Midtrans
 // mengirim order_id & statusnya final (praktik SNAP yang disarankan — webhook
 // bisa tertunda beberapa detik). Lookup sekali per halaman, bukan polling.
@@ -43,7 +44,7 @@ export default async function PaymentResultPage({
   const locale = await getLocale();
   const session = await auth();
   if (!session?.user) {
-    return redirect({href: "/login?next=/home", locale});
+    return redirect({ href: "/login?next=/home", locale });
   }
   const { id } = await params;
   const pid = Number(id);
@@ -66,7 +67,7 @@ export default async function PaymentResultPage({
       )
     : [];
   const bill = bills.find((b) => b.id === pembayaranId) ?? bills[0] ?? null;
-  if (!bill) redirect({href: `/enrollments/${pid}`, locale});
+  if (!bill) redirect({ href: `/enrollments/${pid}`, locale });
 
   // Segarkan dari gateway (hanya status final, hanya transaksi ini).
   if (midtransConfigured()) {
@@ -90,6 +91,7 @@ export default async function PaymentResultPage({
 
   const ok = segar.status === "berhasil";
   const gagal = segar.status === "gagal";
+  const isTerdaftar = pSegar?.status === "terdaftar";
   const label =
     segar.tipe === "cicilan"
       ? `Cicilan ke-${segar.cicilanKe}`
@@ -97,8 +99,36 @@ export default async function PaymentResultPage({
         ? tr("text045")
         : tr("text046");
 
+  // Jika pembayaran berhasil & terdaftar, ambil detail kelas, pengajar, dan jadwal untuk ClassTicket
+  const [kelasRows, jadwalRows] = isTerdaftar
+    ? await Promise.all([
+        collect(db.orm.public.Kelas.where((k) => k.id.eq(p.kelasId)).all()),
+        collect(
+          db.orm.public.JadwalItem.where((j) => j.kelasId.eq(p.kelasId)).all(),
+        ),
+      ])
+    : [[], []];
+
+  const kelasItem = kelasRows[0];
+  const [mapelRows, guruRows] = kelasItem
+    ? await Promise.all([
+        collect(
+          db.orm.public.MataPelajaran.where((m) =>
+            m.id.eq(kelasItem.mataPelajaranId),
+          ).all(),
+        ),
+        collect(
+          db.orm.public.User.where((u) => u.id.eq(kelasItem.guruId)).all(),
+        ),
+      ])
+    : [[], []];
+
+  const subjectName = mapelRows[0]?.nama ?? `Kelas #${p.kelasId}`;
+  const teacherName = guruRows[0]?.name ?? "Pengajar Siedu";
+
   return (
-    <div className="mx-auto max-w-xl px-4 sm:px-6 lg:px-8 py-10">
+    <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+      {/* 1. Status Card Ringkas */}
       <Card>
         <CardPad className="text-center">
           <p
@@ -114,49 +144,69 @@ export default async function PaymentResultPage({
             {ok ? "✓" : gagal ? "✕" : "…"}
           </p>
           <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
-            {ok
-              ? tr("text062")
-              : gagal
-                ? tr("text063")
-                : tr("text064")}
+            {ok ? tr("text062") : gagal ? tr("text063") : tr("text064")}
           </h1>
           <p className="mt-2 text-sm text-muted">
-            {label} {rupiah(Number(segar.jumlah))}  {tr("text065")} {anak.nama}.
+            {label} {rupiah(Number(segar.jumlah))} {tr("text065")} {anak.nama}.{" "}
             {ok
-              ? pSegar?.status === "terdaftar"
+              ? isTerdaftar
                 ? tr("text066")
                 : tr("text067")
               : gagal
                 ? tr("text068")
                 : tr("text069")}
           </p>
-          {ok ? <Badge tone="emerald">{tr("text070")}</Badge> : null}
-          {gagal ? <Badge tone="red">{tr("text071")}</Badge> : null}
-          {!ok && !gagal ? (
-            <Badge tone="amber">{tr("text072")} {segar.status}</Badge>
-          ) : null}
+          <div className="mt-3 flex justify-center">
+            {ok ? <Badge tone="emerald">{tr("text070")}</Badge> : null}
+            {gagal ? <Badge tone="red">{tr("text071")}</Badge> : null}
+            {!ok && !gagal ? (
+              <Badge tone="amber">
+                {tr("text072")} {segar.status}
+              </Badge>
+            ) : null}
+          </div>
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             {ok && tagihanLagi ? (
               <ButtonLink href={`/enrollments/${pid}/pay`}>
-                 {tr("text073")} {labelBerikutnya(tagihanLagi)}
+                {tr("text073")} {labelBerikutnya(tagihanLagi)}
               </ButtonLink>
             ) : null}
             <ButtonLink
               href={`/enrollments/${pid}`}
               variant={ok && tagihanLagi ? "outline" : "default"}
             >
-               {tr("text074")} </ButtonLink>
+              {tr("text074")}
+            </ButtonLink>
             <ButtonLink href="/home" variant="outline">
-               {tr("text075")} </ButtonLink>
+              {tr("text075")}
+            </ButtonLink>
           </div>
         </CardPad>
       </Card>
 
-      <p className="mt-6 text-center text-xs text-muted">
-         {tr("text076")} {SITE.email} / {SITE.telepon}.
+      {/* 2. TIKET KELAS & PANDUAN RUANGAN (Tampil saat pembayaran berhasil & terdaftar) */}
+      {ok && isTerdaftar && kelasItem && (
+        <div className="pt-2">
+          <ClassTicket
+            enrollmentId={p.id}
+            childName={anak.nama}
+            subjectName={subjectName}
+            grade={kelasItem.jenjang}
+            teacherName={teacherName}
+            ruangan={kelasItem.ruangan}
+            jadwal={jadwalRows.map((j) => ({
+              hari: j.hari,
+              mulai: j.jamMulai,
+              selesai: j.jamSelesai,
+            }))}
+          />
+        </div>
+      )}
+
+      <p className="text-center text-xs text-muted print:hidden">
+        {tr("text076")} {SITE.email} / {SITE.telepon}.
       </p>
     </div>
   );
 }
-

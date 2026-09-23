@@ -1169,6 +1169,13 @@
                   "kind": "scalar"
                 }
               },
+              "ruangan": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "status": {
                 "nullable": false,
                 "type": {
@@ -1330,6 +1337,9 @@
                 },
                 "periodeId": {
                   "column": "periode_id"
+                },
+                "ruangan": {
+                  "column": "ruangan"
                 },
                 "status": {
                   "column": "status"
@@ -4826,6 +4836,11 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
+                "ruangan": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "status": {
                   "codecId": "pg/text@1",
                   "default": {
@@ -7553,7 +7568,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "7829a85fcbccf9a83afe3a47e17ed5c7fec0f1b6f3638ad4f13c7e3f29a8c39e"
+    "storageHash": "d5530a44ba157ae16ad531f25db8d75aaa2589bc221aa9aa8d04bb5d67c9e332"
   },
   "capabilities": {
     "postgres": {
