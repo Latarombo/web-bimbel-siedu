@@ -3,10 +3,14 @@
 import { useState, useEffect, useMemo } from "react";
 import { Search, MapPin, Phone, MessageCircle, ExternalLink, X } from "lucide-react";
 import { DAFTAR_CABANG, type Cabang } from "@/lib/cabang";
+import { useScrollLock } from "@/lib/use-scroll-lock";
 
 export function CabangModalTrigger() {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
+
+  // Kunci scroll body saat modal terbuka
+  useScrollLock(isOpen);
 
   // Tutup dialog dengan tombol ESC
   useEffect(() => {
@@ -16,13 +20,9 @@ export function CabangModalTrigger() {
       }
     }
     if (isOpen) {
-      document.body.style.overflow = "hidden";
       window.addEventListener("keydown", handleKeyDown);
-    } else {
-      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = "";
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen]);
@@ -118,7 +118,7 @@ export function CabangModalTrigger() {
             </div>
 
             {/* List Cabang Scrollable */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-3.5 min-h-[220px] sm:min-h-[260px]">
+            <div data-lenis-prevent className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-3.5 min-h-[220px] sm:min-h-[260px]">
               {filteredCabang.length > 0 ? (
                 filteredCabang.map((cabang) => {
                   const waUrl = cabang.wa

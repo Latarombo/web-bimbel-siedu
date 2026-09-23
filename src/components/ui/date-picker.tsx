@@ -129,20 +129,22 @@ export function DatePicker({
         }
     }, [viewMode]);
 
-    // Handle wheel scrolling over popover agar kursor di atas kalender/daftar tahun langsung men-scroll kontainer tanpa memicu scroll window
+    // Handle wheel scrolling over popover agar kursor di atas kalender maupun daftar tahun tidak memicu scroll window
     useEffect(() => {
         const popoverEl = popoverRef.current;
-        const listEl = yearListRef.current;
-        if (!isOpen || viewMode !== 'years' || !listEl || !popoverEl) return;
+        if (!isOpen || !popoverEl) return;
 
         const onWheel = (e: WheelEvent) => {
-            const canScrollUp = listEl.scrollTop > 0;
-            const canScrollDown = listEl.scrollTop < listEl.scrollHeight - listEl.clientHeight - 1;
+            const listEl = yearListRef.current;
+            if (viewMode === 'years' && listEl) {
+                const canScrollUp = listEl.scrollTop > 0;
+                const canScrollDown = listEl.scrollTop < listEl.scrollHeight - listEl.clientHeight - 1;
 
-            if (e.deltaY < 0 && canScrollUp) {
-                listEl.scrollTop += e.deltaY;
-            } else if (e.deltaY > 0 && canScrollDown) {
-                listEl.scrollTop += e.deltaY;
+                if (e.deltaY < 0 && canScrollUp) {
+                    listEl.scrollTop += e.deltaY;
+                } else if (e.deltaY > 0 && canScrollDown) {
+                    listEl.scrollTop += e.deltaY;
+                }
             }
             // Selalu hentikan dan cegah scroll tembus ke body / window
             e.preventDefault();
@@ -368,7 +370,7 @@ export function DatePicker({
                         data-lenis-prevent
                         className={cn(
                             // Base styling
-                            'bg-white z-50 transition-all',
+                            'bg-white z-50 transition-all overscroll-contain',
                             // Mobile (<640px): Bottom Sheet Modal
                             'fixed inset-x-0 bottom-0 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto sm:max-h-none sm:overflow-visible shadow-2xl',
                             // Desktop (>=640px): Popover Dropdown

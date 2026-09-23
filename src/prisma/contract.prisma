@@ -183,6 +183,7 @@ model Kelas {
   periodeId       Int               @map("periode_id")
   jenjang         Jenjang
   tingkat         String?           @map("tingkat")
+  ruangan         String?           @map("ruangan")
   kuotaMaksimum   Int               @map("kuota_maksimum")
   kuotaMinimum    Int               @map("kuota_minimum")
   kuotaTerisi     Int               @default(0) @map("kuota_terisi")

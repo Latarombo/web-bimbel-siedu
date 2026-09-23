@@ -26,6 +26,9 @@ export function ChildrenBentoGrid({ childrenList }: ChildrenBentoGridProps) {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        {/* Tile Tambah Profil Anak di Awal (Atas) Barisan Grid */}
+        <AddChildBentoTile />
+
         {childrenList.map((child) => (
           <ChildBentoCard
             key={child.id}
@@ -33,9 +36,6 @@ export function ChildrenBentoGrid({ childrenList }: ChildrenBentoGridProps) {
             onSelect={handleSelectChild}
           />
         ))}
-
-        {/* Tile Tambah Anak Elegan di Akhir Barisan Grid */}
-        <AddChildBentoTile />
       </div>
 
       {/* Modal Quick View Detail Anak */}

@@ -38,6 +38,12 @@ const KUTIPAN = [
   const foto = FOTO[index % FOTO.length];
   const jenjang = guru.jenjang.join(", ");
 
+  // Ringkas nama mapel agar badge tetap proporsional & tidak kepanjangan
+  const mapelBersih = guru.mapel.map((m) => m.replace(/\s+(SMA|SMP|SD|TK)$/i, "").trim());
+  const mapelTampil = mapelBersih.length > 1
+    ? `${mapelBersih[0]} (+${mapelBersih.length - 1})`
+    : (mapelBersih[0] ?? "-");
+
   return (
     <div className="relative w-full max-w-[440px] pt-9 sm:min-w-[300px] sm:grow sm:basis-0">
       {/* HP: w-full saja (satu kartu per baris). grow/basis-0 dikhususkan sm+ supaya
@@ -55,9 +61,14 @@ const KUTIPAN = [
           >
             <School className="size-4" style={{ color: BRAND }} />
           </span>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs leading-tight text-slate-500">{tr("text151")}</p>
-            <p className="text-[13px] font-semibold leading-tight text-slate-900 sm:text-sm">{guru.mapel.join(", ")}</p>
+            <p
+              className="text-[13px] font-semibold leading-tight text-slate-900 sm:text-sm max-w-[180px] sm:max-w-[210px] truncate"
+              title={guru.mapel.join(", ")}
+            >
+              {mapelTampil}
+            </p>
           </div>
         </div>
       </div>
@@ -108,35 +119,15 @@ const KUTIPAN = [
 }
 
 export default async function TestimonialSection({ gurus }: { gurus: GuruKatalog[] }) {
- const tr = await getTranslations("public");
   // Tidak ada guru dengan kelas aktif? Section disembunyikan, bukan diisi nama palsu.
   if (gurus.length === 0) return null;
 
   return (
     <section className="relative overflow-hidden bg-white">
-      {/* Lengkung dekorasi tipis di pojok kanan atas (pola latar ruangkelas) */}
-      <svg
-        aria-hidden="true"
-        viewBox="0 0 400 400"
-        className="pointer-events-none absolute -right-24 -top-24 w-[420px] text-[#cfe0ef]"
-        fill="none"
-      >
-        <circle cx="330" cy="70" r="120" stroke="currentColor" strokeWidth="1.5" />
-        <circle cx="330" cy="70" r="180" stroke="currentColor" strokeWidth="1.5" />
-        <circle cx="330" cy="70" r="240" stroke="currentColor" strokeWidth="1.5" />
-      </svg>
-
-      <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <div className="mx-auto mb-14 max-w-2xl text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-            {tr("text158")}</h2>
-          <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:text-base">
-            {tr("text159")}</p>
-        </div>
-
+      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-2 sm:px-6 sm:pb-24 sm:pt-4 lg:px-8">
         {/* Flex terpusat, bukan grid 3 kolom: jumlah guru dari DB (bisa 1 atau 2),
             grid tetap membuat kartu tunggal mengambang kiri dengan ruang kosong lebar. */}
-        <div className="mt-2 flex flex-wrap justify-center gap-x-10 gap-y-14 sm:gap-y-20">
+        <div className="flex flex-wrap justify-center gap-x-10 gap-y-14 sm:gap-y-20">
           {gurus.map((g, i) => (
             <KartuGuru key={g.id} guru={g} index={i} />
           ))}

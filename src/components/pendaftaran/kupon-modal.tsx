@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Ticket, X, Check, Tag } from "lucide-react";
 import { rupiah } from "@/lib/format";
+import { useScrollLock } from "@/lib/use-scroll-lock";
 
 export type Kupon = {
   kode: string;
@@ -70,6 +71,20 @@ export default function KuponModal({
   const [kodeInput, setKodeInput] = useState("");
   const [errorText, setErrorText] = useState("");
 
+  // Kunci scroll body saat modal terbuka
+  useScrollLock(isOpen);
+
+  // Tutup dengan tombol Escape
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleTerapkanManual = (e: React.FormEvent) => {
@@ -97,7 +112,10 @@ export default function KuponModal({
     >
       <div className="fixed inset-0" onClick={onClose} aria-hidden="true" />
 
-      <div className="relative w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl transition-all duration-200 z-10 max-h-[90vh] flex flex-col">
+      <div
+        data-lenis-prevent
+        className="relative w-full max-w-lg rounded-3xl bg-white p-6 sm:p-7 shadow-2xl transition-all duration-200 z-10 max-h-[90vh] flex flex-col"
+      >
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
@@ -154,7 +172,7 @@ export default function KuponModal({
         </div>
 
         {/* List Kupon Tersedia */}
-        <div className="mt-2 overflow-y-auto pr-1 space-y-3 flex-1">
+        <div data-lenis-prevent className="mt-2 overflow-y-auto pr-1 space-y-3 flex-1">
           <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
             Kupon Tersedia Untuk Anda
           </p>

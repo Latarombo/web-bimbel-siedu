@@ -22,7 +22,6 @@ import {
   BookOpen,
   Filter,
   ArrowRight,
-  ShieldCheck,
 } from "lucide-react";
 
 interface Props {
@@ -158,7 +157,7 @@ export function PaymentCenterClient({
   return (
     <div className="min-h-full bg-slate-50/50 pb-20">
       {/* 1. Hero Header (Persis Desain Halaman Home Orang Tua & Katalog) */}
-      <section className="relative overflow-hidden bg-[#1d4ed8] text-white pt-8 pb-10 sm:pt-10 sm:pb-12 shadow-xs border-b border-blue-900/20">
+      <section className="relative overflow-hidden bg-[#1d4ed8] text-white pt-8 pb-16 sm:pt-10 sm:pb-20 shadow-xs border-b border-blue-900/20">
         {/* Gelombang sudut tanpa gradient persis halaman home / katalog */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
           <svg
@@ -183,11 +182,6 @@ export function PaymentCenterClient({
         </div>
 
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-xs font-semibold text-white/95 mb-3 backdrop-blur-sm">
-            <ShieldCheck className="size-3.5 text-emerald-300" />
-            <span>Portal Orang Tua • Finansial Siedu</span>
-          </div>
-
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
             Riwayat & Tagihan Pembayaran
           </h1>
@@ -199,9 +193,11 @@ export function PaymentCenterClient({
       </section>
 
       {/* 2. Main Content Container (aligned with Navbar max-w-7xl px-4 sm:px-6 lg:px-8) */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
-        {/* 3-Card Financial Metric Strip */}
-        <PaymentSummaryStrip stats={stats} />
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-8 sm:pb-10 space-y-8">
+        {/* 3-Card Financial Metric Strip — ~30% tinggi kartu menumpuk ke atas hero */}
+        <div className="-mt-11">
+          <PaymentSummaryStrip stats={stats} />
+        </div>
 
         {/* Filter Controls: Tabs + Child Switcher + Search Bar */}
         <section className="space-y-4 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">

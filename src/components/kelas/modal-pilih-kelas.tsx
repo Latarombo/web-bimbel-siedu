@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import type { KelasKatalog } from "@/lib/kelas";
+import { useScrollLock } from "@/lib/use-scroll-lock";
 
 type Props = {
   currentClassId: number;
@@ -88,6 +89,9 @@ export function ModalPilihKelas({
   const [selectedTingkat, setSelectedTingkat] = useState<string>(() =>
     resolveInitialTingkat(currentTingkat, currentJenjang)
   );
+
+  // Kunci scroll body saat modal terbuka
+  useScrollLock(isOpen);
 
   // Sinkronisasi jenjang & tingkat saat modal dibuka
   useEffect(() => {
@@ -194,7 +198,10 @@ export function ModalPilihKelas({
             if (e.target === e.currentTarget) setIsOpen(false);
           }}
         >
-          <div className="relative w-full max-w-md rounded-3xl bg-white p-6 sm:p-7 shadow-2xl transition-all border border-slate-100 max-h-[90vh] overflow-y-auto">
+          <div
+            data-lenis-prevent
+            className="relative w-full max-w-md rounded-3xl bg-white p-6 sm:p-7 shadow-2xl transition-all border border-slate-100 max-h-[90vh] overflow-y-auto"
+          >
             {/* Tombol Tutup Silang di pojok kanan atas */}
             <button
               type="button"

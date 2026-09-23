@@ -6,14 +6,14 @@ import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { Card, CardPad } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge, type StatusPendaftaran } from "@/components/status-badge";
 import { rupiah } from "@/lib/format";
 import { SITE } from "@/lib/site";
 import CancelForm from "@/components/parent/cancel-form";
 
 export const dynamic = "force-dynamic";
 
-// C7 — Ajukan pembatalan. Orang tua hanya MENGAJUKAN; keputusan (setuju/tolak
+// C7: Ajukan pembatalan. Orang tua hanya MENGAJUKAN; keputusan (setuju/tolak
 // + catatan) di admin /admin/refunds (BR#19). Halaman ini menampilkan ringkasan
 // yang hilang kalau pembatalan disetujui, lalu form-nya.
 
@@ -77,22 +77,30 @@ export default async function CancelPage({
 
   return (
     <div className="mx-auto max-w-xl px-4 sm:px-6 lg:px-8 py-10">
-      <p className="text-sm text-muted">
-        <Link href={`/enrollments/${pid}`} className="underline">
-           {tr("text016")} </Link>
+      <p className="text-sm">
+        <Link
+          href={`/enrollments/${pid}`}
+          className="text-muted underline underline-offset-4 hover:text-foreground"
+        >
+          {tr("text016")}
+        </Link>
       </p>
-      <header className="mt-3">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{tr("text017")}</h1>
-        <p className="mt-1 text-sm text-muted">
-          {a[0].nama} · {mapel ?? `Kelas #${p.kelasId}`} ·{" "}
-          <Badge tone="slate">{p.status.replaceAll("_", " ")}</Badge>
-        </p>
+
+      <header className="mt-3 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-3xl">
+            {tr("text017")}
+          </h1>
+          <p className="mt-1.5 text-sm text-muted">
+            {a[0].nama} · {mapel ?? `Kelas #${p.kelasId}`}
+          </p>
+        </div>
+        <StatusBadge status={p.status as StatusPendaftaran} />
       </header>
 
       <Card className="mt-6">
         <CardPad>
-          <p className="text-sm font-semibold">
-             {tr("text018")} </p>
+          <p className="text-sm font-semibold text-foreground">{tr("text018")}</p>
           <ul className="mt-3 grid gap-2 text-sm text-muted">
             <li className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t border-slate-100 pt-2">
               <span>{tr("text019")}</span>
@@ -106,18 +114,17 @@ export default async function CancelPage({
               <span>{tr("text021")}</span>
               <span>{tr("text022")}</span>
             </li>
-            <li className="border-t border-slate-100 pt-2">
-               {tr("text023")} </li>
+            <li className="border-t border-slate-100 pt-2">{tr("text023")}</li>
           </ul>
-          <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-800">
-             {tr("text024")} </p>
+          <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs leading-relaxed text-amber-900">
+            {tr("text024")}
+          </p>
         </CardPad>
       </Card>
 
       <Card className="mt-6">
         <CardPad>
-          <h2 className="text-sm font-bold uppercase tracking-wide text-muted">
-             {tr("text025")} </h2>
+          <h2 className="text-base font-semibold text-foreground">{tr("text025")}</h2>
           <div className="mt-4">
             <CancelForm pendaftaranId={pid} />
           </div>
@@ -125,7 +132,7 @@ export default async function CancelPage({
       </Card>
 
       <p className="mt-6 text-xs text-muted">
-         {tr("text026")} {SITE.email} / {SITE.telepon}.
+        {tr("text026")} {SITE.email} / {SITE.telepon}.
       </p>
     </div>
   );

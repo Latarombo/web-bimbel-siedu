@@ -59,8 +59,8 @@ export type AnakDashboard = {
   /** true kalau pendaftaran aktif terakhir masih berstatus menunggu_pembayaran. */
   menungguPembayaran: boolean;
   tertunggak: boolean;
-  /** Label kelas aktif: mapel + guru. */
-  kelas: { mapel: string; guru: string } | null;
+  /** Label kelas aktif: mapel + guru + ruangan. */
+  kelas: { mapel: string; guru: string; ruangan?: string | null } | null;
   tagihan: KartuTagihan | null;
   jadwal: {
     hari: string;
@@ -68,6 +68,7 @@ export type AnakDashboard = {
     selesai: string;
     mapel: string;
     guru: string;
+    ruangan?: string | null;
     /** Tanggal pertemuan berikutnya, null kalau hari jadwal belum terpetakan. */
     tanggalBerikutnya: string | null;
   }[];
@@ -114,7 +115,7 @@ export async function dashboardOrangTua(
     collect(db.orm.public.Anak.where((a) => a.orangTuaId.eq(ortuId)).all()),
     collect(
       db.orm.public.Pendaftaran.include("kelas", (b) =>
-        b.select("id", "mataPelajaranId", "guruId", "jenjang"),
+        b.select("id", "mataPelajaranId", "guruId", "jenjang", "ruangan"),
       ).all(),
     ),
   ]);
@@ -248,6 +249,7 @@ export async function dashboardOrangTua(
         selesai: j.jamSelesai.slice(0, 5),
         mapel: mapel.get(p.kelas.mataPelajaranId) ?? `${locale === "en" ? "Class" : "Kelas"} #${p.kelasId}`,
         guru: guru.get(p.kelas.guruId) ?? "-",
+        ruangan: p.kelas.ruangan ?? null,
         tanggalBerikutnya: tanggalHariBerikut(j.hari),
       }));
 
@@ -308,6 +310,7 @@ export async function dashboardOrangTua(
       kelas: {
         mapel: mapel.get(p.kelas.mataPelajaranId) ?? `${locale === "en" ? "Class" : "Kelas"} #${p.kelasId}`,
         guru: guru.get(p.kelas.guruId) ?? "-",
+        ruangan: p.kelas.ruangan ?? null,
       },
       tagihan,
       jadwal,

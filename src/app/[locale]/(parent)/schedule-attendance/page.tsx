@@ -8,6 +8,13 @@ import { Card, CardPad } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { sanitizeLaporanForParent } from "@/lib/laporan-perkembangan";
 
+import { ScheduleTab } from "@/components/parent/schedule-attendance/schedule-tab";
+import { AttendanceTab } from "@/components/parent/schedule-attendance/attendance-tab";
+import { JadwalRecord } from "@/components/parent/schedule-attendance/schedule-context";
+import { PresensiRecord } from "@/components/parent/schedule-attendance/attendance-context";
+import { CalendarDays, UserCheck, Award, BookOpen, Users, Clock } from "lucide-react";
+import { StudentAvatar } from "@/components/parent/student-avatar";
+
 export const dynamic = "force-dynamic";
 
 // C7 — Schedule & Attendance (tab gabungan via ?tab=, pola shadcn Tabs server-side).
@@ -43,22 +50,24 @@ function jamPendek(t: string) {
 export default async function ScheduleAttendancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; status?: string }>;
+  searchParams: Promise<{ tab?: string; status?: string; anakId?: string }>;
 }) {
   const tr = await getTranslations("parent");
+  const locale = await getLocale();
+  const isEn = locale === "en";
   const statusLabels: Record<string, string> = {
     hadir: tr("text116"),
     izin: tr("text117"),
     sakit: tr("text118"),
     alpa: tr("text119"),
   };
-  const locale = await getLocale();
   const session = await auth();
   if (!session?.user) {
     return redirect({href: "/login?next=/schedule-attendance", locale});
   }
   const ortuId = Number(session.user.id);
-  const { tab, status: statusParam } = await searchParams;
+  const { tab, status: statusParam, anakId: anakIdParam } = await searchParams;
+  const anakTerpilihId = anakIdParam ? Number(anakIdParam) : null;
   const tabAktif =
     tab === "presensi"
       ? "presensi"
@@ -82,14 +91,17 @@ export default async function ScheduleAttendancePage({
 
   const pendaftaran = await collect(
     db.orm.public.Pendaftaran.include("kelas", (b) =>
-      b.select("id", "mataPelajaranId", "guruId"),
+      b.select("id", "mataPelajaranId", "guruId", "ruangan"),
     ).all(),
   );
-  const milikSaya = pendaftaran.filter(
+  const pendaftaranAktifSemua = pendaftaran.filter(
     (p) =>
       anakIds.has(p.anakId) &&
       ["menunggu_pembayaran", "terdaftar", "tertunggak"].includes(p.status),
   );
+  const milikSaya = anakTerpilihId
+    ? pendaftaranAktifSemua.filter((p) => p.anakId === anakTerpilihId)
+    : pendaftaranAktifSemua;
 
   // Nama mapel + guru per kelas.
   const mapelIds = [...new Set(milikSaya.map((p) => p.kelas.mataPelajaranId))];
@@ -110,7 +122,7 @@ export default async function ScheduleAttendancePage({
   const guru = new Map(guruRows.flat().map((g) => [g.id, g.name]));
 
   // Jadwal per kelas yang diikuti.
-  const jadwalRows = (
+  const jadwalRowsRaw = (
     await Promise.all(
       milikSaya.map((p) =>
         collect(
@@ -119,15 +131,27 @@ export default async function ScheduleAttendancePage({
       ),
     )
   ).flat();
-  jadwalRows.sort(
+  jadwalRowsRaw.sort(
     (x, y) =>
       URUTAN_HARI.indexOf(x.j.hari as (typeof URUTAN_HARI)[number]) -
         URUTAN_HARI.indexOf(y.j.hari as (typeof URUTAN_HARI)[number]) ||
       x.j.jamMulai.localeCompare(y.j.jamMulai),
   );
 
+  const jadwalRecords: JadwalRecord[] = jadwalRowsRaw.map(({ j, p }) => ({
+    id: `${p.id}-${j.id}`,
+    hari: j.hari,
+    jamMulai: j.jamMulai,
+    jamSelesai: j.jamSelesai,
+    mapel: mapel.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`,
+    guru: guru.get(p.kelas.guruId) ?? "-",
+    ruangan: p.kelas.ruangan,
+    anak: namaAnak.get(p.anakId) ?? tr("text162"),
+    jenjang: p.jenjangSaatDaftar,
+  }));
+
   // Presensi pendaftaran milik saya.
-  const presensi = (
+  const presensiRaw = (
     await Promise.all(
       milikSaya.map((p) =>
         collect(
@@ -138,19 +162,11 @@ export default async function ScheduleAttendancePage({
       ),
     )
   ).flat();
-  const rekap = presensi.reduce<Record<string, number>>((acc, { s }) => {
-    acc[s.status] = (acc[s.status] ?? 0) + 1;
-    return acc;
-  }, {});
-  const presensiTampil =
-    statusAktif === "semua"
-      ? presensi
-      : presensi.filter(({ s }) => s.status === statusAktif);
-
+  
   // Catatan pertemuan terbit (materi & PR) untuk sesi-sesi presensi
   const sesiIds = [
     ...new Set(
-      presensi
+      presensiRaw
         .map(({ s }) => s.sesiPertemuanId)
         .filter((id): id is number => typeof id === "number"),
     ),
@@ -166,6 +182,17 @@ export default async function ScheduleAttendancePage({
   const catatanBySesi = new Map(
     catatanPertemuanList.map((c) => [c.sesiId, c]),
   );
+
+  const presensiRecords: PresensiRecord[] = presensiRaw.map(({ s, p }) => ({
+    id: `${p.id}-${s.id}`,
+    tanggal: s.tanggalPertemuan,
+    status: s.status as "hadir" | "izin" | "sakit" | "alpa",
+    mapel: mapel.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`,
+    anak: namaAnak.get(p.anakId) ?? tr("text162"),
+    catatan: s.catatan,
+    materi: s.sesiPertemuanId && catatanBySesi.has(s.sesiPertemuanId) ? catatanBySesi.get(s.sesiPertemuanId)?.materi : null,
+    pr: s.sesiPertemuanId && catatanBySesi.has(s.sesiPertemuanId) ? catatanBySesi.get(s.sesiPertemuanId)?.pr : null,
+  }));
 
   // Penilaian terbit untuk pendaftaran anak milik saya
   const milikSayaIds = new Set(milikSaya.map((p) => p.id));
@@ -210,228 +237,183 @@ export default async function ScheduleAttendancePage({
   }).sort((a, b) => b.laporan.tanggal.localeCompare(a.laporan.tanggal));
 
   return (
-    <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-10">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-           {tr("text168")} </h1>
-        <p className="mt-1 text-sm text-muted">
-           {tr("text169")} </p>
-      </header>
+    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
+      {/* Hero Header Card */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 p-6 sm:p-8 text-white shadow-xl shadow-blue-600/10">
+        <div className="absolute -right-10 -bottom-10 size-60 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-xs border border-white/20">
+              <CalendarDays className="size-3.5" />
+              <span>{isEn ? "Academic Schedule & Attendance Portal" : "Portal Jadwal & Presensi Belajar"}</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              {isEn ? "Student Schedule & Attendance" : "Jadwal & Presensi Siswa"}
+            </h1>
+            <p className="text-xs sm:text-sm text-blue-100 max-w-xl leading-relaxed">
+              {isEn
+                ? "Monitor offline class schedules, real-time attendance, teacher notes, and learning progress."
+                : "Pantau jadwal kelas tatap muka, kehadiran real-time, materi modul, serta evaluasi perkembangan anak."}
+            </p>
+          </div>
 
-      {/* Filter tabs */}
-      <nav
-        aria-label={tr("text170")}
-        className="inline-flex flex-wrap rounded-full bg-slate-100 p-1"
-      >
-        {[
-          ["jadwal", `Jadwal (${jadwalRows.length})`],
-          ["presensi", `Presensi (${presensi.length})`],
-          ["nilai", `${tr("classAssessmentsTitle")} (${hasilMilikSaya.length})`],
-          ["laporan", `${tr("progressTabTitle")} (${laporanMilikSaya.length})`],
-        ].map(([key, label]) => (
+          {/* Quick Stats Badges */}
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+            <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
+              <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
+                {isEn ? "Classes" : "Kelas"}
+              </span>
+              <span className="text-xl font-extrabold text-white tabular-nums">
+                {milikSaya.length}
+              </span>
+            </div>
+            <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
+              <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
+                {isEn ? "Sessions/Wk" : "Sesi / Pekan"}
+              </span>
+              <span className="text-xl font-extrabold text-white tabular-nums">
+                {jadwalRecords.length}
+              </span>
+            </div>
+            <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
+              <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
+                {isEn ? "Attendance" : "Presensi"}
+              </span>
+              <span className="text-xl font-extrabold text-white tabular-nums">
+                {presensiRecords.length}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Per Anak jika ada anak terdaftar */}
+      {anak.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/60">
+          <span className="text-xs font-bold text-slate-500 pl-3 pr-1 flex items-center gap-1.5">
+            <Users className="size-3.5" />
+            {isEn ? "Student:" : "Filter Siswa:"}
+          </span>
           <Link
-            key={key}
-            href={`/schedule-attendance?tab=${key}`}
-            aria-current={tabAktif === key ? "page" : undefined}
-            className={`min-w-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors sm:px-5 ${
-              tabAktif === key
-                ? "bg-white text-brand shadow-sm"
+            href={`/schedule-attendance?tab=${tabAktif}`}
+            className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
+              !anakTerpilihId
+                ? "bg-white text-blue-700 shadow-xs border border-slate-200/80"
                 : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            {label}
+            {isEn ? "All Children" : "Semua Anak"}
           </Link>
-        ))}
-      </nav>
+          {anak.map((a) => (
+            <Link
+              key={a.id}
+              href={`/schedule-attendance?tab=${tabAktif}&anakId=${a.id}`}
+              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all flex items-center gap-2 ${
+                anakTerpilihId === a.id
+                  ? "bg-white text-blue-700 shadow-xs border border-slate-200/80"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <StudentAvatar
+                nama={a.nama}
+                jenjang={a.jenjangTerakhir}
+                size="xs"
+                showRing={false}
+                className="size-5 shrink-0"
+              />
+              <span>{a.nama}</span>
+              {a.jenjangTerakhir && (
+                <span className="opacity-70 text-[10px]">({a.jenjangTerakhir})</span>
+              )}
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* Modern Card Tabs Switcher */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        {[
+          { key: "jadwal", label: isEn ? "Class Schedule" : "Jadwal Belajar", count: jadwalRecords.length, icon: CalendarDays },
+          { key: "presensi", label: isEn ? "Attendance History" : "Presensi & Kehadiran", count: presensiRecords.length, icon: UserCheck },
+          { key: "nilai", label: tr("classAssessmentsTitle"), count: hasilMilikSaya.length, icon: Award },
+          { key: "laporan", label: tr("progressTabTitle"), count: laporanMilikSaya.length, icon: BookOpen },
+        ].map(({ key, label, count, icon: Icon }) => {
+          const isActive = tabAktif === key;
+          const queryParams = new URLSearchParams();
+          queryParams.set("tab", key);
+          if (anakTerpilihId) queryParams.set("anakId", String(anakTerpilihId));
+
+          return (
+            <Link
+              key={key}
+              href={`/schedule-attendance?${queryParams.toString()}`}
+              className={`group relative flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
+                isActive
+                  ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20 ring-2 ring-blue-600/20"
+                  : "bg-white border-slate-200/90 text-slate-700 hover:border-blue-300 hover:bg-slate-50/70 shadow-2xs"
+              }`}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className={`size-8 sm:size-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                    isActive ? "bg-white/20 text-white" : "bg-blue-50 text-blue-600 group-hover:bg-blue-100/70"
+                  }`}
+                >
+                  <Icon className="size-4 sm:size-4.5" />
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-xs sm:text-sm font-bold truncate">
+                    {label}
+                  </span>
+                </div>
+              </div>
+              <span
+                className={`ml-2 px-2 py-0.5 rounded-full text-xs font-extrabold tabular-nums shrink-0 ${
+                  isActive
+                    ? "bg-white text-blue-700"
+                    : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {count}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
 
       {tabAktif === "jadwal" ? (
-        jadwalRows.length === 0 ? (
-          <Card className="mt-4">
-            <CardPad className="py-12 text-center">
-              <p className="text-base font-semibold">{tr("text171")}</p>
-              <p className="mx-auto mt-1 max-w-sm text-sm text-muted">
-                 {tr("text172")} </p>
-            </CardPad>
-          </Card>
-        ) : (
-          <ul className="mt-4 grid gap-3">
-            {jadwalRows.map(({ j, p }) => (
-              <li key={`${j.id}-${p.id}`}>
-                <Card className="border-l-4 border-l-amber-500">
-                  <CardPad className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-semibold">
-                        {mapel.get(p.kelas.mataPelajaranId) ??
-                          `Kelas #${p.kelasId}`}{" "}
-                        — {namaAnak.get(p.anakId) ?? tr("text162")}
-                      </p>
-                      <p className="mt-0.5 text-sm text-muted">
-                        {j.hari}, {jamPendek(j.jamMulai)}–
-                        {jamPendek(j.jamSelesai)}  {tr("text173")}{" "}
-                        {guru.get(p.kelas.guruId) ?? "-"}
-                      </p>
-                    </div>
-                    <Badge tone="slate">{p.jenjangSaatDaftar}</Badge>
-                  </CardPad>
-                </Card>
-              </li>
-            ))}
-          </ul>
-        )
+        <ScheduleTab records={jadwalRecords} />
       ) : tabAktif === "presensi" ? (
-        presensi.length === 0 ? (
-        <Card className="mt-4">
-          <CardPad className="py-12 text-center">
-            <p className="text-base font-semibold">
-               {tr("text174")} </p>
-            <p className="mx-auto mt-1 max-w-sm text-sm text-muted">
-               {tr("text175")} </p>
-          </CardPad>
-        </Card>
-      ) : (
-        <>
-          {/* Pill filter status — pola referensi #2 (All/To do/Done → Semua/Hadir/...) */}
-          <nav
-            aria-label={tr("text176")}
-            className="mt-4 flex flex-wrap gap-2"
-          >
-            {FILTER_STATUS.map((f) => {
-              const n = f === "semua" ? presensi.length : (rekap[f] ?? 0);
-              const on = statusAktif === f;
-              return (
-                <Link
-                  key={f}
-                  href={`/schedule-attendance?tab=presensi${f === "semua" ? "" : `&status=${f}`}`}
-                  aria-current={on ? "page" : undefined}
-                  className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-semibold capitalize transition-colors ${
-                    on
-                      ? "border-brand bg-brand text-white shadow-sm"
-                      : "border-slate-200 bg-white text-slate-600 hover:border-brand/40 hover:text-brand"
-                  }`}
-                >
-                  {statusLabels[f] ?? f}
-                  <span
-                    className={`rounded-full px-1.5 text-xs tabular-nums ${
-                      on ? "bg-white/20" : "bg-slate-100 text-slate-500"
-                    }`}
-                  >
-                    {n}
-                  </span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Rekap — pola Dashboard Card, top border biru (akademik). */}
-            <section className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {(["hadir", "izin", "sakit", "alpa"] as const).map((s) => (
-                <Card
-                  key={s}
-                  className={`border-t-4 ${
-                    s === "hadir"
-                      ? "border-t-emerald-500"
-                      : s === "alpa"
-                        ? "border-t-rose-500"
-                        : "border-t-amber-500"
-                  }`}
-                >
-                  <CardPad className="py-4">
-                    <p className="text-xs font-semibold uppercase text-muted">
-                      {statusLabels[s] ?? s}
-                    </p>
-                    <p className="mt-0.5 text-2xl font-bold">{rekap[s] ?? 0}</p>
-                  </CardPad>
-                </Card>
-              ))}
-            </section>
-
-            {presensiTampil.length === 0 ? (
-              <Card className="mt-4">
-                <CardPad className="py-10 text-center">
-                  <p className="text-sm text-muted">{tr("text177")}</p>
-                </CardPad>
-              </Card>
-            ) : (
-              <ul className="mt-4 grid gap-2.5">
-                {presensiTampil.map(({ s, p }) => (
-                  <li key={`${s.id}-${p.id}`}>
-                    <Card>
-                      <CardPad className="py-3.5">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold">
-                              {new Date(s.tanggalPertemuan).toLocaleDateString(
-                                locale === "en" ? "en-GB" : "id-ID",
-                                {
-                                  weekday: "long",
-                                  day: "numeric",
-                                  month: "long",
-                                  timeZone: "Asia/Jakarta",
-                                },
-                              )}
-                            </p>
-                            <p className="text-xs text-muted">
-                              {mapel.get(p.kelas.mataPelajaranId) ??
-                                `Kelas #${p.kelasId}`}{" "}
-                              — {namaAnak.get(p.anakId) ?? tr("text162")}
-                            </p>
-                          </div>
-                          <PresensiBadge status={s.status} label={statusLabels[s.status] ?? s.status} />
-                        </div>
-                        {s.catatan ? (
-                          <div className="mt-2.5 rounded-lg border border-slate-200/60 bg-slate-50 px-3 py-2 text-xs text-slate-700">
-                            <span className="font-semibold text-slate-500">{tr("teacherNote")}{" "}</span>
-                            {s.catatan}
-                          </div>
-                        ) : null}
-                        {s.sesiPertemuanId && catatanBySesi.has(s.sesiPertemuanId) ? (
-                          <div className="mt-2.5 space-y-1.5 rounded-lg border border-blue-100 bg-blue-50/60 px-3 py-2 text-xs text-slate-700">
-                            {catatanBySesi.get(s.sesiPertemuanId)?.materi ? (
-                              <div>
-                                <span className="font-semibold text-blue-900">{tr("sessionMaterials")}{" "}</span>
-                                <span>{catatanBySesi.get(s.sesiPertemuanId)?.materi}</span>
-                              </div>
-                            ) : null}
-                            {catatanBySesi.get(s.sesiPertemuanId)?.pr ? (
-                              <div className={catatanBySesi.get(s.sesiPertemuanId)?.materi ? "border-t border-blue-100/70 pt-1.5" : ""}>
-                                <span className="font-semibold text-blue-900">{tr("sessionHomework")}{" "}</span>
-                                <span>{catatanBySesi.get(s.sesiPertemuanId)?.pr}</span>
-                              </div>
-                            ) : null}
-                          </div>
-                        ) : null}
-                      </CardPad>
-                    </Card>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
-        )
+        <AttendanceTab records={presensiRecords} />
       ) : tabAktif === "laporan" ? (
         laporanMilikSaya.length === 0 ? (
-          <Card className="mt-4">
-            <CardPad className="py-12 text-center">
-              <p className="text-base font-semibold">{tr("progressTabTitle")}</p>
-              <p className="mx-auto mt-1 max-w-sm text-sm text-muted">
+          <Card className="mt-4 border-dashed border-slate-200 bg-slate-50/50">
+            <CardPad className="py-14 text-center">
+              <div className="mx-auto size-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+                <BookOpen className="size-6" />
+              </div>
+              <p className="text-base font-bold text-slate-800">{tr("progressTabTitle")}</p>
+              <p className="mx-auto mt-1 max-w-sm text-xs sm:text-sm text-muted leading-relaxed">
                 {tr("noProgressPublished")}
               </p>
             </CardPad>
           </Card>
         ) : (
-          <ul className="mt-4 grid gap-3">
+          <ul className="grid gap-3.5">
             {laporanMilikSaya.map(({ laporan, anakNama, mapelNama, guruNama }) => (
               <li key={laporan.id}>
-                <Card className="border-l-4 border-l-blue-600">
-                  <CardPad className="py-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+                <Card className="border-l-4 border-l-blue-600 hover:shadow-xs transition-shadow">
+                  <CardPad className="py-4.5 sm:py-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
                       <div>
-                        <h3 className="text-sm font-bold text-slate-900">{laporan.judul}</h3>
-                        <p className="text-xs text-slate-500">
-                          {mapelNama} — <span className="font-medium text-slate-700">{anakNama}</span>
+                        <h3 className="text-sm sm:text-base font-bold text-slate-900">{laporan.judul}</h3>
+                        <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                          <span className="font-semibold text-blue-700">{mapelNama}</span>
+                          <span>•</span>
+                          <span className="font-medium text-slate-700">{anakNama}</span>
                         </p>
                       </div>
-                      <span className="text-xs text-slate-400 tabular-nums">
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 tabular-nums">
                         {new Date(`${laporan.tanggal}T00:00:00+07:00`).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", {
                           day: "numeric",
                           month: "short",
@@ -440,12 +422,12 @@ export default async function ScheduleAttendancePage({
                         })}
                       </span>
                     </div>
-                    <div className="mt-3 whitespace-pre-line text-xs leading-relaxed text-slate-800">
+                    <div className="mt-3.5 whitespace-pre-line text-xs sm:text-sm leading-relaxed text-slate-700 bg-slate-50/60 rounded-xl p-3.5 border border-slate-100">
                       {laporan.laporanOrtu}
                     </div>
-                    <p className="mt-3 text-[11px] text-slate-400">
-                      {tr("progressReportBy", { teacher: guruNama, date: laporan.tanggal })}
-                    </p>
+                    <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
+                      <span>{tr("progressReportBy", { teacher: guruNama, date: laporan.tanggal })}</span>
+                    </div>
                   </CardPad>
                 </Card>
               </li>
@@ -454,46 +436,59 @@ export default async function ScheduleAttendancePage({
         )
       ) : (
         hasilMilikSaya.length === 0 ? (
-          <Card className="mt-4">
-            <CardPad className="py-12 text-center">
-              <p className="text-base font-semibold">{tr("classAssessmentsTitle")}</p>
-              <p className="mx-auto mt-1 max-w-sm text-sm text-muted">
-                {locale === "en" ? "No assessments published by teachers yet." : "Belum ada tugas atau penilaian yang diterbitkan oleh guru."}
+          <Card className="mt-4 border-dashed border-slate-200 bg-slate-50/50">
+            <CardPad className="py-14 text-center">
+              <div className="mx-auto size-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
+                <Award className="size-6" />
+              </div>
+              <p className="text-base font-bold text-slate-800">{tr("classAssessmentsTitle")}</p>
+              <p className="mx-auto mt-1 max-w-sm text-xs sm:text-sm text-muted leading-relaxed">
+                {locale === "en"
+                  ? "No assessments or test assignments published by teachers yet."
+                  : "Belum ada tugas atau evaluasi belajar yang diterbitkan oleh guru."}
               </p>
             </CardPad>
           </Card>
         ) : (
-          <ul className="mt-4 grid gap-3">
+          <ul className="grid gap-3.5">
             {hasilMilikSaya.map(({ h, pen, anakNama, mapelNama }) => {
-              const statusLabel = h.statusHasil === "dinilai"
-                ? `${h.nilai} / ${pen.nilaiMaksimum}`
-                : h.statusHasil === "tidak_ikut"
-                  ? tr("notParticipated")
-                  : (locale === "en" ? "Not Graded" : "Belum Dinilai");
+              const statusLabel =
+                h.statusHasil === "dinilai"
+                  ? `${h.nilai} / ${pen.nilaiMaksimum}`
+                  : h.statusHasil === "tidak_ikut"
+                    ? tr("notParticipated")
+                    : locale === "en"
+                      ? "Not Graded"
+                      : "Belum Dinilai";
 
               return (
                 <li key={h.id}>
-                  <Card>
-                    <CardPad className="py-3.5">
+                  <Card className="hover:shadow-xs transition-shadow">
+                    <CardPad className="py-4">
                       <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-slate-900">{pen.nama}</p>
-                          <p className="text-xs text-muted">
-                            {mapelNama} — {anakNama} ·{" "}
-                            {new Date(`${pen.tanggal}T00:00:00+07:00`).toLocaleDateString(
-                              locale === "en" ? "en-GB" : "id-ID",
-                              { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" },
-                            )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm sm:text-base font-bold text-slate-900">{pen.nama}</p>
+                          <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                            <span className="font-semibold text-blue-700">{mapelNama}</span>
+                            <span>•</span>
+                            <span className="font-medium text-slate-700">{anakNama}</span>
+                            <span>•</span>
+                            <span className="tabular-nums">
+                              {new Date(`${pen.tanggal}T00:00:00+07:00`).toLocaleDateString(
+                                locale === "en" ? "en-GB" : "id-ID",
+                                { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" },
+                              )}
+                            </span>
                           </p>
                         </div>
-                        <div className="text-right">
+                        <div className="shrink-0 text-right">
                           <span
-                            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${
+                            className={`inline-flex rounded-xl px-3 py-1 text-xs font-bold tabular-nums ${
                               h.statusHasil === "dinilai"
-                                ? "bg-emerald-100 text-emerald-800"
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
                                 : h.statusHasil === "tidak_ikut"
-                                  ? "bg-rose-100 text-rose-800"
-                                  : "bg-slate-100 text-slate-700"
+                                  ? "bg-rose-100 text-rose-800 border border-rose-200"
+                                  : "bg-slate-100 text-slate-700 border border-slate-200"
                             }`}
                           >
                             {statusLabel}
@@ -501,9 +496,9 @@ export default async function ScheduleAttendancePage({
                         </div>
                       </div>
                       {h.catatan ? (
-                        <div className="mt-2.5 rounded-lg border border-slate-200/60 bg-slate-50 px-3 py-2 text-xs text-slate-700">
-                          <span className="font-semibold text-slate-500">{tr("teacherNote")}{" "}</span>
-                          {h.catatan}
+                        <div className="mt-3 rounded-xl border border-slate-200/70 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-700">
+                          <span className="font-semibold text-slate-600 mr-1.5">💬 {tr("teacherNote")}</span>
+                          <span className="leading-relaxed">{h.catatan}</span>
                         </div>
                       ) : null}
                     </CardPad>

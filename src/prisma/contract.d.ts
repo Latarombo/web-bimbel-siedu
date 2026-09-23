@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'7829a85fcbccf9a83afe3a47e17ed5c7fec0f1b6f3638ad4f13c7e3f29a8c39e'>;
+  StorageHashBase<'d5530a44ba157ae16ad531f25db8d75aaa2589bc221aa9aa8d04bb5d67c9e332'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -299,6 +299,7 @@ export type FieldOutputTypes = {
       readonly periodeId: CodecTypes['pg/int4@1']['output'];
       readonly jenjang: 'TK' | 'SD' | 'SMP' | 'SMA';
       readonly tingkat: CodecTypes['pg/text@1']['output'] | null;
+      readonly ruangan: CodecTypes['pg/text@1']['output'] | null;
       readonly kuotaMaksimum: CodecTypes['pg/int4@1']['output'];
       readonly kuotaMinimum: CodecTypes['pg/int4@1']['output'];
       readonly kuotaTerisi: CodecTypes['pg/int4@1']['output'];
@@ -581,6 +582,7 @@ export type FieldInputTypes = {
       readonly periodeId: CodecTypes['pg/int4@1']['input'];
       readonly jenjang: 'TK' | 'SD' | 'SMP' | 'SMA';
       readonly tingkat: CodecTypes['pg/text@1']['input'] | null;
+      readonly ruangan: CodecTypes['pg/text@1']['input'] | null;
       readonly kuotaMaksimum: CodecTypes['pg/int4@1']['input'];
       readonly kuotaMinimum: CodecTypes['pg/int4@1']['input'];
       readonly kuotaTerisi: CodecTypes['pg/int4@1']['input'];
@@ -868,6 +870,7 @@ export type StorageColumnTypes = {
       readonly kuota_terisi: CodecTypes['pg/int4@1']['output'];
       readonly mata_pelajaran_id: CodecTypes['pg/int4@1']['output'];
       readonly periode_id: CodecTypes['pg/int4@1']['output'];
+      readonly ruangan: CodecTypes['pg/text@1']['output'] | null;
       readonly status: 'aktif' | 'dibatalkan';
       readonly tenor_maksimum: CodecTypes['pg/int4@1']['output'] | null;
       readonly tingkat: CodecTypes['pg/text@1']['output'] | null;
@@ -1150,6 +1153,7 @@ export type StorageColumnInputTypes = {
       readonly kuota_terisi: CodecTypes['pg/int4@1']['input'];
       readonly mata_pelajaran_id: CodecTypes['pg/int4@1']['input'];
       readonly periode_id: CodecTypes['pg/int4@1']['input'];
+      readonly ruangan: CodecTypes['pg/text@1']['input'] | null;
       readonly status: 'aktif' | 'dibatalkan';
       readonly tenor_maksimum: CodecTypes['pg/int4@1']['input'] | null;
       readonly tingkat: CodecTypes['pg/text@1']['input'] | null;
@@ -1855,6 +1859,11 @@ type ContractBase = Omit<
                   readonly nullable: false;
                 };
                 readonly tingkat: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                };
+                readonly ruangan: {
                   readonly nativeType: 'text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
@@ -4335,6 +4344,10 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly ruangan: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly kuotaMaksimum: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
@@ -4453,6 +4466,7 @@ type ContractBase = Omit<
                 readonly periodeId: { readonly column: 'periode_id' };
                 readonly jenjang: { readonly column: 'jenjang' };
                 readonly tingkat: { readonly column: 'tingkat' };
+                readonly ruangan: { readonly column: 'ruangan' };
                 readonly kuotaMaksimum: { readonly column: 'kuota_maksimum' };
                 readonly kuotaMinimum: { readonly column: 'kuota_minimum' };
                 readonly kuotaTerisi: { readonly column: 'kuota_terisi' };

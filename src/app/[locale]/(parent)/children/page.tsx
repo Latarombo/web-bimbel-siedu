@@ -8,7 +8,7 @@ import { dashboardOrangTua } from "@/lib/orang-tua-dashboard";
 import { collect } from "@/lib/collect";
 import { ChildrenBentoGrid } from "@/components/parent/children/children-bento-grid";
 import type { ChildData } from "@/components/parent/children/types";
-import { UserPlus, GraduationCap, Sparkles } from "lucide-react";
+import { UserPlus, GraduationCap } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -96,28 +96,13 @@ export default async function ChildrenPage() {
         </div>
 
         <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-blue-100 backdrop-blur-xs mb-2 border border-white/15">
-                <Sparkles className="size-3.5 text-amber-300" />
-                <span>{childrenList.length} {isEn ? "Registered Children" : "Anak Terdaftar"}</span>
-              </div>
-              <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl lg:text-4xl">
-                {tr("text006")}
-              </h1>
-              <p className="mt-2 text-xs sm:text-sm text-blue-100/90 font-medium max-w-xl">
-                {tr("text007")}
-              </p>
-            </div>
-
-            <ButtonLink
-              href="/children/new"
-              size="sm"
-              className="bg-white text-brand hover:bg-blue-50 font-bold border-transparent shadow-xs transition-colors shrink-0"
-            >
-              <UserPlus className="size-3.5" />
-              {tr("text008")}
-            </ButtonLink>
+          <div>
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl lg:text-4xl">
+              {tr("text006")}
+            </h1>
+            <p className="mt-2 text-xs sm:text-sm text-blue-100/90 font-medium max-w-xl">
+              {tr("text007")}
+            </p>
           </div>
         </div>
       </section>

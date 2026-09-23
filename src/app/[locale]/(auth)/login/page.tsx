@@ -1,14 +1,12 @@
-import { LanguageSwitcher } from '@/components/language-switcher';
+import AuthTopBar from '@/components/auth/top-bar';
+import { Link, redirect } from '@/i18n/navigation';
 import { getTranslations, getLocale } from 'next-intl/server';
-import { Link } from '@/i18n/navigation';
-import Image from 'next/image';
 import LoginForm from '@/components/LoginForm';
 import WaveAnimation from '@/components/WaveAnimation';
 import { SITE } from '@/lib/site';
 import { auth } from '@/lib/auth';
 import { googleOAuthEnabled } from '@/lib/oauth';
 import { homeUntukUser } from '@/lib/orang-tua-lengkap';
-import { redirect } from '@/i18n/navigation';
 
 export async function generateMetadata() {
     const t = await getTranslations('auth');
@@ -59,37 +57,7 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
     return (
         <div className="relative flex min-h-dvh flex-col overflow-hidden bg-linear-to-br from-blue-700 via-blue-600 to-cyan-400">
             {/* Top Bar */}
-            <header className="flex justify-between items-center px-4 py-5 sm:px-6 lg:px-8 z-10">
-                {/* Logo */}
-                <Link href="/" className="flex items-center" aria-label={t('homeAria')}>
-                <Image src="/images/Logo-white.png" alt="Siedu" width={110} height={33} className="h-7 w-auto" priority />
-                </Link>
-
-                {/* Actions: Bantuan Button + Switch Bahasa */}
-                <div className="flex items-center gap-2.5 sm:gap-3">
-                    <Link
-                        href="/#faq"
-                        className="flex items-center space-x-2 bg-white text-gray-800 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium hover:bg-gray-100 transition-colors shadow-md text-xs sm:text-sm"
-                    >
-                        <svg
-                            className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                        </svg>
-                        <span>{t('help')}</span>
-                    </Link>
-                    <LanguageSwitcher variant="auth" placement="bottom" align="right" />
-                </div>
-            </header>
+            <AuthTopBar />
 
             {/* Main Content — container terbatas + center, tetap center saat zoom out */}
             <main className="grow flex flex-col lg:flex-row items-center justify-center px-4 py-8 sm:px-6 lg:px-8 lg:py-0 z-10 w-full max-w-7xl mx-auto">

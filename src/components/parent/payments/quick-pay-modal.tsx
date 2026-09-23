@@ -20,6 +20,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import { useScrollLock } from "@/lib/use-scroll-lock";
 
 interface Props {
   bill: PaymentItem | null;
@@ -39,15 +40,8 @@ export function QuickPayModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const redirectedRef = useRef(false);
 
-  // Lock scroll when open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
+  // Kunci scroll body saat modal terbuka
+  useScrollLock(isOpen);
 
   // Handle ESC key
   useEffect(() => {
@@ -151,7 +145,7 @@ export function QuickPayModal({
         </div>
 
         {/* Content Body */}
-        <div className="max-h-[75vh] overflow-y-auto p-6 space-y-5">
+        <div data-lenis-prevent className="max-h-[75vh] overflow-y-auto p-6 space-y-5">
           {/* Info Siswa & Kelas */}
           <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 space-y-2.5">
             <div className="flex items-center justify-between text-xs">

@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useActionState, useState, useMemo } from 'react';
 import { savePresensi, type GuruState } from '@/app/actions/teacher';
 import { AttendanceStickyBar } from './attendance-sticky-bar';
+import { StudentAvatar } from '@/components/parent/student-avatar';
 import {
   Search,
   Check,
@@ -25,6 +26,8 @@ const STATUS_LIST = [
 export type SiswaPresensi = {
   pendaftaranId: number;
   nama: string;
+  anakId?: number;
+  jenjangTerakhir?: string | null;
   status?: string;
   catatan?: string;
   terkunci: boolean;
@@ -217,12 +220,6 @@ export function AttendanceTable({
             <tbody className="divide-y divide-slate-100 text-xs">
               {filteredSiswa.map((s, idx) => {
                 const currentStatus = statuses[s.pendaftaranId];
-                const initials = s.nama
-                  .split(' ')
-                  .slice(0, 2)
-                  .map((w) => w[0])
-                  .join('')
-                  .toUpperCase();
 
                 return (
                   <tr
@@ -239,9 +236,11 @@ export function AttendanceTable({
                     {/* 2. Nama Siswa */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="grid size-8 shrink-0 place-items-center rounded-full bg-blue-100/70 text-xs font-bold text-blue-700">
-                          {initials}
-                        </div>
+                        <StudentAvatar
+                          nama={s.nama}
+                          jenjang={s.jenjangTerakhir}
+                          size="xs"
+                        />
                         <div className="min-w-0">
                           <p className="font-semibold text-slate-900 truncate">
                             {s.nama}

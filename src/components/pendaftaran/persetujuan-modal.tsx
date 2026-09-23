@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { X, Check, Loader2 } from "lucide-react";
+import { useScrollLock } from "@/lib/use-scroll-lock";
 
 export type PersetujuanModalProps = {
   isOpen: boolean;
@@ -22,18 +23,15 @@ export default function PersetujuanModal({
   const [checkedPribadi, setCheckedPribadi] = useState(false);
   const [checkedSyarat, setCheckedSyarat] = useState(false);
 
+  // Kunci scroll body saat modal terbuka
+  useScrollLock(isOpen);
+
   // Reset checkboxes when modal opens
   useEffect(() => {
     if (isOpen) {
       setCheckedPribadi(false);
       setCheckedSyarat(false);
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
   }, [isOpen]);
 
   // Handle escape key
@@ -68,7 +66,10 @@ export default function PersetujuanModal({
       />
 
       {/* Modal Dialog Content: Bottom Sheet di HP, Floating Popover di Desktop */}
-      <div className="relative w-full max-h-[92vh] overflow-y-auto rounded-t-[28px] rounded-b-none sm:rounded-3xl sm:max-w-lg bg-white p-5 pb-8 sm:p-7 shadow-2xl border-t sm:border border-slate-100/80 transition-all z-10 animate-in slide-in-from-bottom duration-300 ease-out sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:fade-in-0 sm:duration-200">
+      <div
+        data-lenis-prevent
+        className="relative w-full max-h-[92vh] overflow-y-auto rounded-t-[28px] rounded-b-none sm:rounded-3xl sm:max-w-lg bg-white p-5 pb-8 sm:p-7 shadow-2xl border-t sm:border border-slate-100/80 transition-all z-10 animate-in slide-in-from-bottom duration-300 ease-out sm:slide-in-from-bottom-0 sm:zoom-in-95 sm:fade-in-0 sm:duration-200"
+      >
         {/* Drag handle pill bar untuk Bottom Sheet di Mobile */}
         <div className="mx-auto -mt-1 mb-3.5 h-1.5 w-12 rounded-full bg-slate-300 sm:hidden" aria-hidden="true" />
 
