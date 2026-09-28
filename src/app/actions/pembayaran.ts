@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getTranslations } from "next-intl/server";
 import { getLocaleDariCookie } from "@/i18n/locale";
-import { getPathname } from "@/i18n/navigation";
+import { getPathname, redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
@@ -107,6 +107,21 @@ export async function konfirmasiManual(formData: FormData): Promise<void> {
   revalidatePath("/home");
   revalidatePath("/payments");
   revalidatePath(`/enrollments/${pendaftaranId}`);
+
+  const redirectTo = formData.get("redirect_to") as string | null;
+  if (redirectTo === "none") {
+    return;
+  }
+
+  const locale = await getLocaleDariCookie();
+  if (redirectTo) {
+    redirect({ href: redirectTo, locale });
+  }
+
+  redirect({
+    href: `/enrollments/${pendaftaranId}/payment-result?pembayaran=${pembayaranId}`,
+    locale,
+  });
 }
 
 // --- Pembatalan (C7) ---

@@ -29,7 +29,7 @@ export function TableOfContents({
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 140; // offset toleransi scroll
+      const scrollPosition = window.scrollY + 140;
 
       for (let i = sections.length - 1; i >= 0; i--) {
         const el = document.getElementById(sections[i].id);
@@ -115,13 +115,26 @@ export function TableOfContents({
                           e.preventDefault();
                           handleLinkClick(s.id);
                         }}
-                        className={`block py-1.5 text-xs transition-colors ${
+                        className={`group relative block overflow-hidden rounded-r-md py-1.5 pl-3 text-xs font-medium transition-all duration-300 ${
                           isActive
-                            ? "text-brand font-bold underline underline-offset-4"
-                            : "text-slate-600 hover:text-brand hover:underline"
+                            ? "text-brand font-bold bg-brand/5"
+                            : "text-slate-600 hover:text-brand hover:bg-brand/5"
                         }`}
                       >
-                        {s.judul}
+                        {/* Garis brand kiri */}
+                        <span
+                          className={`absolute left-0 top-0 bottom-0 w-[3px] rounded-full bg-brand transition-all duration-300 ${
+                            isActive
+                              ? "opacity-100 scale-y-100"
+                              : "opacity-0 scale-y-75 group-hover:opacity-100 group-hover:scale-y-100"
+                          }`}
+                        />
+                        <span className="relative z-10">
+                          {s.judul}
+                          {!isActive && (
+                            <span className="absolute bottom-0 left-0 h-[1px] w-0 bg-brand transition-all duration-300 group-hover:w-full" />
+                          )}
+                        </span>
                       </a>
                     </li>
                   );
@@ -132,7 +145,7 @@ export function TableOfContents({
         </details>
       </div>
 
-      {/* Desktop View (>= lg): Sticky Sidebar dengan background kartu elegan */}
+      {/* Desktop View (>= lg): Sticky Sidebar dengan hover effects */}
       <nav aria-label={title} className="hidden lg:block sticky top-28 space-y-3">
         <div className="rounded-2xl border border-border/80 bg-white/90 p-5 shadow-xs backdrop-blur-md">
           <div className="flex items-center justify-between mb-3 px-1">
@@ -172,7 +185,7 @@ export function TableOfContents({
               {emptySearchText}
             </p>
           ) : (
-            <ol className="relative border-l-2 border-brand-soft space-y-1.5 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
+            <ol className="relative border-l-2 border-brand-soft space-y-1 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
               {filteredSections.map((s) => {
                 const isActive = activeId === s.id;
                 return (
@@ -183,22 +196,26 @@ export function TableOfContents({
                         e.preventDefault();
                         handleLinkClick(s.id);
                       }}
-                      className={`group flex items-center pl-3.5 py-1 text-xs font-medium transition-colors ${
+                      className={`group relative flex items-center overflow-hidden rounded-r-lg pl-3.5 py-1.5 text-xs font-medium transition-all duration-300 ${
                         isActive
-                          ? "text-brand font-bold"
-                          : "text-slate-600 hover:text-brand"
+                          ? "text-brand font-bold bg-brand/5"
+                          : "text-slate-600 hover:text-brand hover:bg-brand/5"
                       }`}
                     >
-                      {/* Indikator bar vertikal: warna brand Siedu */}
+                      {/* Garis brand vertikal (magic line) */}
                       <span
-                        className={`absolute -left-[2px] top-0 bottom-0 w-[3px] rounded-full bg-brand transition-all duration-200 ${
+                        className={`absolute -left-[2px] top-0 bottom-0 w-[3px] rounded-full bg-brand transition-all duration-300 ${
                           isActive
                             ? "opacity-100 scale-y-100"
                             : "opacity-0 scale-y-75 group-hover:opacity-100 group-hover:scale-y-100"
                         }`}
                       />
-                      <span className={isActive ? "" : "group-hover:underline underline-offset-4 decoration-1"}>
+                      {/* Teks + underline animasi */}
+                      <span className="relative z-10">
                         {s.judul}
+                        {!isActive && (
+                          <span className="absolute bottom-0 left-0 h-[1px] w-0 bg-brand transition-all duration-300 ease-out group-hover:w-full" />
+                        )}
                       </span>
                     </a>
                   </li>

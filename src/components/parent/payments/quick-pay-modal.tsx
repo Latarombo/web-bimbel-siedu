@@ -346,6 +346,11 @@ export function QuickPayModal({
                     name="pendaftaran_id"
                     value={bill.pendaftaranId}
                   />
+                  <input
+                    type="hidden"
+                    name="redirect_to"
+                    value="none"
+                  />
                   <button
                     type="submit"
                     disabled={isPending}

@@ -4,45 +4,7 @@ import { BlokHukumView } from "@/components/ui/legal-block";
 import { TableOfContents } from "@/components/ui/table-of-contents";
 import { getSyarat } from "@/lib/syarat-ketentuan";
 import { LegalHeader } from "@/components/legal/legal-header";
-import { LegalSectionCard } from "@/components/legal/legal-section-card";
-import { LegalContactCard } from "@/components/legal/legal-contact-card";
 import { BackToTop } from "@/components/ui/back-to-top";
-import {
-  UserCheck,
-  Receipt,
-  RotateCcw,
-  BookMarked,
-  Compass,
-  BookOpen,
-  ClipboardCheck,
-  CreditCard,
-  CalendarCheck,
-  Building2,
-  Scale,
-  Shield,
-  RefreshCw,
-  Gavel,
-  Mail,
-  LucideIcon,
-  FileText,
-} from "lucide-react";
-
-// Pemetaan ikon untuk tiap bagian syarat & ketentuan
-const TERMS_ICON_MAP: Record<string, LucideIcon> = {
-  cakupan: Compass,
-  akun: UserCheck,
-  penggunaan: BookOpen,
-  pendaftaran: ClipboardCheck,
-  pembayaran: CreditCard,
-  pembatalan: RotateCcw,
-  presensi: CalendarCheck,
-  lembaga: Building2,
-  "tanggung-jawab": Scale,
-  privasi: Shield,
-  perubahan: RefreshCw,
-  hukum: Gavel,
-  kontak: Mail,
-};
 
 export default async function TermsPage() {
   const tr = await getTranslations("public");
@@ -74,7 +36,7 @@ export default async function TermsPage() {
           pills={false}
         />
 
-        {/* Layout Dokumen Utama (TOC Sidebar + Pasal Terstruktur) */}
+        {/* Layout Dokumen Utama (TOC Sidebar + Konten Satu Card) */}
         <div className="mt-10 grid gap-8 lg:mt-12 lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-10 items-start">
           <TableOfContents
             title={tr("text322")}
@@ -86,35 +48,24 @@ export default async function TermsPage() {
             emptySearchText={tr("legalSearchEmpty")}
           />
 
-          <article className="min-w-0 space-y-6">
-            {SYARAT_SECTIONS.map((s) => {
-              const Icon = TERMS_ICON_MAP[s.id] || FileText;
-              return (
-                <LegalSectionCard
-                  key={s.id}
-                  id={s.id}
-                  title={s.judul}
-                  icon={Icon}
-                  copyLinkLabel={tr("legalCopyLink")}
-                  copiedLabel={tr("legalLinkCopied")}
-                >
+          {/* Satu Card Utuh */}
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-2xs">
+            {SYARAT_SECTIONS.map((s, idx) => (
+              <section key={s.id} id={s.id} className="scroll-mt-28">
+                {idx > 0 && (
+                  <hr className="my-6 border-t border-slate-100" />
+                )}
+                <h2 className="text-lg font-bold leading-snug tracking-tight text-foreground sm:text-xl">
+                  {s.judul}
+                </h2>
+                <div className="mt-3 space-y-4 text-sm leading-relaxed text-body sm:text-base sm:leading-7">
                   {s.blok.map((b, i) => (
                     <BlokHukumView key={i} blok={b} />
                   ))}
-                </LegalSectionCard>
-              );
-            })}
-
-            {/* Banner Kontak Legal di Akhir Dokumen */}
-            <div className="pt-4">
-              <LegalContactCard
-                badge={tr("legalBadge")}
-                title={tr("legalNeedHelpTitle")}
-                description={tr("legalNeedHelpDesc")}
-                contactButtonText={tr("legalContactButton")}
-              />
-            </div>
-          </article>
+                </div>
+              </section>
+            ))}
+          </div>
         </div>
       </Section>
 

@@ -246,7 +246,20 @@ export default async function EnrollmentDetailPage({
       {/* Tagihan terbuka: cicilan berikutnya atau pelunasan yang belum dibayar */}
       {nextBill && aktif && status !== "menunggu_pembayaran" ? (
         <section className="mt-8">
-          <h2 className="text-base font-semibold text-foreground">{tr("text038")}</h2>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-base font-semibold text-foreground">{tr("text038")}</h2>
+            <Badge tone="brand">{tr("installmentUpcoming")}</Badge>
+          </div>
+
+          <div className="mt-3 rounded-2xl border border-blue-200/80 bg-blue-50/70 p-4 text-xs leading-relaxed text-blue-900">
+            <p className="font-semibold text-blue-950">
+              {tr("enrollmentActiveNotice")}
+            </p>
+            <p className="mt-0.5 text-blue-800/90">
+              {tr("installmentExplanation")}
+            </p>
+          </div>
+
           <Card className="mt-3">
             <CardPad className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
@@ -263,7 +276,7 @@ export default async function EnrollmentDetailPage({
                   {rupiah(Number(nextBill.jumlah))}
                 </span>
                 <ButtonLink href={`/enrollments/${p.id}/pay`} size="lg" className="min-h-11 px-5">
-                  {tr("text040")}
+                  {tr("payInstallmentButton")}
                 </ButtonLink>
               </div>
             </CardPad>
