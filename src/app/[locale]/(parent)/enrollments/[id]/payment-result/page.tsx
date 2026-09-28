@@ -1,14 +1,13 @@
 import { getTranslations, getLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { redirect } from "@/i18n/navigation";
-import { Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { Card, CardPad } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { rupiah } from "@/lib/format";
+import { rupiah, fmtTanggal } from "@/lib/format";
 import { SITE } from "@/lib/site";
 import { midtransConfigured, snapStatus, isFinalStatus } from "@/lib/midtrans";
 import {
@@ -166,21 +165,45 @@ export default async function PaymentResultPage({
             ) : null}
           </div>
 
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
-            {ok && tagihanLagi ? (
-              <ButtonLink href={`/enrollments/${pid}/pay`}>
-                {tr("text073")} {labelBerikutnya(tagihanLagi)}
-              </ButtonLink>
-            ) : null}
+          {/* Penjelasan tenang untuk tagihan cicilan berikutnya (jika ada) */}
+          {ok && isTerdaftar && tagihanLagi ? (
+            <div className="mt-5 rounded-2xl border border-blue-200/80 bg-blue-50/70 p-4 text-left max-w-lg mx-auto">
+              <div className="flex items-center gap-2">
+                <span className="size-2 rounded-full bg-blue-600 shrink-0" />
+                <p className="text-xs font-bold text-blue-950 uppercase tracking-wider">
+                  {tr("nextInstallmentTitle")}
+                </p>
+              </div>
+              <p className="mt-1.5 text-xs text-blue-900 leading-relaxed">
+                {tr("nextInstallmentNote", {
+                  installment: labelBerikutnya(tagihanLagi),
+                  amount: rupiah(Number(tagihanLagi.jumlah)),
+                  date: tagihanLagi.jatuhTempo ? fmtTanggal(tagihanLagi.jatuhTempo, locale) : "-",
+                })}
+              </p>
+            </div>
+          ) : null}
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
             <ButtonLink
               href={`/enrollments/${pid}`}
-              variant={ok && tagihanLagi ? "outline" : "default"}
+              variant="default"
+              className="min-h-10 px-5"
             >
-              {tr("text074")}
+              {tr("viewClassTicket")}
             </ButtonLink>
-            <ButtonLink href="/home" variant="outline">
+            <ButtonLink href="/home" variant="outline" className="min-h-10 px-5">
               {tr("text075")}
             </ButtonLink>
+            {ok && tagihanLagi ? (
+              <ButtonLink
+                href={`/enrollments/${pid}/pay`}
+                variant="ghost"
+                className="text-xs text-muted hover:text-foreground"
+              >
+                {tr("payNextInstallmentEarly", { installment: labelBerikutnya(tagihanLagi) })}
+              </ButtonLink>
+            ) : null}
           </div>
         </CardPad>
       </Card>

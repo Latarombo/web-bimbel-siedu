@@ -528,5 +528,13 @@
   "consentReasonPlaceholder": "cth: Permintaan privasi keluarga...",
   "saveConsentChanges": "Simpan Perubahan Izin",
   "consentUpdatedSuccess": "Persetujuan foto berhasil diperbarui.",
-  "savingShort": "Menyimpan..."
+  "savingShort": "Menyimpan...",
+  "nextInstallmentTitle": "Informasi Pembayaran Mendatang",
+  "nextInstallmentNote": "Kursi anak Anda sudah aktif resmi. {installment} sebesar {amount} dijadwalkan jatuh tempo pada {date} dan dapat dibayarkan nanti melalui menu Pembayaran.",
+  "viewClassTicket": "Lihat Tiket & Panduan Kelas",
+  "payNextInstallmentEarly": "Bayar {installment} lebih awal →",
+  "enrollmentActiveNotice": "Pendaftaran Aktif — Kursi Terkonfirmasi",
+  "installmentExplanation": "Uang Muka (DP) Anda sudah lunas. Tagihan di bawah ini adalah cicilan berjalan yang dapat Anda bayarkan sebelum tanggal jatuh tempo.",
+  "installmentUpcoming": "Jatuh Tempo Mendatang",
+  "payInstallmentButton": "Bayar Cicilan"
 }

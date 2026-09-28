@@ -528,5 +528,13 @@
   "consentReasonPlaceholder": "e.g. Family privacy request...",
   "saveConsentChanges": "Save Consent Changes",
   "consentUpdatedSuccess": "Photo consent updated successfully.",
-  "savingShort": "Saving..."
+  "savingShort": "Saving...",
+  "nextInstallmentTitle": "Upcoming Payment Information",
+  "nextInstallmentNote": "Your child's seat is officially secured. {installment} of {amount} is scheduled due on {date} and can be paid later via the Payments menu.",
+  "viewClassTicket": "View Class Ticket & Guide",
+  "payNextInstallmentEarly": "Pay {installment} early →",
+  "enrollmentActiveNotice": "Enrollment Active — Seat Confirmed",
+  "installmentExplanation": "Your Down Payment (DP) is fully settled. The bill below is an ongoing installment that can be paid before the due date.",
+  "installmentUpcoming": "Upcoming Due Date",
+  "payInstallmentButton": "Pay Installment"
 }

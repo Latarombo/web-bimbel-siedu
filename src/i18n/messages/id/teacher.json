@@ -425,5 +425,7 @@
   "viewAllGradingQueue": "Lihat semua antrean penilaian ({count})",
   "allTasksGraded": "Semua tugas sudah dinilai",
   "noNewAssessments": "Belum ada penilaian baru yang perlu diperiksa.",
-  "statusMaxPhotos": "Maksimal 5 foto per unggahan."
+  "statusMaxPhotos": "Maksimal 5 foto per unggahan.",
+  "students": "Siswa",
+  "locked": "Terkunci"
 }

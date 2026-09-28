@@ -425,5 +425,7 @@
   "viewAllGradingQueue": "View all grading queue ({count})",
   "allTasksGraded": "All assignments graded",
   "noNewAssessments": "No new assessments to review.",
-  "statusMaxPhotos": "Maximum 5 photos per upload."
+  "statusMaxPhotos": "Maximum 5 photos per upload.",
+  "students": "Students",
+  "locked": "Locked"
 }
