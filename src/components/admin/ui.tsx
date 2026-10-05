@@ -3,6 +3,7 @@
    kartu tidak putih-di-atas-putih. Ikuti pola halaman dashboard (13 Sep). */
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { ArrowLeft } from "lucide-react";
 
 /** Pembungkus halaman: latar sudah bg-slate-50 dari layout admin. */
 export function PageShell({ children, wide = false }: { children: React.ReactNode; wide?: boolean }) {
@@ -31,8 +32,12 @@ export function PageHeader({
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
         {backHref ? (
-          <Link href={backHref} className="mb-1.5 inline-block text-sm font-semibold text-slate-500 hover:text-slate-900 hover:underline">
-            {t("back")}
+          <Link
+            href={backHref}
+            className="group mb-2.5 inline-flex items-center gap-1.5 rounded-lg border border-slate-200/80 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs transition-all hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+          >
+            <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" aria-hidden="true" />
+            <span>{t("back")}</span>
           </Link>
         ) : null}
         <h1 className="font-display text-2xl font-extrabold tracking-tight text-balance text-slate-900 sm:text-[26px]">{title}</h1>
@@ -95,7 +100,7 @@ export function FilterTabs({ tabs, label }: { tabs: FilterTab[]; label: string }
           key={t.href}
           href={t.href}
           aria-current={t.aktif ? "page" : undefined}
-          className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors ${
+          className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1 ${
             t.aktif
               ? t.attention
                 ? "bg-amber-500 text-white shadow-sm"

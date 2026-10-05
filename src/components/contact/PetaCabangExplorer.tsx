@@ -14,7 +14,7 @@ import {
   Check,
 } from "lucide-react";
 import { KANTOR_PUSAT, DAFTAR_CABANG, type Cabang } from "@/lib/cabang";
-import { MAPS_SEARCH_URL, MAPS_DIR_URL, MAPS_ATTRIBUTION_URL } from "@/lib/site";
+import { MAPS_SEARCH_URL, MAPS_ATTRIBUTION_URL } from "@/lib/site";
 
 const OSM_TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const ATTR =
@@ -250,14 +250,14 @@ export default function PetaCabangExplorer() {
       className="rounded-3xl border border-slate-200 bg-white shadow-md overflow-hidden scroll-mt-24"
     >
       {/* 1. Header Bar: Mempertahankan Informasi Kantor Pusat Siedu */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/90 px-4 py-3.5 sm:px-7 sm:py-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/90 px-4 py-3 sm:px-6 sm:py-3.5">
         <div className="flex items-center gap-3">
-          <span className="grid size-9 place-items-center rounded-xl bg-slate-100 text-slate-900 border border-slate-200 shadow-2xs shrink-0">
+          <span className="grid size-9 place-items-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100/80 shadow-2xs shrink-0">
             <Building2 className="size-4.5" />
           </span>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900">
                 {t("branchExplorerTitle")}
               </h3>
             </div>
@@ -301,11 +301,11 @@ export default function PetaCabangExplorer() {
       </div>
 
       {/* 3. Split View Explorer Container (Screenshot Reference Layout) */}
-      <div className="flex flex-col sm:flex-row h-[440px] sm:h-[480px] md:h-[500px] relative overflow-hidden bg-slate-50">
+      <div className="flex flex-col sm:flex-row h-[420px] sm:h-[460px] md:h-[480px] lg:h-[500px] relative overflow-hidden bg-slate-50">
         {/* Sisi Kiri: Sidebar Pencarian & List Cabang */}
         <div
           data-lenis-prevent
-          className={`w-full sm:w-[360px] md:w-[390px] lg:w-[410px] flex flex-col h-full min-h-0 border-r border-slate-200 bg-white shrink-0 z-10 transition-all ${
+          className={`w-full sm:w-[320px] md:w-[350px] lg:w-[380px] flex flex-col h-full min-h-0 border-r border-slate-200 bg-white shrink-0 z-10 transition-all ${
             activeTab === "map" ? "hidden sm:flex" : "flex"
           } ${
             isHighlighted

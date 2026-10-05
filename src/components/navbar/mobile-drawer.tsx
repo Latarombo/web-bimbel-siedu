@@ -48,11 +48,6 @@ export function MobileDrawer({
     });
   };
 
-  const handleClose = () => {
-    globalIsProgramOpen = false;
-    onClose();
-  };
-
   const isHomeActive = pathname === '/';
   const isClassesActive = pathname === '/classes' || pathname.startsWith('/classes/');
   const isAboutActive = pathname === '/about' || pathname.startsWith('/about/');
@@ -318,34 +313,14 @@ export function MobileDrawer({
                 <LanguageSwitcher variant="toggle" />
               </div>
 
-              {/* Auth Buttons */}
-              {dashboardHref ? (
-                <Link
-                  href={dashboardHref}
-                  onClick={onClose}
-                  className="flex min-h-11 items-center justify-center px-4 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs active:scale-[0.98] transition-all focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
-                >
-                  {t('dashboard')}
-                </Link>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <Link
-                    href="/login"
-                    onClick={onClose}
-                    className="flex min-h-11 items-center justify-center px-3 py-2 text-xs sm:text-sm font-bold text-slate-700 border border-slate-300 bg-white rounded-lg hover:bg-slate-50 active:scale-[0.98] transition-all focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
-                  >
-                    {t('login')}
-                  </Link>
-                  <Link
-                    href="/register"
-                    onClick={onClose}
-                    className="flex min-h-11 items-center justify-center px-3 py-2 text-xs sm:text-sm font-bold text-white rounded-lg shadow-xs hover:brightness-95 active:scale-[0.98] transition-all focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none"
-                    style={{ backgroundColor: '#f26d0f' }}
-                  >
-                    {t('signup')}
-                  </Link>
-                </div>
-              )}
+              {/* Auth Button (Single Full-Width Button) */}
+              <Link
+                href={dashboardHref ?? '/login'}
+                onClick={onClose}
+                className="flex min-h-11 items-center justify-center px-4 py-2.5 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs active:scale-[0.98] transition-all focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none cursor-pointer"
+              >
+                {dashboardHref ? t('dashboard') : t('login')}
+              </Link>
 
               {/* Quick WhatsApp Support Link */}
               <a

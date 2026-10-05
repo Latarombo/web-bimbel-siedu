@@ -138,14 +138,13 @@ export function Navbar({ dashboardHref = null }: NavbarProps) {
                 <LanguageSwitcher variant="toggle" />
               </div>
 
-              {/* Tablet-only Register Button (768px - 1023px) */}
+              {/* Tablet-only Login Button (768px - 1023px) */}
               {!dashboardHref && (
                 <Link
-                  href="/register"
-                  className="hidden md:inline-flex h-8.5 items-center justify-center px-3.5 text-xs font-bold text-white rounded-lg shadow-xs hover:brightness-95 active:scale-[0.98] transition-all focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none"
-                  style={{ backgroundColor: '#f26d0f' }}
+                  href="/login"
+                  className="hidden md:inline-flex h-8.5 items-center justify-center px-4 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs active:scale-[0.98] transition-all focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
                 >
-                  {t('signup')}
+                  {t('login')}
                 </Link>
               )}
 

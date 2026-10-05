@@ -107,53 +107,63 @@ export default async function AboutPage() {
 
       {/* ─── 3. VISI & MISI ──────────────────────────────────────────────
           bg: NAVY  |  H2: putih + highlight TEAL_LT (di bg gelap)
-          Visi: pull-quote border-l TEAL_LT + catatan slate-400
+          Visi: label TEAL_LT + pull-quote border-l TEAL_LT + catatan slate-400
           Misi: label TEAL_LT, list divide-white/10, nomor TEAL_LT polos
       ─────────────────────────────────────────────────────────────────── */}
       <div style={{ backgroundColor: NAVY }}>
-        <Section className="py-16 text-white sm:py-20 lg:py-32">
-          {/* Heading — melengkapi hierarki h1 → h2 (sudah ada di timeline & guru) */}
-          <h2 className="max-w-2xl text-balance text-2xl font-black leading-[1.15] tracking-tight sm:text-3xl lg:text-4xl">
-            {t("mission.titleBefore")}{" "}
-            <span style={{ color: TEAL_LT }}>
-              {t("mission.titleHighlight")}
-            </span>
-          </h2>
+        <Section className="py-12 text-white sm:py-16 lg:py-20">
+          {/* Heading */}
+          <div className="max-w-2xl">
+            <h2 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+              {t("mission.titleBefore")}{" "}
+              <span style={{ color: TEAL_LT }}>
+                {t("mission.titleHighlight")}
+              </span>
+            </h2>
+          </div>
 
-          <div className="mt-10 grid gap-12 lg:mt-14 lg:grid-cols-[1.2fr_1fr] lg:gap-16 xl:gap-24">
-            {/* Visi — pull-quote dengan rail aksen, plus catatan penjelas */}
-            <div
-              className="border-l-2 pl-5 sm:pl-6"
-              style={{ borderColor: TEAL_LT }}
-            >
-              <p className="text-balance text-xl font-black leading-[1.35] tracking-tight text-white sm:text-2xl lg:text-3xl">
-                {t("mission.vision")}
+          <div className="mt-8 grid grid-cols-1 gap-8 sm:mt-10 lg:mt-12 lg:grid-cols-12 lg:gap-12 xl:gap-16 items-start">
+            {/* Visi (5 cols on lg) */}
+            <div className="lg:col-span-5">
+              <p
+                className="mb-3 text-xs font-bold uppercase tracking-wider sm:mb-3.5"
+                style={{ color: TEAL_LT }}
+              >
+                {t("mission.visionLabel")}
               </p>
-              <p className="mt-5 text-sm leading-relaxed text-slate-400 sm:text-base">
-                {t("mission.visionNote")}
-              </p>
+              <div
+                className="border-l-2 pl-4 sm:pl-5"
+                style={{ borderColor: TEAL_LT }}
+              >
+                <p className="text-base font-bold leading-relaxed text-slate-100 sm:text-lg lg:text-xl">
+                  {t("mission.vision")}
+                </p>
+                <p className="mt-3.5 text-xs leading-relaxed text-slate-400 sm:text-sm">
+                  {t("mission.visionNote")}
+                </p>
+              </div>
             </div>
 
-            {/* Misi — list rapi dengan pembatas tipis, nomor polos */}
-            <div>
+            {/* Misi (7 cols on lg) */}
+            <div className="lg:col-span-7">
               <p
-                className="mb-5 text-sm font-bold lg:mb-6"
+                className="mb-3 text-xs font-bold uppercase tracking-wider sm:mb-3.5"
                 style={{ color: TEAL_LT }}
               >
                 {t("mission.missionLabel")}
               </p>
               <ul className="divide-y divide-white/10 border-t border-white/10">
                 {misi.map((m, idx) => (
-                  <li key={idx} className="flex items-start gap-4 py-4">
-                    {/* Nomor polos — teks aksen, tanpa chip/badge */}
+                  <li key={idx} className="flex items-start gap-3.5 py-3 sm:py-3.5">
+                    {/* Nomor polos */}
                     <span
-                      className="shrink-0 pt-1 text-xs font-black tabular-nums sm:text-sm"
+                      className="shrink-0 pt-0.5 text-xs font-bold tabular-nums sm:text-sm"
                       style={{ color: TEAL_LT }}
                     >
                       0{idx + 1}
                     </span>
-                    {/* Teks misi — slate-200 di bg gelap (kontras >7:1) */}
-                    <span className="text-sm leading-relaxed text-slate-200 sm:text-base lg:text-lg">
+                    {/* Teks misi */}
+                    <span className="text-xs leading-relaxed text-slate-300 sm:text-sm lg:text-[15px]">
                       {m}
                     </span>
                   </li>

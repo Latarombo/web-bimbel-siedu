@@ -1,5 +1,6 @@
 import { getTranslations, getLocale } from "next-intl/server";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
@@ -16,7 +17,7 @@ export default async function EditClassAssessment({
   const t = await getTranslations("teacher");
   const locale = await getLocale();
   const session = await auth();
-  if (!session?.user) return redirect(`/login?next=/teacher/grades`);
+  if (!session?.user) return redirect({ href: "/login?next=/teacher/grades", locale });
   const guruId = Number(session.user.id);
   const { id: assessmentIdStr } = await params;
   const assessmentId = Number(assessmentIdStr);
