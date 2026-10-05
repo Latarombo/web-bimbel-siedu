@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { useState, useEffect, useRef } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
-import { motion } from 'motion/react';
 import LogoutDialog from '@/components/LogoutDialog';
 import {
   LayoutGrid,
@@ -14,22 +13,14 @@ import {
   FileText,
   ClipboardCheck,
   Settings,
-  ChevronDown,
-  ChevronUp,
   ChevronRight,
   PanelLeft,
   Languages,
   LogOut,
   User,
-  Menu,
   X,
   type LucideIcon,
 } from 'lucide-react';
-
-export interface NavSubItem {
-  name: string;
-  href: string;
-}
 
 export interface NavItemDef {
   id: string;
@@ -37,7 +28,6 @@ export interface NavItemDef {
   href: string;
   icon: LucideIcon;
   badge?: number;
-  subItems?: NavSubItem[];
 }
 
 interface TeacherSidebarProps {
@@ -72,38 +62,13 @@ export function TeacherSidebar({
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
-  const [currentSearch, setCurrentSearch] = useState('');
 
-  // Clear pendingHref and track query search params
+  // Clear pendingHref on route change
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (pathname !== prevPathname) {
     setPrevPathname(pathname);
     setPendingHref(null);
-    if (typeof window !== 'undefined') {
-      setCurrentSearch(window.location.search);
-    }
   }
-
-  const isSubItemActive = (subHref: string) => {
-    const current =
-      pendingHref ||
-      (typeof window !== 'undefined'
-        ? `${pathname}${currentSearch || window.location.search}`
-        : pathname);
-    if (current === subHref) return true;
-    if (
-      subHref === '/teacher/classes' &&
-      pathname === '/teacher/classes' &&
-      !current.includes('status=')
-    ) {
-      return true;
-    }
-    return false;
-  };
-
-  // Accordion open states
-  const [classesOpen, setClassesOpen] = useState(true);
-  const [gradesOpen, setGradesOpen] = useState(false);
 
   const navRef = useRef<HTMLDivElement>(null);
   const handleHeaderOrFooterWheel = (e: React.WheelEvent) => {
@@ -120,7 +85,7 @@ export function TeacherSidebar({
     .join('')
     .toUpperCase() || 'GU';
 
-  // Master Navigation tailored to Siedu Teacher Portal
+  // Master Flat Navigation for Siedu Teacher Portal
   const NAV_ITEMS: NavItemDef[] = [
     {
       id: 'dashboard',
@@ -134,11 +99,6 @@ export function TeacherSidebar({
       href: '/teacher/classes',
       icon: BookOpen,
       badge: badgeCounts.kelasAktif > 0 ? badgeCounts.kelasAktif : undefined,
-      subItems: [
-        { name: 'Semua Kelas', href: '/teacher/classes' },
-        { name: 'Kelas Aktif', href: '/teacher/classes?status=aktif' },
-        { name: 'Jadwal & Presensi', href: '/teacher/calendar' },
-      ],
     },
     {
       id: 'schedule',
@@ -152,11 +112,6 @@ export function TeacherSidebar({
       href: '/teacher/grades',
       icon: Ruler,
       badge: badgeCounts.siswaBelumNilai > 0 ? badgeCounts.siswaBelumNilai : undefined,
-      subItems: [
-        { name: 'Daftar Nilai & Progres', href: '/teacher/grades' },
-        { name: 'Buat Penilaian Baru', href: '/teacher/grades/new' },
-        { name: 'Laporan Siswa', href: '/teacher/grades' },
-      ],
     },
     {
       id: 'journal',
@@ -296,194 +251,64 @@ export function TeacherSidebar({
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon;
               const active = isRouteActive(item.href);
-              const isAccordion = Boolean(item.subItems && item.subItems.length > 0);
-              const isAccordionOpen =
-                item.id === 'classes' ? classesOpen : item.id === 'grades' ? gradesOpen : false;
-
-              const toggleAccordion = () => {
-                if (item.id === 'classes') setClassesOpen(!classesOpen);
-                if (item.id === 'grades') setGradesOpen(!gradesOpen);
-              };
 
               return (
-                <li key={item.id} className="relative space-y-1">
-                  {isAccordion ? (
-                    <div>
-                      {/* Accordion Parent Button */}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (isCollapsed) {
-                            onToggleCollapse();
-                          } else {
-                            toggleAccordion();
-                          }
-                        }}
-                        className={`group relative flex h-11 w-full items-center rounded-xl px-3 transition-colors duration-150 cursor-pointer ${
+                <li key={item.id} className="relative">
+                  <Link
+                    href={item.href}
+                    prefetch={true}
+                    aria-current={active ? 'page' : undefined}
+                    onClick={() => {
+                      if (pathname !== item.href) setPendingHref(item.href);
+                    }}
+                    className={`group relative flex h-11 items-center rounded-xl px-3 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                      active
+                        ? 'bg-blue-50/90 text-blue-600 font-semibold'
+                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                  >
+                    {/* Icon at rock-solid fixed anchor */}
+                    <div className="flex size-6 shrink-0 items-center justify-center">
+                      <Icon
+                        className={`size-5 stroke-[1.8] ${
                           active
-                            ? 'bg-blue-50/90 text-blue-600 font-semibold'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                            ? 'text-blue-600'
+                            : 'text-slate-400 group-hover:text-slate-600'
                         }`}
-                      >
-                        {/* Icon at rock-solid fixed anchor */}
-                        <div className="flex size-6 shrink-0 items-center justify-center">
-                          <Icon
-                            className={`size-5 stroke-[1.8] ${
-                              active
-                                ? 'text-blue-600'
-                                : 'text-slate-400 group-hover:text-slate-600'
-                            }`}
-                          />
-                        </div>
-
-                        {/* Text and badges: zero width when collapsed to eliminate horizontal overflow */}
-                        <div
-                          className={`flex-1 min-w-0 flex items-center justify-between transition-all duration-200 ${
-                            isCollapsed
-                              ? 'opacity-0 pointer-events-none max-w-0 w-0 overflow-hidden ml-0'
-                              : 'opacity-100 max-w-full ml-3'
-                          }`}
-                        >
-                          <span className="truncate text-sm whitespace-nowrap">
-                            {item.name}
-                          </span>
-
-                          <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                            {item.badge !== undefined && item.badge > 0 && (
-                              <span className="inline-flex items-center justify-center rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-2xs">
-                                {item.badge}
-                              </span>
-                            )}
-                            {isAccordionOpen ? (
-                              <ChevronUp className="size-4 text-blue-600 transition-transform" />
-                            ) : (
-                              <ChevronDown className="size-4 text-slate-400 transition-transform" />
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Collapsed floating tooltip */}
-                        {isCollapsed && (
-                          <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-xl border border-slate-200/90 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 opacity-0 shadow-lg transition-all duration-150 group-hover:opacity-100 z-50">
-                            {item.name}
-                            {item.badge !== undefined && item.badge > 0 && (
-                              <span className="ml-2 rounded-full bg-blue-600 px-1.5 py-0.2 text-[10px] font-bold text-white">
-                                {item.badge}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </button>
-
-                      {/* Submenu: only rendered when sidebar is expanded */}
-                      {!isCollapsed && isAccordionOpen && (
-                        <div className="relative ml-6 mt-1 border-l-2 border-slate-100 pl-3 space-y-1 animate-in fade-in duration-200">
-                          {item.subItems?.map((sub) => {
-                            const isSubActive = isSubItemActive(sub.href);
-                            return (
-                              <Link
-                                key={sub.name}
-                                href={sub.href}
-                                prefetch={true}
-                                onClick={() => {
-                                  if (pathname !== sub.href) setPendingHref(sub.href);
-                                }}
-                                className={`relative flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-colors duration-150 ${
-                                  isSubActive
-                                    ? 'text-blue-600 font-bold'
-                                    : 'text-slate-500 hover:bg-slate-50/80 hover:text-slate-900'
-                                }`}
-                              >
-                                {/* Smooth sliding vertical blue indicator on the left border */}
-                                {isSubActive && (
-                                  <motion.span
-                                    layoutId={`active-subitem-bar-${item.id}`}
-                                    className="absolute -left-[14px] top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.4)]"
-                                    transition={{
-                                      type: 'spring',
-                                      stiffness: 400,
-                                      damping: 32,
-                                    }}
-                                  />
-                                )}
-
-                                {/* Smooth sliding background pill */}
-                                {isSubActive && (
-                                  <motion.span
-                                    layoutId={`active-subitem-bg-${item.id}`}
-                                    className="absolute inset-0 rounded-xl bg-blue-50/90 -z-10"
-                                    transition={{
-                                      type: 'spring',
-                                      stiffness: 400,
-                                      damping: 32,
-                                    }}
-                                  />
-                                )}
-
-                                <span className="truncate whitespace-nowrap">{sub.name}</span>
-                              </Link>
-                            );
-                          })}
-                        </div>
-                      )}
+                      />
                     </div>
-                  ) : (
-                    /* Standard Flat Item */
-                    <Link
-                      href={item.href}
-                      prefetch={true}
-                      onClick={() => {
-                        if (pathname !== item.href) setPendingHref(item.href);
-                      }}
-                      className={`group relative flex h-11 items-center rounded-xl px-3 transition-colors duration-150 ${
-                        active
-                          ? 'bg-blue-50/90 text-blue-600 font-semibold'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+
+                    {/* Text label: zero width when collapsed to eliminate horizontal overflow */}
+                    <div
+                      className={`flex-1 min-w-0 flex items-center justify-between transition-all duration-200 ${
+                        isCollapsed
+                          ? 'opacity-0 pointer-events-none max-w-0 w-0 overflow-hidden ml-0'
+                          : 'opacity-100 max-w-full ml-3'
                       }`}
                     >
-                      {/* Icon at rock-solid fixed anchor */}
-                      <div className="flex size-6 shrink-0 items-center justify-center">
-                        <Icon
-                          className={`size-5 stroke-[1.8] ${
-                            active
-                              ? 'text-blue-600'
-                              : 'text-slate-400 group-hover:text-slate-600'
-                          }`}
-                        />
-                      </div>
+                      <span className="truncate text-sm whitespace-nowrap">
+                        {item.name}
+                      </span>
 
-                      {/* Text label: zero width when collapsed to eliminate horizontal overflow */}
-                      <div
-                        className={`flex-1 min-w-0 flex items-center justify-between transition-all duration-200 ${
-                          isCollapsed
-                            ? 'opacity-0 pointer-events-none max-w-0 w-0 overflow-hidden ml-0'
-                            : 'opacity-100 max-w-full ml-3'
-                        }`}
-                      >
-                        <span className="truncate text-sm whitespace-nowrap">
-                          {item.name}
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="inline-flex items-center justify-center rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-2xs ml-2 shrink-0">
+                          {item.badge}
                         </span>
+                      )}
+                    </div>
 
+                    {/* Collapsed floating tooltip */}
+                    {isCollapsed && (
+                      <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-xl border border-slate-200/90 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 opacity-0 shadow-lg transition-all duration-150 group-hover:opacity-100 z-50">
+                        {item.name}
                         {item.badge !== undefined && item.badge > 0 && (
-                          <span className="inline-flex items-center justify-center rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-2xs ml-2 shrink-0">
+                          <span className="ml-2 rounded-full bg-blue-600 px-1.5 py-0.2 text-[10px] font-bold text-white">
                             {item.badge}
                           </span>
                         )}
                       </div>
-
-                      {/* Collapsed floating tooltip */}
-                      {isCollapsed && (
-                        <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-xl border border-slate-200/90 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 opacity-0 shadow-lg transition-all duration-150 group-hover:opacity-100 z-50">
-                          {item.name}
-                          {item.badge !== undefined && item.badge > 0 && (
-                            <span className="ml-2 rounded-full bg-blue-600 px-1.5 py-0.2 text-[10px] font-bold text-white">
-                              {item.badge}
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </Link>
-                  )}
+                    )}
+                  </Link>
                 </li>
               );
             })}
@@ -695,126 +520,37 @@ export function TeacherSidebar({
                 {NAV_ITEMS.map((item) => {
                   const Icon = item.icon;
                   const active = isRouteActive(item.href);
-                  const isAccordion = Boolean(item.subItems && item.subItems.length > 0);
-                  const isAccordionOpen =
-                    item.id === 'classes' ? classesOpen : item.id === 'grades' ? gradesOpen : false;
-
-                  const toggleAccordion = () => {
-                    if (item.id === 'classes') setClassesOpen(!classesOpen);
-                    if (item.id === 'grades') setGradesOpen(!gradesOpen);
-                  };
 
                   return (
-                    <li key={item.id} className="space-y-1">
-                      {isAccordion ? (
-                        <div>
-                          <button
-                            type="button"
-                            onClick={toggleAccordion}
-                            className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors ${
-                              active
-                                ? 'text-blue-600'
-                                : 'text-slate-600 hover:bg-slate-50'
+                    <li key={item.id}>
+                      <Link
+                        href={item.href}
+                        prefetch={true}
+                        aria-current={active ? 'page' : undefined}
+                        onClick={() => {
+                          if (pathname !== item.href) setPendingHref(item.href);
+                          setIsDrawerOpen(false);
+                        }}
+                        className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                          active
+                            ? 'bg-blue-50/80 font-semibold text-blue-600'
+                            : 'font-medium text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon
+                            className={`size-5 ${
+                              active ? 'text-blue-600' : 'text-slate-400'
                             }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <Icon
-                                className={`size-5 ${
-                                  active ? 'text-blue-600' : 'text-slate-400'
-                                }`}
-                              />
-                              <span>{item.name}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              {item.badge !== undefined && item.badge > 0 && (
-                                <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                                  {item.badge}
-                                </span>
-                              )}
-                              {isAccordionOpen ? (
-                                <ChevronUp className="size-4 text-blue-600" />
-                              ) : (
-                                <ChevronDown className="size-4 text-slate-400" />
-                              )}
-                            </div>
-                          </button>
-                          {isAccordionOpen && (
-                            <div className="relative ml-5 mt-1 space-y-1 border-l-2 border-slate-100 pl-3">
-                              {item.subItems?.map((sub) => {
-                                const isSubActive = isSubItemActive(sub.href);
-                                return (
-                                  <Link
-                                    key={sub.name}
-                                    href={sub.href}
-                                    prefetch={true}
-                                    onClick={() => {
-                                      if (pathname !== sub.href) setPendingHref(sub.href);
-                                      setIsDrawerOpen(false);
-                                    }}
-                                    className={`relative flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold ${
-                                      isSubActive
-                                        ? 'text-blue-600 font-bold'
-                                        : 'text-slate-500 hover:bg-slate-50'
-                                    }`}
-                                  >
-                                    {isSubActive && (
-                                      <motion.span
-                                        layoutId={`active-mobile-subitem-bar-${item.id}`}
-                                        className="absolute -left-[14px] top-1.5 bottom-1.5 w-[3px] rounded-r-full bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.4)]"
-                                        transition={{
-                                          type: 'spring',
-                                          stiffness: 400,
-                                          damping: 32,
-                                        }}
-                                      />
-                                    )}
-                                    {isSubActive && (
-                                      <motion.span
-                                        layoutId={`active-mobile-subitem-bg-${item.id}`}
-                                        className="absolute inset-0 rounded-xl bg-blue-50/90 -z-10"
-                                        transition={{
-                                          type: 'spring',
-                                          stiffness: 400,
-                                          damping: 32,
-                                        }}
-                                      />
-                                    )}
-                                    <span className="truncate whitespace-nowrap">{sub.name}</span>
-                                  </Link>
-                                );
-                              })}
-                            </div>
-                          )}
+                          />
+                          <span>{item.name}</span>
                         </div>
-                      ) : (
-                        <Link
-                          href={item.href}
-                          prefetch={true}
-                          onClick={() => {
-                            if (pathname !== item.href) setPendingHref(item.href);
-                            setIsDrawerOpen(false);
-                          }}
-                          className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm ${
-                            active
-                              ? 'bg-blue-50/80 font-semibold text-blue-600'
-                              : 'font-medium text-slate-600 hover:bg-slate-50'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Icon
-                              className={`size-5 ${
-                                active ? 'text-blue-600' : 'text-slate-400'
-                              }`}
-                            />
-                            <span>{item.name}</span>
-                          </div>
-                          {item.badge !== undefined && item.badge > 0 && (
-                            <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                              {item.badge}
-                            </span>
-                          )}
-                        </Link>
-                      )}
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white">
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
                     </li>
                   );
                 })}

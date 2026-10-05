@@ -352,6 +352,48 @@ export function PenilaianForm({
           </tbody>
         </table>
       </div>
+
+      {/* Bottom Action Bar for Easy Access After Grading All Students */}
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+        <p className="text-xs text-slate-500">
+          {initialSiswa.length} {t("activeStudents")}
+        </p>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {!isDraf && penilaianId ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={isPending}
+              onClick={handleWithdraw}
+              className="border-amber-300 text-amber-800 hover:bg-amber-50"
+            >
+              {t("withdrawToDraft")}
+            </Button>
+          ) : null}
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isPending}
+            onClick={() => handleSubmit("simpan_draf")}
+          >
+            {t("saveDraft")}
+          </Button>
+
+          <Button
+            type="button"
+            size="sm"
+            disabled={isPending}
+            onClick={() => handleSubmit("terbitkan")}
+            className="bg-emerald-600 text-white hover:bg-emerald-700"
+          >
+            {isDraf ? t("publishToParents") : t("saveChanges")}
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

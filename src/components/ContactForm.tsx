@@ -6,7 +6,6 @@ import { useActionState, useState, useEffect } from 'react';
 import {
   ArrowRight,
   CheckCircle2,
-  ChevronDown,
   GraduationCap,
   Mail,
   Phone,
@@ -26,13 +25,13 @@ function FieldIcon({ icon: Icon }: { icon: LucideIcon }) {
 const JENJANG = ['TK', 'SD', 'SMP', 'SMA'] as const;
 
 const inputBase =
-  'w-full pl-11 pr-4 py-2.5 sm:py-3 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400';
+  'w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400';
 const inputPlain =
-  'w-full px-4 py-2.5 sm:py-3 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400';
+  'w-full px-3.5 py-2.5 text-xs sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400';
 
 function Label({ htmlFor, children, required }: { htmlFor: string; children: React.ReactNode; required?: boolean }) {
  return (
-  <label htmlFor={htmlFor} className="block text-sm font-semibold text-slate-700 mb-2">
+  <label htmlFor={htmlFor} className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5">
    {children} {required ? <span className="text-danger">*</span> : null}
   </label>
  );
@@ -117,22 +116,22 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
  }
 
   return (
-   <div className="rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-5 sm:p-7 md:p-8 shadow-2xs">
-    <div className="pb-4 border-b border-slate-100">
-    <h3 className="text-base sm:text-lg font-extrabold text-slate-900">{tr("text165")}</h3>
+   <div className="rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-white p-4.5 sm:p-6 md:p-7 shadow-2xs">
+    <div className="pb-3.5 border-b border-slate-100">
+    <h3 className="text-base sm:text-lg font-bold text-slate-900">{tr("text165")}</h3>
     <p className="mt-1 text-xs sm:text-sm text-slate-500">{tr("text166")}</p>
    </div>
 
    {state.error ? (
     <p
-     className="mt-5 rounded-lg bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700"
+     className="mt-4 rounded-lg bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700"
      role="alert"
     >
      {state.error}
     </p>
    ) : null}
 
-   <form action={formAction} className="mt-6 grid gap-5">
+   <form action={formAction} className="mt-5 grid gap-4 sm:gap-4.5">
     <div className="grid gap-5 sm:grid-cols-2">
      <div>
       <Label htmlFor="nama" required>
@@ -272,7 +271,7 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
       id="pesan"
       name="pesan"
       required
-      rows={5}
+      rows={4}
       maxLength={2000}
       placeholder={tr("text180")}
       aria-invalid={errors.pesan ? true : undefined}
@@ -286,11 +285,11 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
     <button
      type="submit"
      disabled={pending}
-     className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm sm:text-base font-bold py-3.5 sm:py-3 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 active:scale-[0.99] cursor-pointer shadow-xs"
+     className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs sm:text-sm font-bold py-3 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 active:scale-[0.99] cursor-pointer shadow-xs"
     >
      <span>{pending ? tr("sending") : tr("text181")}</span>
      {!pending && (
-      <ArrowRight className="size-5" strokeWidth={1.8} aria-hidden="true" />
+      <ArrowRight className="size-4 sm:size-4.5" strokeWidth={2} aria-hidden="true" />
      )}
     </button>
    </form>

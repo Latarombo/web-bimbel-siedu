@@ -144,10 +144,10 @@ export default async function AttendancePage({
               key={j.id}
               href={`/teacher/classes/${kid}/sessions/${date}/attendance?sesi=${j.id}`}
               aria-current={j.id === item.id ? "page" : undefined}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
+              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1 ${
                 j.id === item.id
-                  ? "bg-slate-900 text-white"
-                  : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                  ? "bg-blue-600 text-white shadow-xs"
+                  : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
               <span className="tabular-nums">{j.jamMulai.slice(0, 5)}–{j.jamSelesai.slice(0, 5)}</span>

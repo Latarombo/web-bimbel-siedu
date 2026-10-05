@@ -5,7 +5,9 @@ import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
 import { PageShell, PageHeader, Panel, FilterTabs } from "@/components/admin/ui";
+import { Plus } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -99,20 +101,16 @@ export default async function TeacherGrades({
 
   return (
     <PageShell>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <PageHeader
-          title={t("gradesTitle")}
-          desc={t("gradesDescription")}
-          meta={t("gradedCounts", { graded: aktif, ungraded: belum })}
-        />
-
-        <Link
-          href="/teacher/grades/new"
-          className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800"
-        >
-          {t("newAssessmentButton")}
-        </Link>
-      </div>
+      <PageHeader
+        title={t("gradesTitle")}
+        desc={t("gradesDescription")}
+        meta={t("gradedCounts", { graded: aktif, ungraded: belum })}
+      >
+        <ButtonLink href="/teacher/grades/new">
+          <Plus className="size-4 mr-1" aria-hidden="true" />
+          <span>{t("newAssessmentButton")}</span>
+        </ButtonLink>
+      </PageHeader>
 
       <div className="mt-4">
         <FilterTabs
@@ -131,12 +129,12 @@ export default async function TeacherGrades({
             <div className="px-4 py-14 text-center sm:px-6">
               <p className="text-sm font-bold text-slate-900">{t("noAssessmentsYet")}</p>
               <p className="mt-1 text-[13px] text-slate-500">{t("newEntriesHelp")}</p>
-              <Link
-                href="/teacher/grades/new"
-                className="mt-4 inline-block text-sm font-semibold text-blue-700 hover:underline"
-              >
-                {t("newAssessmentButton")}
-              </Link>
+              <div className="mt-4">
+                <ButtonLink href="/teacher/grades/new" variant="outline" size="sm">
+                  <Plus className="size-3.5 mr-1" aria-hidden="true" />
+                  <span>{t("newAssessmentButton")}</span>
+                </ButtonLink>
+              </div>
             </div>
           </Panel>
         ) : (
