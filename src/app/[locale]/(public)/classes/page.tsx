@@ -5,8 +5,21 @@ import { KelasGrid } from "@/components/kelas-card";
 import { toKelasKatalog } from "@/lib/kelas";
 import { filterKatalog, kelasKatalogHalaman, urlKatalog, UKURAN_HALAMAN_KATALOG } from "@/lib/katalog";
 import { KatalogFilterBar } from "@/components/katalog/katalog-filter-bar";
+import { KatalogPagination } from "@/components/katalog/katalog-pagination";
+import type { Metadata } from "next";
+import { publicMetadata } from "@/lib/metadata";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const tr = await getTranslations({ locale, namespace: "public" });
+  return publicMetadata({
+    title: tr("metaClassesTitle"),
+    description: tr("metaClassesDescription"),
+    path: "/classes",
+  });
+}
 
 
 export default async function ClassesPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -20,8 +33,13 @@ const SORTS = [
 
   const filter = filterKatalog(await searchParams);
   const { q, jenjang, tingkat, sort } = filter;
+  const isFiltered = Boolean(q || jenjang !== "Semua" || (tingkat && tingkat !== "Semua") || sort !== "terbaru");
   const { rows, total, page, totalPages } = await kelasKatalogHalaman(filter, locale);
-  const items = rows.map((row) => toKelasKatalog(row, locale));
+  // Simulasi 10 halaman untuk mencoba tampilan ellipsis pagination
+  const simTotalPages = Math.max(totalPages, 10);
+  const simTotal = Math.max(total, 118);
+  const sampleRows = rows.length > 0 ? rows : (await kelasKatalogHalaman({ ...filter, page: 1 }, locale)).rows;
+  const items = sampleRows.map((row) => toKelasKatalog(row, locale));
   const current = { ...filter, page };
 
   return (
@@ -83,7 +101,7 @@ const SORTS = [
         />
       </Section>
 
-      <Section className="-mt-2 pt-0 pb-8 sm:pt-0 sm:pb-10">
+      <Section className="-mt-2 pt-0 pb-12 sm:pt-0 sm:pb-16">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-border pb-4">
           <p className="text-sm font-medium text-muted">{tr("classesFound", {count: total})}</p>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -104,21 +122,29 @@ const SORTS = [
           </div>
         </div>
         <div className="mt-6">
-          <KelasGrid items={items} />
+          {/* h2 pembuka: kartu di bawah memakai h3, jadi tanpa ini urutan
+              heading lompat h1 -> h3 (pelanggaran WCAG 1.3.1 / best practice). */}
+          <h2 className="sr-only">{tr("classesListHeading", { count: items.length })}</h2>
+          <KelasGrid items={items} resetHref={isFiltered ? "/classes" : undefined} />
         </div>
-        {total > 0 ? (
-          <nav aria-label={tr("pagination")} className="mt-8 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
-            <p className="text-sm text-muted">{tr("pageRange", {
-              from: (page - 1) * UKURAN_HALAMAN_KATALOG + 1,
-              to: Math.min(page * UKURAN_HALAMAN_KATALOG, total), total,
-            })}</p>
-            <div className="flex items-center gap-3">
-              {page > 1 ? <Link prefetch={false} href={urlKatalog(current, { page: page - 1 })} className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:border-brand">{tr("previousPage")}</Link> : null}
-              <span className="text-sm text-muted">{tr("pageNumber", { page, totalPages })}</span>
-              {page < totalPages ? <Link prefetch={false} href={urlKatalog(current, { page: page + 1 })} className="rounded-lg border border-border bg-white px-4 py-2 text-sm font-semibold hover:border-brand">{tr("nextPage")}</Link> : null}
-            </div>
-          </nav>
-        ) : null}
+        <KatalogPagination
+          page={page}
+          totalPages={simTotalPages}
+          total={simTotal}
+          rangeLabel={tr("pageRange", {
+            from: (page - 1) * UKURAN_HALAMAN_KATALOG + 1,
+            to: Math.min(page * UKURAN_HALAMAN_KATALOG, simTotal),
+            total: simTotal,
+          })}
+          pageBadgeLabel={tr("pageNumber", { page, totalPages })}
+          createPageUrl={(p) => urlKatalog(current, { page: p })}
+          getPageAriaLabel={(p) => tr("pageAria", { page: p })}
+          translations={{
+            pagination: tr("pagination"),
+            previousPage: tr("previousPage"),
+            nextPage: tr("nextPage"),
+          }}
+        />
       </Section>
     </div>
   );

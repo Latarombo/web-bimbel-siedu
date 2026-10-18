@@ -52,14 +52,14 @@ export default function RegisterStepper({ aktif }: { aktif: 1 | 2 | 3 }) {
                     ? "bg-brand text-white"
                     : sedang
                       ? "border-2 border-brand text-brand"
-                      : "border border-slate-200 text-slate-400"
+                      : "border border-slate-200 text-slate-600"
                 }`}
               >
                 {selesai ? "✓" : n}
               </span>
               <span
                 className={`ml-2 text-xs font-semibold whitespace-nowrap ${
-                  sedang ? "text-slate-900" : selesai ? "text-slate-600" : "text-slate-400"
+                  sedang ? "text-slate-900" : selesai ? "text-slate-600" : "text-slate-600"
                 }`}
               >
                 {label}

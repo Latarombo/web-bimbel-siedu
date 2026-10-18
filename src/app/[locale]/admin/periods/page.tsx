@@ -47,7 +47,7 @@ export default async function AdminPeriods({ searchParams }: { searchParams: Pro
         rentang: (
           <span className="text-xs tabular-nums text-slate-500">
             {t("dateRange", { start: fmtTanggal(p.tanggalMulai), end: fmtTanggal(p.tanggalSelesai) })}
-            <span className="mt-0.5 block text-slate-400">{t("registrationDeadline", { date: fmtTanggal(p.tanggalTutupPendaftaran) })}</span>
+            <span className="mt-0.5 block text-slate-600">{t("registrationDeadline", { date: fmtTanggal(p.tanggalTutupPendaftaran) })}</span>
           </span>
         ),
         nKelas: <span className="tabular-nums text-slate-700">{nKelas.get(p.id) ?? 0}</span>,

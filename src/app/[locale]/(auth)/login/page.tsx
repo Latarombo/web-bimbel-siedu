@@ -24,7 +24,7 @@ export const dynamic = 'force-dynamic';
 export default async function LoginPage({
     searchParams,
 }: {
-    searchParams: Promise<{ next?: string; error?: string }>;
+    searchParams: Promise<{ next?: string; error?: string; reset?: string }>;
 }) {
     const t = await getTranslations('auth');
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -35,7 +35,7 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
     AccessDenied: t('oauthDenied'),
 };
     const locale = await getLocale();
-    const { next, error: oauthError } = await searchParams;
+    const { next, error: oauthError, reset } = await searchParams;
 
     // Skenario "sudah login klik Login lagi": session aktif → langsung dashboard
     // sesuai role (kecuali ada ?next= spesifik yang belum dituju).
@@ -62,11 +62,11 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
             {/* Main Content — container terbatas + center, tetap center saat zoom out */}
             <main className="grow flex flex-col lg:flex-row items-center justify-center px-4 py-8 sm:px-6 lg:px-8 lg:py-0 z-10 w-full max-w-7xl mx-auto">
                 {/* Left Side - Hero */}
-                <div className="lg:w-1/2 mb-10 lg:mb-0 text-center lg:text-left">
-                    <h1 className="text-2xl sm:text-3xl xl:text-[40px] font-bold text-white leading-tight mb-8">
+                <div className="lg:w-1/2 mb-6 lg:mb-0 text-center lg:text-left">
+                    <h1 className="text-2xl sm:text-3xl xl:text-[40px] font-bold text-white leading-tight mb-0 lg:mb-8">
                         {t('authHero')}
                     </h1>
-                    <div className="flex justify-center lg:justify-start">
+                    <div className="hidden lg:flex justify-center lg:justify-start">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                             src="/images/hero-illustration.png"
@@ -84,6 +84,7 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
                         oauthError={
                             oauthError ? OAUTH_ERROR_MESSAGES[oauthError] : undefined
                         }
+                        resetSuccess={reset === 'success'}
                     />
                 </div>
             </main>

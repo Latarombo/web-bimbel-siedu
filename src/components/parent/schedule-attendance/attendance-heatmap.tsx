@@ -56,7 +56,7 @@ export function AttendanceHeatmap() {
         <h3 className="text-sm font-semibold mb-4 text-slate-800">
           {tr("attendanceHeatmap")} ({monthLabel})
         </h3>
-        <div className="grid grid-cols-7 gap-2 text-center text-xs font-medium text-slate-400 mb-2">
+        <div className="grid grid-cols-7 gap-2 text-center text-xs font-medium text-slate-600 mb-2">
           {dayHeaders.map((d) => (
             <div key={d}>{d}</div>
           ))}
@@ -77,7 +77,7 @@ export function AttendanceHeatmap() {
                 key={day.dateString}
                 title={hasData ? `${day.dateString}: ${records.length} sesi` : day.dateString}
                 className={`aspect-square rounded-md flex items-center justify-center text-[10px] font-semibold transition-colors ${colorClass} ${
-                  hasData ? "text-white cursor-pointer hover:opacity-80" : "text-slate-400"
+                  hasData ? "text-white cursor-pointer hover:opacity-80" : "text-slate-600"
                 }`}
               >
                 {day.date.getDate()}

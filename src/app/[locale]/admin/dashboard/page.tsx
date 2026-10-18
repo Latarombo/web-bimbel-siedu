@@ -254,7 +254,7 @@ export default async function AdminDashboard() {
         kelas: (
           <span className="text-slate-600">
             {mapelNama}
-            {k ? <span className="text-slate-400"> · {k.jenjang}</span> : null}
+            {k ? <span className="text-slate-600"> · {k.jenjang}</span> : null}
           </span>
         ),
         createdAt: (
@@ -300,7 +300,7 @@ export default async function AdminDashboard() {
             ) : periodeTerkini.sisa === 0 ? (
               <span className="font-semibold text-amber-300">{t("text37")}</span>
             ) : (
-              <span className="text-slate-400">{t("closedAgo", { days: Math.abs(periodeTerkini.sisa) })}</span>
+              <span className="text-slate-600">{t("closedAgo", { days: Math.abs(periodeTerkini.sisa) })}</span>
             )}
             <span aria-hidden="true" className="text-slate-600">·</span>
             <span>{t("activeEnrollmentsCount", { count: daftarAktif.length })}</span>
@@ -507,7 +507,7 @@ export default async function AdminDashboard() {
                       <span className="flex flex-shrink-0 items-center gap-1.5 pt-0.5">
                         <span
                           className={`rounded-full px-2.5 py-1 text-sm font-bold tabular-nums ${
-                            a.n > 0 ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-500"
+                            a.n > 0 ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-600"
                           }`}
                         >
                           {a.n}

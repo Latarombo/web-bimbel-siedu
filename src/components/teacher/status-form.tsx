@@ -317,7 +317,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
             <div className="rounded-lg border border-dashed border-indigo-200 bg-indigo-50/30 p-4">
               <span className="text-xs font-medium text-indigo-700">{t('parentPreview')}</span>
               <div className="mt-2 rounded-lg border border-slate-200 bg-white p-4 shadow-xs">
-                <div className="text-xs text-slate-400">
+                <div className="text-xs text-slate-600">
                   {currentClass?.nama} · Baru saja · Aktif 24 jam
                 </div>
                 {kontenTeks && (
@@ -371,7 +371,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                         {item.kelasNama}
                       </span>
                       <span className="mx-2 text-slate-300">·</span>
-                      <span className="text-xs text-slate-400">
+                      <span className="text-xs text-slate-600">
                         {new Date(item.diterbitkanPada).toLocaleDateString('id-ID', {
                           day: 'numeric',
                           month: 'short',
@@ -388,7 +388,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
 
                     <div className="flex items-center gap-2">
                       {isDeleted ? (
-                        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
                           {item.status}
                         </span>
                       ) : isExpired ? (

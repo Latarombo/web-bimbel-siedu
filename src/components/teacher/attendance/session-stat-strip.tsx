@@ -27,7 +27,7 @@ export function SessionStatStrip({
       {/* 1. Total Siswa */}
       <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs">
         <div className="flex items-center gap-2 text-slate-500">
-          <Users className="size-4 text-slate-400" aria-hidden="true" />
+          <Users className="size-4 text-slate-600" aria-hidden="true" />
           <span className="text-xs font-semibold">{t('students')}</span>
         </div>
         <div className="mt-2 flex items-baseline gap-2">
@@ -43,7 +43,7 @@ export function SessionStatStrip({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-slate-500">
             <CheckCircle2
-              className={`size-4 ${isComplete ? 'text-emerald-500' : 'text-slate-400'}`}
+              className={`size-4 ${isComplete ? 'text-emerald-500' : 'text-slate-600'}`}
               aria-hidden="true"
             />
             <span className="text-xs font-semibold">{t('filled')}</span>
@@ -72,7 +72,7 @@ export function SessionStatStrip({
       <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs">
         <div className="flex items-center gap-2 text-slate-500">
           <AlertCircle
-            className={`size-4 ${perluPerhatian > 0 ? 'text-amber-500' : 'text-slate-400'}`}
+            className={`size-4 ${perluPerhatian > 0 ? 'text-amber-500' : 'text-slate-600'}`}
             aria-hidden="true"
           />
           <span className="text-xs font-semibold">{t('needsAttention')}</span>
@@ -90,7 +90,7 @@ export function SessionStatStrip({
         <div>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-slate-500">
-              <Lock className="size-4 text-slate-400" aria-hidden="true" />
+              <Lock className="size-4 text-slate-600" aria-hidden="true" />
               <span className="text-xs font-semibold">{t('sevenDayRule')}</span>
             </div>
             {terkunciN > 0 ? (

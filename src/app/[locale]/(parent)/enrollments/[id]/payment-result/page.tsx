@@ -26,7 +26,12 @@ export const dynamic = "force-dynamic";
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ pembayaran?: string; status?: string }>;
+  searchParams: Promise<{
+    pembayaran?: string;
+    status?: string;
+    order_id?: string;
+    transaction_status?: string;
+  }>;
 };
 
 export default async function PaymentResultPage({
@@ -48,7 +53,8 @@ export default async function PaymentResultPage({
   const { id } = await params;
   const pid = Number(id);
   if (!Number.isInteger(pid)) notFound();
-  const { pembayaran } = await searchParams;
+  const sp = await searchParams;
+  const { pembayaran } = sp;
 
   const [p] = await collect(
     db.orm.public.Pendaftaran.where((x) => x.id.eq(pid)).all(),
@@ -68,12 +74,14 @@ export default async function PaymentResultPage({
   const bill = bills.find((b) => b.id === pembayaranId) ?? bills[0] ?? null;
   if (!bill) redirect({ href: `/enrollments/${pid}`, locale });
 
+  const orderId = sp.order_id || bill.referensiGateway || ORDER_ID(bill.id);
+
   // Segarkan dari gateway (hanya status final, hanya transaksi ini).
   if (midtransConfigured()) {
     try {
-      const st = await snapStatus(ORDER_ID(bill.id));
+      const st = sp.transaction_status || (await snapStatus(orderId));
       if (st && isFinalStatus(st))
-        await terapkanStatusMidtrans(ORDER_ID(bill.id), st);
+        await terapkanStatusMidtrans(orderId, st);
     } catch (e) {
       // Lookup gagal bukan akhir dunia — webhook tetap menyusul.
       console.error("[payment-result] lookup status gagal:", e);
@@ -197,7 +205,7 @@ export default async function PaymentResultPage({
             </ButtonLink>
             {ok && tagihanLagi ? (
               <ButtonLink
-                href={`/enrollments/${pid}/pay`}
+                href={`/enrollments/${pid}`}
                 variant="ghost"
                 className="text-xs text-muted hover:text-foreground"
               >

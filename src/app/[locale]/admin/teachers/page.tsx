@@ -63,7 +63,7 @@ export default async function AdminTeachers({ searchParams }: { searchParams: Pr
         nKelas: (
           <span
             className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums ${
-              (nKelas.get(g.id) ?? 0) > 0 ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-500"
+              (nKelas.get(g.id) ?? 0) > 0 ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-600"
             }`}
           >
             {nKelas.get(g.id) ?? 0}
@@ -83,7 +83,7 @@ export default async function AdminTeachers({ searchParams }: { searchParams: Pr
               </ConfirmAction>
             ) : (
               <span
-                className="cursor-help text-sm font-semibold text-slate-400"
+                className="cursor-help text-sm font-semibold text-slate-600"
                 title={t("text85")}
               >{t("text86")} </span>
             )}

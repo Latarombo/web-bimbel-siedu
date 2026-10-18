@@ -19,15 +19,15 @@ import { SUBJEK } from '@/lib/kontak';
 const initial: KontakState = {};
 
 function FieldIcon({ icon: Icon }: { icon: LucideIcon }) {
- return <Icon className="size-5 shrink-0 text-slate-400" strokeWidth={1.8} aria-hidden="true" />;
+ return <Icon className="size-5 shrink-0 text-slate-600" strokeWidth={1.8} aria-hidden="true" />;
 }
 
 const JENJANG = ['TK', 'SD', 'SMP', 'SMA'] as const;
 
 const inputBase =
-  'w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400';
+  'w-full pl-10 pr-3.5 py-2.5 text-xs sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500';
 const inputPlain =
-  'w-full px-3.5 py-2.5 text-xs sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400';
+  'w-full px-3.5 py-2.5 text-xs sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500';
 
 function Label({ htmlFor, children, required }: { htmlFor: string; children: React.ReactNode; required?: boolean }) {
  return (
@@ -285,7 +285,7 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
     <button
      type="submit"
      disabled={pending}
-     className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs sm:text-sm font-bold py-3 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 active:scale-[0.99] cursor-pointer shadow-xs"
+     className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-600 text-white text-xs sm:text-sm font-bold py-3 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 active:scale-[0.99] cursor-pointer shadow-xs"
     >
      <span>{pending ? tr("sending") : tr("text181")}</span>
      {!pending && (

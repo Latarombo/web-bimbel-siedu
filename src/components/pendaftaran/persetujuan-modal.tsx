@@ -91,7 +91,7 @@ export default function PersetujuanModal({
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
+            className="rounded-full p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
             aria-label={tCommon("closeDialog")}
           >
             <X className="size-5" />
@@ -176,7 +176,7 @@ export default function PersetujuanModal({
             onClick={onConfirm}
             disabled={!canProceed}
             className="w-full flex min-h-12 items-center justify-center rounded-2xl py-3.5 text-base font-bold text-white shadow-md transition-all active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            style={{ backgroundColor: "#f26d0f" }}
+            style={{ backgroundColor: "#c2410c" }}
           >
             {isSubmitting ? (
               <span className="inline-flex items-center gap-2">

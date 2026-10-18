@@ -154,14 +154,14 @@ export function QuickPayModal({
           <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 space-y-2.5">
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5 font-medium text-slate-500">
-                <User className="size-3.5 text-slate-400" />
+                <User className="size-3.5 text-slate-600" />
                 {t("quickPayStudentName")}
               </span>
               <span className="font-bold text-slate-900">{bill.namaAnak}</span>
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5 font-medium text-slate-500">
-                <BookOpen className="size-3.5 text-slate-400" />
+                <BookOpen className="size-3.5 text-slate-600" />
                 {t("quickPayProgram")}
               </span>
               <span className="font-semibold text-slate-800">
@@ -171,7 +171,7 @@ export function QuickPayModal({
             </div>
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5 font-medium text-slate-500">
-                <Calendar className="size-3.5 text-slate-400" />
+                <Calendar className="size-3.5 text-slate-600" />
                 {t("quickPayBillType")}
               </span>
               <span className="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
@@ -377,7 +377,7 @@ export function QuickPayModal({
           {/* Direct Link to standard Pay Page */}
           <div className="pt-2 border-t border-slate-100 text-center">
             <Link
-              href={`/enrollments/${bill.pendaftaranId}/pay`}
+              href={`/enrollments/${bill.pendaftaranId}`}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors"
             >
               <span>{t("quickPayFullInstructions")}</span>

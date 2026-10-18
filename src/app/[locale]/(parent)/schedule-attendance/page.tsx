@@ -422,7 +422,7 @@ export default async function ScheduleAttendancePage({
                     <div className="mt-3.5 whitespace-pre-line text-xs sm:text-sm leading-relaxed text-slate-700 bg-slate-50/60 rounded-xl p-3.5 border border-slate-100">
                       {laporan.laporanOrtu}
                     </div>
-                    <div className="mt-3 flex items-center justify-between text-[11px] text-slate-400">
+                    <div className="mt-3 flex items-center justify-between text-[11px] text-slate-600">
                       <span>{tr("progressReportBy", { teacher: guruNama, date: laporan.tanggal })}</span>
                     </div>
                   </CardPad>
@@ -432,20 +432,21 @@ export default async function ScheduleAttendancePage({
           </ul>
         )
       ) : (
-        hasilMilikSaya.length === 0 ? (
-          <Card className="mt-4 border-dashed border-slate-200 bg-slate-50/50">
-            <CardPad className="py-14 text-center">
-              <div className="mx-auto size-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
-                <Award className="size-6" />
-              </div>
-              <p className="text-base font-bold text-slate-800">{tr("classAssessmentsTitle")}</p>
-              <p className="mx-auto mt-1 max-w-sm text-xs sm:text-sm text-muted leading-relaxed">
-                {tr("saNoAssessments")}
-              </p>
-            </CardPad>
-          </Card>
-        ) : (
-          <ul className="grid gap-3.5">
+        <div className="space-y-4">
+          {hasilMilikSaya.length === 0 ? (
+            <Card className="mt-4 border-dashed border-slate-200 bg-slate-50/50">
+              <CardPad className="py-14 text-center">
+                <div className="mx-auto size-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
+                  <Award className="size-6" />
+                </div>
+                <p className="text-base font-bold text-slate-800">{tr("classAssessmentsTitle")}</p>
+                <p className="mx-auto mt-1 max-w-sm text-xs sm:text-sm text-muted leading-relaxed">
+                  {tr("saNoAssessments")}
+                </p>
+              </CardPad>
+            </Card>
+          ) : (
+            <ul className="grid gap-3.5">
             {hasilMilikSaya.map(({ h, pen, anakNama, mapelNama }) => {
               const statusLabel =
                 h.statusHasil === "dinilai"
@@ -500,8 +501,9 @@ export default async function ScheduleAttendancePage({
               );
             })}
           </ul>
-        )
-      )}
-    </div>
+        )}
+      </div>
+    )}
+  </div>
   );
 }

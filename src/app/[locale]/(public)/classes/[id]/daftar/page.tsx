@@ -52,9 +52,73 @@ export default async function DaftarKelasPage({
   const target = targetList[0];
   if (!target) notFound();
 
+  // Jika anak sudah memiliki pendaftaran di kelas ini, redirect langsung ke detail pendaftaran
+  if (anakIdAwal) {
+    const aid = Number(anakIdAwal);
+    const pendaftaranAktifAnak = await collect(
+      db.orm.public.Pendaftaran
+        .where((p) => p.anakId.eq(aid))
+        .where((p) => p.status.in(["menunggu_pembayaran", "terdaftar", "tertunggak"]))
+        .all()
+    );
+
+    const existingThisClass = pendaftaranAktifAnak.find((p) => p.kelasId === kelasId);
+    if (existingThisClass) {
+      return redirect({ href: `/enrollments/${existingThisClass.id}`, locale });
+    }
+
+    // Cek bentrok dengan kelas lain di periode yang sama
+    const otherEnrollments = pendaftaranAktifAnak.filter(
+      (p) => p.kelasId !== kelasId && p.periodeId === target.periodeId
+    );
+    if (otherEnrollments.length > 0) {
+      const otherClasses = await collect(
+        db.orm.public.Kelas.where((ok) => ok.id.in(otherEnrollments.map((oe) => oe.kelasId)))
+          .include("jadwalItem", (j) => j.select("id", "hari", "jamMulai", "jamSelesai"))
+          .all()
+      );
+
+      const toMin = (t: string | Date) => {
+        const [h, m] = String(t).split(":").map(Number);
+        return (h || 0) * 60 + (m || 0);
+      };
+
+      let conflict = false;
+      for (const ok of otherClasses) {
+        for (const j1 of (target.jadwalItem ?? [])) {
+          for (const j2 of (ok.jadwalItem ?? [])) {
+            if (
+              j1.hari === j2.hari &&
+              toMin(j1.jamMulai) < toMin(j2.jamSelesai) &&
+              toMin(j2.jamMulai) < toMin(j1.jamSelesai)
+            ) {
+              conflict = true;
+              break;
+            }
+          }
+          if (conflict) break;
+        }
+        if (conflict) break;
+      }
+
+      if (conflict) {
+        return redirect({ href: `/classes/${kelasId}`, locale });
+      }
+    }
+  }
+
+  const durasiMenit = (mulai: string | Date, selesai: string | Date): number => {
+    const [h1, m1] = String(mulai).split(":").map(Number);
+    const [h2, m2] = String(selesai).split(":").map(Number);
+    if (isNaN(h1) || isNaN(m1) || isNaN(h2) || isNaN(m2)) return 90;
+    const d = (h2 * 60 + m2) - (h1 * 60 + m1);
+    return d > 0 ? d : 90;
+  };
+
   const jadwalItems = (target.jadwalItem ?? []).map((j) => ({
     hari: labelHari(j.hari, locale),
     jam: `${String(j.jamMulai).slice(0, 5)} - ${String(j.jamSelesai).slice(0, 5)} WIB`,
+    menit: durasiMenit(j.jamMulai, j.jamSelesai),
   }));
 
   const jadwal = (target.jadwalItem ?? [])
@@ -71,6 +135,55 @@ export default async function DaftarKelasPage({
     <div className="min-h-full bg-slate-50 pb-20">
       {/* Header kelas: bidang solid brand, tombol kembali + judul tagihan */}
       <section className="relative overflow-hidden bg-brand pt-6 pb-16 sm:pt-8 sm:pb-20 lg:pt-10 lg:pb-24 text-white border-b border-blue-900/20 shadow-xs">
+        {/* Vektor kurva gelombang organik berlapis (clean & elegan di tepi sudut) */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          {/* Gelombang sudut kanan atas */}
+          <svg
+            className="absolute -right-8 -top-8 w-72 sm:w-96 md:w-[480px] h-auto text-white"
+            viewBox="0 0 400 280"
+            fill="none"
+          >
+            <path
+              d="M120 0 C200 45, 290 110, 400 240 L400 0 Z"
+              fill="currentColor"
+              fillOpacity="0.05"
+            />
+            <path
+              d="M190 0 C260 40, 330 95, 400 180 L400 0 Z"
+              fill="currentColor"
+              fillOpacity="0.07"
+            />
+            <path
+              d="M270 0 C325 30, 365 65, 400 120 L400 0 Z"
+              fill="currentColor"
+              fillOpacity="0.09"
+            />
+          </svg>
+
+          {/* Gelombang sudut kiri bawah */}
+          <svg
+            className="absolute -left-8 -bottom-8 w-64 sm:w-80 md:w-[420px] h-auto text-white"
+            viewBox="0 0 360 260"
+            fill="none"
+          >
+            <path
+              d="M0 60 C90 105, 180 175, 280 260 L0 260 Z"
+              fill="currentColor"
+              fillOpacity="0.05"
+            />
+            <path
+              d="M0 120 C75 155, 145 205, 210 260 L0 260 Z"
+              fill="currentColor"
+              fillOpacity="0.07"
+            />
+            <path
+              d="M0 180 C50 205, 100 230, 140 260 L0 260 Z"
+              fill="currentColor"
+              fillOpacity="0.08"
+            />
+          </svg>
+        </div>
+
         <div className="relative mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Bar Atas: Tombol Bulat Putih di Kiri & Judul Kelas di Tengah */}
           <div className="relative flex items-center justify-center min-h-11 sm:min-h-12">
@@ -84,9 +197,9 @@ export default async function DaftarKelasPage({
 
             <div className="text-center px-10 sm:px-14 max-w-2xl mx-auto">
               <h1 className="text-base sm:text-lg lg:text-xl font-bold text-white tracking-tight leading-snug">
-                Ringkasan pendaftaran
+                {locale === "en" ? "Registration Summary" : "Ringkasan Pendaftaran"}
               </h1>
-              <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/85 truncate">
+              <p className="mt-0.5 text-xs sm:text-sm font-medium text-white/85">
                 {judulKelas}
                 {target.periode?.nama ? (
                   <>

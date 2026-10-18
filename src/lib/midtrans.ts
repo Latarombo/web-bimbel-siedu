@@ -15,10 +15,16 @@ export function midtransConfigured(): boolean {
   return midtransServerKey().length > 0;
 }
 
-function baseUrl(): string {
+function snapBaseUrl(): string {
   return (process.env.MIDTRANS_ENV ?? "sandbox") === "production"
     ? "https://app.midtrans.com"
     : "https://app.sandbox.midtrans.com";
+}
+
+function apiBaseUrl(): string {
+  return (process.env.MIDTRANS_ENV ?? "sandbox") === "production"
+    ? "https://api.midtrans.com"
+    : "https://api.sandbox.midtrans.com";
 }
 
 function authHeader(): string {
@@ -35,7 +41,14 @@ export async function snapCreate(params: {
   firstName?: string;
   description?: string;
   finishUrl?: string;
+  unfinishUrl?: string;
+  errorUrl?: string;
 }): Promise<SnapTransaksi> {
+  const callbacks: Record<string, string> = {};
+  if (params.finishUrl) callbacks.finish = params.finishUrl;
+  if (params.unfinishUrl) callbacks.unfinish = params.unfinishUrl;
+  if (params.errorUrl) callbacks.error = params.errorUrl;
+
   const body = {
     transaction_details: {
       order_id: params.orderId,
@@ -63,9 +76,9 @@ export async function snapCreate(params: {
       user_name: params.firstName ?? "",
       email: params.email ?? "",
     },
-    ...(params.finishUrl ? { callback: { finish: params.finishUrl } } : {}),
+    ...(Object.keys(callbacks).length > 0 ? { callbacks, callback: callbacks } : {}),
   };
-  const res = await fetch(`${baseUrl()}/snap/v1/transaction`, {
+  const res = await fetch(`${snapBaseUrl()}/snap/v1/transactions`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -92,7 +105,7 @@ export async function snapCreate(params: {
  */
 export async function snapStatus(orderId: string): Promise<string | null> {
   const res = await fetch(
-    `${baseUrl()}/v2/${encodeURIComponent(orderId)}/status`,
+    `${apiBaseUrl()}/v2/${encodeURIComponent(orderId)}/status`,
     {
       headers: { Accept: "application/json", Authorization: authHeader() },
     },
@@ -100,8 +113,10 @@ export async function snapStatus(orderId: string): Promise<string | null> {
   if (res.status === 404) return null;
   if (!res.ok) throw new Error(`Midtrans status ${res.status}`);
   const json = (await res.json().catch(() => null)) as {
+    status_code?: string;
     transaction_status?: string | string[];
   } | null;
+  if (json?.status_code === "404") return null;
   const st = json?.transaction_status;
   if (Array.isArray(st)) {
     const final = st.find((s) =>

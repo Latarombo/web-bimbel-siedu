@@ -35,9 +35,9 @@ export function LegalHeader({
           <Link href="/" className="hover:text-brand transition-colors">
             Beranda
           </Link>
-          <ChevronRight className="size-3 text-slate-400" />
+          <ChevronRight className="size-3 text-slate-600" />
           <span className="text-slate-500">Legal</span>
-          <ChevronRight className="size-3 text-slate-400" />
+          <ChevronRight className="size-3 text-slate-600" />
           <span className="font-semibold text-foreground">
             {currentDoc === "privacy" ? privacyLabel : termsLabel}
           </span>

@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getTranslations } from "next-intl/server";
@@ -48,10 +49,19 @@ export async function mulaiPembayaran(
   if (!a || a.orangTuaId !== Number(session.user.id))
     return { ok: false, error: t("payment.ownership") };
 
-  const origin = process.env.AUTH_URL ?? "http://localhost:3000";
+  const headerList = await headers();
+  const host = headerList.get("x-forwarded-host") || headerList.get("host");
+  const proto = headerList.get("x-forwarded-proto") || "http";
+  const origin = process.env.AUTH_URL || (host ? `${proto}://${host}` : "http://localhost:3000");
+
+  const orderId = `${ORDER_ID(pembayaranId)}-${Date.now()}`;
+  const finishUrl = `${origin}${getPathname({ locale, href: `/enrollments/${b.pendaftaranId}/payment-result` })}?pembayaran=${pembayaranId}`;
+  const unfinishUrl = `${origin}${getPathname({ locale, href: `/enrollments/${b.pendaftaranId}` })}`;
+  const errorUrl = `${origin}${getPathname({ locale, href: `/enrollments/${b.pendaftaranId}` })}?error=payment_failed`;
+
   try {
     const snap = await snapCreate({
-      orderId: ORDER_ID(pembayaranId),
+      orderId,
       grossAmount: Number(b.jumlah),
       email: session.user.email ?? undefined,
       firstName: session.user.name ?? undefined,
@@ -60,8 +70,17 @@ export async function mulaiPembayaran(
           : b.tipe === "dp" || b.tipe === "lunas" ? t(`payment.${b.tipe}`) : b.tipe,
         name: a.nama,
       }),
-      finishUrl: `${origin}${getPathname({ locale, href: `/enrollments/${b.pendaftaranId}/payment-result` })}?pembayaran=${pembayaranId}`,
+      finishUrl,
+      unfinishUrl,
+      errorUrl,
     });
+
+    await db.orm.public.Pembayaran.where({ id: pembayaranId }).update({
+      referensiGateway: orderId,
+      ...(b.status === "gagal" ? { status: "pending" } : {}),
+      updatedAt: new Date().toISOString(),
+    });
+
     return { ok: true, url: snap.redirect_url };
   } catch (e) {
     console.error("[mulaiPembayaran] gateway gagal:", e);

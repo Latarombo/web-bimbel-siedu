@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Section } from "@/components/ui/section";
 import TestimonialSection from "@/components/TestimonialTeacher";
@@ -7,15 +6,24 @@ import { Link } from "@/i18n/navigation";
 import { kelasAktifPublik, guruDariKelasAktif } from "@/lib/kelas";
 import { ArrowRight } from "lucide-react";
 import TransformasiTimeline from "@/components/about/TransformasiTimeline";
+import HeroScrollPrompt from "@/components/about/HeroScrollPrompt";
+import HeroIllustrationVisual from "@/components/about/HeroIllustrationVisual";
+import type { Metadata } from "next";
+import { publicMetadata } from "@/lib/metadata";
 
 export const dynamic = "force-dynamic";
 
-// === PALET ABOUT (brand blue) ===
-// Mengikuti landing page: blue-600 sebagai aksen, navy hero untuk bidang gelap,
-// dan blue-300 agar aksen tetap terbaca di atas navy.
-const TEAL    = "#2563eb";
-const TEAL_LT = "#93c5fd";
-const NAVY    = "#0f235f";
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const tr = await getTranslations({ locale, namespace: "public" });
+  return publicMetadata({
+    title: tr("metaAboutTitle"),
+    description: tr("metaAboutDescription"),
+    path: "/about",
+  });
+}
+
+
 
 export default async function AboutPage() {
   const t = await getTranslations("about");
@@ -31,70 +39,59 @@ export default async function AboutPage() {
 
   return (
     <div className="overflow-x-hidden bg-white">
-      {/* ─── 1. HERO ─────────────────────────────────────────────────────
-          bg: putih  |  kicker: TEAL  |  H1: NAVY + TEAL
-          body: slate-600  |  CTA link: NAVY hover→TEAL
-      ─────────────────────────────────────────────────────────────────── */}
-      <Section className="pt-12 pb-14 sm:pt-16 sm:pb-18 lg:pt-20 lg:pb-24">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-12 xl:gap-16">
-          {/* Teks kiri */}
-          <div className="order-1 space-y-6 sm:space-y-7 lg:order-1">
-            {/* Kicker — TEAL di bg terang */}
-            <p
-              className="text-xs font-bold uppercase tracking-widest"
-              style={{ color: TEAL }}
-            >
-              Cerita di balik Siedu
-            </p>
+      {/* ─── 1. HERO (Proper & Balanced Presentation) ─────────────────── */}
+      <div className="relative overflow-hidden bg-gradient-to-b from-slate-50/60 via-white to-white">
+        {/* Ambient lighting halus di latar belakang */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-28 left-1/2 -z-10 h-[480px] w-full -translate-x-1/2 max-w-7xl bg-[radial-gradient(ellipse_70%_55%_at_50%_0%,rgba(37,99,235,0.08),transparent_70%)] blur-3xl"
+        />
 
-            {/* H1 — NAVY, aksen TEAL */}
-            <h1
-              className="max-w-xl text-balance text-3xl font-black leading-[1.15] tracking-tight sm:text-4xl lg:max-w-none lg:text-5xl xl:text-6xl"
-              style={{ color: NAVY }}
-            >
-              {t("story.titleBefore")}{" "}
-              <span style={{ color: TEAL }}>
-                {t("story.titleHighlight")}
-              </span>
-            </h1>
-
-            {/* Body — slate-600 (= token --body #475569) */}
-            <div className="max-w-xl space-y-4 text-base leading-relaxed text-slate-600 sm:text-lg">
-              <p>{t("story.p1")}</p>
-              <p className="hidden sm:block">{t("story.p2")}</p>
-            </div>
-
-            {/* CTA link — NAVY default, hover TEAL */}
-            <div className="pt-2">
-              <Link
-                href="#evolusi"
-                className="group inline-flex items-center gap-3 text-sm font-bold transition-colors sm:text-base"
-                style={{ color: NAVY }}
-              >
-                Lihat transformasi kami
-                <span className="flex size-9 items-center justify-center rounded-full bg-slate-100 transition-all group-hover:translate-x-1.5 group-hover:bg-slate-200">
-                  <ArrowRight className="size-4 sm:size-5" />
+        <Section className="relative z-10 flex min-h-[calc(100vh-5rem)] flex-col justify-center py-16 sm:py-20 lg:py-24 xl:py-28">
+          <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_1fr] lg:gap-12 xl:gap-16">
+            {/* Teks kiri */}
+            <div className="order-1 space-y-6 sm:space-y-7 lg:order-1">
+              {/* H1 — Mengikuti standar font-bold dan text-foreground Landing */}
+              <h1 className="max-w-xl text-balance text-3xl font-bold leading-[1.15] tracking-tight text-foreground sm:text-4xl lg:max-w-none lg:text-5xl xl:text-[3.35rem]">
+                {t("story.titleBefore")}{" "}
+                <span className="text-brand">
+                  {t("story.titleHighlight")}
                 </span>
-              </Link>
+              </h1>
+
+              {/* Body */}
+              <div className="max-w-xl space-y-4 text-base leading-relaxed text-muted sm:text-lg">
+                <p>{t("story.p1")}</p>
+                <p className="hidden sm:block">{t("story.p2")}</p>
+              </div>
+
+              {/* CTA link (Khusus Mobile, Desktop tetap bersih dan fokus pada HeroScrollPrompt di bawah) */}
+              <div className="pt-2 lg:hidden">
+                <Link
+                  href="#evolusi"
+                  className="group inline-flex items-center gap-3 text-sm font-semibold text-foreground transition-colors sm:text-base hover:text-brand"
+                >
+                  {t("story.ctaCompare")}
+                  <span className="flex size-9 items-center justify-center rounded-full bg-slate-100 text-foreground transition-all group-hover:translate-x-1.5 group-hover:bg-blue-50 group-hover:text-brand">
+                    <ArrowRight className="size-4 sm:size-5" />
+                  </span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Ilustrasi kanan / bawah — Proporsional & Responsif dengan Animasi Cosmic Orbit System */}
+            <div className="order-2 flex items-center justify-center px-4 sm:px-6 lg:order-2 lg:px-0">
+              <HeroIllustrationVisual photoAlt={t("story.photoAlt") || "Ilustrasi platform Siedu"} />
             </div>
           </div>
 
-          {/* Ilustrasi kanan / bawah — tanpa frame/card putih, proporsional */}
-          <div className="order-2 flex items-center justify-center px-2 sm:px-6 lg:order-2 lg:px-0">
-            <div className="relative w-full max-w-[420px] sm:max-w-[480px] lg:max-w-[520px] xl:max-w-[560px]">
-              <Image
-                src="/images/about_hero_ilustration.png"
-                alt={t("story.photoAlt") || "Ilustrasi platform Siedu"}
-                width={1000}
-                height={1086}
-                priority
-                className="h-auto w-full object-contain select-none"
-                sizes="(min-width: 1280px) 560px, (min-width: 1024px) 50vw, (min-width: 640px) 480px, 92vw"
-              />
-            </div>
-          </div>
-        </div>
-      </Section>
+          {/* CTA link (Desktop: Tengah Bawah melayang interaktif dengan mouse scroll & fade-out saat scroll) */}
+          <HeroScrollPrompt
+            text={t("story.ctaCompare")}
+            targetId="evolusi"
+          />
+        </Section>
+      </div>
 
       {/* ─── 2. EVOLUSI (Cara Lama → Siedu: Animated Timeline Scroll) ── */}
       <TransformasiTimeline
@@ -106,39 +103,59 @@ export default async function AboutPage() {
       />
 
       {/* ─── 3. VISI & MISI ──────────────────────────────────────────────
-          bg: NAVY  |  H2: putih + highlight TEAL_LT (di bg gelap)
-          Visi: label TEAL_LT + pull-quote border-l TEAL_LT + catatan slate-400
-          Misi: label TEAL_LT, list divide-white/10, nomor TEAL_LT polos
+          bg: #ebf3ff (selaras banner CTA)  |  Border: border-blue-200/70
+          H2: NAVY (#0f235f) + highlight TEAL (#2563eb)
+          Visi: label TEAL + pull-quote border-l TEAL + teks slate-800 + catatan slate-600
+          Misi: label TEAL, divide-blue-200/70, nomor TEAL, teks slate-700
       ─────────────────────────────────────────────────────────────────── */}
-      <div style={{ backgroundColor: NAVY }}>
-        <Section className="py-12 text-white sm:py-16 lg:py-20">
+      <div className="relative overflow-hidden border-y border-blue-200/70 bg-[#ebf3ff]">
+        {/* Dekorasi lengkungan ribbon halus selaras banner CTA */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-12 -top-12 bottom-0 w-72 sm:w-80 lg:w-[420px] overflow-hidden opacity-35"
+        >
+          <svg
+            className="size-full"
+            viewBox="0 0 500 300"
+            fill="none"
+            preserveAspectRatio="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M 215 -20 C 220 40, 250 80, 315 75 C 375 70, 415 30, 450 30 C 480 30, 483 75, 470 125 C 455 170, 430 205, 385 235 C 330 265, 255 260, 205 270 C 165 280, 140 295, 120 325"
+              stroke="#5b94e2"
+              strokeWidth="36"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
+
+        <Section className="relative z-10 py-10 sm:py-12 lg:py-16">
           {/* Heading */}
           <div className="max-w-2xl">
-            <h2 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+            <p className="text-xs font-semibold uppercase tracking-widest text-brand mb-2 sm:mb-2.5">
+              Komitmen Kami
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
               {t("mission.titleBefore")}{" "}
-              <span style={{ color: TEAL_LT }}>
+              <span className="text-brand">
                 {t("mission.titleHighlight")}
               </span>
             </h2>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-8 sm:mt-10 lg:mt-12 lg:grid-cols-12 lg:gap-12 xl:gap-16 items-start">
+          <div className="mt-6 sm:mt-8 grid grid-cols-1 gap-8 sm:gap-10 lg:grid-cols-12 lg:gap-10 xl:gap-12 items-start">
             {/* Visi (5 cols on lg) */}
             <div className="lg:col-span-5">
-              <p
-                className="mb-3 text-xs font-bold uppercase tracking-wider sm:mb-3.5"
-                style={{ color: TEAL_LT }}
-              >
+              <p className="mb-2.5 text-xs font-semibold uppercase tracking-widest text-brand sm:mb-3">
                 {t("mission.visionLabel")}
               </p>
-              <div
-                className="border-l-2 pl-4 sm:pl-5"
-                style={{ borderColor: TEAL_LT }}
-              >
-                <p className="text-base font-bold leading-relaxed text-slate-100 sm:text-lg lg:text-xl">
+              <div className="border-l-2 border-brand pl-4 sm:pl-5">
+                <p className="text-base font-bold leading-relaxed text-foreground sm:text-lg lg:text-xl">
                   {t("mission.vision")}
                 </p>
-                <p className="mt-3.5 text-xs leading-relaxed text-slate-400 sm:text-sm">
+                <p className="mt-3 text-xs leading-relaxed text-muted sm:text-sm">
                   {t("mission.visionNote")}
                 </p>
               </div>
@@ -146,24 +163,21 @@ export default async function AboutPage() {
 
             {/* Misi (7 cols on lg) */}
             <div className="lg:col-span-7">
-              <p
-                className="mb-3 text-xs font-bold uppercase tracking-wider sm:mb-3.5"
-                style={{ color: TEAL_LT }}
-              >
+              <p className="mb-2.5 text-xs font-semibold uppercase tracking-widest text-brand sm:mb-3">
                 {t("mission.missionLabel")}
               </p>
-              <ul className="divide-y divide-white/10 border-t border-white/10">
+              <ul className="border-t border-blue-400">
                 {misi.map((m, idx) => (
-                  <li key={idx} className="flex items-start gap-3.5 py-3 sm:py-3.5">
+                  <li
+                    key={idx}
+                    className="flex items-start gap-3.5 py-2.5 sm:py-3 border-b border-blue-400"
+                  >
                     {/* Nomor polos */}
-                    <span
-                      className="shrink-0 pt-0.5 text-xs font-bold tabular-nums sm:text-sm"
-                      style={{ color: TEAL_LT }}
-                    >
+                    <span className="shrink-0 pt-0.5 text-xs font-bold tabular-nums text-brand sm:text-sm">
                       0{idx + 1}
                     </span>
                     {/* Teks misi */}
-                    <span className="text-xs leading-relaxed text-slate-300 sm:text-sm lg:text-[15px]">
+                    <span className="text-xs leading-relaxed text-body sm:text-sm lg:text-[15px]">
                       {m}
                     </span>
                   </li>
@@ -175,39 +189,33 @@ export default async function AboutPage() {
       </div>
 
       {/* ─── 4. GURU ─────────────────────────────────────────────────────
-          bg: putih  |  kicker: TEAL  |  H2: NAVY + span TEAL
-          body: slate-500
+          bg: putih  |  kicker: text-brand  |  H2: text-foreground + span text-brand
+          body: text-muted
       ─────────────────────────────────────────────────────────────────── */}
       {guruTampil.length > 0 && (
-        <div className="bg-white">
-          <Section className="pb-4 pt-16 sm:pt-20 lg:pt-28">
-            <div className="mx-auto max-w-2xl text-center">
-              {/* Kicker — TEAL di bg putih */}
-              <p
-                className="mb-4 text-xs font-bold uppercase tracking-widest"
-                style={{ color: TEAL }}
-              >
+        <section className="bg-white py-14 sm:py-18 lg:py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center mb-10 sm:mb-14 lg:mb-16">
+              {/* Kicker */}
+              <p className="mb-2.5 text-xs font-semibold uppercase tracking-widest text-brand">
                 {t("teachers.kicker")}
               </p>
-              {/* H2 — NAVY + aksen TEAL */}
-              <h2
-                className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl"
-                style={{ color: NAVY }}
-              >
+              {/* H2 — Mengikuti standar font-bold dan text-foreground Landing */}
+              <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
                 {t("teachers.titleBefore")}{" "}
-                <span style={{ color: TEAL }}>
+                <span className="text-brand">
                   {t("teachers.titleHighlight")}
                 </span>
               </h2>
-              {/* Body — slate-500 (= token --muted) */}
-              <p className="mt-4 text-sm leading-relaxed text-slate-500 sm:text-base lg:mt-5">
+              {/* Body — text-muted standar landing */}
+              <p className="mt-4 text-sm sm:text-base leading-relaxed text-muted max-w-xl mx-auto">
                 {t("teachers.lead")}
               </p>
             </div>
-          </Section>
 
-          <TestimonialSection gurus={guruTampil} />
-        </div>
+            <TestimonialSection gurus={guruTampil} />
+          </div>
+        </section>
       )}
 
       {/* ─── 5. FINAL CTA ────────────────────────────────────────────── */}

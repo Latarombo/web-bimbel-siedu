@@ -1,22 +1,19 @@
 "use client";
+
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useActionState, useState } from 'react';
 import { Field, Input } from "@/components/ui/field";
 import { Link } from '@/i18n/navigation';
+import { requestPasswordReset, type ForgotPasswordState } from '@/app/actions/password-reset';
 
-/**
- * Forgot-password form — desain mengikuti referensi Midtrans.
- *
- * Heading + subtitle centered, email field, tombol "Reset Password" full-width,
- * link "Kembali ke masuk" di bawah. Setelah submit (dummy), tampilkan
- * success state inline: ikon check + pesan konfirmasi.
- */
+const initial: ForgotPasswordState = {};
+
 export default function ForgotForm() {
   const t = useTranslations('auth');
-  const [submitted, setSubmitted] = useState(false);
+  const [state, formAction, pending] = useActionState(requestPasswordReset, initial);
   const [email, setEmail] = useState('');
 
-  if (submitted) {
+  if (state.success) {
     return (
       <div className="text-center py-4">
         {/* Success icon */}
@@ -41,7 +38,7 @@ export default function ForgotForm() {
           {t('resetSentTitle')}
         </h2>
         <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-          {t('resetSentDesc', { email })}
+          {t('resetSentDesc', { email: state.email || email })}
         </p>
 
         <Link
@@ -56,7 +53,7 @@ export default function ForgotForm() {
 
   return (
     <>
-      {/* Heading & Subtitle — centered (referensi Midtrans) */}
+      {/* Heading & Subtitle */}
       <div className="text-center mb-8">
         <h2 className="text-2xl sm:text-[22px] sm:leading-[1.3] font-bold text-slate-900 mb-2">
           {t('forgotTitle')}
@@ -66,35 +63,40 @@ export default function ForgotForm() {
         </p>
       </div>
 
-      <form
-        className="space-y-5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          /* Dummy submit — akan diganti server action saat backend siap */
-          setSubmitted(true);
-        }}
-      >
+      {state.error ? (
+        <div
+          className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700 mb-5"
+          role="alert"
+        >
+          {state.error}
+        </div>
+      ) : null}
+
+      <form action={formAction} className="space-y-5">
         <Field label={t('email')} required>
           <Input
             type="email"
             name="email"
             required
+            autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t('forgotEmailPlaceholder')}
+            disabled={pending}
           />
         </Field>
 
-        {/* Submit — full-width brand button (konsisten dgn login) */}
+        {/* Submit button */}
         <button
           type="submit"
-          className="w-full bg-brand hover:bg-brand-strong text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
+          disabled={pending}
+          className="w-full bg-brand hover:bg-brand-strong disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
         >
-          {t('resetPassword')}
+          {pending ? t('processing') : t('sendReset')}
         </button>
       </form>
 
-      {/* Back to login — centered, underlined (referensi Midtrans) */}
+      {/* Back to login */}
       <p className="mt-5 text-center">
         <Link
           href="/login"

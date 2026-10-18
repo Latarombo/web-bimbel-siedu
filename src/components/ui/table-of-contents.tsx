@@ -153,7 +153,7 @@ export function TableOfContents({
               <ListCollapse className="size-3.5 text-brand" />
               <span>{title}</span>
             </h2>
-            <span className="text-[11px] font-semibold text-muted bg-slate-100 px-2 py-0.5 rounded-full">
+            <span className="text-[11px] font-semibold text-body bg-slate-100 px-2 py-0.5 rounded-full">
               {filteredSections.length}
             </span>
           </div>

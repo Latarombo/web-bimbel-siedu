@@ -9,6 +9,8 @@ import "lenis/dist/lenis.css";
 import { cn } from "@/lib/utils";
 import { isLocale, routing } from "@/i18n/routing";
 import SmoothScroll from "@/components/SmoothScroll";
+import { SITE } from "@/lib/site";
+import { auth } from "@/lib/auth";
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans", display: "swap" });
 
@@ -19,13 +21,33 @@ const jakarta = Plus_Jakarta_Sans({ variable: "--font-jakarta", subsets: ["latin
 // Alternates/hreflang TIDAK ditulis manual di sini: proxy next-intl sudah
 // mengirim header `Link: <...>; rel=alternate; hreflang=...` per halaman
 // (alternateLinks default true), yang nilainya mengikuti path aktif.
+const SITE_URL = "https://siedu.id";
+
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "common" });
+  const title = t("meta.title");
+  const description = t("meta.description");
   return {
-    metadataBase: new URL("https://siedu.id"),
-    title: { default: t("meta.title"), template: `%s | ${t("meta.brand")}` },
-    description: t("meta.description"),
+    metadataBase: new URL(SITE_URL),
+    title: { default: title, template: `%s | ${t("meta.brand")}` },
+    description,
+    applicationName: t("meta.brand"),
+    // OG/Twitter default diwarisi semua halaman; halaman yang butuh deskripsi
+    // sendiri menimpanya lewat generateMetadata masing-masing.
+    openGraph: {
+      type: "website",
+      siteName: t("meta.brand"),
+      locale,
+      url: SITE_URL,
+      title,
+      description,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
   };
 }
 
@@ -54,6 +76,7 @@ export default async function RootLayout({
   // Provider tanpa prop `messages` otomatis menyuntik SEMUA kamus ke bundle
   // client (RSC payload ikut bengkak). Disaring: hanya namespace yang benar-benar
   // dipakai komponen 'use client' (navbar/footer, about/LangkahTabs).
+  const session = await auth();
   const all = await getMessages();
   const clientMessages = Object.fromEntries(
     Object.entries(all).filter(([ns]) => (CLIENT_NAMESPACES as readonly string[]).includes(ns)),
@@ -66,7 +89,32 @@ export default async function RootLayout({
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-brand text-white px-4 py-2 rounded-lg text-sm">
           {t("skipToContent")}
         </a>
-        <NextIntlClientProvider messages={clientMessages}>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider messages={clientMessages}>
+          {children}
+          {/* Structured data organisasi: sinyal mesin pencari bahwa ini entitas
+              pendidikan nyata di alamat tetap, bukan situs tanpa identitas. */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "EducationalOrganization",
+                name: SITE.nama,
+                url: SITE_URL,
+                email: SITE.email,
+                telephone: SITE.telepon,
+                address: {
+                  "@type": "PostalAddress",
+                  streetAddress: SITE.alamat[0],
+                  addressLocality: "Kota Malang",
+                  addressRegion: "Jawa Timur",
+                  postalCode: "65134",
+                  addressCountry: "ID",
+                },
+              }),
+            }}
+          />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

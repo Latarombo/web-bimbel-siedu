@@ -48,9 +48,9 @@ export default async function HeroSection() {
                 <span className="text-white">{tr("text139")}</span>
                 <br className="hidden sm:block" />
                 <span className="text-white">{tr("text140")}</span>
-                <span className="text-accent">{tr("text141")}</span>
+                <span className="text-amber-700">{tr("text141")}</span>
                 <br className="hidden sm:block" />
-                <span className="text-accent">{tr("text142")}</span>
+                <span className="text-amber-700">{tr("text142")}</span>
               </h1>
 
               {/* Subheading — satu level di bawah h1, lebar baca dijaga */}
@@ -61,7 +61,7 @@ export default async function HeroSection() {
               <div className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:gap-4 lg:mt-12 lg:justify-start">
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center rounded-lg bg-amber-600 px-8 py-3.5 font-bold text-white shadow-md transition-colors duration-200 hover:bg-amber-700 hover:shadow-lg sm:min-w-[180px]"
+                  className="inline-flex items-center justify-center rounded-lg bg-amber-700 px-8 py-3.5 font-bold text-white shadow-md transition-colors duration-200 hover:bg-amber-800 hover:shadow-lg sm:min-w-[180px]"
                 >
                   {tr("text144")}</Link>
                 <Link

@@ -7,6 +7,7 @@ import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { dalamJendela7Hari } from "@/lib/hari";
 import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
 import { PageShell, PageHeader, Panel } from "@/components/admin/ui";
 import NilaiForm from "@/components/teacher/nilai-form";
 import LaporanPerkembanganForm from "@/components/teacher/laporan-perkembangan-form";
@@ -107,7 +108,14 @@ export default async function GradeInputPage({
           status: t(`status_${p.status}`),
         })}
         meta={t("gradeEntriesCount", { count: nilai.length + laporanRows.length })}
-      />
+      >
+        <ButtonLink
+          href={`/teacher/classes/${p.kelasId}/report/${p.id}`}
+          variant="outline"
+        >
+          {t("reportCard")}
+        </ButtonLink>
+      </PageHeader>
 
       <div className="mt-6 grid items-start gap-5 lg:grid-cols-[20rem_minmax(0,1fr)]">
         {/* KIRI: kartu siswa + info kehadiran + histori kelas terkait */}
@@ -371,7 +379,7 @@ export default async function GradeInputPage({
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-3">
                               <span className="font-display text-lg font-extrabold tabular-nums tracking-tight text-slate-900">
-                                {v != null ? v : "—"}
+                                {v != null ? v : ""}
                               </span>
                               <div>
                                 <p className="text-sm font-semibold text-slate-900">

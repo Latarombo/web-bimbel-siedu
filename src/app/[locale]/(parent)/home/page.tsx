@@ -149,7 +149,7 @@ function BelumAdaProfilState({
             <Link
               href="/children/new"
               className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition-all active:scale-[0.98] hover:brightness-95 shrink-0 cursor-pointer"
-              style={{ backgroundColor: "#f26d0f" }}
+              style={{ backgroundColor: "#c2410c" }}
             >
               <UserPlus className="size-4" />
               {tr("bentoAddChildTitle")}
@@ -194,7 +194,7 @@ function BelumAdaProfilState({
                   <span className="flex size-7 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-600">
                     2
                   </span>
-                  <span className="text-[11px] font-medium text-slate-400">
+                  <span className="text-[11px] font-medium text-slate-600">
                     {tr("step2Badge")}
                   </span>
                 </div>
@@ -223,7 +223,7 @@ function BelumAdaProfilState({
                   <span className="flex size-7 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-600">
                     3
                   </span>
-                  <span className="text-[11px] font-medium text-slate-400">
+                  <span className="text-[11px] font-medium text-slate-600">
                     {tr("step3Badge")}
                   </span>
                 </div>
@@ -235,7 +235,7 @@ function BelumAdaProfilState({
                 </p>
               </div>
               <div className="mt-5 pt-3 border-t border-slate-200/60">
-                <span className="text-xs text-slate-400 font-medium">
+                <span className="text-xs text-slate-600 font-medium">
                   {tr("step3Note")}
                 </span>
               </div>
@@ -359,7 +359,7 @@ function BelumDaftarKelasState({
               <Link
                 href={catalogUrl}
                 className="inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-xs sm:text-sm font-bold text-white shadow-xs transition-all active:scale-[0.98] hover:brightness-95 cursor-pointer"
-                style={{ backgroundColor: "#f26d0f" }}
+                style={{ backgroundColor: "#c2410c" }}
               >
                 <BookOpen className="size-4" />
                 {tr("chooseClassFor", { name: anak.nama })}
@@ -601,14 +601,13 @@ export default async function ParentHome({
                 addChildLabel={tr("text008")}
               />
 
-              <ButtonLink
+              <Link
                 href="/children"
-                size="sm"
-                className="h-10 px-3.5 text-xs rounded-xl gap-2.5 bg-white text-brand hover:bg-blue-50 font-bold border-transparent shadow-md transition-colors"
+                className="group inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-3.5 py-2 text-xs font-semibold text-white shadow-2xs backdrop-blur-xs transition-all hover:border-white/40 hover:bg-white/15 focus:outline-hidden focus:ring-2 focus:ring-white/40 active:scale-[0.98]"
               >
-                <Users className="size-3.5" />
+                <Users className="size-3.5 text-blue-200 group-hover:text-white transition-colors" />
                 <span>{tr("manageChildAccounts")}</span>
-              </ButtonLink>
+              </Link>
             </div>
           </div>
 
@@ -687,7 +686,7 @@ export default async function ParentHome({
             </div>
             {t && t.belumDibayar > 0 && dipilih.pendaftaranId ? (
               <ButtonLink
-                href={`/enrollments/${dipilih.pendaftaranId}/pay`}
+                href={`/enrollments/${dipilih.pendaftaranId}`}
                 size="sm"
                 className={
                   alert.tone === "rose"
@@ -897,7 +896,7 @@ export default async function ParentHome({
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-slate-900">{j.hari}</span>
-                          <span className="text-xs text-slate-400">•</span>
+                          <span className="text-xs text-slate-600">•</span>
                           <span className="text-xs font-semibold text-slate-700">
                             {j.mulai}–{j.selesai}
                           </span>
@@ -1119,7 +1118,7 @@ export default async function ParentHome({
 
                 {t.belumDibayar > 0 && dipilih.pendaftaranId ? (
                   <ButtonLink
-                    href={`/enrollments/${dipilih.pendaftaranId}/pay`}
+                    href={`/enrollments/${dipilih.pendaftaranId}`}
                     className="w-full justify-center"
                   >
                     {tr("text040")}

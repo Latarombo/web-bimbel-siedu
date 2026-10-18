@@ -245,7 +245,7 @@ export default async function TeacherDashboard() {
                 </p>
               </div>
               <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="font-medium text-slate-400">{t("activeGroups")}</span>
+                <span className="font-medium text-slate-600">{t("activeGroups")}</span>
                 <span className="font-semibold text-slate-600">{t("totalClassesCount", { count: kelas.length })}</span>
               </div>
             </div>
@@ -261,7 +261,7 @@ export default async function TeacherDashboard() {
                 </p>
               </div>
               <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="font-medium text-slate-400">{t("registeredStudents")}</span>
+                <span className="font-medium text-slate-600">{t("registeredStudents")}</span>
                 <span className="font-semibold text-slate-600">{t("enrollmentsCount", { count: siswaAktif.length })}</span>
               </div>
             </div>
@@ -277,7 +277,7 @@ export default async function TeacherDashboard() {
                 </p>
               </div>
               <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="font-medium text-slate-400">{t("evaluationQueue")}</span>
+                <span className="font-medium text-slate-600">{t("evaluationQueue")}</span>
                 {antreanPenilaian.length > 0 ? (
                   <span className="font-bold text-amber-600">{t("statusPending")}</span>
                 ) : (
@@ -297,7 +297,7 @@ export default async function TeacherDashboard() {
                 </p>
               </div>
               <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-                <span className="font-medium text-slate-400">
+                <span className="font-medium text-slate-600">
                   {sesiHariIni.length > 0 ? t("studentsRatio", { filled: totalTerisiHariIni, total: totalSiswaHariIni }) : t("noScheduleToday")}
                 </span>
                 <span className="font-semibold text-slate-600">
@@ -346,7 +346,7 @@ export default async function TeacherDashboard() {
                             <GraduationCap className="size-3.5" />
                             {k.jenjang} {k.tingkat ? `· ${k.tingkat}` : ""}
                           </span>
-                          <span className="text-[11px] font-semibold text-slate-400 truncate max-w-[140px]">
+                          <span className="text-[11px] font-semibold text-slate-600 truncate max-w-[140px]">
                             {p?.nama ?? t("activePeriodDefault")}
                           </span>
                         </div>
@@ -363,7 +363,7 @@ export default async function TeacherDashboard() {
                         </div>
 
                         <div className="flex items-center gap-2 text-xs font-medium text-slate-600 bg-slate-50 rounded-xl p-2.5">
-                          <Calendar className="size-4 shrink-0 text-slate-400" />
+                          <Calendar className="size-4 shrink-0 text-slate-600" />
                           <span className="line-clamp-1">{jadwalStr}</span>
                         </div>
 
@@ -390,7 +390,7 @@ export default async function TeacherDashboard() {
                             </span>
                           </div>
 
-                          <span className="text-[11px] font-bold text-slate-400">
+                          <span className="text-[11px] font-bold text-slate-600">
                             {t("quotaRatio", { count: students.length, max: k.kuotaMaksimum })}
                           </span>
                         </div>
@@ -413,7 +413,7 @@ export default async function TeacherDashboard() {
               <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-8 text-center space-y-1.5">
                 <BookOpen className="size-8 mx-auto text-slate-300" />
                 <p className="text-sm font-bold text-slate-700">{t("noActiveClassesYet")}</p>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                <p className="text-xs text-slate-600 max-w-sm mx-auto">
                   {t("noActiveClassesDesc")}
                 </p>
               </div>
@@ -460,17 +460,14 @@ export default async function TeacherDashboard() {
                                 {item.penilaianJudul}
                               </span>
                               <span className="text-slate-300">·</span>
-                              <span className="inline-flex items-center rounded-md bg-slate-100 px-1.5 py-0.2 text-[10px] font-semibold text-slate-600">
+                              <span className="text-[11px] font-medium text-slate-600">
                                 {item.kelasNama}
                               </span>
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between sm:justify-end gap-3 self-end sm:self-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                          <span className="text-[11px] font-semibold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg sm:hidden">
-                            {t("notYetGraded")}
-                          </span>
+                        <div className="flex items-center justify-end self-end sm:self-center w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                           <Link
                             href={`/teacher/grades/${item.pendaftaranId}`}
                             className="inline-flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50/80 px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-600 hover:text-white transition-all cursor-pointer"
@@ -503,7 +500,7 @@ export default async function TeacherDashboard() {
                 <p className="text-xs font-bold text-slate-800">
                   {t("allTasksGraded")}
                 </p>
-                <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+                <p className="text-[11px] text-slate-600 max-w-sm mx-auto">
                   {t("noNewAssessments")}
                 </p>
               </div>

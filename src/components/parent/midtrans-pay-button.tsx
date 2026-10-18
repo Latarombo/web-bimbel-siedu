@@ -12,9 +12,13 @@ import { mulaiPembayaran, type PayState } from "@/app/actions/pembayaran";
 export default function MidtransPayButton({
   pembayaranId,
   label,
+  className = "w-full min-h-12 text-base font-bold shadow-md rounded-xl",
+  size = "lg",
 }: {
   pembayaranId: number;
   label: string;
+  className?: string;
+  size?: "default" | "sm" | "lg";
 }) {
   const tr = useTranslations("parent");
   const [state, formAction, pending] = useActionState<PayState, FormData>(
@@ -27,6 +31,12 @@ export default function MidtransPayButton({
   const sudah = useRef(false);
 
   useEffect(() => {
+    if (pending) {
+      sudah.current = false;
+    }
+  }, [pending]);
+
+  useEffect(() => {
     if (state.ok && state.url && !sudah.current) {
       sudah.current = true;
       window.location.assign(state.url);
@@ -34,10 +44,22 @@ export default function MidtransPayButton({
   }, [state]);
 
   return (
-    <form action={formAction}>
+    <form action={formAction} className="w-full">
       <input type="hidden" name="pembayaran_id" value={pembayaranId} />
-      <Button type="submit" className="w-full" disabled={pending}>
-        {pending ? tr("text190") : label}
+      <Button
+        type="submit"
+        className={className}
+        size={size}
+        disabled={pending}
+      >
+        {pending ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+            <span>{tr("text190")}</span>
+          </span>
+        ) : (
+          label
+        )}
       </Button>
       {!state.ok && state.error ? (
         <p

@@ -55,16 +55,129 @@ export default async function ClassDetail({ params }: { params: Promise<{ id: st
   const isOrtu = session?.user?.role === "orang_tua";
   const ortuId = Number(session?.user?.id);
 
-  let anakList: Array<{ id: number; nama: string; jenjangTerakhir: string }> = [];
+  let anakList: Array<{
+    id: number;
+    nama: string;
+    jenjangTerakhir: string;
+    tingkat?: string | null;
+    statusPendaftaran?: {
+      sudahDaftarKelasIni: boolean;
+      pendaftaranId?: number;
+      status?: "menunggu_pembayaran" | "terdaftar" | "tertunggak";
+      bentrokKelasLain?: {
+        namaKelas: string;
+        hari: string;
+        jamMulai: string;
+        jamSelesai: string;
+      };
+    };
+  }> = [];
+
   if (isOrtu && ortuId) {
     const anakRecords = await collect(
       db.orm.public.Anak.where((a) => a.orangTuaId.eq(ortuId)).all()
     );
-    anakList = anakRecords.map((a) => ({
-      id: a.id,
-      nama: a.nama,
-      jenjangTerakhir: a.jenjangTerakhir ?? "",
-    }));
+    const anakIds = anakRecords.map((a) => a.id);
+    const allActivePendaftaran =
+      anakIds.length > 0
+        ? await collect(
+            db.orm.public.Pendaftaran
+              .where((p) => p.anakId.in(anakIds))
+              .where((p) => p.status.in(["menunggu_pembayaran", "terdaftar", "tertunggak"]))
+              .all()
+          )
+        : [];
+
+    const otherClassIds = [
+      ...new Set(
+        allActivePendaftaran
+          .filter((p) => p.kelasId !== kelasId)
+          .map((p) => p.kelasId)
+      ),
+    ];
+
+    const otherClasses =
+      otherClassIds.length > 0
+        ? await collect(
+            db.orm.public.Kelas
+              .where((ok) => ok.id.in(otherClassIds))
+              .include("mataPelajaran", (m) => m.select("id", "nama"))
+              .include("jadwalItem", (j) => j.select("id", "hari", "jamMulai", "jamSelesai"))
+              .all()
+          )
+        : [];
+    const otherClassesMap = new Map(otherClasses.map((item) => [item.id, item]));
+
+    const toMinutes = (t: string | Date) => {
+      const [h, m] = String(t).split(":").map(Number);
+      return (h || 0) * 60 + (m || 0);
+    };
+
+    const isOverlap = (
+      m1: string | Date,
+      s1: string | Date,
+      m2: string | Date,
+      s2: string | Date
+    ) => {
+      return toMinutes(m1) < toMinutes(s2) && toMinutes(m2) < toMinutes(s1);
+    };
+
+    anakList = anakRecords.map((a) => {
+      const pendaftaranAnak = allActivePendaftaran.filter((p) => p.anakId === a.id);
+      const pendaftaranKelasIni = pendaftaranAnak.find((p) => p.kelasId === kelasId);
+
+      let bentrokKelasLain: {
+        namaKelas: string;
+        hari: string;
+        jamMulai: string;
+        jamSelesai: string;
+      } | undefined = undefined;
+
+      if (!pendaftaranKelasIni) {
+        for (const p of pendaftaranAnak) {
+          if (p.periodeId === k.periodeId) {
+            const otherK = otherClassesMap.get(p.kelasId);
+            if (otherK && otherK.jadwalItem && k.jadwalItem) {
+              for (const j1 of k.jadwalItem) {
+                for (const j2 of otherK.jadwalItem) {
+                  if (
+                    j1.hari === j2.hari &&
+                    isOverlap(j1.jamMulai, j1.jamSelesai, j2.jamMulai, j2.jamSelesai)
+                  ) {
+                    bentrokKelasLain = {
+                      namaKelas: otherK.mataPelajaran.nama,
+                      hari: labelHari(j2.hari, locale),
+                      jamMulai: String(j2.jamMulai).slice(0, 5),
+                      jamSelesai: String(j2.jamSelesai).slice(0, 5),
+                    };
+                    break;
+                  }
+                }
+                if (bentrokKelasLain) break;
+              }
+            }
+          }
+          if (bentrokKelasLain) break;
+        }
+      }
+
+      return {
+        id: a.id,
+        nama: a.nama,
+        jenjangTerakhir: a.jenjangTerakhir ?? "",
+        tingkat: a.tingkat ?? null,
+        statusPendaftaran: {
+          sudahDaftarKelasIni: Boolean(pendaftaranKelasIni),
+          pendaftaranId: pendaftaranKelasIni?.id,
+          status: pendaftaranKelasIni?.status as
+            | "menunggu_pembayaran"
+            | "terdaftar"
+            | "tertunggak"
+            | undefined,
+          bentrokKelasLain,
+        },
+      };
+    });
   }
 
   const manfaat = [
@@ -268,7 +381,7 @@ export default async function ClassDetail({ params }: { params: Promise<{ id: st
                     <h3 className="text-xs sm:text-sm font-bold text-slate-900">
                       Target Pembelajaran
                     </h3>
-                    <span className="text-[11px] font-semibold text-slate-400">
+                    <span className="text-[11px] font-semibold text-slate-600">
                       {kc.mapel} · {kc.jenjang}
                     </span>
                   </div>

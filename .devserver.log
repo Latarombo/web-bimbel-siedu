@@ -1,0 +1,344 @@
+
+> siedu@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.2.0.2:3000
+- Environments: .env
+✓ Ready in 1707ms
+✓ Running next.config.ts took 147ms
+⚠ Turbopack's filesystem cache has been deleted because we previously detected an internal error in Turbopack. Builds or page loads may be slower as a result.
+
+○ Compiling /[locale]/login ...
+ GET /login 200 in 377ms (next.js: 34ms, proxy.ts: 27ms, generate-params: 18ms, application-code: 298ms)
+○ Compiling /[locale] ...
+ GET / 200 in 12.4s (next.js: 4.9s, proxy.ts: 21ms, generate-params: 2.6s, application-code: 4.9s)
+ GET /classes 200 in 6.7s (next.js: 2.1s, proxy.ts: 16ms, generate-params: 2.6s, application-code: 1959ms)
+ GET /about 200 in 5.1s (next.js: 1704ms, proxy.ts: 15ms, generate-params: 2.5s, application-code: 895ms)
+ GET /contact 200 in 6.0s (next.js: 3.0s, proxy.ts: 13ms, generate-params: 2.5s, application-code: 535ms)
+ GET /terms 200 in 4.7s (next.js: 1666ms, proxy.ts: 16ms, generate-params: 2.3s, application-code: 655ms)
+ GET /login 200 in 351ms (next.js: 28ms, proxy.ts: 14ms, generate-params: 19ms, application-code: 290ms)
+ GET /register 200 in 4.6s (next.js: 1987ms, proxy.ts: 20ms, generate-params: 2.4s, application-code: 249ms)
+ GET /en/classes 200 in 50s (next.js: 19ms, proxy.ts: 16ms, generate-params: 3.7s, application-code: 47s)
+ GET /teacher/classes 200 in 11.1s (next.js: 3.0s, proxy.ts: 62ms, generate-params: 2.8s, application-code: 5.3s)
+ GET /manifest.webmanifest 200 in 1168ms (next.js: 1082ms, application-code: 87ms)
+ GET /en/login 200 in 421ms (next.js: 37ms, proxy.ts: 13ms, generate-params: 15ms, application-code: 356ms)
+ GET / 200 in 2.8s (next.js: 34ms, proxy.ts: 18ms, generate-params: 15ms, application-code: 2.7s)
+ GET /classes 200 in 1971ms (next.js: 18ms, proxy.ts: 16ms, generate-params: 14ms, application-code: 1922ms)
+ GET /contact 200 in 673ms (next.js: 30ms, proxy.ts: 13ms, generate-params: 13ms, application-code: 617ms)
+ GET /teacher/classes 200 in 4.2s (next.js: 28ms, proxy.ts: 33ms, generate-params: 14ms, application-code: 4.1s)
+ GET /manifest.webmanifest 200 in 51ms (next.js: 17ms, application-code: 34ms)
+ GET /teacher/classes 200 in 2.8s (next.js: 39ms, proxy.ts: 26ms, generate-params: 0.1ms, application-code: 2.7s)
+ GET /teacher/classes 200 in 1659ms (next.js: 18ms, proxy.ts: 25ms, generate-params: 16ms, application-code: 1599ms)
+ GET /manifest.webmanifest 200 in 43ms (next.js: 12ms, application-code: 31ms)
+✓ Compiled in 1010ms
+✓ Compiled in 1068ms
+ GET /teacher/classes 200 in 8.2s (next.js: 49ms, proxy.ts: 334ms, generate-params: 0.1ms, application-code: 7.8s)
+ GET /teacher/classes 200 in 11.4s (next.js: 813ms, proxy.ts: 599ms, generate-params: 20ms, application-code: 10.0s)
+ GET /teacher/classes 200 in 7.8s (next.js: 21ms, proxy.ts: 156ms, generate-params: 0.2ms, application-code: 7.6s)
+ GET /teacher/classes 200 in 7.3s (next.js: 22ms, proxy.ts: 160ms, generate-params: 0.1ms, application-code: 7.2s)
+ GET /teacher/classes 200 in 7.7s (next.js: 35ms, proxy.ts: 146ms, generate-params: 0.1ms, application-code: 7.5s)
+ GET /teacher/classes 200 in 9.2s (next.js: 2.2s, proxy.ts: 1390ms, generate-params: 24ms, application-code: 5.5s)
+ GET /teacher/classes 200 in 2.6s (next.js: 26ms, proxy.ts: 301ms, generate-params: 13ms, application-code: 2.3s)
+ GET /teacher/classes 200 in 4.8s (next.js: 22ms, proxy.ts: 1656ms, generate-params: 0.1ms, application-code: 3.1s)
+ GET /teacher/classes 200 in 3.8s (next.js: 22ms, proxy.ts: 120ms, generate-params: 0.1ms, application-code: 3.6s)
+ GET /teacher/classes 200 in 3.6s (next.js: 96ms, proxy.ts: 203ms, generate-params: 0.1ms, application-code: 3.3s)
+ GET /teacher/classes 200 in 4.6s (next.js: 698ms, proxy.ts: 1491ms, generate-params: 13ms, application-code: 2.3s)
+ GET /teacher/classes 200 in 2.4s (next.js: 21ms, proxy.ts: 146ms, generate-params: 0.1ms, application-code: 2.2s)
+ GET /teacher/classes 200 in 4.0s (next.js: 155ms, proxy.ts: 708ms, generate-params: 0.1ms, application-code: 3.1s)
+ GET /teacher/classes 200 in 2.9s (next.js: 19ms, proxy.ts: 182ms, generate-params: 0.1ms, application-code: 2.7s)
+ GET /teacher/classes 200 in 4.4s (next.js: 87ms, proxy.ts: 660ms, generate-params: 12ms, application-code: 3.6s)
+ GET /teacher/classes 200 in 6.1s (next.js: 30ms, proxy.ts: 156ms, generate-params: 0.1ms, application-code: 5.9s)
+ GET / 200 in 3.7s (next.js: 261ms, proxy.ts: 44ms, generate-params: 17ms, application-code: 3.4s)
+ GET /teacher/classes 200 in 5.7s (next.js: 15ms, proxy.ts: 798ms, generate-params: 0.1ms, application-code: 4.9s)
+ GET /classes 200 in 4.2s (next.js: 235ms, proxy.ts: 36ms, generate-params: 17ms, application-code: 4.0s)
+ GET /teacher/classes 200 in 8.5s (next.js: 3.3s, proxy.ts: 281ms, generate-params: 15ms, application-code: 4.9s)
+ GET /about 200 in 2.6s (next.js: 158ms, proxy.ts: 204ms, generate-params: 14ms, application-code: 2.2s)
+ GET /teacher/classes 200 in 7.1s (next.js: 33ms, proxy.ts: 153ms, generate-params: 0.1ms, application-code: 6.9s)
+ GET /teacher/classes 200 in 8.2s (next.js: 546ms, proxy.ts: 3.4s, generate-params: 18ms, application-code: 4.2s)
+ GET /contact 200 in 1537ms (next.js: 115ms, proxy.ts: 35ms, generate-params: 13ms, application-code: 1374ms)
+ GET /teacher/classes 200 in 4.8s (next.js: 140ms, proxy.ts: 2.2s, generate-params: 0.1ms, application-code: 2.4s)
+ GET /terms 200 in 2.5s (next.js: 642ms, proxy.ts: 79ms, generate-params: 13ms, application-code: 1768ms)
+ GET /teacher/classes 200 in 4.5s (next.js: 973ms, proxy.ts: 571ms, generate-params: 16ms, application-code: 3.0s)
+ GET /login 200 in 1560ms (next.js: 238ms, proxy.ts: 27ms, generate-params: 18ms, application-code: 1277ms)
+ GET /teacher/classes 200 in 4.2s (next.js: 425ms, proxy.ts: 327ms, generate-params: 0.1ms, application-code: 3.5s)
+ GET /register 200 in 1792ms (next.js: 228ms, proxy.ts: 25ms, generate-params: 15ms, application-code: 1524ms)
+ GET /teacher/classes 200 in 3.9s (next.js: 43ms, proxy.ts: 482ms, generate-params: 0.1ms, application-code: 3.4s)
+ GET /teacher/classes 200 in 5.2s (next.js: 34ms, proxy.ts: 1059ms, generate-params: 16ms, application-code: 4.1s)
+ GET /teacher/classes 200 in 4.1s (next.js: 20ms, proxy.ts: 124ms, generate-params: 0.1ms, application-code: 3.9s)
+ GET /teacher/classes 200 in 5.1s (next.js: 18ms, proxy.ts: 1454ms, generate-params: 13ms, application-code: 3.6s)
+ GET /teacher/classes 200 in 7.4s (next.js: 22ms, proxy.ts: 1260ms, generate-params: 0.1ms, application-code: 6.1s)
+ GET /teacher/classes 200 in 3.7s (next.js: 20ms, proxy.ts: 237ms, generate-params: 0.1ms, application-code: 3.4s)
+ GET /teacher/classes 200 in 4.6s (next.js: 26ms, proxy.ts: 780ms, generate-params: 0.1ms, application-code: 3.8s)
+ GET /teacher/classes 200 in 3.4s (next.js: 23ms, proxy.ts: 1407ms, generate-params: 12ms, application-code: 1957ms)
+ GET /teacher/classes 200 in 3.7s (next.js: 1131ms, proxy.ts: 107ms, generate-params: 0.1ms, application-code: 2.4s)
+ GET /teacher/classes 200 in 2.9s (next.js: 25ms, proxy.ts: 132ms, generate-params: 0.1ms, application-code: 2.8s)
+ GET /teacher/classes 200 in 3.1s (next.js: 52ms, proxy.ts: 215ms, generate-params: 0.1ms, application-code: 2.8s)
+ GET /teacher/classes 200 in 3.8s (next.js: 20ms, proxy.ts: 825ms, generate-params: 13ms, application-code: 2.9s)
+ GET /teacher/classes 200 in 2.6s (next.js: 20ms, proxy.ts: 431ms, generate-params: 0.1ms, application-code: 2.2s)
+ GET /teacher/classes 200 in 3.3s (next.js: 23ms, proxy.ts: 854ms, generate-params: 0.1ms, application-code: 2.4s)
+ GET /teacher/classes 200 in 3.6s (next.js: 22ms, proxy.ts: 267ms, generate-params: 15ms, application-code: 3.3s)
+ GET /teacher/classes 200 in 3.0s (next.js: 20ms, proxy.ts: 786ms, generate-params: 0.1ms, application-code: 2.2s)
+ GET /teacher/classes 200 in 3.8s (next.js: 25ms, proxy.ts: 1431ms, generate-params: 27ms, application-code: 2.3s)
+ GET /teacher/classes 200 in 2.2s (next.js: 24ms, proxy.ts: 143ms, generate-params: 0.1ms, application-code: 1994ms)
+ GET /teacher/classes 200 in 3.7s (next.js: 315ms, proxy.ts: 1196ms, generate-params: 0.1ms, application-code: 2.2s)
+ GET /teacher/classes 200 in 2.4s (next.js: 21ms, proxy.ts: 117ms, generate-params: 0.1ms, application-code: 2.3s)
+ GET /teacher/classes 200 in 4.0s (next.js: 15ms, proxy.ts: 231ms, generate-params: 11ms, application-code: 3.7s)
+ GET /teacher/classes 200 in 3.0s (next.js: 24ms, proxy.ts: 760ms, generate-params: 0.1ms, application-code: 2.2s)
+ GET /teacher/classes 200 in 5.1s (next.js: 22ms, proxy.ts: 1636ms, generate-params: 13ms, application-code: 3.4s)
+ GET /teacher/classes 200 in 3.3s (next.js: 21ms, proxy.ts: 113ms, generate-params: 0.1ms, application-code: 3.2s)
+ GET /teacher/classes 200 in 6.5s (next.js: 108ms, proxy.ts: 1763ms, generate-params: 0.1ms, application-code: 4.7s)
+ GET /teacher/classes 200 in 3.6s (next.js: 25ms, proxy.ts: 125ms, generate-params: 13ms, application-code: 3.5s)
+ GET /teacher/classes 200 in 3.4s (next.js: 17ms, proxy.ts: 192ms, generate-params: 0.1ms, application-code: 3.2s)
+ GET /teacher/classes 200 in 5.2s (next.js: 28ms, proxy.ts: 2.7s, generate-params: 19ms, application-code: 2.5s)
+ GET /teacher/classes 200 in 2.2s (next.js: 21ms, proxy.ts: 115ms, generate-params: 0.1ms, application-code: 2.1s)
+ GET /teacher/classes 200 in 4.1s (next.js: 798ms, proxy.ts: 229ms, generate-params: 0.1ms, application-code: 3.1s)
+ GET /teacher/classes 200 in 2.5s (next.js: 22ms, proxy.ts: 220ms, generate-params: 0.1ms, application-code: 2.2s)
+ GET /teacher/classes 200 in 4.1s (next.js: 53ms, proxy.ts: 1524ms, generate-params: 22ms, application-code: 2.5s)
+ GET /teacher/classes 200 in 2.5s (next.js: 22ms, proxy.ts: 112ms, generate-params: 0.1ms, application-code: 2.4s)
+ GET /teacher/classes 200 in 4.0s (next.js: 290ms, proxy.ts: 1526ms, generate-params: 0.1ms, application-code: 2.2s)
+ GET /teacher/classes 200 in 2.4s (next.js: 20ms, proxy.ts: 147ms, generate-params: 0.1ms, application-code: 2.2s)
+ GET /teacher/classes 200 in 3.9s (next.js: 15ms, proxy.ts: 776ms, generate-params: 13ms, application-code: 3.1s)
+ GET /teacher/classes 200 in 2.6s (next.js: 26ms, proxy.ts: 192ms, generate-params: 0.1ms, application-code: 2.4s)
+ GET /teacher/classes 200 in 4.3s (next.js: 25ms, proxy.ts: 1006ms, generate-params: 0.1ms, application-code: 3.2s)
+ GET /teacher/classes 200 in 2.7s (next.js: 20ms, proxy.ts: 209ms, generate-params: 18ms, application-code: 2.5s)
+ GET /teacher/classes 200 in 4.3s (next.js: 75ms, proxy.ts: 879ms, generate-params: 0.1ms, application-code: 3.3s)
+ GET /teacher/classes 200 in 2.9s (next.js: 29ms, proxy.ts: 450ms, generate-params: 0.1ms, application-code: 2.4s)
+ GET /teacher/classes 200 in 7.2s (next.js: 90ms, proxy.ts: 786ms, generate-params: 15ms, application-code: 6.3s)
+ GET /teacher/classes 200 in 7.6s (next.js: 19ms, proxy.ts: 816ms, generate-params: 0.1ms, application-code: 6.8s)
+ GET /teacher/classes 200 in 6.1s (next.js: 28ms, proxy.ts: 112ms, generate-params: 0.1ms, application-code: 6.0s)
+ GET /teacher/classes 200 in 6.5s (next.js: 19ms, proxy.ts: 234ms, generate-params: 0.1ms, application-code: 6.3s)
+ GET /teacher/classes 200 in 5.8s (next.js: 18ms, proxy.ts: 143ms, generate-params: 0.1ms, application-code: 5.6s)
+ GET /teacher/classes 200 in 5.7s (next.js: 18ms, proxy.ts: 1164ms, generate-params: 15ms, application-code: 4.5s)
+ GET /teacher/classes 200 in 2.7s (next.js: 25ms, proxy.ts: 240ms, generate-params: 13ms, application-code: 2.4s)
+ GET /teacher/classes 200 in 2.5s (next.js: 20ms, proxy.ts: 122ms, generate-params: 0.1ms, application-code: 2.4s)
+ GET /teacher/classes 200 in 3.7s (next.js: 18ms, proxy.ts: 780ms, generate-params: 0.1ms, application-code: 2.9s)
+ GET /teacher/classes 200 in 2.4s (next.js: 18ms, proxy.ts: 241ms, generate-params: 0.1ms, application-code: 2.2s)
+ GET /teacher/classes 200 in 5.1s (next.js: 226ms, proxy.ts: 1610ms, generate-params: 13ms, application-code: 3.3s)
+ GET /teacher/classes 200 in 4.6s (next.js: 18ms, proxy.ts: 133ms, generate-params: 0.1ms, application-code: 4.4s)
+ GET /teacher/classes 200 in 4.3s (next.js: 15ms, proxy.ts: 259ms, generate-params: 0.1ms, application-code: 4.0s)
+ GET /teacher/classes 200 in 3.6s (next.js: 18ms, proxy.ts: 475ms, generate-params: 0.1ms, application-code: 3.1s)
+ GET /teacher/classes 200 in 5.4s (next.js: 19ms, proxy.ts: 2.5s, generate-params: 13ms, application-code: 2.8s)
+ GET /teacher/classes 200 in 2.9s (next.js: 22ms, proxy.ts: 225ms, generate-params: 0.1ms, application-code: 2.6s)
+ GET /teacher/classes 200 in 4.4s (next.js: 17ms, proxy.ts: 743ms, generate-params: 0.1ms, application-code: 3.7s)
+ GET /teacher/classes 200 in 2.7s (next.js: 21ms, proxy.ts: 256ms, generate-params: 0.1ms, application-code: 2.5s)
+ GET /teacher/classes 200 in 4.5s (next.js: 727ms, proxy.ts: 958ms, generate-params: 14ms, application-code: 2.8s)
+ GET /teacher/classes 200 in 2.9s (next.js: 25ms, proxy.ts: 277ms, generate-params: 0.1ms, application-code: 2.6s)
+ GET /teacher/classes 200 in 4.0s (next.js: 23ms, proxy.ts: 1697ms, generate-params: 0.3ms, application-code: 2.3s)
+ GET /teacher/classes 200 in 4.3s (next.js: 37ms, proxy.ts: 265ms, generate-params: 0.2ms, application-code: 4.0s)
+ GET /teacher/classes 200 in 3.7s (next.js: 19ms, proxy.ts: 834ms, generate-params: 13ms, application-code: 2.8s)
+ GET /teacher/classes 200 in 5.7s (next.js: 77ms, proxy.ts: 2.0s, generate-params: 0.1ms, application-code: 3.6s)
+ GET /teacher/classes 200 in 3.5s (next.js: 48ms, proxy.ts: 213ms, generate-params: 1.0ms, application-code: 3.3s)
+ GET /teacher/classes 200 in 4.4s (next.js: 699ms, proxy.ts: 1370ms, generate-params: 18ms, application-code: 2.3s)
+ GET /teacher/classes 200 in 4.7s (next.js: 18ms, proxy.ts: 123ms, generate-params: 0.1ms, application-code: 4.6s)
+ GET /teacher/classes 200 in 4.9s (next.js: 22ms, proxy.ts: 891ms, generate-params: 0.1ms, application-code: 4.0s)
+ GET /teacher/classes 200 in 4.9s (next.js: 21ms, proxy.ts: 1534ms, generate-params: 0.1ms, application-code: 3.3s)
+ GET /teacher/classes 200 in 5.0s (next.js: 24ms, proxy.ts: 1011ms, generate-params: 19ms, application-code: 4.0s)
+ GET /teacher/classes 200 in 3.7s (next.js: 23ms, proxy.ts: 967ms, generate-params: 0.1ms, application-code: 2.7s)
+ GET /teacher/classes 200 in 4.8s (next.js: 25ms, proxy.ts: 1812ms, generate-params: 20ms, application-code: 3.0s)
+ GET /teacher/classes 200 in 2.7s (next.js: 25ms, proxy.ts: 177ms, generate-params: 0.1ms, application-code: 2.5s)
+ GET /teacher/classes 200 in 4.4s (next.js: 21ms, proxy.ts: 911ms, generate-params: 0.1ms, application-code: 3.5s)
+ GET /teacher/classes 200 in 3.0s (next.js: 24ms, proxy.ts: 214ms, generate-params: 0.1ms, application-code: 2.7s)
+ GET /teacher/classes 200 in 3.8s (next.js: 18ms, proxy.ts: 861ms, generate-params: 14ms, application-code: 2.9s)
+ GET /teacher/classes 200 in 4.0s (next.js: 198ms, proxy.ts: 264ms, generate-params: 0.1ms, application-code: 3.6s)
+ GET /teacher/classes 200 in 3.2s (next.js: 23ms, proxy.ts: 588ms, generate-params: 0.1ms, application-code: 2.6s)
+ GET /teacher/classes 200 in 4.0s (next.js: 690ms, proxy.ts: 1113ms, generate-params: 14ms, application-code: 2.2s)
+ GET /teacher/classes 200 in 4.2s (next.js: 25ms, proxy.ts: 180ms, generate-params: 0.1ms, application-code: 4.0s)
+ GET /teacher/classes 200 in 3.8s (next.js: 23ms, proxy.ts: 842ms, generate-params: 0.2ms, application-code: 2.9s)
+ GET /teacher/classes 200 in 5.2s (next.js: 43ms, proxy.ts: 1849ms, generate-params: 24ms, application-code: 3.3s)
+ GET /teacher/classes 200 in 3.0s (next.js: 46ms, proxy.ts: 198ms, generate-params: 0.1ms, application-code: 2.7s)
+ GET /teacher/classes 200 in 4.9s (next.js: 25ms, proxy.ts: 1801ms, generate-params: 0.1ms, application-code: 3.1s)
+ GET /teacher/classes 200 in 2.8s (next.js: 31ms, proxy.ts: 138ms, generate-params: 0.1ms, application-code: 2.7s)
+ GET /teacher/classes 200 in 5.2s (next.js: 17ms, proxy.ts: 196ms, generate-params: 11ms, application-code: 5.0s)
+ GET /teacher/classes 200 in 3.9s (next.js: 34ms, proxy.ts: 1001ms, generate-params: 0.1ms, application-code: 2.8s)
+ GET /teacher/classes 200 in 5.0s (next.js: 47ms, proxy.ts: 1899ms, generate-params: 16ms, application-code: 3.0s)
+ GET /teacher/classes 200 in 2.8s (next.js: 24ms, proxy.ts: 140ms, generate-params: 0.1ms, application-code: 2.6s)
+ GET /teacher/classes 200 in 4.8s (next.js: 610ms, proxy.ts: 1448ms, generate-params: 0.2ms, application-code: 2.8s)
+ GET /teacher/classes 200 in 2.7s (next.js: 22ms, proxy.ts: 139ms, generate-params: 15ms, application-code: 2.5s)
+ GET /teacher/classes 200 in 4.2s (next.js: 29ms, proxy.ts: 857ms, generate-params: 0.1ms, application-code: 3.3s)
+ GET /teacher/classes 200 in 4.5s (next.js: 41ms, proxy.ts: 1635ms, generate-params: 15ms, application-code: 2.8s)
+ GET /teacher/classes 200 in 2.8s (next.js: 22ms, proxy.ts: 143ms, generate-params: 0.1ms, application-code: 2.6s)
+ GET /teacher/classes 200 in 5.4s (next.js: 18ms, proxy.ts: 272ms, generate-params: 0.1ms, application-code: 5.1s)
+ GET /teacher/classes 200 in 4.6s (next.js: 280ms, proxy.ts: 1005ms, generate-params: 0.1ms, application-code: 3.3s)
+ GET /teacher/classes 200 in 2.8s (next.js: 20ms, proxy.ts: 269ms, generate-params: 0.1ms, application-code: 2.5s)
+ GET /teacher/classes 200 in 4.5s (next.js: 21ms, proxy.ts: 896ms, generate-params: 13ms, application-code: 3.6s)
+ GET /teacher/classes 200 in 2.9s (next.js: 36ms, proxy.ts: 333ms, generate-params: 0.1ms, application-code: 2.6s)
+ GET /teacher/classes 200 in 5.1s (next.js: 22ms, proxy.ts: 1866ms, generate-params: 20ms, application-code: 3.2s)
+ GET /teacher/classes 200 in 3.0s (next.js: 27ms, proxy.ts: 176ms, generate-params: 0.1ms, application-code: 2.8s)
+ GET /teacher/classes 200 in 6.1s (next.js: 21ms, proxy.ts: 2.0s, generate-params: 0.1ms, application-code: 4.1s)
+ GET /teacher/classes 200 in 3.9s (next.js: 26ms, proxy.ts: 145ms, generate-params: 0.1ms, application-code: 3.8s)
+ GET /teacher/classes 200 in 9.1s (next.js: 84ms, proxy.ts: 2.9s, generate-params: 24ms, application-code: 6.1s)
+ GET /teacher/classes 200 in 7.1s (next.js: 21ms, proxy.ts: 183ms, generate-params: 0.1ms, application-code: 6.9s)
+ GET /teacher/classes 200 in 9.0s (next.js: 266ms, proxy.ts: 5.0s, generate-params: 14ms, application-code: 3.7s)
+ GET /teacher/classes 200 in 2.9s (next.js: 23ms, proxy.ts: 215ms, generate-params: 0.1ms, application-code: 2.6s)
+ GET /teacher/classes 200 in 5.2s (next.js: 35ms, proxy.ts: 2.0s, generate-params: 31ms, application-code: 3.2s)
+ GET /teacher/classes 200 in 3.0s (next.js: 25ms, proxy.ts: 135ms, generate-params: 0.1ms, application-code: 2.8s)
+ GET /teacher/classes 200 in 4.6s (next.js: 27ms, proxy.ts: 2.2s, generate-params: 0.2ms, application-code: 2.3s)
+ GET /teacher/classes 200 in 2.4s (next.js: 16ms, proxy.ts: 110ms, generate-params: 13ms, application-code: 2.3s)
+ GET /teacher/classes 200 in 4.1s (next.js: 18ms, proxy.ts: 940ms, generate-params: 0.1ms, application-code: 3.1s)
+ GET /teacher/classes 200 in 3.3s (next.js: 24ms, proxy.ts: 212ms, generate-params: 0.1ms, application-code: 3.0s)
+ GET /teacher/classes 200 in 4.2s (next.js: 39ms, proxy.ts: 875ms, generate-params: 18ms, application-code: 3.3s)
+ GET /teacher/classes 200 in 2.8s (next.js: 16ms, proxy.ts: 820ms, generate-params: 0.1ms, application-code: 2.0s)
+ GET /teacher/classes 200 in 4.1s (next.js: 18ms, proxy.ts: 241ms, generate-params: 0.1ms, application-code: 3.8s)
+ GET /teacher/classes 200 in 3.5s (next.js: 23ms, proxy.ts: 779ms, generate-params: 13ms, application-code: 2.7s)
+ GET /teacher/classes 200 in 3.8s (next.js: 617ms, proxy.ts: 879ms, generate-params: 0.1ms, application-code: 2.3s)
+ GET /teacher/classes 200 in 3.3s (next.js: 30ms, proxy.ts: 223ms, generate-params: 0.1ms, application-code: 3.0s)
+ GET /teacher/classes 200 in 4.6s (next.js: 22ms, proxy.ts: 919ms, generate-params: 12ms, application-code: 3.7s)
+ GET /teacher/classes 200 in 3.3s (next.js: 23ms, proxy.ts: 809ms, generate-params: 0.1ms, application-code: 2.5s)
+ GET /teacher/classes 200 in 4.2s (next.js: 20ms, proxy.ts: 1727ms, generate-params: 23ms, application-code: 2.5s)
+ GET /teacher/classes 200 in 2.4s (next.js: 23ms, proxy.ts: 120ms, generate-params: 0.1ms, application-code: 2.2s)
+ GET /teacher/classes 200 in 3.8s (next.js: 22ms, proxy.ts: 102ms, generate-params: 0.1ms, application-code: 3.7s)
+ GET /teacher/classes 200 in 3.1s (next.js: 22ms, proxy.ts: 1022ms, generate-params: 0.1ms, application-code: 2.1s)
+ GET /teacher/classes 200 in 3.9s (next.js: 16ms, proxy.ts: 853ms, generate-params: 12ms, application-code: 3.1s)
+ GET /teacher/classes 200 in 2.3s (next.js: 21ms, proxy.ts: 214ms, generate-params: 0.1ms, application-code: 2.0s)
+ GET /teacher/classes 200 in 4.1s (next.js: 962ms, proxy.ts: 225ms, generate-params: 0.1ms, application-code: 2.9s)
+ GET /teacher/classes 200 in 2.8s (next.js: 29ms, proxy.ts: 123ms, generate-params: 13ms, application-code: 2.7s)
+ GET /teacher/classes 200 in 4.3s (next.js: 21ms, proxy.ts: 898ms, generate-params: 0.1ms, application-code: 3.4s)
+ GET /teacher/classes 200 in 3.0s (next.js: 22ms, proxy.ts: 470ms, generate-params: 0.1ms, application-code: 2.5s)
+ GET /teacher/classes 200 in 5.2s (next.js: 18ms, proxy.ts: 1636ms, generate-params: 36ms, application-code: 3.5s)
+ GET /teacher/classes 200 in 3.3s (next.js: 25ms, proxy.ts: 164ms, generate-params: 0.1ms, application-code: 3.1s)
+ GET /teacher/classes 200 in 5.3s (next.js: 942ms, proxy.ts: 1447ms, generate-params: 0.1ms, application-code: 2.9s)
+ GET /teacher/classes 200 in 3.0s (next.js: 18ms, proxy.ts: 129ms, generate-params: 20ms, application-code: 2.8s)
+ GET /teacher/classes 200 in 10.0s (next.js: 17ms, proxy.ts: 141ms, generate-params: 17ms, application-code: 9.8s)
+ GET /teacher/classes 200 in 13.0s (next.js: 17ms, proxy.ts: 1194ms, generate-params: 0.1ms, application-code: 11.8s)
+ GET /teacher/classes 200 in 9.7s (next.js: 16ms, proxy.ts: 155ms, generate-params: 0.1ms, application-code: 9.5s)
+ GET /teacher/classes 200 in 10.5s (next.js: 20ms, proxy.ts: 234ms, generate-params: 0.1ms, application-code: 10.2s)
+ GET /teacher/classes 200 in 9.4s (next.js: 17ms, proxy.ts: 113ms, generate-params: 0.1ms, application-code: 9.2s)
+ GET /teacher/classes 200 in 11.2s (next.js: 18ms, proxy.ts: 470ms, generate-params: 0.1ms, application-code: 10.7s)
+ GET /teacher/classes 200 in 2.5s (next.js: 21ms, proxy.ts: 256ms, generate-params: 0.1ms, application-code: 2.2s)
+⨯ Error: The destination stream closed early.
+    at ignore-listed frames {
+  digest: '2171876804'
+}
+ GET /teacher/classes 200 in 4.1s (next.js: 186ms, proxy.ts: 40ms, generate-params: 0.2ms, application-code: 3.8s)
+ GET /manifest.webmanifest 200 in 138ms (next.js: 108ms, application-code: 30ms)
+ GET /teacher/classes 200 in 4.2s (next.js: 24ms, proxy.ts: 40ms, generate-params: 19ms, application-code: 4.2s)
+ GET / 200 in 4.1s (next.js: 126ms, proxy.ts: 13ms, generate-params: 18ms, application-code: 3.9s)
+ GET /classes 200 in 1874ms (next.js: 26ms, proxy.ts: 12ms, generate-params: 11ms, application-code: 1825ms)
+ GET /about 200 in 1174ms (next.js: 77ms, proxy.ts: 10ms, generate-params: 13ms, application-code: 1074ms)
+ GET /contact 200 in 1244ms (next.js: 243ms, proxy.ts: 74ms, generate-params: 289ms, application-code: 639ms)
+ GET /terms 200 in 912ms (next.js: 78ms, proxy.ts: 17ms, generate-params: 18ms, application-code: 799ms)
+ GET /login 200 in 388ms (next.js: 21ms, proxy.ts: 15ms, generate-params: 18ms, application-code: 335ms)
+ GET /register 200 in 442ms (next.js: 32ms, proxy.ts: 37ms, generate-params: 16ms, application-code: 357ms)
+✓ Compiled in 1185ms
+✓ Compiled in 855ms
+ GET /teacher/classes 200 in 4.4s (next.js: 48ms, proxy.ts: 71ms, generate-params: 20ms, application-code: 4.3s)
+ GET /manifest.webmanifest 200 in 80ms (next.js: 57ms, application-code: 23ms)
+○ Compiling /[locale]/teacher/calendar ...
+ GET /teacher/calendar 200 in 10.2s (next.js: 4.8s, proxy.ts: 25ms, generate-params: 3.2s, application-code: 2.2s)
+ GET /teacher/grades 200 in 6.8s (next.js: 1148ms, proxy.ts: 37ms, generate-params: 3.5s, application-code: 2.1s)
+ GET /manifest.webmanifest 200 in 48ms (next.js: 15ms, application-code: 33ms)
+○ Compiling /[locale]/teacher/status ...
+ GET /teacher/status 200 in 12.7s (next.js: 3.2s, proxy.ts: 24ms, generate-params: 3.4s, application-code: 6.1s)
+ GET /teacher/corrections 200 in 13.5s (next.js: 2.3s, proxy.ts: 46ms, generate-params: 4.6s, application-code: 6.6s)
+⨯ Error: The destination stream closed early.
+    at ignore-listed frames {
+  digest: '2171876804'
+}
+ GET /teacher/grades 200 in 8.9s (next.js: 40ms, proxy.ts: 418ms, generate-params: 33ms, application-code: 8.5s)
+ GET /manifest.webmanifest 200 in 29ms (next.js: 14ms, application-code: 14ms)
+✓ Compiled in 1025ms
+ GET /teacher/grades 200 in 3.6s (next.js: 27ms, proxy.ts: 29ms, generate-params: 14ms, application-code: 3.5s)
+ GET /manifest.webmanifest 200 in 42ms (next.js: 15ms, application-code: 27ms)
+ GET /teacher/classes 200 in 1523ms (next.js: 86ms, proxy.ts: 30ms, generate-params: 15ms, application-code: 1393ms)
+ GET /manifest.webmanifest 200 in 21ms (next.js: 6ms, application-code: 14ms)
+ GET /teacher/calendar 200 in 2.0s (next.js: 132ms, proxy.ts: 38ms, generate-params: 20ms, application-code: 1825ms)
+ GET /manifest.webmanifest 200 in 37ms (next.js: 11ms, application-code: 26ms)
+ GET /teacher/corrections 200 in 2.5s (next.js: 155ms, proxy.ts: 38ms, generate-params: 15ms, application-code: 2.3s)
+ GET /manifest.webmanifest 200 in 35ms (next.js: 9ms, application-code: 27ms)
+ GET /manifest.webmanifest 200 in 32ms (next.js: 13ms, application-code: 19ms)
+○ Compiling /[locale]/teacher/dashboard ...
+ GET /teacher/dashboard 200 in 11.5s (next.js: 3.2s, proxy.ts: 45ms, generate-params: 3.9s, application-code: 4.4s)
+ GET /manifest.webmanifest 200 in 31ms (next.js: 15ms, application-code: 15ms)
+ GET /teacher/dashboard 200 in 5.7s (next.js: 22ms, proxy.ts: 23ms, generate-params: 19ms, application-code: 5.6s)
+ GET /manifest.webmanifest 200 in 31ms (next.js: 19ms, application-code: 11ms)
+✓ Compiled in 1598ms
+✓ Compiled in 1306ms
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ GET /manifest.webmanifest 200 in 43ms (next.js: 34ms, application-code: 8ms)
+ GET /teacher/dashboard 200 in 4.6s (next.js: 31ms, proxy.ts: 122ms, generate-params: 16ms, application-code: 4.4s)
+ GET /manifest.webmanifest 200 in 13ms (next.js: 5ms, application-code: 8ms)
+✓ Compiled in 819ms
+ GET /teacher/dashboard 200 in 1879ms (next.js: 21ms, proxy.ts: 25ms, generate-params: 12ms, application-code: 1821ms)
+ GET /manifest.webmanifest 200 in 18ms (next.js: 7ms, application-code: 12ms)
+✓ Compiled in 2.3s
+⨯ ReferenceError: CommandPalette is not defined
+    at RootLayout (src\app\[locale]\layout.tsx:92:12)
+  90 |         </a>
+  91 |         <NextIntlClientProvider messages={clientMessages}>
+> 92 |           <CommandPalette currentRole={session?.user?.role} />
+     |            ^
+  93 |           {children}
+  94 |           {/* Structured data organisasi: sinyal mesin pencari bahwa ini entitas
+  95 |               pendidikan nyata di alamat tetap, bukan situs tanpa identitas. */} {
+  digest: '3411741191'
+}
+ GET /teacher/dashboard 200 in 4.7s (next.js: 46ms, proxy.ts: 18ms, generate-params: 12ms, application-code: 4.6s)
+⨯ ReferenceError: CommandPalette is not defined
+    at RootLayout (src\app\[locale]\layout.tsx:93:12)
+  91 |         </a>
+  92 |         <NextIntlClientProvider messages={clientMessages}>
+> 93 |           <CommandPalette currentRole={session?.user?.role} />
+     |            ^
+  94 |           {children}
+  95 |           {/* Structured data organisasi: sinyal mesin pencari bahwa ini entitas
+  96 |               pendidikan nyata di alamat tetap, bukan situs tanpa identitas. */} {
+  digest: '1171145097'
+}
+ GET /manifest.webmanifest 200 in 34ms (next.js: 17ms, application-code: 17ms)
+ GET /teacher/dashboard 500 in 3.2s (next.js: 111ms, proxy.ts: 43ms, generate-params: 20ms, application-code: 3.0s)
+ GET /teacher/dashboard 200 in 3.4s (next.js: 58ms, proxy.ts: 41ms, generate-params: 21ms, application-code: 3.3s)
+ GET /manifest.webmanifest 200 in 70ms (next.js: 38ms, application-code: 32ms)
+⨯ Error: timeout exceeded when trying to connect
+    at async PostgresPoolDriverImpl.acquireClient (3-targets\7-drivers\postgres\dist\runtime.mjs:463:41)
+    at async PostgresPoolDriverImpl.runQuery (3-targets\7-drivers\postgres\dist\runtime.mjs:256:18)
+    at async PostgresPoolDriverImpl.query (3-targets\7-drivers\postgres\dist\runtime.mjs:171:5)
+    at async iterator (1-framework\1-core\framework-components\dist\runtime.mjs:439:21)
+    at async PostgresRuntimeImpl.streamRows (2-sql\5-runtime\dist\exports-BDzGy_bM.mjs:1424:19)
+    at async generator (2-sql\5-runtime\dist\exports-BDzGy_bM.mjs:1489:4)
+    at async generator (3-extensions\sql-orm-client\dist\index.mjs:557:20)
+    at async collect (src\lib\collect.ts:4:20)
+    at async TeacherLayout (src\app\[locale]\(teacher)\layout.tsx:32:46)
+  461 | 	}
+  462 | 	async acquireClient() {
+> 463 | 		return suppressIdleConnectionErrors$1(await this.pool.connect());
+      |                                       ^
+  464 | 	}
+  465 | 	async releaseClient(client) {
+  466 | 		client.release(); {
+  digest: '3720681864'
+}
+⨯ Error: timeout exceeded when trying to connect
+    at async PostgresPoolDriverImpl.acquireClient (3-targets\7-drivers\postgres\dist\runtime.mjs:463:41)
+    at async PostgresPoolDriverImpl.runQuery (3-targets\7-drivers\postgres\dist\runtime.mjs:256:18)
+    at async PostgresPoolDriverImpl.query (3-targets\7-drivers\postgres\dist\runtime.mjs:171:5)
+    at async iterator (1-framework\1-core\framework-components\dist\runtime.mjs:439:21)
+    at async PostgresRuntimeImpl.streamRows (2-sql\5-runtime\dist\exports-BDzGy_bM.mjs:1424:19)
+    at async generator (2-sql\5-runtime\dist\exports-BDzGy_bM.mjs:1489:4)
+    at async generator (3-extensions\sql-orm-client\dist\index.mjs:557:20)
+    at async collect (src\lib\collect.ts:4:20)
+    at async TeacherDashboard (src\app\[locale]\(teacher)\teacher\dashboard\page.tsx:52:84)
+  461 | 	}
+  462 | 	async acquireClient() {
+> 463 | 		return suppressIdleConnectionErrors$1(await this.pool.connect());
+      |                                       ^
+  464 | 	}
+  465 | 	async releaseClient(client) {
+  466 | 		client.release(); {
+  digest: '1780328106'
+}
+ GET /teacher/dashboard 200 in 29.5s (next.js: 12ms, proxy.ts: 15ms, generate-params: 12ms, application-code: 29.5s)
+[browser] Uncaught Error: timeout exceeded when trying to connect
+    at collect (src\lib\collect.ts:4:20)
+    at Promise.all (<anonymous>:1:20)
+    at TeacherLayout (src\app\[locale]\(teacher)\layout.tsx:32:46)
+  2 | export async function collect<T>(src: AsyncIterable<T>): Promise<T[]> {
+  3 |   const out: T[] = [];
+> 4 |   for await (const r of src) out.push(r);
+    |                    ^
+  5 |   return out;
+  6 | }
+  7 |
+ GET /teacher/dashboard 200 in 28.3s (next.js: 20ms, proxy.ts: 36ms, generate-params: 16ms, application-code: 28.3s)
+ GET /manifest.webmanifest 200 in 77ms (next.js: 57ms, application-code: 19ms)

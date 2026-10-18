@@ -278,7 +278,7 @@ export function PenilaianForm({
             onChange={(e) => setNilaiMaksimum(e.target.value)}
             className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
           />
-          <p className="mt-0.5 text-[11px] text-slate-400">{t("maxScoreHelp")}</p>
+          <p className="mt-0.5 text-[11px] text-slate-600">{t("maxScoreHelp")}</p>
         </div>
       </div>
 
@@ -331,10 +331,9 @@ export function PenilaianForm({
                         disabled={cur.statusHasil !== "dinilai"}
                         value={cur.nilai}
                         onChange={(e) => handleNilaiChange(s.pendaftaranId, e.target.value)}
-                        placeholder="—"
-                        className="w-20 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm tabular-nums text-slate-900 outline-none disabled:bg-slate-100 disabled:text-slate-400 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
+                        className="w-20 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm tabular-nums text-slate-900 outline-none disabled:bg-slate-100 disabled:text-slate-600 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
                       />
-                      <span className="text-xs text-slate-400">/ {nilaiMaksimum}</span>
+                      <span className="text-xs text-slate-600">/ {nilaiMaksimum}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 sm:px-6">

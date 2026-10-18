@@ -99,7 +99,7 @@ export default async function AdminRefunds({
               name="cari"
               defaultValue={cari ?? ""}
               placeholder={t("text165")}
-              className="h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 sm:w-64"
+              className="h-9 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 sm:w-64"
             />
             <Button type="submit" variant="outline" size="sm">{t("text166")} </Button>
           </form>
@@ -112,7 +112,7 @@ export default async function AdminRefunds({
           {tampil.length === 0 ? (
             <div className="flex flex-col items-center px-4 py-12 text-center sm:px-6 sm:py-16">
               <span className={`grid size-12 place-items-center rounded-full ${tampilkanRiwayat ? "bg-slate-100" : "bg-emerald-50"}`}>
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`size-6 ${tampilkanRiwayat ? "text-slate-400" : "text-emerald-600"}`}>
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`size-6 ${tampilkanRiwayat ? "text-slate-600" : "text-emerald-600"}`}>
                   <circle cx="12" cy="12" r="9" />
                   <path d="m8.5 12.5 2.5 2.5 4.5-5.5" />
                 </svg>
@@ -146,13 +146,13 @@ export default async function AdminRefunds({
                       <span className="min-w-0 flex-1">
                         <span className="flex items-baseline justify-between gap-2">
                           <span className="truncate text-sm font-bold text-slate-900">{i.anakNama}</span>
-                          <span className="flex-shrink-0 text-xs tabular-nums text-slate-400">{fmtTanggal(q.createdAt)}</span>
+                          <span className="flex-shrink-0 text-xs tabular-nums text-slate-600">{fmtTanggal(q.createdAt)}</span>
                         </span>
                         <span className="mt-0.5 block truncate text-xs text-slate-500">
                           {i.kelasLabel} · {labelKategoriBatal(i.kategori)}
                           {i.nominal > 0 ? t("invoiceAmount", { amount: rupiah(i.nominal) }) : ""}
                         </span>
-                        <span className="mt-1 block line-clamp-1 text-xs text-slate-400">{i.alasan}</span>
+                        <span className="mt-1 block line-clamp-1 text-xs text-slate-600">{i.alasan}</span>
                       </span>
                       {q.status !== "menunggu" ? (
                         <Badge tone={q.status === "disetujui" ? "emerald" : "red"}>{labelPembatalan(q.status)}</Badge>
@@ -182,7 +182,7 @@ export default async function AdminRefunds({
                     {/* Satu baris panjang di HP membuat teks sesak; uraikan per bagian. */}
                     <p className="mt-1 text-xs leading-relaxed text-slate-500">
                       {t("requestSubmitted", { className: i.kelasLabel, date: fmtTanggal(selected.createdAt) })}
-                      <span className="mt-0.5 block text-slate-400">
+                      <span className="mt-0.5 block text-slate-600">
                         {t("requestIds", { requestId: selected.id, enrollmentId: selected.pendaftaranId })}
                       </span>
                     </p>
@@ -214,14 +214,14 @@ export default async function AdminRefunds({
                             required
                             maxLength={500}
                             placeholder={t("text179")}
-                            className="mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                            className="mt-1.5 w-full rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
                           />
                         </label>
                         <div className="flex gap-2">
                           <Button type="submit" name="keputusan" value="disetujui" className="flex-1 bg-emerald-600 hover:bg-emerald-700">{t("text180")} </Button>
                           <Button type="submit" name="keputusan" value="ditolak" variant="outline" className="flex-1 border-rose-200 text-rose-700 hover:bg-rose-50">{t("text181")} </Button>
                         </div>
-                        <p className="text-xs leading-relaxed text-slate-400">{t("text182")} </p>
+                        <p className="text-xs leading-relaxed text-slate-600">{t("text182")} </p>
                       </form>
                     ) : (
                       <div className="rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm">
@@ -233,7 +233,7 @@ export default async function AdminRefunds({
                         {selected.catatanAdmin ? (
                           <p className="mt-1 whitespace-pre-line text-slate-600">{selected.catatanAdmin}</p>
                         ) : (
-                          <p className="mt-1 text-slate-400">{t("text183")}</p>
+                          <p className="mt-1 text-slate-600">{t("text183")}</p>
                         )}
                       </div>
                     )}

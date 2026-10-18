@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { useScroll, useTransform, motion } from "motion/react";
+import {
+  useScroll,
+  useTransform,
+  useMotionValueEvent,
+  motion,
+  type MotionValue,
+} from "motion/react";
 import { ArrowRight, Check, X } from "lucide-react";
 
 interface BandingRow {
@@ -18,6 +24,185 @@ interface TransformasiTimelineProps {
   rows: BandingRow[];
 }
 
+interface TimelineRowProps {
+  item: BandingRow;
+  index: number;
+  heightTransform: MotionValue<number>;
+  targetTop: number;
+  dotRef: (el: HTMLDivElement | null) => void;
+  isReducedMotion: boolean;
+}
+
+function TimelineRow({
+  item,
+  index,
+  heightTransform,
+  targetTop,
+  dotRef,
+  isReducedMotion,
+}: TimelineRowProps) {
+  const [isActive, setIsActive] = useState(() => {
+    return isReducedMotion || (targetTop > 0 && heightTransform.get() >= targetTop);
+  });
+
+  useEffect(() => {
+    setIsActive(isReducedMotion || (targetTop > 0 && heightTransform.get() >= targetTop));
+  }, [targetTop, heightTransform, isReducedMotion]);
+
+  useMotionValueEvent(heightTransform, "change", (latest) => {
+    if (isReducedMotion) {
+      setIsActive(true);
+      return;
+    }
+    setIsActive(targetTop > 0 && latest >= targetTop);
+  });
+
+  return (
+    <div className="flex justify-start pt-8 sm:pt-10 md:pt-12 lg:pt-14 md:gap-8 lg:gap-12 first:pt-0">
+      {/* Sticky Node & Aspek Label di Desktop */}
+      <div className="sticky flex flex-col md:flex-row z-30 items-center top-32 sm:top-36 self-start w-auto md:w-56 lg:w-64 shrink-0">
+        {/* Dot Circle: left-0 di container, size-9 (36px) sm:size-10 (40px)
+            Sebelum tersentuh garis biru: dot abu-abu (bg-slate-300).
+            Setelah tersentuh garis biru: dot berubah menjadi biru (bg-blue-600) + ring glow biru halus + ripple ping */}
+        <div
+          ref={dotRef}
+          className={`absolute left-0 size-9 sm:size-10 rounded-full bg-white flex items-center justify-center border shadow-xs ring-4 transition-all duration-300 ease-out ${
+            isActive
+              ? "border-blue-400 ring-blue-100/90 shadow-blue-100"
+              : "border-slate-200 ring-slate-100/90"
+          }`}
+        >
+          {/* Ripple pulse saat dot aktif */}
+          {isActive && !isReducedMotion && (
+            <span
+              className="pointer-events-none absolute inset-0 rounded-full bg-blue-500/25 animate-ping"
+              style={{ animationIterationCount: 1, animationDuration: "0.8s" }}
+            />
+          )}
+
+          <div
+            className={`size-3.5 sm:size-4 rounded-full shadow-xs transition-all duration-300 ease-out ${
+              isActive
+                ? "bg-blue-600 scale-100 ring-2 ring-blue-400/40"
+                : "bg-slate-300 scale-90"
+            }`}
+          />
+        </div>
+
+        {/* Aspek Label Desktop — lurus setelah node */}
+        <div className="hidden md:block md:pl-14 lg:md:pl-16">
+          <span
+            className={`text-xs font-bold uppercase tracking-widest transition-colors duration-300 ${
+              isActive ? "text-brand" : "text-muted"
+            }`}
+          >
+            Aspek {index + 1}
+          </span>
+          <h3 className="text-lg lg:text-xl font-bold tracking-tight text-foreground mt-0.5">
+            {item.aspek}
+          </h3>
+        </div>
+      </div>
+
+      {/* Content Column: di mobile pl-13 agar tidak menabrak dot di left-0 */}
+      <div className="relative pl-13 sm:pl-14 md:pl-0 w-full min-w-0">
+        {/* Aspek Label Mobile */}
+        <div className="md:hidden mb-3">
+          <span
+            className={`text-xs font-bold uppercase tracking-wider transition-colors duration-300 ${
+              isActive ? "text-brand" : "text-muted"
+            }`}
+          >
+            Aspek {index + 1} &bull; {item.aspek}
+          </span>
+        </div>
+
+        {/* Comparison Content — Sequential Contrast & Strikethrough Sweep (Frameless & Clean) */}
+        <div className="space-y-4 sm:space-y-5 pb-8 sm:pb-10 lg:pb-12 border-b border-slate-200/70 last:border-b-0">
+          {/* 1. Cara lama — Ikon persis di samping label, teks rapi di bawahnya */}
+          <div className="group transition-all duration-400 ease-out motion-reduce:transition-none">
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <span
+                aria-hidden="true"
+                className={`flex size-5 sm:size-5.5 shrink-0 items-center justify-center rounded-full border transition-all duration-400 ${
+                  isActive
+                    ? "bg-slate-100 text-slate-400 border-slate-200/60 scale-95"
+                    : "bg-rose-50 text-rose-500 border-rose-200/80 scale-100 shadow-2xs shadow-rose-500/5"
+                }`}
+              >
+                <X className="size-3 sm:size-3.5" aria-hidden="true" />
+              </span>
+              <span
+                className={`text-xs font-semibold uppercase tracking-wider transition-colors duration-400 ${
+                  isActive ? "text-slate-400" : "text-rose-600/90"
+                }`}
+              >
+                Cara lama
+              </span>
+            </div>
+
+            <p
+              className={`mt-1.5 sm:mt-2 text-base sm:text-lg lg:text-xl font-medium leading-relaxed transition-all duration-500 ease-out line-through ${
+                isActive
+                  ? "text-slate-400 decoration-rose-400/80 decoration-2"
+                  : "text-slate-700 decoration-transparent"
+              }`}
+            >
+              {item.lama}
+            </p>
+          </div>
+
+          {/* 2. Siedu — Ikon persis di samping label, teks rapi di bawahnya */}
+          <div
+            className={`transition-all duration-500 ease-out motion-reduce:transition-none motion-reduce:transform-none ${
+              isActive
+                ? "translate-y-0 opacity-100 delay-100"
+                : "translate-y-1.5 opacity-40 hover:opacity-75"
+            }`}
+          >
+            <div className="flex items-center gap-2 sm:gap-2.5">
+              <span
+                aria-hidden="true"
+                className={`flex size-5 sm:size-5.5 shrink-0 items-center justify-center rounded-full transition-all duration-500 ${
+                  isActive
+                    ? "bg-blue-100 text-brand ring-4 ring-blue-100/90 shadow-sm shadow-blue-500/10 scale-100"
+                    : "bg-slate-100 text-slate-400 scale-90 ring-0"
+                }`}
+              >
+                <Check className="size-3 sm:size-3.5 stroke-[3]" aria-hidden="true" />
+              </span>
+              <span
+                className={`text-xs font-bold uppercase tracking-wider transition-colors duration-300 ${
+                  isActive ? "text-brand" : "text-slate-400"
+                }`}
+              >
+                Siedu
+              </span>
+            </div>
+
+            {/* Teks Penjelas: dengan tanda panah kuning/amber beranimasi maju */}
+            <div className="mt-1.5 sm:mt-2 flex items-start gap-2.5 sm:gap-3">
+              <ArrowRight
+                className={`mt-1 size-4 sm:size-5 shrink-0 text-amber-500 transition-all duration-300 ${
+                  isActive ? "translate-x-1 opacity-100" : "translate-x-0 opacity-50"
+                }`}
+                aria-hidden="true"
+              />
+              <p
+                className={`text-base sm:text-lg lg:text-xl font-bold leading-snug tracking-tight transition-colors duration-300 ${
+                  isActive ? "text-foreground" : "text-slate-400"
+                }`}
+              >
+                {item.baru}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function TransformasiTimeline({
   titleBefore,
   titleHighlight,
@@ -27,28 +212,50 @@ export default function TransformasiTimeline({
 }: TransformasiTimelineProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [height, setHeight] = useState(0);
+  const [dotTops, setDotTops] = useState<number[]>([]);
+  const [isReducedMotion, setIsReducedMotion] = useState(false);
 
   useEffect(() => {
-    const updateHeight = () => {
+    if (typeof window !== "undefined") {
+      setIsReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+    }
+  }, []);
+
+  useEffect(() => {
+    const updateMeasurements = () => {
       if (ref.current) {
-        const rect = ref.current.getBoundingClientRect();
-        setHeight(rect.height);
+        const containerRect = ref.current.getBoundingClientRect();
+        setHeight(containerRect.height);
+
+        const tops = dotRefs.current.map((dotEl) => {
+          if (!dotEl || !ref.current) return 0;
+          let offsetTop = 0;
+          let curr: HTMLElement | null = dotEl;
+          while (curr && curr !== ref.current) {
+            offsetTop += curr.offsetTop;
+            curr = curr.offsetParent as HTMLElement | null;
+          }
+          // Titik sentuh: saat garis biru menyentuh bagian atas/tengah dot
+          return offsetTop > 0 ? offsetTop + 6 : dotEl.getBoundingClientRect().top - containerRect.top + 6;
+        });
+        setDotTops(tops);
       }
     };
 
-    updateHeight();
-    window.addEventListener("resize", updateHeight);
+    updateMeasurements();
+    window.addEventListener("resize", updateMeasurements);
 
     const resizeObserver = new ResizeObserver(() => {
-      updateHeight();
+      updateMeasurements();
     });
     if (ref.current) {
       resizeObserver.observe(ref.current);
     }
 
     return () => {
-      window.removeEventListener("resize", updateHeight);
+      window.removeEventListener("resize", updateMeasurements);
       resizeObserver.disconnect();
     };
   }, []);
@@ -65,20 +272,20 @@ export default function TransformasiTimeline({
     <div
       id="evolusi"
       ref={containerRef}
-      className="relative w-full border-y border-slate-100 bg-slate-50/70 py-16 sm:py-24 lg:py-32"
+      className="relative w-full border-y border-slate-100 bg-slate-50/70 py-14 sm:py-18 lg:py-24"
     >
       {/* Container utama menyamakan persis padding Section halaman (max-w-7xl px-4 sm:px-6 lg:px-8) */}
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header Section — lurus rata kiri dengan grid konten */}
-        <div className="max-w-2xl mb-12 sm:mb-16 lg:mb-20">
-          <p className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">
+        <div className="max-w-2xl mb-10 sm:mb-12 lg:mb-14">
+          <p className="text-xs font-semibold uppercase tracking-widest text-brand mb-2.5">
             {kicker}
           </p>
-          <h2 className="text-balance text-2xl font-black leading-[1.15] tracking-tight text-[#0f235f] sm:text-3xl lg:text-4xl">
+          <h2 className="text-balance text-3xl sm:text-4xl font-bold leading-[1.15] tracking-tight text-foreground">
             {titleBefore}{" "}
-            <span className="text-blue-600">{titleHighlight}</span>
+            <span className="text-brand">{titleHighlight}</span>
           </h2>
-          <p className="mt-4 text-sm leading-relaxed text-slate-500 sm:text-base">
+          <p className="mt-4 text-sm sm:text-base leading-relaxed text-muted">
             {lead}
           </p>
         </div>
@@ -86,80 +293,17 @@ export default function TransformasiTimeline({
         {/* Timeline Container — batas kiri & kanan lurus dengan header */}
         <div ref={ref} className="relative pb-12">
           {rows.map((item, index) => (
-            <div
+            <TimelineRow
               key={index}
-              className="flex justify-start pt-10 md:pt-18 lg:pt-20 md:gap-8 lg:gap-12 first:pt-0"
-            >
-              {/* Sticky Node & Aspek Label di Desktop */}
-              <div className="sticky flex flex-col md:flex-row z-30 items-center top-36 sm:top-40 self-start w-auto md:w-56 lg:w-64 shrink-0">
-                {/* Dot Circle: left-0 di container, size-9 (36px) sm:size-10 (40px) */}
-                <div className="absolute left-0 size-9 sm:size-10 rounded-full bg-white flex items-center justify-center border border-slate-200 shadow-xs ring-4 ring-slate-100/90">
-                  <div className="size-3.5 sm:size-4 rounded-full bg-blue-600 shadow-xs" />
-                </div>
-
-                {/* Aspek Label Desktop — lurus setelah node */}
-                <div className="hidden md:block md:pl-14 lg:md:pl-16">
-                  <span className="text-xs font-bold uppercase tracking-widest text-blue-600">
-                    Aspek {index + 1}
-                  </span>
-                  <h3 className="text-lg lg:text-xl font-black tracking-tight text-[#0f235f] mt-0.5">
-                    {item.aspek}
-                  </h3>
-                </div>
-              </div>
-
-              {/* Content Column: di mobile pl-13 agar tidak menabrak dot di left-0 */}
-              <div className="relative pl-13 sm:pl-14 md:pl-0 w-full min-w-0">
-                {/* Aspek Label Mobile */}
-                <div className="md:hidden mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-                    Aspek {index + 1} &bull; {item.aspek}
-                  </span>
-                </div>
-
-                {/* Clean Comparison Content */}
-                <div className="space-y-5 sm:space-y-6 pb-12 sm:pb-16 border-b border-slate-200/70 last:border-b-0">
-                  {/* Cara lama */}
-                  <div className="group flex items-start gap-3 sm:gap-4">
-                    <span
-                      aria-hidden="true"
-                      className="mt-1 flex size-5 sm:size-6 shrink-0 items-center justify-center rounded-full bg-slate-200/80 text-slate-400"
-                    >
-                      <X className="size-3 sm:size-3.5" aria-hidden="true" />
-                    </span>
-                    <div className="min-w-0">
-                      <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        Cara lama
-                      </span>
-                      <p className="mt-1 text-base font-medium leading-relaxed text-slate-400 line-through decoration-slate-300 sm:text-lg lg:text-xl">
-                        {item.lama}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Siedu */}
-                  <div className="flex items-start gap-3 sm:gap-4">
-                    <span
-                      aria-hidden="true"
-                      className="mt-1 flex size-5 sm:size-6 shrink-0 items-center justify-center rounded-full bg-blue-100 text-blue-600"
-                    >
-                      <Check className="size-3 sm:size-3.5 stroke-[3]" aria-hidden="true" />
-                    </span>
-                    <div className="min-w-0">
-                      <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
-                        Siedu
-                      </span>
-                      <div className="mt-1 flex items-start gap-2.5 sm:gap-3">
-                        <ArrowRight className="mt-1 size-4 sm:size-5 shrink-0 text-amber-500" aria-hidden="true" />
-                        <p className="text-lg font-black leading-snug tracking-tight text-[#0f235f] sm:text-xl lg:text-2xl xl:text-[1.75rem]">
-                          {item.baru}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+              item={item}
+              index={index}
+              heightTransform={heightTransform}
+              targetTop={dotTops[index] || 0}
+              dotRef={(el) => {
+                dotRefs.current[index] = el;
+              }}
+              isReducedMotion={isReducedMotion}
+            />
           ))}
 
           {/* Vertical Timeline Guide & Animated Scroll Line:

@@ -196,7 +196,7 @@ export function TeacherScheduleWidget({
               type="button"
               onClick={handlePrevMonth}
               aria-label="Bulan sebelumnya"
-              className="grid size-7 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
+              className="grid size-7 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
             >
               <ChevronLeft className="size-4" />
             </button>
@@ -217,7 +217,7 @@ export function TeacherScheduleWidget({
               type="button"
               onClick={handleNextMonth}
               aria-label="Bulan berikutnya"
-              className="grid size-7 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
+              className="grid size-7 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
             >
               <ChevronRight className="size-4" />
             </button>
@@ -230,7 +230,7 @@ export function TeacherScheduleWidget({
             <div
               key={idx}
               className={`text-[11px] font-bold ${
-                idx === 0 ? 'text-rose-400' : 'text-slate-400'
+                idx === 0 ? 'text-rose-400' : 'text-slate-600'
               }`}
             >
               {day}
@@ -256,7 +256,7 @@ export function TeacherScheduleWidget({
                     ? 'bg-blue-50 text-blue-600 font-bold ring-1 ring-blue-200'
                     : item.isCurrentMonth
                     ? 'text-slate-700 hover:bg-slate-50'
-                    : 'text-slate-300 hover:text-slate-400'
+                    : 'text-slate-300 hover:text-slate-600'
                 }`}
               >
                 <span>{item.dayNum}</span>
@@ -315,7 +315,7 @@ export function TeacherScheduleWidget({
                   {/* Time + Jenjang Badge */}
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
-                      <Clock className="size-3.5 text-slate-400" />
+                      <Clock className="size-3.5 text-slate-600" />
                       {session.jamMulai} - {session.jamSelesai} WIB
                     </span>
                     <span
@@ -339,14 +339,14 @@ export function TeacherScheduleWidget({
                   <div className="pt-1 flex items-center justify-between gap-2">
                     {isToday ? (
                       isAttendanceDone ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-lg">
-                          <Check className="size-3 stroke-[2.5]" />
-                          Presensi Selesai ({session.terisiCount}/{session.totalSiswa})
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+                          <Check className="size-3.5 stroke-[2.5]" />
+                          <span>Presensi Selesai ({session.terisiCount}/{session.totalSiswa})</span>
                         </span>
                       ) : (
                         <Link
                           href={`/teacher/classes/${session.kelasId}/sessions/${selectedDate}/attendance`}
-                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#f26d0f] hover:bg-[#d95f09] px-3 py-1.5 text-xs font-bold text-white shadow-xs active:scale-[0.98] transition-all cursor-pointer"
+                          className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl bg-[#c2410c] hover:bg-[#9a3412] px-3 py-1.5 text-xs font-bold text-white shadow-xs active:scale-[0.98] transition-all cursor-pointer"
                         >
                           <ClipboardCheck className="size-3.5" />
                           <span>Catat Presensi</span>
@@ -354,21 +354,21 @@ export function TeacherScheduleWidget({
                       )
                     ) : isPast ? (
                       isAttendanceDone ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
-                          <Check className="size-3 stroke-[2.5]" />
-                          Selesai ({session.terisiCount}/{session.totalSiswa})
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+                          <Check className="size-3.5 stroke-[2.5]" />
+                          <span>Selesai ({session.terisiCount}/{session.totalSiswa})</span>
                         </span>
                       ) : (
                         <Link
                           href={`/teacher/classes/${session.kelasId}/sessions/${selectedDate}/attendance`}
-                          className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-lg hover:bg-amber-100 transition-colors"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 hover:text-amber-800 hover:underline transition-colors"
                         >
-                          <ClipboardCheck className="size-3" />
-                          Belum Presensi
+                          <ClipboardCheck className="size-3.5" />
+                          <span>Belum Presensi</span>
                         </Link>
                       )
                     ) : (
-                      <span className="text-[11px] font-semibold text-slate-400">
+                      <span className="text-xs font-medium text-slate-600">
                         Terjadwal
                       </span>
                     )}
@@ -380,13 +380,13 @@ export function TeacherScheduleWidget({
         ) : (
           /* Empty state for selected date */
           <div className="flex flex-col items-center justify-center py-6 text-center">
-            <div className="grid size-12 place-items-center rounded-2xl bg-slate-50 text-slate-400 mb-2">
+            <div className="grid size-12 place-items-center rounded-2xl bg-slate-50 text-slate-600 mb-2">
               <CalendarIcon className="size-6 stroke-[1.5]" />
             </div>
             <p className="text-xs font-bold text-slate-700">
               Tidak ada jadwal
             </p>
-            <p className="text-[11px] text-slate-400 max-w-[200px] mt-0.5">
+            <p className="text-[11px] text-slate-600 max-w-[200px] mt-0.5">
               Pilih tanggal bertanda di kalender untuk melihat sesi.
             </p>
           </div>

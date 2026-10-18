@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import type { KelasKatalog } from "@/lib/kelas";
 import { useScrollLock } from "@/lib/use-scroll-lock";
+import { matchesTingkat } from "@/lib/katalog-shared";
 
 type Props = {
   currentClassId: number;
@@ -47,28 +48,7 @@ const KELAS_PER_JENJANG: Record<string, Array<{ value: string; label: string }>>
   ],
 };
 
-function matchesTingkat(cTingkat: string | null | undefined, targetTingkat: string, jenjang: string): boolean {
-  if (!cTingkat) return false;
-  const t = cTingkat.trim().toLowerCase();
-  const target = targetTingkat.trim().toLowerCase();
-  if (t === target) return true;
 
-  // SMP: Kelas 7 <-> Kelas 1, Kelas 8 <-> Kelas 2, Kelas 9 <-> Kelas 3
-  if (jenjang.toUpperCase() === "SMP") {
-    if ((target === "kelas 7" || target === "kelas 1") && (t === "kelas 7" || t === "kelas 1" || t.includes("7") || t === "1")) return true;
-    if ((target === "kelas 8" || target === "kelas 2") && (t === "kelas 8" || t === "kelas 2" || t.includes("8") || t === "2")) return true;
-    if ((target === "kelas 9" || target === "kelas 3") && (t === "kelas 9" || t === "kelas 3" || t.includes("9") || t === "3")) return true;
-  }
-
-  // SMA: Kelas 10 <-> Kelas 1, Kelas 11 <-> Kelas 2, Kelas 12 <-> Kelas 3
-  if (jenjang.toUpperCase() === "SMA") {
-    if ((target === "kelas 10" || target === "kelas 1") && (t === "kelas 10" || t === "kelas 1" || t.includes("10") || t === "1")) return true;
-    if ((target === "kelas 11" || target === "kelas 2") && (t === "kelas 11" || t === "kelas 2" || t.includes("11") || t === "2")) return true;
-    if ((target === "kelas 12" || target === "kelas 3") && (t === "kelas 12" || t === "kelas 3" || t.includes("12") || t === "3")) return true;
-  }
-
-  return false;
-}
 
 function resolveInitialTingkat(currentTingkat: string | null | undefined, jenjang: string): string {
   const options = KELAS_PER_JENJANG[jenjang.toUpperCase()] || KELAS_PER_JENJANG.SD;
@@ -215,7 +195,7 @@ export function ModalPilihKelas({
               type="button"
               onClick={() => setIsOpen(false)}
               aria-label={tCommon("closeDialog")}
-              className="absolute top-5 right-5 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
+              className="absolute top-5 right-5 rounded-full p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
             >
               <X className="size-5" />
             </button>
@@ -276,7 +256,7 @@ export function ModalPilihKelas({
                         className="rounded-lg py-2 px-3 text-center text-sm font-medium border border-dashed border-border/70 bg-slate-50 text-slate-300 select-none cursor-not-allowed flex items-center justify-between"
                       >
                         <span>{opt.label}</span>
-                        <span className="text-[10px] text-slate-400">Belum ada</span>
+                        <span className="text-[10px] text-slate-600">Belum ada</span>
                       </div>
                     );
                   }

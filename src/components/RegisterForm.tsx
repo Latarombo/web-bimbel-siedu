@@ -59,7 +59,7 @@ const passwordRules = [
                         onChange={(e) => setDraftField('email', e.target.value)}
                         aria-invalid={errors.email ? true : undefined}
                         aria-describedby={errors.email ? 'email-error' : undefined}
-                        className="w-full px-4 py-3 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400"
+                        className="w-full px-4 py-3 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500"
                     />
                     {errors.email ? (
                         <p id="email-error" className="mt-1 text-xs text-rose-600">
@@ -93,12 +93,12 @@ const passwordRules = [
                                     .filter(Boolean)
                                     .join(' ') || undefined
                             }
-                            className="w-full px-4 py-3 pr-12 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400"
+                            className="w-full px-4 py-3 pr-12 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500"
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 -m-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 focus:outline-none cursor-pointer"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 -m-1 rounded-full text-slate-600 hover:text-slate-600 hover:bg-slate-100 focus:outline-none cursor-pointer"
                             aria-label={
                                 showPassword
                                     ? t('hidePassword')
@@ -154,7 +154,7 @@ const passwordRules = [
                                 <li
                                     key={rule.key}
                                     className={`flex items-center gap-1.5 text-xs ${
-                                        ok ? 'text-emerald-600' : 'text-slate-400'
+                                        ok ? 'text-emerald-600' : 'text-slate-600'
                                     }`}
                                 >
                                     {ok ? (
@@ -205,7 +205,7 @@ const passwordRules = [
                 <button
                     type="submit"
                     disabled={pending}
-                    className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
+                    className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-600 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
                 >
                     <span>{pending ? t('processing') : t('register')}</span>
                 </button>
@@ -217,7 +217,7 @@ const passwordRules = [
                     <div className="w-full border-t border-slate-200"></div>
                 </div>
                 <div className="relative flex justify-center">
-                    <span className="bg-white px-4 text-xs font-medium text-slate-400 tracking-wider">
+                    <span className="bg-white px-4 text-xs font-medium text-slate-600 tracking-wider">
                         {t('or')}
                     </span>
                 </div>

@@ -119,7 +119,7 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
           required
           options={lockedEntries.map((e) => ({
             value: `${e.entitas}-${e.id}`,
-            label: `[${e.entitas === "presensi" ? t("attendance") : t("grades")}] ${e.label} — ${e.ringkasan}`,
+            label: `[${e.entitas === "presensi" ? t("attendance") : t("grades")}] ${e.label} · ${e.ringkasan}`,
           }))}
           placeholder={t("selectEntryPlaceholder")}
           modalTitle={t("selectLockedEntry")}

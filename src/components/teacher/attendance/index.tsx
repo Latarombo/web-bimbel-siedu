@@ -17,6 +17,7 @@ interface TeacherAttendanceManagerProps {
     draf?: boolean;
     diterbitkanPada?: string | null;
   } | null;
+  classNameTitle?: string;
 }
 
 export function TeacherAttendanceManager({
@@ -25,6 +26,7 @@ export function TeacherAttendanceManager({
   tanggal,
   siswa,
   catatanPertemuan,
+  classNameTitle,
 }: TeacherAttendanceManagerProps) {
   const t = useTranslations('teacher');
   const [activeTab, setActiveTab] = useState<'attendance' | 'journal'>('attendance');
@@ -115,6 +117,7 @@ export function TeacherAttendanceManager({
               initialPr={catatanPertemuan?.pr ?? ''}
               isDraf={catatanPertemuan?.draf ?? true}
               diterbitkanPada={catatanPertemuan?.diterbitkanPada ?? null}
+              classNameTitle={classNameTitle}
             />
           </div>
         </section>

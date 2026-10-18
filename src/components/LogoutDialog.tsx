@@ -67,7 +67,7 @@ export default function LogoutDialog({ open, onOpenChange, userName, userEmail, 
           aria-busy={pending}
         >
           <Dialog.Close asChild>
-            <button type="button" disabled={pending} aria-label={t('close')} className="absolute right-3 top-3 grid size-10 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50">
+            <button type="button" disabled={pending} aria-label={t('close')} className="absolute right-3 top-3 grid size-10 place-items-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50">
               <X className="size-5" aria-hidden="true" />
             </button>
           </Dialog.Close>
@@ -97,7 +97,7 @@ export default function LogoutDialog({ open, onOpenChange, userName, userEmail, 
               <span role="status">{t(pending ? 'pending' : 'confirm')}</span>
             </button>
           </div>
-          <p className="mt-5 flex items-start justify-center gap-1.5 text-xs leading-5 text-slate-400">
+          <p className="mt-5 flex items-start justify-center gap-1.5 text-xs leading-5 text-slate-600">
             <Lock className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
             <span>{t(isParent ? 'parentNote' : 'note')}</span>
           </p>

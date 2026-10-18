@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useTransition } from "react";
 import Form from "next/form";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { FilterKatalogModal } from "./filter-katalog-modal";
 import { Search, ChevronDown, Loader2 } from "lucide-react";
 
@@ -30,6 +30,7 @@ type SuggestionItem = {
   id: number;
   nama: string;
   jenjang: string;
+  tingkat?: string;
   guru: string;
   periode: string;
   biayaPeriode: number;
@@ -95,6 +96,9 @@ export function KatalogFilterBar({
           q: trimmed,
           jenjang: currentJenjang,
         });
+        if (currentTingkat && currentTingkat !== "Semua") {
+          params.set("tingkat", currentTingkat);
+        }
         const res = await fetch(`/api/katalog/suggest?${params.toString()}`);
         if (res.ok) {
           const data = await res.json();
@@ -113,7 +117,7 @@ export function KatalogFilterBar({
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [searchQuery, currentJenjang]);
+  }, [searchQuery, currentJenjang, currentTingkat]);
 
   let triggerLabel = translations.selectLevelAndClass;
   if (currentJenjang !== "Semua") {
@@ -121,6 +125,8 @@ export function KatalogFilterBar({
     if (currentTingkat && currentTingkat !== "Semua") {
       triggerLabel += `, ${currentTingkat}`;
     }
+  } else if (currentTingkat && currentTingkat !== "Semua") {
+    triggerLabel = currentTingkat;
   }
 
   const handleSelectClass = (id: number) => {
@@ -139,7 +145,7 @@ export function KatalogFilterBar({
     if (currentTingkat && currentTingkat !== "Semua") params.set("tingkat", currentTingkat);
     if (currentSort !== "terbaru") params.set("sort", currentSort);
     startTransition(() => {
-      router.push(`${actionUrl}?${params.toString()}`);
+      router.push(`/classes${params.size ? `?${params.toString()}` : ""}`);
     });
   };
 
@@ -222,7 +228,7 @@ export function KatalogFilterBar({
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-foreground">
-                              {item.jenjang}
+                              {item.jenjang}{item.tingkat ? ` • ${item.tingkat}` : ""}
                             </span>
                             <span className="font-semibold text-sm text-foreground truncate group-hover:text-brand transition-colors">
                               {item.nama}

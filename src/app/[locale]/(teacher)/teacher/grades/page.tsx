@@ -181,7 +181,7 @@ export default async function TeacherGrades({
                           <span className="ml-2 font-medium text-rose-700">· {item.countTidakIkut} absen</span>
                         ) : null}
                         {item.countBelum > 0 ? (
-                          <span className="ml-2 font-medium text-slate-400">· {item.countBelum} belum</span>
+                          <span className="ml-2 font-medium text-slate-600">· {item.countBelum} belum</span>
                         ) : null}
                       </td>
                       <td className="px-4 py-3 text-right sm:px-6">
@@ -240,24 +240,38 @@ export default async function TeacherGrades({
                           </span>
                           <div>
                             <p className="font-semibold text-slate-900">{anak?.nama ?? t("childFallback", { id: p.anakId })}</p>
-                            <p className="text-xs text-slate-500 md:hidden">{k ? `${mapelById.get(k.mataPelajaranId)?.nama} · ${k.jenjang}` : "—"}</p>
-                            <p className="text-xs text-slate-500 sm:hidden">{t("lastGraded", { date: terakhir ? new Date(`${terakhir}T00:00:00+07:00`).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", { timeZone: "Asia/Jakarta" }) : "—" })}</p>
+                            <p className="text-xs text-slate-500 md:hidden">{k ? `${mapelById.get(k.mataPelajaranId)?.nama} · ${k.jenjang}` : ""}</p>
+                            {terakhir ? (
+                              <p className="text-xs text-slate-500 sm:hidden">
+                                {t("lastGraded", {
+                                  date: new Date(`${terakhir}T00:00:00+07:00`).toLocaleDateString(
+                                    locale === "en" ? "en-GB" : "id-ID",
+                                    { timeZone: "Asia/Jakarta" },
+                                  ),
+                                })}
+                              </p>
+                            ) : null}
                           </div>
                         </div>
                       </td>
                       <td className="hidden px-4 py-3 text-slate-500 md:table-cell">
-                        {k ? `${mapelById.get(k.mataPelajaranId)?.nama ?? t("class")} · ${k.jenjang}` : "—"}
+                        {k ? `${mapelById.get(k.mataPelajaranId)?.nama ?? t("class")} · ${k.jenjang}` : ""}
                       </td>
                       <td className="px-4 py-3 text-center tabular-nums text-slate-700">{jumlah}</td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-3 text-center tabular-nums">
                         {rata != null ? (
-                          <Badge tone={rata >= 75 ? "emerald" : "brand"}>{rata}</Badge>
+                          <span className="font-semibold text-slate-900">{rata}</span>
                         ) : (
-                          <span className="text-xs font-semibold text-amber-700">{t("ungraded")}</span>
+                          <span className="text-xs text-slate-600">{t("ungraded")}</span>
                         )}
                       </td>
                       <td className="hidden px-4 py-3 text-right text-xs tabular-nums text-slate-500 sm:table-cell">
-                        {terakhir ? new Date(`${terakhir}T00:00:00+07:00`).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", { timeZone: "Asia/Jakarta" }) : "—"}
+                        {terakhir
+                          ? new Date(`${terakhir}T00:00:00+07:00`).toLocaleDateString(
+                              locale === "en" ? "en-GB" : "id-ID",
+                              { timeZone: "Asia/Jakarta" },
+                            )
+                          : ""}
                       </td>
                       <td className="px-4 py-3 text-right sm:px-6">
                         <Link href={`/teacher/grades/${p.id}`} className="text-sm font-semibold text-blue-700 hover:underline">
