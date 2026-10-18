@@ -64,7 +64,7 @@ export default async function AdminDuplicateChildren() {
         cells: {
           nama: (
             <p className="font-semibold text-slate-900">
-              {a.nama} <span className="text-xs font-normal text-slate-400">{t("childIdDot", { id: a.id })}</span>
+              {a.nama} <span className="text-xs font-normal text-slate-600">{t("childIdDot", { id: a.id })}</span>
             </p>
           ),
           grup: (

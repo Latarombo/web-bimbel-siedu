@@ -246,7 +246,7 @@ export function ChildQuickViewModal({
                 {/* Tanggal Lahir & Usia */}
                 <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5 space-y-1">
                   <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                    <Calendar className="size-3.5 text-slate-400" />
+                    <Calendar className="size-3.5 text-slate-600" />
                     <span>{t('modalDobAge')}</span>
                   </div>
                   <p className="text-sm font-bold text-slate-900">
@@ -260,7 +260,7 @@ export function ChildQuickViewModal({
                 {/* Jenjang & Tingkat */}
                 <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5 space-y-1">
                   <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                    <BookOpen className="size-3.5 text-slate-400" />
+                    <BookOpen className="size-3.5 text-slate-600" />
                     <span>{t('modalLevel')}</span>
                   </div>
                   <p className="text-sm font-bold text-slate-900">
@@ -274,12 +274,12 @@ export function ChildQuickViewModal({
                 {/* Nomor Telepon */}
                 <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5 space-y-1">
                   <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                    <Phone className="size-3.5 text-slate-400" />
+                    <Phone className="size-3.5 text-slate-600" />
                     <span>{t('modalPhone')}</span>
                   </div>
                   <p className="text-sm font-bold text-slate-900 truncate">
                     {child.nomorTelepon ?? (
-                      <span className="text-slate-400 font-normal italic">
+                      <span className="text-slate-600 font-normal italic">
                         {t('modalNotSet')}
                       </span>
                     )}
@@ -289,12 +289,12 @@ export function ChildQuickViewModal({
                 {/* Email Notifikasi */}
                 <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3.5 space-y-1">
                   <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-                    <Mail className="size-3.5 text-slate-400" />
+                    <Mail className="size-3.5 text-slate-600" />
                     <span>{t('modalEmail')}</span>
                   </div>
                   <p className="text-sm font-bold text-slate-900 truncate">
                     {child.emailNotifikasi ?? (
-                      <span className="text-slate-400 font-normal italic">
+                      <span className="text-slate-600 font-normal italic">
                         {t('modalNotSet')}
                       </span>
                     )}
@@ -372,7 +372,7 @@ export function ChildQuickViewModal({
                   {child.jadwal && child.jadwal.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                        <Clock className="size-3.5 text-slate-400" />
+                        <Clock className="size-3.5 text-slate-600" />
                         {t('modalClassSchedule')}
                       </h4>
                       <div className="grid grid-cols-1 gap-2">
@@ -429,7 +429,7 @@ export function ChildQuickViewModal({
                 </div>
               ) : (
                 <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 p-8 text-center space-y-3">
-                  <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-white text-slate-400 border border-slate-200 shadow-2xs">
+                  <div className="mx-auto grid size-12 place-items-center rounded-2xl bg-white text-slate-600 border border-slate-200 shadow-2xs">
                     <GraduationCap className="size-6" />
                   </div>
                   <div className="space-y-1">

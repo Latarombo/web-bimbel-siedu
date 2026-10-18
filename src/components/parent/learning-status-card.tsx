@@ -80,7 +80,7 @@ export function LearningStatusFeed({ statuses }: Props) {
                 </>
               )}
               <span className="mx-1.5 text-slate-300">·</span>
-              <span className="text-xs text-slate-400">
+              <span className="text-xs text-slate-600">
                 {new Date(item.diterbitkanPada).toLocaleDateString('id-ID', {
                   day: 'numeric',
                   month: 'short',
@@ -94,7 +94,7 @@ export function LearningStatusFeed({ statuses }: Props) {
               <button
                 type="button"
                 onClick={() => setReportingStatusId(item.id)}
-                className="text-xs text-slate-400 hover:text-red-600"
+                className="text-xs text-slate-600 hover:text-red-600"
               >
                 {t('reportPhoto')}
               </button>

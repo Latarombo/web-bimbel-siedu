@@ -5,8 +5,9 @@ import { useTranslations, useLocale } from "next-intl";
 import { rupiah } from "@/lib/format";
 import { SITE } from "@/lib/site";
 import type { PaymentItem } from "./payment-types";
-import { X, Printer, CheckCircle2, ShieldCheck } from "lucide-react";
+import { X, Printer, CheckCircle2, ShieldCheck, Share2, ExternalLink } from "lucide-react";
 import { useScrollLock } from "@/lib/use-scroll-lock";
+import { createReceiptPaidWaLink } from "@/lib/whatsapp";
 
 interface Props {
   bill: PaymentItem | null;
@@ -67,6 +68,16 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
       ? t("billTypeInstallment", { n: bill.cicilanKe ?? "-" })
       : t("billTypeFullReceipt");
 
+  const officialReceiptUrl = `/${locale}/enrollments/${bill.pendaftaranId}/receipt/${bill.id}`;
+  const waLink = createReceiptPaidWaLink({
+    studentName: bill.namaAnak,
+    className: `${bill.namaMapel} (${bill.jenjang})`,
+    receiptNumber: invoiceNo,
+    amount: bill.jumlah,
+    paidDate: tanggalBayar,
+    receiptUrl: typeof window !== "undefined" ? `${window.location.origin}${officialReceiptUrl}` : officialReceiptUrl,
+  });
+
   return (
     <div
       role="dialog"
@@ -92,7 +103,29 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
             <ShieldCheck className="size-4 text-emerald-600" />
             <span>{t("receiptOfficial")}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 transition-colors"
+              title="Bagikan ke WhatsApp"
+            >
+              <Share2 className="size-3.5" />
+              <span className="hidden sm:inline">WhatsApp</span>
+            </a>
+
+            <a
+              href={officialReceiptUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              title="Buka Dokumen Kuitansi Resmi"
+            >
+              <ExternalLink className="size-3.5 text-slate-500" />
+              <span className="hidden sm:inline">Kuitansi Penuh</span>
+            </a>
+
             <button
               type="button"
               onClick={handlePrint}
@@ -105,7 +138,7 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
               type="button"
               onClick={onClose}
               aria-label={t("receiptCloseAria")}
-              className="flex size-7 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-200/70 hover:text-slate-700 transition-colors cursor-pointer"
+              className="flex size-7 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-200/70 hover:text-slate-700 transition-colors cursor-pointer"
             >
               <X className="size-4" />
             </button>
@@ -128,10 +161,10 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
               <p className="mt-1 text-xs font-medium text-slate-500">
                 {t("receiptTagline")}
               </p>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-slate-600 mt-0.5">
                 {SITE.alamat.join(", ")}
               </p>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-600">
                 Telp: {SITE.telepon} · WhatsApp: {SITE.whatsapp}
               </p>
             </div>
@@ -155,7 +188,7 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
           {/* Data Pembayar & Siswa Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-xl border border-slate-200/90 bg-slate-50/50 p-4 text-xs">
             <div className="space-y-1.5">
-              <span className="font-semibold text-slate-400 text-[10px]">
+              <span className="font-semibold text-slate-600 text-[10px]">
                 {t("receiptReceivedFrom")}
               </span>
               <p className="text-sm font-bold text-slate-900">{parentName}</p>
@@ -163,7 +196,7 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
             </div>
 
             <div className="space-y-1.5 sm:border-l sm:border-slate-200 sm:pl-4">
-              <span className="font-semibold text-slate-400 text-[10px]">
+              <span className="font-semibold text-slate-600 text-[10px]">
                 {t("receiptStudentData")}
               </span>
               <p className="text-sm font-bold text-slate-900">{bill.namaAnak}</p>
@@ -192,7 +225,7 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
                       {t("receiptProgramLine", { mapel: bill.namaMapel, name: bill.namaAnak })}
                     </p>
                     {bill.referensiGateway && (
-                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                      <p className="text-[10px] text-slate-600 font-mono mt-0.5">
                         {t("receiptRefGateway", { ref: bill.referensiGateway })}
                       </p>
                     )}

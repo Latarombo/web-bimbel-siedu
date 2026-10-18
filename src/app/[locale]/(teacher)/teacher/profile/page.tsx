@@ -58,14 +58,11 @@ export default async function TeacherProfile() {
               </span>
               <p className="mt-3 font-display text-lg font-bold tracking-tight text-slate-900">{guru.name}</p>
               <p className="text-sm text-slate-500">{guru.email}</p>
-              <span className="mt-2 inline-flex rounded-full bg-blue-100 px-3 py-0.5 text-xs font-bold text-blue-800">
-                {t("teacher")}
-              </span>
             </div>
             <dl className="divide-y divide-slate-100 border-t border-slate-100 text-sm">
               {[
                 [t("assignedClasses"), `${kelas.length}`],
-                [t("teachingSubjects"), mapelNama.size ? [...mapelNama].join(", ") : "—"],
+                [t("teachingSubjects"), mapelNama.size ? [...mapelNama].join(", ") : ""],
                 [t("gradeEntries"), `${nilai.length}`],
                 [t("attendanceEntries"), `${presensi.length}`],
               ].map(([k, v]) => (

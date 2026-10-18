@@ -103,12 +103,12 @@ export function PaymentCardItem({ bill, onPayClick, onReceiptClick }: Props) {
         <div className="flex items-center gap-3 text-xs text-slate-500">
           {isPaid ? (
             <span className="flex items-center gap-1">
-              <Calendar className="size-3.5 text-slate-400" />
+              <Calendar className="size-3.5 text-slate-600" />
               <span>{t("billPaidOn", { date: paidDateFormatted })}</span>
             </span>
           ) : (
             <span className="flex items-center gap-1">
-              <Calendar className="size-3.5 text-slate-400" />
+              <Calendar className="size-3.5 text-slate-600" />
               <span>
                 {t("billDueOn")}{" "}
                 <strong className={bill.isOverdue ? "text-rose-600 font-bold" : "text-slate-700 font-semibold"}>
@@ -119,7 +119,7 @@ export function PaymentCardItem({ bill, onPayClick, onReceiptClick }: Props) {
           )}
 
           {bill.referensiGateway && (
-            <span className="hidden sm:inline-block font-mono text-[11px] text-slate-400">
+            <span className="hidden sm:inline-block font-mono text-[11px] text-slate-600">
               Ref: {bill.referensiGateway}
             </span>
           )}
@@ -129,7 +129,7 @@ export function PaymentCardItem({ bill, onPayClick, onReceiptClick }: Props) {
       {/* Right: Nominal & Action Buttons */}
       <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
         <div className="text-left sm:text-right">
-          <span className="text-[10px] font-semibold text-slate-400 block sm:hidden">
+          <span className="text-[10px] font-semibold text-slate-600 block sm:hidden">
             {t("billAmountLabel")}
           </span>
           <span className="text-base sm:text-lg font-black tracking-tight text-slate-900 tabular-nums">

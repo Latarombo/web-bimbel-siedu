@@ -138,32 +138,13 @@ export function Navbar({ dashboardHref = null }: NavbarProps) {
                 <LanguageSwitcher variant="toggle" />
               </div>
 
-              {/* Tablet-only Login Button (768px - 1023px) */}
-              {!dashboardHref && (
-                <Link
-                  href="/login"
-                  className="hidden md:inline-flex h-8.5 items-center justify-center px-4 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs active:scale-[0.98] transition-all focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
-                >
-                  {t('login')}
-                </Link>
-              )}
-
               {/* Quick Action: Login / Dashboard (Disembunyikan pada layar sangat kecil <400px agar tidak sesak) */}
-              {dashboardHref ? (
-                <Link
-                  href={dashboardHref}
-                  className="hidden min-[400px]:inline-flex h-8.5 items-center px-3 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs active:scale-[0.98] transition-all focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
-                >
-                  {t('dashboard')}
-                </Link>
-              ) : (
-                <Link
-                  href="/login"
-                  className="hidden min-[400px]:inline-flex h-8.5 items-center px-3 text-xs font-semibold text-slate-700 border border-slate-200 bg-white/80 hover:bg-slate-50 rounded-lg transition-all focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
-                >
-                  {t('login')}
-                </Link>
-              )}
+              <Link
+                href={dashboardHref ?? '/login'}
+                className="hidden min-[400px]:inline-flex h-8.5 items-center px-3.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-xs active:scale-[0.98] transition-all focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:outline-none"
+              >
+                {dashboardHref ? t('dashboard') : t('login')}
+              </Link>
 
               {/* Hamburger Button (Touch Target WCAG AAA min 44x44px = size-11) */}
               <button

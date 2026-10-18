@@ -171,6 +171,7 @@ export default async function AttendancePage({
           jadwalItemId={item.id}
           tanggal={tanggal}
           siswa={anakList}
+          classNameTitle={kelasLabel}
           catatanPertemuan={
             catatanPertemuan
               ? {

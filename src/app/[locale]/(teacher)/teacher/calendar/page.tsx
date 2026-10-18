@@ -16,8 +16,8 @@ import {
 export const dynamic = "force-dynamic";
 
 /*
- * Jadwal mengajar guru — arsitektur kalender modern berbasis Weekly Grid, Monthly Grid,
- * dan Compact Agenda yang terinspirasi oleh Cal.com, Google Calendar, dan Notion Calendar.
+ * Jadwal mengajar guru: arsitektur kalender berbasis Weekly Grid, Monthly Grid,
+ * dan Compact Agenda.
  */
 
 export default async function TeacherCalendarPage() {
@@ -185,7 +185,7 @@ export default async function TeacherCalendarPage() {
             <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-slate-900">
               {allSessions.length}
             </p>
-            <p className="mt-1 text-xs font-medium text-slate-400">Semester ini</p>
+            <p className="mt-1 text-xs font-medium text-slate-600">Semester ini</p>
           </div>
 
           {/* Card 2: Sesi Hari Ini */}
@@ -199,7 +199,7 @@ export default async function TeacherCalendarPage() {
             <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-blue-600">
               {todayCount}
             </p>
-            <p className="mt-1 text-xs font-medium text-slate-400">Jadwal aktif hari ini</p>
+            <p className="mt-1 text-xs font-medium text-slate-600">Jadwal aktif hari ini</p>
           </div>
 
           {/* Card 3: Perlu Presensi */}
@@ -213,7 +213,7 @@ export default async function TeacherCalendarPage() {
             <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-amber-600">
               {pendingAttendanceCount}
             </p>
-            <p className="mt-1 text-xs font-medium text-slate-400">Belum dicatat</p>
+            <p className="mt-1 text-xs font-medium text-slate-600">Belum dicatat</p>
           </div>
 
           {/* Card 4: Presensi Selesai */}
@@ -227,7 +227,7 @@ export default async function TeacherCalendarPage() {
             <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-emerald-600">
               {completedAttendanceCount}
             </p>
-            <p className="mt-1 text-xs font-medium text-slate-400">Telah lengkap</p>
+            <p className="mt-1 text-xs font-medium text-slate-600">Telah lengkap</p>
           </div>
         </div>
 

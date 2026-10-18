@@ -9,14 +9,19 @@ import type { JenjangKatalog, KelasKatalog } from "@/lib/kelas";
  * Blok atas berwarna dengan judul dan deskripsi.
  * Daftar manfaat bercentang hijau, pemisah putus-putus, dan tombol CTA.
  */
+/*
+ * Aksen dipilih agar teks badge/tingkat di atas blok pastel mencapai
+ * WCAG AA 4.5:1 (semula #db4d84/#2563eb/#128a52/#c07803 = 3.1–4.3:1).
+ * Warna blok pastel TIDAK diubah, hanya aksen teksnya digelapkan.
+ */
 const TEMA: Record<JenjangKatalog, { blok: string; aksen: string }> = {
-  TK: { blok: "#fde7f0", aksen: "#db4d84" },
-  SD: { blok: "#e1ecfd", aksen: "#2563eb" },
-  SMP: { blok: "#ddf3e7", aksen: "#128a52" },
-  SMA: { blok: "#fdf0d4", aksen: "#c07803" },
+  TK: { blok: "#fde7f0", aksen: "#b82a63" }, // 5.03:1 di #fde7f0
+  SD: { blok: "#e1ecfd", aksen: "#1d4ed8" }, // 5.62:1 di #e1ecfd
+  SMP: { blok: "#ddf3e7", aksen: "#0f7a48" }, // 4.63:1 di #ddf3e7
+  SMA: { blok: "#fdf0d4", aksen: "#945700" }, // 5.13:1 di #fdf0d4
 };
 
-const ORANYE = "#f26d0f"; // CTA
+const ORANYE = "#c2410c"; // CTA orange-700: putih 5.18:1 (semula #f26d0f = 3.01:1)
 
 function daftarFitur(k: KelasKatalog, tr: (key: string, values?: Record<string, string | number>) => string): string[] {
   const sisa = Math.max(0, k.kuota.maksimum - k.kuota.terisi);
@@ -111,7 +116,7 @@ export async function KelasCardView({ k }: { k: KelasKatalog }) {
             <span className="ml-1 text-xs font-semibold text-gray-500">{tr("text191")}</span>
           </p>
           <span
-            className={`mt-4 flex min-h-11 w-full items-center justify-center rounded-lg py-3 text-sm font-bold transition-[filter] group-hover:brightness-95 ${penuh ? "text-slate-700" : "text-white"}`}
+            className={`mt-4 flex min-h-12 w-full items-center justify-center rounded-lg py-3 text-sm font-bold transition-[filter] group-hover:brightness-95 ${penuh ? "text-slate-700" : "text-white"}`}
             style={{ backgroundColor: penuh ? "#e5e7eb" : ORANYE }}
           >
             {penuh ? tr("text192") : tr("text193")}
@@ -122,10 +127,22 @@ export async function KelasCardView({ k }: { k: KelasKatalog }) {
   );
 }
 
-export async function KelasGrid({ items }: { items: KelasKatalog[] }) {
+export async function KelasGrid({ items, resetHref }: { items: KelasKatalog[]; resetHref?: string }) {
  const tr = await getTranslations("public");
   if (items.length === 0)
-    return <p className="text-sm text-muted py-8 text-center border border-dashed border-border rounded-2xl">{tr("text194")}</p>;
+    return (
+      <div className="flex flex-col items-center justify-center py-10 px-4 text-center border border-dashed border-border rounded-2xl bg-white/40">
+        <p className="text-sm font-medium text-muted">{tr("text194")}</p>
+        {resetHref ? (
+          <Link
+            href={resetHref}
+            className="mt-3.5 inline-flex items-center justify-center rounded-lg border border-border bg-white px-4 py-2 text-xs font-semibold text-brand hover:border-brand hover:bg-blue-50 transition-colors shadow-2xs"
+          >
+            <span>{tr("resetFilter")}</span>
+          </Link>
+        ) : null}
+      </div>
+    );
   return (
     <div className="grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((k) => (

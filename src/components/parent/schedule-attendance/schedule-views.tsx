@@ -106,7 +106,7 @@ export function DailyAgenda() {
                   ? "bg-blue-600 text-white shadow-md shadow-blue-500/20 ring-2 ring-blue-600 ring-offset-2"
                   : hasRecord
                     ? "bg-white border border-slate-200/90 text-slate-800 hover:border-blue-300 hover:bg-blue-50/40 shadow-xs"
-                    : "bg-slate-100/80 text-slate-400 opacity-60 border border-transparent hover:opacity-90"
+                    : "bg-slate-100/80 text-slate-600 opacity-60 border border-transparent hover:opacity-90"
               }`}
             >
               <span>{labelHari}</span>
@@ -127,7 +127,7 @@ export function DailyAgenda() {
       {recordsForHari.length === 0 ? (
         <Card className="mt-4 border-dashed border-slate-200 bg-slate-50/50">
           <CardPad className="py-12 text-center">
-            <div className="mx-auto size-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+            <div className="mx-auto size-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 mb-3">
               📅
             </div>
             <p className="text-base font-bold text-slate-800">{tr("text171")}</p>
@@ -217,7 +217,7 @@ export function WeeklyGrid() {
                       {r.anak}
                     </p>
                     {r.ruangan && (
-                      <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">
+                      <p className="text-[10px] text-slate-600 mt-1 line-clamp-1">
                         🚪 {r.ruangan}
                       </p>
                     )}

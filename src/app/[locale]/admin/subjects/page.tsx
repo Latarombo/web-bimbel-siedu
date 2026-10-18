@@ -45,7 +45,7 @@ export default async function AdminSubjects({ searchParams }: { searchParams: Pr
       nKelas: (
         <span
           className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums ${
-            (dipakai.get(m.id) ?? 0) > 0 ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-500"
+            (dipakai.get(m.id) ?? 0) > 0 ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-600"
           }`}
         >
           {dipakai.get(m.id) ?? 0}
@@ -59,7 +59,7 @@ export default async function AdminSubjects({ searchParams }: { searchParams: Pr
               <input type="hidden" name="mapel_id" value={m.id} />
             </ConfirmAction>
           ) : (
-            <span className="text-xs text-slate-400" title={t("text95")}>{t("text96")} </span>
+            <span className="text-xs text-slate-600" title={t("text95")}>{t("text96")} </span>
           )}
         </div>
       ),

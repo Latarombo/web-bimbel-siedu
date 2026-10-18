@@ -5,7 +5,6 @@ import { useRouter, Link } from "@/i18n/navigation";
 import {
   Check,
   AlertCircle,
-  User,
 } from "lucide-react";
 import { daftarKelas, type DaftarState } from "@/app/actions/pendaftaran";
 import { rupiah } from "@/lib/format";
@@ -24,6 +23,7 @@ export type PilihanAnak = {
 export type JadwalItemDetail = {
   hari: string;
   jam: string;
+  menit?: number;
 };
 
 export type DaftarFormProps = {
@@ -153,182 +153,189 @@ export default function DaftarForm({
       </form>
 
       <div className="grid gap-6 lg:gap-8 lg:grid-cols-12">
-        {/* ================= KOLOM KIRI: DETAIL PEMESANAN (LEBAR 7) ================= */}
-        <div className="lg:col-span-7">
-          <div className="rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
-            <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-5">
-              Detail Pemesanan
-            </h2>
-
-            {/* 1. Nama Paket */}
-            <div className="space-y-1">
-              <span className="text-xs font-semibold text-slate-500">Nama Paket</span>
-              <h3 className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
-                {mapelNama} {tingkat ? `(${tingkat}) ` : ""}{jenjang} {periodeNama ? `• ${periodeNama}` : ""}
-              </h3>
+        {/* ================= KOLOM KIRI: DETAIL PEMESANAN KELAS (LEBAR 7) ================= */}
+        <div className="lg:col-span-7 space-y-4">
+          <div className="rounded-2xl sm:rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+            {/* Header Card */}
+            <div className="flex items-center justify-between gap-3 px-5 py-4 sm:px-7 sm:py-5 border-b border-slate-100 bg-white">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                Detail Pemesanan Kelas
+              </h2>
+              <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-brand">
+                {jenjang}{tingkat ? ` • ${tingkat}` : ""}
+              </span>
             </div>
 
-            {/* 2. Jadwal Belajar (Desain Khusus) */}
-            <div className="mt-5 pt-5 border-t border-slate-100 space-y-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-slate-500">
-                  Jadwal Sesi Belajar
-                </span>
-                <span className="text-[11px] font-medium text-slate-500">
-                  {itemsJadwal.length > 0 ? `${itemsJadwal.length} sesi per minggu` : "2 sesi per minggu"}
-                </span>
-              </div>
-
-              {itemsJadwal.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {itemsJadwal.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3 rounded-xl sm:rounded-2xl border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 transition-colors"
-                    >
-                      <span className="text-xs font-bold text-slate-900 block leading-tight">
-                        {item.hari}
-                      </span>
-                      <span className="text-[11px] text-slate-600 font-medium block mt-1">
-                        {item.jam}
-                      </span>
-                    </div>
-                  ))}
+            {/* Body Card */}
+            <div className="p-5 sm:p-7 space-y-6">
+              {/* 1. Paket & Periode Belajar */}
+              <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                    Paket Belajar
+                  </h3>
+                  {periodeNama ? (
+                    <span className="text-xs font-semibold text-brand">
+                      {periodeNama}
+                    </span>
+                  ) : null}
                 </div>
-              ) : (
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-500">
-                  Jadwal sesi belajar akan diinfokan lebih lanjut.
-                </div>
-              )}
-            </div>
-
-            {/* 3. Masa Berlaku */}
-            <div className="mt-5 pt-5 border-t border-slate-100 space-y-1">
-              <span className="text-xs font-semibold text-slate-500">Masa berlaku</span>
-              <p className="text-xs sm:text-sm font-medium text-slate-800">
-                Paket aktif hingga {formatMasaAktif(tanggalSelesai)}
-              </p>
-            </div>
-
-            {/* 4. Detail Paket: Fasilitas Belajar */}
-            <div className="mt-5 pt-5 border-t border-slate-100 space-y-3.5">
-              <div>
-                <span className="text-xs font-semibold text-slate-500">Detail Paket</span>
-                <p className="text-xs sm:text-sm font-medium text-slate-800 mt-1">
-                  Paket sudah termasuk:
+                <p className="text-sm sm:text-base font-bold text-slate-900">
+                  {mapelNama} {tingkat ? `(${tingkat}) ` : ""}{jenjang}
+                </p>
+                <p className="text-xs text-slate-500">
+                  Masa aktif hingga <strong className="font-semibold text-slate-700">{formatMasaAktif(tanggalSelesai)}</strong>
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs sm:text-[13px] text-slate-700">
-                {FASILITAS_KELAS.map((item) => (
-                  <div key={item.id} className="flex items-start gap-2.5">
-                    <span className="mt-0.5 grid size-[18px] shrink-0 place-items-center rounded-full bg-emerald-500" aria-hidden="true">
-                      <Check className="size-3 text-white" strokeWidth={3} />
-                    </span>
-                    <div>
-                      <strong className="text-xs sm:text-sm font-semibold text-slate-900 block">{item.judul}</strong>
-                      <span className="text-xs text-slate-500 leading-relaxed block mt-0.5">
-                        {item.deskripsi}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+              {/* 2. Jadwal Sesi Belajar */}
+              <div className="border-t border-slate-100 pt-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                    Jadwal Sesi Belajar
+                  </h3>
+                  <span className="text-xs text-slate-500">
+                    {itemsJadwal.length > 0 ? `${itemsJadwal.length} sesi per minggu` : "2 sesi per minggu"}
+                  </span>
+                </div>
 
-            {/* 4. Bagian Bawah: Garis Putus-Putus & Biaya Paket */}
-            <div className="mt-8 pt-5 border-t border-dashed border-slate-200 flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500">
-                Biaya Paket Semester
-              </span>
-              <span className="text-base sm:text-lg font-extrabold text-[#e11d48]">
-                {rupiah(biayaPeriode)}
-              </span>
+                <div className="rounded-xl border border-slate-200 bg-white divide-y divide-slate-100 overflow-hidden">
+                  {itemsJadwal.length > 0 ? (
+                    itemsJadwal.map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between px-3.5 py-3 sm:px-4 text-xs sm:text-sm"
+                      >
+                        <div className="flex items-center gap-3 sm:gap-6">
+                          <span className="w-16 sm:w-20 font-bold text-slate-900">
+                            {item.hari}
+                          </span>
+                          <span className="font-semibold text-slate-700">
+                            {item.jam}
+                          </span>
+                        </div>
+                        {item.menit ? (
+                          <span className="text-xs text-slate-500 shrink-0">
+                            {item.menit} menit
+                          </span>
+                        ) : null}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-xs text-slate-500">
+                      Jadwal sesi belajar akan diinfokan lebih lanjut.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 3. Fasilitas & Pendampingan Belajar */}
+              <div className="border-t border-slate-100 pt-5 space-y-3">
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                  Fasilitas & Pendampingan Belajar
+                </h3>
+                <div className="rounded-xl sm:rounded-2xl border border-slate-200/80 bg-slate-50 p-4 sm:p-5">
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5">
+                    {FASILITAS_KELAS.map((item) => (
+                      <li key={item.id} className="flex items-start gap-2.5">
+                        <span className="mt-0.5 grid size-[18px] shrink-0 place-items-center rounded-full bg-emerald-500" aria-hidden="true">
+                          <Check className="size-3 text-white" strokeWidth={3} />
+                        </span>
+                        <div>
+                          <strong className="text-xs sm:text-sm font-semibold text-slate-900 block">{item.judul}</strong>
+                          <span className="text-xs text-slate-500 leading-relaxed block mt-0.5">
+                            {item.deskripsi}
+                          </span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* ================= KOLOM KANAN: TUJUAN PEMBELIAN & DETAIL PEMBAYARAN (LEBAR 5) ================= */}
         <div className="lg:col-span-5">
-          <div className="lg:sticky lg:top-24 space-y-5">
-            {/* Card 1: Tujuan Pembelian (Profil Siswa) */}
-          <div className="rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-3">
-            <div>
-              <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                Tujuan Pembelian
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Pilih profil tujuan untuk pembelian paket di bawah ini
-              </p>
+          <div className="lg:sticky lg:top-24 rounded-3xl border border-slate-200 bg-white p-6 shadow-xl transition-all space-y-5">
+            {/* Header Card */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-100">
+              <h3 className="font-extrabold text-slate-900 text-base">Pendaftaran Kelas</h3>
+              <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-bold text-brand">
+                {isDp ? "DP & Cicilan" : "Bayar Penuh"}
+              </span>
             </div>
 
-            {selectedChild ? (
-              <div className="flex items-center gap-3.5 p-3.5 rounded-xl sm:rounded-2xl border border-slate-200/90 bg-slate-50/70 hover:bg-slate-50 transition-colors">
-                <div className="size-11 rounded-full border border-blue-200 bg-blue-50 grid place-items-center text-blue-600 shrink-0 shadow-2xs">
-                  <User className="size-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-slate-900 truncate">
-                    {selectedChild.nama}
-                  </p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    <span className="font-semibold text-slate-700">{selectedChild.jenjangTerakhir || jenjang}</span>
-                    {selectedChild.tingkat ? (
-                      <>
-                        <span className="text-slate-400 mx-1">-</span>
-                        <span className="text-slate-600">{selectedChild.tingkat}</span>
-                      </>
-                    ) : null}
-                  </p>
-                </div>
+            {/* 1. Profil Siswa Terpilih */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-slate-700">Tujuan Pembelian</label>
+                <span className="text-[11px] text-slate-500">Profil siswa terdaftar</span>
               </div>
-            ) : (
-              <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50 text-xs text-amber-800">
-                Belum ada profil siswa terpilih.
-              </div>
-            )}
-          </div>
 
-          {/* Card 2: Detail Pembayaran & Tombol Bayar */}
-          <div className="rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
-            <h3 className="text-sm sm:text-base font-bold text-slate-900">
-              Detail Pembayaran
-            </h3>
+              {selectedChild ? (
+                <div className="flex items-center justify-between p-3 rounded-2xl border-2 border-blue-500 bg-blue-50/40 shadow-2xs">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="size-8 shrink-0 rounded-full bg-blue-100 text-blue-800 font-bold text-xs grid place-items-center uppercase">
+                      {selectedChild.nama.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-bold text-slate-800 truncate leading-tight">
+                        {selectedChild.nama}
+                      </p>
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        <span className="text-[11px] font-medium text-slate-600">
+                          Jenjang: {selectedChild.jenjangTerakhir || jenjang}
+                          {selectedChild.tingkat ? ` (${selectedChild.tingkat})` : ""}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-semibold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded-md shrink-0 ml-2">
+                    Terpilih
+                  </span>
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-xl border border-amber-200 bg-amber-50 text-xs text-amber-800">
+                  Belum ada profil siswa terpilih.
+                </div>
+              )}
+            </div>
 
-            <div className="space-y-2.5 text-xs sm:text-sm text-slate-600">
-              <div className="flex items-start justify-between gap-3">
-                <span className="leading-snug">
-                  {mapelNama} {tingkat ? `(${tingkat})` : ""} {jenjang}
+            {/* 2. Rincian Pembayaran */}
+            <div className="space-y-2.5 text-xs sm:text-sm border-t border-slate-100 pt-3">
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Skema Pembayaran</span>
+                <span className="font-semibold text-slate-900">
+                  {isDp ? `DP + ${nCicilan}x Cicilan` : "Pelunasan Penuh (1x)"}
                 </span>
-                <span className="font-semibold text-slate-900 shrink-0">
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500">Biaya Paket Semester</span>
+                <span className="font-semibold text-slate-900">
                   {rupiah(biayaPeriode)}
                 </span>
               </div>
 
               {isDp ? (
                 <>
-                  <div className="flex items-center justify-between gap-3 text-slate-600">
-                    <span>Uang Muka (DP) Dibayar Sekarang</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Uang Muka (DP) Dibayar Sekarang</span>
                     <span className="font-bold text-slate-900">{rupiah(biayaDp ?? 0)}</span>
                   </div>
-                  <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-100 text-xs text-blue-900 space-y-1">
-                    <div className="flex items-center justify-between font-semibold">
-                      <span>Sisa Tagihan Cicilan</span>
-                      <span>{rupiah(biayaPeriode - (biayaDp ?? 0))}</span>
-                    </div>
-                    <p className="text-[11px] text-blue-700">
-                      Dicicil {nCicilan}x angsuran (± {rupiah(estimasiCicilan)} / bulan)
-                    </p>
+                  <div className="flex items-center justify-between text-brand">
+                    <span>Estimasi Cicilan</span>
+                    <span className="font-bold">± {rupiah(estimasiCicilan)} / bln</span>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-blue-50/70 border border-blue-100 text-[11px] text-blue-900">
+                    Sisa tagihan {rupiah(biayaPeriode - (biayaDp ?? 0))} dicicil {nCicilan}x angsuran bulanan.
                   </div>
                 </>
-              ) : (
-                <div className="flex items-center justify-between gap-3 text-slate-600">
-                  <span>Skema Pembayaran</span>
-                  <span className="font-medium text-slate-800">Pelunasan Penuh (1x)</span>
-                </div>
-              )}
+              ) : null}
 
-              <div className="my-3 border-t border-slate-200" />
+              <div className="my-3 border-t border-dashed border-slate-200" />
 
               <div className="flex items-baseline justify-between">
                 <div>
@@ -339,9 +346,14 @@ export default function DaftarForm({
                     {isDp ? "(Uang muka DP pendaftaran)" : "(Lunas satu semester)"}
                   </span>
                 </div>
-                <p className="text-2xl font-black text-[#e11d48] tracking-tight">
-                  {rupiah(totalAkhirBayarSekarang)}
-                </p>
+                <div className="text-right">
+                  <p className="text-xl sm:text-2xl font-bold tracking-tight text-[#e11d48]">
+                    {rupiah(totalAkhirBayarSekarang)}
+                  </p>
+                  <span className="text-xs font-semibold text-slate-500">
+                    {isDp ? "/ uang muka (DP)" : "/ semester"}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -362,21 +374,20 @@ export default function DaftarForm({
                 type="button"
                 onClick={() => setIsPersetujuanOpen(true)}
                 disabled={isSubmitting || anak.length === 0 || !selectedAnakId}
-                className="w-full flex min-h-12 items-center justify-center rounded-2xl py-3.5 text-base font-bold text-white shadow-md transition-all active:scale-[0.99] hover:brightness-105 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ backgroundColor: "#f26d0f" }}
+                className="flex min-h-12 w-full items-center justify-center rounded-xl py-3 text-sm font-bold text-white shadow-xs transition-all active:scale-[0.99] hover:brightness-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: "#c2410c" }}
               >
                 {isSubmitting ? "Memproses..." : "Pilih Metode Bayar"}
               </button>
 
-              <p className="mt-3 text-[11px] text-center text-slate-400 leading-relaxed">
-                Dengan menekan tombol di atas, Anda menyatakan telah membaca, memahami, dan menyetujui{" "}
-                <Link href="/terms" target="_blank" className="text-slate-600 font-semibold underline underline-offset-2 hover:text-slate-900">
-                  Kebijakan Penukaran & Ketentuan
+              <p className="mt-3 text-center text-xs text-slate-500 leading-snug">
+                Dengan melanjutkan, Anda menyetujui{" "}
+                <Link href="/terms" target="_blank" className="text-brand font-semibold hover:underline">
+                  Kebijakan & Ketentuan
                 </Link>{" "}
                 Siedu.
               </p>
             </div>
-          </div>
           </div>
         </div>
       </div>

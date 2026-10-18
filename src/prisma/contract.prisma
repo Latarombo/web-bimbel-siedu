@@ -654,3 +654,17 @@ model LaporanFotoStatus {
   @@index([pelaporId])
   @@map("laporan_foto_status")
 }
+
+// Token Reset Password — berlaku 1 jam (PRD F1)
+model PasswordResetToken {
+  id        Int               @id @default(autoincrement())
+  email     String
+  tokenHash String            @unique @map("token_hash")
+  expiresAt TimestamptzString @map("expires_at")
+  createdAt TimestamptzString @default(now()) @map("created_at")
+
+  @@index([email])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+

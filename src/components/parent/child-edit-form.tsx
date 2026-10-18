@@ -98,7 +98,7 @@ export function ChildEditForm({
   const umur = hitungUmur(anak.tanggalLahir, tr);
 
   const inputBase =
-    'w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-slate-400 bg-white';
+    'w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-slate-500 bg-white';
 
   const currentKelasOptions = jenjang ? KELAS_OPTIONS[jenjang] : [];
 
@@ -172,7 +172,7 @@ export function ChildEditForm({
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
-                  <User className="size-4 sm:size-5 text-slate-400 shrink-0" />
+                  <User className="size-4 sm:size-5 text-slate-600 shrink-0" />
                 </span>
                 <input
                   type="text"
@@ -244,7 +244,7 @@ export function ChildEditForm({
                   options={JENJANG_LIST}
                   placeholder={t('selectEducationLevel')}
                   modalTitle={t('educationLevel')}
-                  icon={<BookOpen className="size-4 sm:size-5 text-slate-400" />}
+                  icon={<BookOpen className="size-4 sm:size-5 text-slate-600" />}
                   ariaInvalid={Boolean(errors.jenjang_terakhir)}
                 />
                 {errors.jenjang_terakhir && (
@@ -269,7 +269,7 @@ export function ChildEditForm({
                   options={currentKelasOptions}
                   placeholder={t('selectClassPrompt')}
                   modalTitle={t('classLevel')}
-                  icon={<BookOpen className="size-4 sm:size-5 text-slate-400" />}
+                  icon={<BookOpen className="size-4 sm:size-5 text-slate-600" />}
                   ariaInvalid={Boolean(errors.tingkat)}
                 />
                 {errors.tingkat && (
@@ -292,7 +292,7 @@ export function ChildEditForm({
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
-                <Phone className="size-4 sm:size-5 text-slate-400 shrink-0" />
+                <Phone className="size-4 sm:size-5 text-slate-600 shrink-0" />
               </span>
               <input
                 type="tel"
@@ -348,13 +348,13 @@ export function ChildEditForm({
               className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
             >
               {t('childEmail')}{' '}
-              <span className="text-xs font-normal text-slate-400">
+              <span className="text-xs font-normal text-slate-600">
                 {t('optionalParen')}
               </span>
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
-                <Mail className="size-4 sm:size-5 text-slate-400 shrink-0" />
+                <Mail className="size-4 sm:size-5 text-slate-600 shrink-0" />
               </span>
               <input
                 type="email"
@@ -422,7 +422,7 @@ export function ChildEditForm({
           <button
             type="submit"
             disabled={pending}
-            className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm sm:text-base font-semibold py-3 sm:py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center active:scale-[0.99] cursor-pointer"
+            className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-600 text-white text-sm sm:text-base font-semibold py-3 sm:py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center active:scale-[0.99] cursor-pointer"
           >
             <span>{pending ? t('processing') : tr('saveChanges')}</span>
           </button>

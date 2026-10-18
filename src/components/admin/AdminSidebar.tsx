@@ -93,7 +93,7 @@ export default function AdminSidebar({ role, navSections, userName = 'Admin', us
     <nav aria-label={t("menuAria", { role })} className="flex-1 overflow-y-auto px-3 py-4">
       {navSections.map((group) => (
         <div key={group.label} className={group.label === navSections[0]?.label ? '' : 'mt-5'}>
-          <p className="px-3 pb-1.5 text-xs font-semibold text-slate-400">{group.label}</p>
+          <p className="px-3 pb-1.5 text-xs font-semibold text-slate-600">{group.label}</p>
           <ul className="space-y-0.5">
             {group.items.map((item) => {
               const active = isActive(item.href);
@@ -111,7 +111,7 @@ export default function AdminSidebar({ role, navSections, userName = 'Admin', us
                   >
                     <NavIcon
                       icon={item.icon}
-                      className={`h-[18px] w-[18px] ${active ? 'text-blue-600' : 'text-slate-400'}`}
+                      className={`h-[18px] w-[18px] ${active ? 'text-blue-600' : 'text-slate-600'}`}
                     />
                     <span className="min-w-0 flex-1 truncate">{item.name}</span>
                     {item.badge && item.badge > 0 ? (
@@ -149,7 +149,7 @@ export default function AdminSidebar({ role, navSections, userName = 'Admin', us
           onClick={() => setIsLogoutOpen(true)}
           aria-label={t("logout")}
           title={t("logout")}
-          className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-rose-50 hover:text-danger"
+          className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-rose-50 hover:text-danger"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />

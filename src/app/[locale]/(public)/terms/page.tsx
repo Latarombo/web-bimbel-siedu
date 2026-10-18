@@ -5,6 +5,18 @@ import { TableOfContents } from "@/components/ui/table-of-contents";
 import { getSyarat } from "@/lib/syarat-ketentuan";
 import { LegalHeader } from "@/components/legal/legal-header";
 import { BackToTop } from "@/components/ui/back-to-top";
+import type { Metadata } from "next";
+import { publicMetadata } from "@/lib/metadata";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const tr = await getTranslations({ locale, namespace: "public" });
+  return publicMetadata({
+    title: tr("metaTermsTitle"),
+    description: tr("metaTermsDescription"),
+    path: "/terms",
+  });
+}
 
 export default async function TermsPage() {
   const tr = await getTranslations("public");

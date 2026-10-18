@@ -7,9 +7,7 @@ import {
   Building2,
   Search,
   Phone,
-  MessageCircle,
   Compass,
-  Navigation,
   Copy,
   Check,
 } from "lucide-react";
@@ -316,7 +314,7 @@ export default function PetaCabangExplorer() {
           {/* Kolom Pencarian */}
           <div className="shrink-0 p-3 sm:p-3.5 border-b border-slate-100 bg-slate-50/70">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-600" />
               <input
                 ref={searchRef}
                 type="search"
@@ -324,7 +322,7 @@ export default function PetaCabangExplorer() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("branchSearchExplorerPlaceholder")}
-                className="w-full rounded-xl border border-slate-200 bg-white py-1.5 pl-10 pr-3.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+                className="w-full rounded-xl border border-slate-200 bg-white py-1.5 pl-10 pr-3.5 text-sm text-slate-900 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
               />
             </div>
 
@@ -363,13 +361,10 @@ export default function PetaCabangExplorer() {
                         : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80"
                     }`}
                   >
-                    <div className="flex items-center gap-1.5 flex-wrap">
+                    <div>
                       <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-brand transition-colors">
                         {c.nama}
                       </h4>
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
-                        {c.wilayah}
-                      </span>
                     </div>
                     <p className="mt-0.5 text-[11px] sm:text-xs text-slate-600 leading-relaxed line-clamp-2">
                       {c.alamat}
@@ -385,7 +380,7 @@ export default function PetaCabangExplorer() {
                 );
               })
             ) : (
-              <div className="py-12 text-center text-xs text-slate-400">
+              <div className="py-12 text-center text-xs text-slate-600">
                 <Search className="size-6 mx-auto mb-2 opacity-40" />
                 <p>{t("branchExplorerNotFound", { search })}</p>
               </div>
@@ -407,14 +402,11 @@ export default function PetaCabangExplorer() {
           {/* Floating Action Card di Peta (Pojok Kiri Bawah) - Dinamis Sesuai Cabang Aktif */}
           <div className="pointer-events-none absolute bottom-2.5 left-2.5 right-2.5 sm:right-auto sm:left-3.5 sm:bottom-3.5 z-10">
             <div className="pointer-events-auto flex flex-col gap-2 rounded-2xl border border-slate-200/90 bg-white/95 p-3 sm:p-3.5 shadow-xl backdrop-blur-md max-w-[360px] sm:max-w-[380px]">
-              {/* Baris Atas: Nama Cabang + Pill Wilayah */}
-              <div className="flex items-center justify-between gap-2 flex-wrap">
+              {/* Baris Atas: Nama Cabang */}
+              <div>
                 <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight">
                   {selectedCabang.nama}
                 </h4>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600 font-sans">
-                  {selectedCabang.wilayah}
-                </span>
               </div>
 
               {/* Baris Tengah: Alamat Cabang */}
@@ -468,9 +460,8 @@ export default function PetaCabangExplorer() {
                   href={selectedCabang.mapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-[11px] font-bold text-white shadow-2xs hover:bg-brand-strong active:scale-95 transition-all cursor-pointer"
+                  className="flex-1 inline-flex items-center justify-center rounded-lg bg-brand px-3 py-1.5 text-[11px] font-bold text-white shadow-2xs hover:bg-brand-strong active:scale-95 transition-all cursor-pointer"
                 >
-                  <Navigation className="size-3 shrink-0" />
                   <span>{t("branchDirections")}</span>
                 </a>
 
@@ -481,9 +472,8 @@ export default function PetaCabangExplorer() {
                     )}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-2xs hover:bg-emerald-700 active:scale-95 transition-all cursor-pointer"
+                    className="flex-1 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-2xs hover:bg-emerald-700 active:scale-95 transition-all cursor-pointer"
                   >
-                    <MessageCircle className="size-3 shrink-0" />
                     <span>WhatsApp</span>
                   </a>
                 )}

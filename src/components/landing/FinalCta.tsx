@@ -7,11 +7,11 @@ import { Link } from '@/i18n/navigation';
  * - Left column: Strong dark navy heading with brand blue accent, descriptive copy, and Coursera-style dual CTA buttons.
  * - Right column: Student photo (/images/right-hero.png) grounded cleanly at the bottom edge.
  */
-export default async function FinalCta() {
+export default async function FinalCta({ className = "" }: { className?: string } = {}) {
     const tr = await getTranslations('public');
 
     return (
-        <section className="relative overflow-hidden bg-white pt-24 pb-12 sm:pt-28 sm:pb-14 lg:pt-36 lg:pb-16">
+        <section className={`relative overflow-x-clip bg-white pt-20 pb-12 sm:pt-24 sm:pb-14 lg:pt-36 lg:pb-16 ${className}`}>
             <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                 {/* Coursera-style Soft Blue Card Container — Ringkas & Proporsional */}
                 <div className="relative rounded-2xl border border-blue-200/70 bg-[#ebf3ff] px-6 pt-8 pb-0 sm:px-8 sm:pt-10 sm:pb-0 lg:px-12 lg:py-12 xl:px-16 shadow-sm">

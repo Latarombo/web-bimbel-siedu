@@ -11,8 +11,23 @@ import FinalCta from '@/components/landing/FinalCta';
 import { collect } from '@/lib/collect';
 import { db } from '@/prisma/db';
 import { kelasAktifPublik, toKelasKatalog } from '@/lib/kelas';
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { canonical } from '@/lib/metadata';
 
 export const dynamic = 'force-dynamic';
+
+// Landing punya deskripsi sendiri di level layout, jadi di sini hanya canonical
+// yang ditambahkan agar URL /= https://siedu.id tanpa ambigu locale.
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'common' });
+  return {
+    title: t('meta.title'),
+    description: t('meta.description'),
+    alternates: { canonical: canonical('') },
+  };
+}
 
 /**
  * Landing page — urutan section mengikuti mockup user:

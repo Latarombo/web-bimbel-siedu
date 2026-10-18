@@ -32,7 +32,7 @@ export function CopySectionLinkButton({
       onClick={handleCopyLink}
       aria-label={copied ? copiedLabel : copyLinkLabel}
       title={copied ? copiedLabel : copyLinkLabel}
-      className="shrink-0 rounded-lg p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
+      className="shrink-0 rounded-lg p-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-brand focus:outline-hidden focus:ring-1 focus:ring-brand"
     >
       {copied ? (
         <span className="flex items-center gap-1 text-[11px] font-medium text-emerald-600">

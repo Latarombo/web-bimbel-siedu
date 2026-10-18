@@ -250,7 +250,7 @@ export function PaymentCenterClient({
 
           {/* Search Bar Input */}
           <div className="relative w-full lg:w-72">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-400" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-600" />
             <input
               type="text"
               value={searchQuery}
@@ -262,7 +262,7 @@ export function PaymentCenterClient({
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-600 cursor-pointer"
               >
                 <X className="size-3.5" />
               </button>
@@ -274,7 +274,7 @@ export function PaymentCenterClient({
         {anakList.length > 0 && (
           <div className="pt-3 border-t border-slate-100 flex items-center flex-wrap gap-2">
             <span className="text-xs font-semibold text-slate-500 mr-1 flex items-center gap-1">
-              <Filter className="size-3 text-slate-400" />
+              <Filter className="size-3 text-slate-600" />
               {t("paymentsFilterChild")}
             </span>
 
@@ -374,7 +374,7 @@ export function PaymentCenterClient({
         ) : tab === "riwayat" && stats.totalPaidCount === 0 ? (
           /* Belum Ada Riwayat Lunas */
           <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center space-y-3 shadow-xs">
-            <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+            <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
               <Receipt className="size-7" />
             </div>
             <div className="max-w-md mx-auto space-y-1">
@@ -399,7 +399,7 @@ export function PaymentCenterClient({
         ) : (
           /* Empty Search / Filter Result */
           <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center space-y-3 shadow-xs">
-            <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+            <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-600">
               <Search className="size-7" />
             </div>
             <div className="max-w-md mx-auto space-y-1">

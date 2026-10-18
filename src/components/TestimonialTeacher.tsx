@@ -118,21 +118,27 @@ const KUTIPAN = [
   );
 }
 
-export default async function TestimonialSection({ gurus }: { gurus: GuruKatalog[] }) {
+export default async function TestimonialSection({
+  gurus,
+  className = "",
+}: {
+  gurus: GuruKatalog[];
+  className?: string;
+}) {
   // Tidak ada guru dengan kelas aktif? Section disembunyikan, bukan diisi nama palsu.
   if (gurus.length === 0) return null;
 
   return (
-    <section className="relative overflow-hidden bg-white">
-      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-2 sm:px-6 sm:pb-24 sm:pt-4 lg:px-8">
+    <div className={`relative overflow-visible bg-white ${className}`}>
+      <div className="relative w-full pt-2 pb-10 sm:pb-12 lg:pb-14">
         {/* Flex terpusat, bukan grid 3 kolom: jumlah guru dari DB (bisa 1 atau 2),
             grid tetap membuat kartu tunggal mengambang kiri dengan ruang kosong lebar. */}
-        <div className="flex flex-wrap justify-center gap-x-10 gap-y-14 sm:gap-y-20">
+        <div className="flex flex-wrap justify-center gap-x-8 lg:gap-x-10 gap-y-12 sm:gap-y-16">
           {gurus.map((g, i) => (
             <KartuGuru key={g.id} guru={g} index={i} />
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 }

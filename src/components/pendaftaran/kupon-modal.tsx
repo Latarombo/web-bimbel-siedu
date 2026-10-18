@@ -134,7 +134,7 @@ export default function KuponModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
+            className="rounded-full p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
             aria-label={tCommon('close')}
           >
             <X className="size-5" />
@@ -146,7 +146,7 @@ export default function KuponModal({
           <form onSubmit={handleTerapkanManual} className="flex gap-2">
             <div className="relative flex-1">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Tag className="size-4 text-slate-400" />
+                <Tag className="size-4 text-slate-600" />
               </div>
               <input
                 type="text"
@@ -156,14 +156,14 @@ export default function KuponModal({
                   setErrorText("");
                 }}
                 placeholder="Masukkan kode promo"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2.5 text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-900 placeholder:text-slate-400 placeholder:font-normal focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2.5 text-xs sm:text-sm font-semibold uppercase tracking-wider text-slate-900 placeholder:text-slate-500 placeholder:font-normal focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/20"
               />
             </div>
             <button
               type="submit"
               disabled={!kodeInput.trim()}
               className="rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shrink-0"
-              style={{ backgroundColor: "#f26d0f" }}
+              style={{ backgroundColor: "#c2410c" }}
             >
               Terapkan
             </button>
@@ -203,7 +203,7 @@ export default function KuponModal({
                     <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
                       {k.deskripsi}
                     </p>
-                    <p className="text-[11px] text-slate-400 mt-2">
+                    <p className="text-[11px] text-slate-600 mt-2">
                       Berlaku hingga {k.berlakuHingga}
                     </p>
                   </div>

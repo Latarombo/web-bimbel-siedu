@@ -7,13 +7,16 @@ import PetaCabangExplorer from "@/components/contact/PetaCabangExplorer";
 import { CabangScrollTrigger } from "@/components/contact/CabangScrollTrigger";
 import { KANTOR_PUSAT } from "@/lib/cabang";
 import { MAPS_SEARCH_URL, SITE } from "@/lib/site";
+import { publicMetadata } from "@/lib/metadata";
 
-export async function generateMetadata(): Promise<Metadata> {
-  const tr = await getTranslations("public");
-  return {
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const tr = await getTranslations({ locale, namespace: "public" });
+  return publicMetadata({
     title: tr("contactTitle"),
     description: tr("text287"),
-  };
+    path: "/contact",
+  });
 }
 
 export default async function ContactPage() {
@@ -61,11 +64,17 @@ export default async function ContactPage() {
 
       {/* 2. PETA LOKASI & EXPLORER CABANG: Overlap Halus & Responsif */}
       <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-10 lg:-mt-12">
+        {/* h2 pembuka: PetaCabangExplorer memakai h3 untuk judul panel dan h4
+            untuk tiap cabang, jadi tanpa ini urutan heading lompat h1 -> h3. */}
+        <h2 className="sr-only">{tr("contactMapHeading")}</h2>
         <PetaCabangExplorer />
       </div>
 
       {/* 3. INFORMASI & FORMULIR KONTAK: 2 Kolom Responsif */}
       <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-14 sm:pt-10 sm:pb-18 lg:pt-12 lg:pb-20">
+        {/* h2 pembuka: kartu di bawah memakai h3, jadi tanpa ini urutan
+            heading lompat h1 -> h3 (pelanggaran WCAG 1.3.1 / best practice). */}
+        <h2 className="sr-only">{tr("contactInfoHeading")}</h2>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8 items-start">
           {/* Kolom Kiri: 4 Kartu Info Kontak Terpadu (p-4 sm:p-5, Aksen Warna Semantik) */}
           <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3.5 sm:gap-4">
@@ -112,7 +121,7 @@ export default async function ContactPage() {
               </div>
               <div className="space-y-2 text-xs sm:text-sm">
                 <div>
-                  <span className="text-[11px] font-semibold text-slate-400 block">Kantor:</span>
+                  <span className="text-[11px] font-semibold text-slate-600 block">Kantor:</span>
                   <a
                     href={telpHref}
                     className="font-bold text-slate-800 hover:text-brand hover:underline transition-colors"
@@ -121,12 +130,12 @@ export default async function ContactPage() {
                   </a>
                 </div>
                 <div>
-                  <span className="text-[11px] font-semibold text-slate-400 block">WhatsApp Resmi:</span>
+                  <span className="text-[11px] font-semibold text-slate-600 block">WhatsApp Resmi:</span>
                   <a
                     href={waHref}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-bold text-emerald-600 hover:text-emerald-700 hover:underline transition-colors"
+                    className="font-bold text-emerald-700 hover:text-emerald-800 hover:underline transition-colors"
                   >
                     {SITE.whatsapp}
                   </a>
@@ -155,14 +164,14 @@ export default async function ContactPage() {
             {/* 4. Kartu Jam Operasional */}
             <div className="group rounded-2xl border border-slate-200/90 bg-white p-4.5 sm:p-5 shadow-2xs hover:border-slate-300 hover:shadow-xs transition-all">
               <div className="mb-3 flex items-center gap-3">
-                <span className="grid size-9 place-items-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100/80 shadow-2xs shrink-0 transition-transform group-hover:scale-105">
+                <span className="grid size-9 place-items-center rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100/80 shadow-2xs shrink-0 transition-transform group-hover:scale-105">
                   <Clock className="size-4.5" strokeWidth={2} />
                 </span>
                 <h3 className="font-bold text-slate-900 text-sm sm:text-base">{tr("contactHoursHeading")}</h3>
               </div>
               <div className="text-xs sm:text-sm text-slate-600 space-y-1">
                 <p className="font-medium text-slate-800">{tr("contactHoursWeekdays")}</p>
-                <span className="inline-block rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+                <span className="inline-block rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
                   {tr("contactHoursClosed")}
                 </span>
               </div>

@@ -1,6 +1,6 @@
 /**
  * Section 07 — FAQ, mengikuti contohFAQ.png (user):
- * panel teal #13939e dengan lingkaran transparan bertumpuk; heading putih
+ * panel teal #0e7c86 dengan lingkaran transparan bertumpuk; heading putih
  * "Paling sering ditanyakan" tengah (tanpa sub); baris pertanyaan = bilah
  * abu terang #f2f5fa tanpa border, radius kecil, min-h 63px, jarak antar
  * baris 12px, pertanyaan serif-di-desain-asli (di sini tetap sans brand biar
@@ -14,10 +14,12 @@
 import { useTranslations } from "next-intl";
 
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 
-const TEAL = "#13939e";
+/* Teal digelapkan dari #13939e ke #0e7c86 supaya teks putih di atasnya
+   (heading + "Baca Selengkapnya") tembus WCAG AA: 4.95:1 vs 3.69:1. */
+const TEAL = "#0e7c86";
 const BARIS = "#f2f5fa";
 const AWAL = 5;
 
@@ -102,7 +104,7 @@ let globalFaqSemua = false;
 
 function parseHashState(): { openIndex: number | null; semua: boolean } {
   if (typeof window === "undefined") {
-    return { openIndex: globalFaqOpenIndex, semua: globalFaqSemua };
+    return { openIndex: null, semua: false };
   }
   const hash = window.location.hash;
   if (hash.startsWith("#faq-item-") || hash.startsWith("#faq-")) {
@@ -137,17 +139,29 @@ export default function FaqSection() {
     [tr("text21"), tr("text22")],
   ];
 
-  const [semua, setSemua] = useState(() => parseHashState().semua);
-  const [openIndex, setOpenIndex] = useState<number | null>(() => parseHashState().openIndex);
+  // Inisialisasi dengan nilai aman SSR agar server dan client hydration 100% identik
+  const [semua, setSemua] = useState(false);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const isMountedRef = useRef(false);
 
   const awalFaq = faq.slice(0, AWAL);
   const sisaFaq = faq.slice(AWAL);
 
   useEffect(() => {
-    function handleHashChange() {
-      const state = parseHashState();
+    // Sinkronkan state dengan hash URL hanya setelah hydration client selesai
+    const state = parseHashState();
+    if (state.openIndex !== null) {
       setOpenIndex(state.openIndex);
-      if (state.semua) setSemua(true);
+    }
+    if (state.semua) {
+      setSemua(true);
+    }
+    isMountedRef.current = true;
+
+    function handleHashChange() {
+      const nextState = parseHashState();
+      setOpenIndex(nextState.openIndex);
+      if (nextState.semua) setSemua(true);
     }
     window.addEventListener("hashchange", handleHashChange);
     return () => window.removeEventListener("hashchange", handleHashChange);
@@ -158,7 +172,7 @@ export default function FaqSection() {
     !semua && openIndex !== null && openIndex >= AWAL ? null : openIndex;
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (!isMountedRef.current) return;
     const currentHash = window.location.hash;
     if (effectiveOpenIndex !== null) {
       const targetHash = `#faq-${effectiveOpenIndex}`;

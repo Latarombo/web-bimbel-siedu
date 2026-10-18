@@ -154,7 +154,7 @@ export function GridKehadiran({
                 ? "bg-rose-500 text-white"
                 : st
                   ? "bg-amber-400 text-white"
-                  : "bg-slate-100 text-slate-400";
+                  : "bg-slate-100 text-slate-600";
           return (
             <span
               key={date}

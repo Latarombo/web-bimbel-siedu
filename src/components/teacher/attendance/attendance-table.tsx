@@ -173,20 +173,20 @@ export function AttendanceTable({
           <label htmlFor="search-student" className="sr-only">
             Cari siswa
           </label>
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-slate-600" />
           <input
             id="search-student"
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari nama siswa..."
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/60 py-1.5 pl-9 pr-8 text-xs text-slate-900 transition-colors placeholder:text-slate-400 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/20"
+            className="w-full rounded-xl border border-slate-200 bg-slate-50/60 py-1.5 pl-9 pr-8 text-xs text-slate-900 transition-colors placeholder:text-slate-500 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/20"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-slate-600 hover:text-slate-600 cursor-pointer"
             >
               <X className="size-3.5" />
             </button>
@@ -229,7 +229,7 @@ export function AttendanceTable({
                     }`}
                   >
                     {/* 1. Nomor */}
-                    <td className="px-4 py-3 text-center font-medium text-slate-400 tabular-nums">
+                    <td className="px-4 py-3 text-center font-medium text-slate-600 tabular-nums">
                       {idx + 1}
                     </td>
 
@@ -318,7 +318,7 @@ export function AttendanceTable({
                         defaultValue={s.catatan ?? ''}
                         disabled={s.terkunci}
                         placeholder={t('notesPlaceholder')}
-                        className="w-full rounded-lg border border-slate-200/90 bg-slate-50/40 px-3 py-1.5 text-xs text-slate-800 transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/20 disabled:bg-slate-100/60 disabled:cursor-not-allowed"
+                        className="w-full rounded-lg border border-slate-200/90 bg-slate-50/40 px-3 py-1.5 text-xs text-slate-800 transition-colors placeholder:text-slate-500 hover:border-slate-300 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/20 disabled:bg-slate-100/60 disabled:cursor-not-allowed"
                       />
                     </td>
 
@@ -344,11 +344,7 @@ export function AttendanceTable({
                           />
                           {t(`status_${currentStatus}`)}
                         </span>
-                      ) : (
-                        <span className="text-slate-300 text-sm font-semibold">
-                          —
-                        </span>
-                      )}
+                      ) : null}
                     </td>
                   </tr>
                 );

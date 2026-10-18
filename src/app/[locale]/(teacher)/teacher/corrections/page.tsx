@@ -55,7 +55,7 @@ export default async function TeacherCorrections() {
       id: n.id,
       entitas: "nilai" as const,
       label: `${getAnakNama(n.pendaftaranId)} (${n.tanggal})`,
-      ringkasan: `Nilai: ${n.nilaiKuantitatif ?? "—"}${n.catatanKualitatif ? ` · "${n.catatanKualitatif}"` : ""}`,
+      ringkasan: `Nilai: ${n.nilaiKuantitatif ?? ""}${n.catatanKualitatif ? ` · "${n.catatanKualitatif}"` : ""}`,
       currentValues: {
         nilaiKuantitatif: n.nilaiKuantitatif,
         catatanKualitatif: n.catatanKualitatif,
@@ -124,7 +124,7 @@ export default async function TeacherCorrections() {
                           <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                             {item.entitas === "presensi" ? t("attendance") : t("grades")} #{item.entitasId}
                           </span>
-                          <span className="text-xs text-slate-400">·</span>
+                          <span className="text-xs text-slate-600">·</span>
                           <span className="text-xs text-slate-500">
                             {new Date(item.createdAt).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", {
                               day: "numeric",

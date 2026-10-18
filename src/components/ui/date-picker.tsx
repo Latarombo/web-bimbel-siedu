@@ -336,11 +336,11 @@ export function DatePicker({
                 )}
             >
                 <div className="flex items-center gap-3 overflow-hidden">
-                    <CalendarIcon className="w-5 h-5 text-slate-400 shrink-0" aria-hidden="true" />
+                    <CalendarIcon className="w-5 h-5 text-slate-600 shrink-0" aria-hidden="true" />
                     <span
                         className={cn(
                             'truncate',
-                            selectedValue ? 'text-slate-800 font-medium' : 'text-slate-400'
+                            selectedValue ? 'text-slate-800 font-medium' : 'text-slate-600'
                         )}
                     >
                         {selectedValue
@@ -348,7 +348,7 @@ export function DatePicker({
                             : defaultPlaceholder}
                     </span>
                 </div>
-                <ChevronsUpDown className="w-4 h-4 text-slate-400 shrink-0 ml-2" aria-hidden="true" />
+                <ChevronsUpDown className="w-4 h-4 text-slate-600 shrink-0 ml-2" aria-hidden="true" />
             </button>
 
             {/* Popover Card & Mobile Bottom Sheet */}
@@ -387,7 +387,7 @@ export function DatePicker({
                             <button
                                 type="button"
                                 onClick={() => setIsOpen(false)}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                                className="p-1.5 rounded-lg text-slate-600 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -421,7 +421,7 @@ export function DatePicker({
                                 </span>
                                 <ChevronDown
                                     className={cn(
-                                        'w-4 h-4 text-slate-400 group-hover:text-slate-600 transition-transform duration-200',
+                                        'w-4 h-4 text-slate-600 group-hover:text-slate-600 transition-transform duration-200',
                                         viewMode === 'years' && 'rotate-180 text-blue-600'
                                     )}
                                     aria-hidden="true"
@@ -450,7 +450,7 @@ export function DatePicker({
                                     {daysHeader.map((d, index) => (
                                         <div
                                             key={index}
-                                            className="text-center text-xs font-semibold text-slate-400 py-1"
+                                            className="text-center text-xs font-semibold text-slate-600 py-1"
                                         >
                                             {d}
                                         </div>
@@ -520,7 +520,7 @@ export function DatePicker({
                                     <span className="text-xs font-semibold text-slate-500">
                                         {isEn ? 'Select Year' : 'Pilih Tahun'}
                                     </span>
-                                    <span className="text-xs text-slate-400">
+                                    <span className="text-xs text-slate-600">
                                         {availableYears[availableYears.length - 1]} – {availableYears[0]}
                                     </span>
                                 </div>

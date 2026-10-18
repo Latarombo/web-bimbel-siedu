@@ -93,12 +93,12 @@ export default async function AdminMessages({
                         <span className="flex items-baseline justify-between gap-2">
                           <span className="truncate text-sm font-bold text-slate-900">
                             {p.nama}
-                            <span className="ml-2 font-normal text-slate-400">{p.email}</span>
+                            <span className="ml-2 font-normal text-slate-600">{p.email}</span>
                           </span>
-                          <span className="flex-shrink-0 text-xs tabular-nums text-slate-400">{fmtWaktu(p.createdAt)}</span>
+                          <span className="flex-shrink-0 text-xs tabular-nums text-slate-600">{fmtWaktu(p.createdAt)}</span>
                         </span>
                         <span className="mt-0.5 block truncate text-sm font-semibold text-slate-700">{p.subjek}</span>
-                        <span className="mt-0.5 block line-clamp-1 text-xs text-slate-400">{p.pesan}</span>
+                        <span className="mt-0.5 block line-clamp-1 text-xs text-slate-600">{p.pesan}</span>
                       </span>
                       {p.status !== "baru" ? <Badge tone={TONE[p.status as keyof typeof TONE]}>{LABEL[p.status as keyof typeof LABEL]}</Badge> : null}
                     </Link>
@@ -131,7 +131,7 @@ export default async function AdminMessages({
                   </div>
                   <Badge tone={TONE[selected.status as keyof typeof TONE]}>{LABEL[selected.status as keyof typeof LABEL]}</Badge>
                 </div>
-                <p className="mt-2.5 text-xs tabular-nums text-slate-400">
+                <p className="mt-2.5 text-xs tabular-nums text-slate-600">
                   {t("receivedAt", { date: fmtWaktu(selected.createdAt) })}
                   {selected.jenjang ? t("messageLevel", { level: selected.jenjang }) : ""}
                   {selected.sekolah ? ` · ${selected.sekolah}` : ""}

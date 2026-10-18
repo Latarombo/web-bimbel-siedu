@@ -258,11 +258,15 @@ export async function terapkanStatusMidtrans(
   orderId: string,
   transactionStatus: string,
 ): Promise<{ ok: boolean; note: string }> {
-  const m = /^siedu-pemb-(\d+)$/.exec(orderId);
+  const m = /^siedu-pemb-(\d+)(?:-.*)?$/.exec(orderId);
   if (!m) return { ok: true, note: "order_id bukan milik Siedu — diabaikan" };
   const id = Number(m[1]);
   const st = transactionStatus.toLowerCase();
   if (st === "settlement" || st === "capture") {
+    await db.orm.public.Pembayaran.where({ id }).update({
+      referensiGateway: orderId,
+      updatedAt: new Date().toISOString(),
+    });
     const r = await tandaiBerhasil(id);
     return r.ok
       ? { ok: true, note: `pembayaran ${id} → berhasil` }

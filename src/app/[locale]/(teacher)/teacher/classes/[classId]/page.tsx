@@ -9,6 +9,7 @@ import { tanggalWIB } from "@/lib/hari";
 import { rencanakanSesi } from "@/lib/rencana-sesi";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
+import { Download, FileSpreadsheet, Camera } from "lucide-react";
 import { PageShell, PageHeader, Panel } from "@/components/admin/ui";
 
 export const dynamic = "force-dynamic";
@@ -124,9 +125,24 @@ export default async function TeacherClassDetail({
 
       <div className="mt-6 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <Panel>
-          <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-            <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("activeRoster")}</h2>
-            <p className="text-xs text-slate-500">{t("rosterSummary", { count: rows.length })}</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 px-4 py-4 sm:px-6 gap-3">
+            <div>
+              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("activeRoster")}</h2>
+              <p className="text-xs text-slate-500">{t("rosterSummary", { count: rows.length })}</p>
+            </div>
+            {rows.length > 0 ? (
+              <div className="flex items-center gap-2">
+                <a
+                  href={`/api/export/class/${kid}?type=summary`}
+                  download
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                  title={t("exportSummary")}
+                >
+                  <Download className="size-3.5" />
+                  <span>{t("exportData")}</span>
+                </a>
+              </div>
+            ) : null}
           </div>
           {rows.length === 0 ? (
             <div className="px-4 py-14 text-center sm:px-6">
@@ -156,7 +172,7 @@ export default async function TeacherClassDetail({
                           </span>
                           <span className="font-semibold text-slate-900">{anak?.nama ?? t("childFallback", { id: p.anakId })}</span>
                         </div>
-                        {/* Kolom Entri/Hadir disembunyikan di HP — ringkasannya jadi baris kecil di sel nama. */}
+                        {/* Kolom Entri/Hadir disembunyikan di HP: ringkasannya jadi baris kecil di sel nama. */}
                         <p className="mt-1 text-xs text-slate-500 md:hidden">
                           {t("studentGradeAttendance", { count: nNilai, attendance: tercatat > 0 ? t("attendedSessions", {count: hadir, total: tercatat}) : t("noAttendance") })}
                         </p>
@@ -165,16 +181,24 @@ export default async function TeacherClassDetail({
                         <Badge tone={p.status === "terdaftar" ? "emerald" : "amber"}>{t(`status_${p.status}`)}</Badge>
                       </td>
                       <td className="hidden px-4 py-3 text-center tabular-nums text-slate-700 md:table-cell">{nNilai}</td>
-                      <td className="px-4 py-3 text-center">
-                        {rata != null ? <Badge tone={rata >= 75 ? "emerald" : "brand"}>{rata}</Badge> : <span className="text-xs text-slate-400">—</span>}
+                      <td className="px-4 py-3 text-center tabular-nums">
+                        {rata != null ? <span className="font-semibold text-slate-900">{rata}</span> : null}
                       </td>
                       <td className="hidden px-4 py-3 text-center text-xs tabular-nums text-slate-600 md:table-cell">
                         {tercatat > 0 ? t("sessionRatio", { count: hadir, total: tercatat }) : t("noAttendance")}
                       </td>
                       <td className="px-4 py-3 text-right sm:px-6">
-                        <Link href={`/teacher/grades/${p.id}`} className="text-sm font-semibold text-blue-700 hover:underline">
-                          {t("gradesNotes")}
-                        </Link>
+                        <div className="flex items-center justify-end gap-3">
+                          <Link href={`/teacher/grades/${p.id}`} className="text-xs font-semibold text-blue-700 hover:underline">
+                            {t("gradesNotes")}
+                          </Link>
+                          <Link href={`/teacher/classes/${kid}/report/${p.id}`} className="text-xs font-semibold text-emerald-700 hover:underline">
+                            {t("reportCard")}
+                          </Link>
+                          <Link href={`/teacher/classes/${kid}/certificate/${p.id}`} className="text-xs font-semibold text-amber-700 hover:underline">
+                            Sertifikat
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -245,6 +269,48 @@ export default async function TeacherClassDetail({
               <p className="mt-4 border-t border-slate-100 pt-3 text-xs leading-relaxed text-slate-500">
                 {t("ownEntriesHelp")}
               </p>
+            </div>
+          </Panel>
+
+          <Panel>
+            <div className="p-4 sm:p-6">
+              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">Aksi & Rekap Kelas</h2>
+              <div className="mt-3 flex flex-col gap-2">
+                <Link
+                  href="/teacher/status"
+                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <Camera className="size-4 text-blue-600" />
+                    <span>Dokumentasi Belajar</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400">Foto & Teks</span>
+                </Link>
+
+                <a
+                  href={`/api/export/class/${kid}?type=attendance`}
+                  download
+                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <FileSpreadsheet className="size-4 text-emerald-600" />
+                    <span>Rekap Presensi (CSV)</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400">Excel</span>
+                </a>
+
+                <a
+                  href={`/api/export/class/${kid}?type=grades`}
+                  download
+                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  <span className="flex items-center gap-2.5">
+                    <FileSpreadsheet className="size-4 text-indigo-600" />
+                    <span>Rekap Nilai (CSV)</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400">Excel</span>
+                </a>
+              </div>
             </div>
           </Panel>
         </div>

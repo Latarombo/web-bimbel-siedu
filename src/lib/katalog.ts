@@ -2,73 +2,85 @@ import { db } from '../prisma/db';
 import { collect } from './collect';
 import { labelHari } from './label';
 
-export const UKURAN_HALAMAN_KATALOG = 12;
-export const JENJANG_KATALOG = ['Semua', 'TK', 'SD', 'SMP', 'SMA'] as const;
-export type FilterKatalog = {
-  q: string;
-  jenjang: typeof JENJANG_KATALOG[number];
-  mapelId?: number;
-  tingkat?: string;
-  sort: 'terbaru' | 'termurah' | 'termahal';
-  page: number;
-};
+import { UKURAN_HALAMAN_KATALOG, type FilterKatalog } from './katalog-shared';
 
-export function filterKatalog(params: Record<string, string | string[] | undefined>): FilterKatalog {
-  const page = typeof params.page === 'string' && /^\d+$/.test(params.page) ? Number(params.page) : 1;
-  const mapelId = typeof params.mapelId === 'string' && /^\d+$/.test(params.mapelId) && Number(params.mapelId) > 0
-    ? Number(params.mapelId)
-    : undefined;
-  const tingkat = typeof params.tingkat === 'string' && params.tingkat.trim().length > 0 && params.tingkat.trim() !== 'Semua'
-    ? params.tingkat.trim().slice(0, 30)
-    : undefined;
-  return {
-    q: typeof params.q === 'string' ? params.q.trim().slice(0, 100) : '',
-    jenjang: JENJANG_KATALOG.includes(params.jenjang as FilterKatalog['jenjang']) ? params.jenjang as FilterKatalog['jenjang'] : 'Semua',
-    mapelId,
-    tingkat,
-    sort: params.sort === 'termurah' || params.sort === 'termahal' ? params.sort : 'terbaru',
-    page: Number.isSafeInteger(page) && page > 0 ? Math.min(page, 1_000_000) : 1,
-  };
-}
+export * from './katalog-shared';
 
-export function urlKatalog(filter: FilterKatalog, perubahan: Partial<FilterKatalog> = {}) {
-  const next = { ...filter, ...perubahan };
-  const params = new URLSearchParams();
-  if (next.q) params.set('q', next.q);
-  if (next.jenjang !== 'Semua') params.set('jenjang', next.jenjang);
-  if (next.mapelId) params.set('mapelId', String(next.mapelId));
-  if (next.tingkat && next.tingkat !== 'Semua') params.set('tingkat', next.tingkat);
-  if (next.sort !== 'terbaru') params.set('sort', next.sort);
-  if (next.page > 1) params.set('page', String(next.page));
-  return `/classes${params.size ? `?${params}` : ''}`;
-}
-
-/** Filter/count di Postgres; hanya ID satu halaman dan empat hitungan keluar DB.
- * Raw lane dipakai untuk pencarian gabungan relasi dan count facet dalam satu snapshot.
- * Input menjadi parameter SQL, termasuk pilihan sort. Tidak ada SQL hasil konkatenasi.
- */
 export async function kelasKatalogHalaman(filter: FilterKatalog, locale: string = 'id') {
   const hariLabels = JSON.stringify(Object.fromEntries(
     ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map((hari) => [hari, labelHari(hari, locale)]),
   ));
   const belumAdaJadwal = locale === 'en' ? 'Schedule to follow' : 'Jadwal menyusul';
+
+  const rawTingkat = (filter.tingkat ?? '').trim();
+  const numMatch = rawTingkat.match(/\b(\d+)\b/);
+  const gradeNum = numMatch ? parseInt(numMatch[1], 10) : 0;
+  const isTkA = Boolean(rawTingkat && /\b(tk\s*a|kelompok\s*a|\ba\b)/i.test(rawTingkat));
+  const isTkB = Boolean(rawTingkat && /\b(tk\s*b|kelompok\s*b|\bb\b)/i.test(rawTingkat));
+
+  const qClean = filter.q.trim();
+  const qWords = qClean.toLowerCase().split(/\s+/).filter(Boolean);
+  const qWordsJson = JSON.stringify(qWords);
+
   const plan = db.raw.sql`
-    with cocok as materialized (
-      select k.id, k.jenjang, k.biaya_periode, k.created_at
+    with jadwal_teks as (
+      select j.kelas_id, string_agg(
+        (${hariLabels}::jsonb ->> j.hari) || ' ' || left(j.jam_mulai::text, 5) || '-' || left(j.jam_selesai::text, 5),
+        ', ' order by j.hari
+      ) as teks
+      from jadwal_item j
+      group by j.kelas_id
+    ), kelas_search as (
+      select
+        k.id, k.jenjang, k.tingkat, k.biaya_periode, k.created_at, k.status, k.mata_pelajaran_id,
+        m.nama as mapel_nama, coalesce(m.deskripsi, '') as mapel_deskripsi,
+        lower(m.nama || ' ' || coalesce(m.deskripsi, '') || ' ' || k.jenjang::text || ' ' || coalesce(k.tingkat, '') || ' ' || coalesce(k.ruangan, '') || ' ' || g.name || ' ' || coalesce(jt.teks, ${belumAdaJadwal})) as searchable
       from kelas k
       join mata_pelajaran m on m.id = k.mata_pelajaran_id
       join users g on g.id = k.guru_id
-      where k.status = 'aktif'
-        and (${filter.mapelId ?? 0} = 0 or k.mata_pelajaran_id = ${filter.mapelId ?? 0})
-        and (${filter.tingkat ?? ''} = '' or ${filter.tingkat ?? ''} = 'Semua' or lower(coalesce(k.tingkat, '')) = lower(${filter.tingkat ?? ''}) or strpos(lower(m.nama || ' ' || coalesce(m.deskripsi, '')), lower(${filter.tingkat ?? ''})) > 0)
-        and (${filter.q} = '' or strpos(lower(
-          m.nama || ' ' || coalesce(m.deskripsi, '') || ' ' || g.name || ' ' || coalesce((
-            select string_agg(
-              (${hariLabels}::jsonb ->> j.hari) || ' ' || left(j.jam_mulai::text, 5) || '-' || left(j.jam_selesai::text, 5),
-              ', ' order by j.hari
-            ) from jadwal_item j where j.kelas_id = k.id
-          ), ${belumAdaJadwal})
-        ), lower(${filter.q})) > 0)
+      left join jadwal_teks jt on jt.kelas_id = k.id
+    ), cocok as materialized (
+      select id, jenjang, biaya_periode, created_at
+      from kelas_search
+      where status = 'aktif'
+        and (${filter.mapelId ?? 0} = 0 or mata_pelajaran_id = ${filter.mapelId ?? 0})
+        and (
+          ${rawTingkat} = '' or ${rawTingkat} = 'Semua'
+          or lower(coalesce(tingkat, '')) = lower(${rawTingkat})
+          or strpos(lower(coalesce(tingkat, '')), lower(${rawTingkat})) > 0
+          or strpos(lower(mapel_nama || ' ' || mapel_deskripsi), lower(${rawTingkat})) > 0
+          or (${gradeNum} > 0 and (
+            coalesce(tingkat, '') ~* ('\m' || ${gradeNum}::text || '\M')
+            or (
+              (regexp_match(coalesce(tingkat, ''), '(\d+)\s*[-–—]\s*(\d+)')) is not null
+              and ${gradeNum} between ((regexp_match(coalesce(tingkat, ''), '(\d+)\s*[-–—]\s*(\d+)'))[1])::int
+                                  and ((regexp_match(coalesce(tingkat, ''), '(\d+)\s*[-–—]\s*(\d+)'))[2])::int
+            )
+          ))
+          or (${isTkA} and (
+            coalesce(tingkat, '') ~* '\m(tk\s*)?a\M'
+            or lower(coalesce(tingkat, '')) like '%kelompok a%'
+            or lower(coalesce(tingkat, '')) like '%preschool%'
+          ))
+          or (${isTkB} and (
+            coalesce(tingkat, '') ~* '\m(tk\s*)?b\M'
+            or lower(coalesce(tingkat, '')) like '%kelompok%b%'
+          ))
+        )
+        and (
+          ${qClean} = ''
+          or strpos(searchable, lower(${qClean})) > 0
+          or not exists (
+            select 1 from jsonb_array_elements_text(${qWordsJson}::jsonb) as elem
+            where strpos(searchable, elem) = 0
+              and not (
+                elem ~ '^\d+$'
+                and (regexp_match(coalesce(tingkat, ''), '(\d+)\s*[-–—]\s*(\d+)')) is not null
+                and elem::int between ((regexp_match(coalesce(tingkat, ''), '(\d+)\s*[-–—]\s*(\d+)'))[1])::int
+                                  and ((regexp_match(coalesce(tingkat, ''), '(\d+)\s*[-–—]\s*(\d+)'))[2])::int
+              )
+          )
+        )
     ), hitungan as (
       select jenjang, count(*)::int as jumlah from cocok group by jenjang
     ), total as (

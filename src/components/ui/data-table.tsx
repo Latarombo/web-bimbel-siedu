@@ -90,7 +90,7 @@ export function DataTable({
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <label className="relative block w-full max-w-xs sm:max-w-64">
             <span className="sr-only">{t("search")}</span>
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-600">
               <circle cx="11" cy="11" r="7" />
               <path d="m20 20-3.5-3.5" />
             </svg>
@@ -99,7 +99,7 @@ export function DataTable({
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder={searchPlaceholder}
-              className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+              className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-500 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
             />
           </label>
         </div>

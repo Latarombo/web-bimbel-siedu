@@ -97,7 +97,7 @@ export function inferJenjangDanKelasFromBirthDate(birthDateStr: string): {
 function FieldIcon({ d }: { d: string }) {
     return (
         <svg
-            className="w-5 h-5 text-slate-400 shrink-0"
+            className="w-5 h-5 text-slate-600 shrink-0"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -253,7 +253,7 @@ export default function ChildInfoForm({
     };
 
     const inputBase =
-        'w-full pl-10 sm:pl-11 pr-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-slate-400 bg-white';
+        'w-full pl-10 sm:pl-11 pr-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-slate-500 bg-white';
 
     const currentKelasOptions = jenjang ? KELAS_OPTIONS[jenjang] : [];
 
@@ -509,7 +509,7 @@ export default function ChildInfoForm({
                         className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
                     >
                         {t('childEmail')}{' '}
-                        <span className="text-xs font-normal text-slate-400">
+                        <span className="text-xs font-normal text-slate-600">
                             {t('optionalParen')}
                         </span>
                     </label>
@@ -560,7 +560,7 @@ export default function ChildInfoForm({
                     <button
                         type="submit"
                         disabled={pending}
-                        className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm sm:text-base font-semibold py-3 sm:py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center active:scale-[0.99] cursor-pointer"
+                        className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-600 text-white text-sm sm:text-base font-semibold py-3 sm:py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center active:scale-[0.99] cursor-pointer"
                     >
                         <span>{pending ? t('processing') : (submitLabel ?? t('createChild'))}</span>
                     </button>

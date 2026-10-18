@@ -148,7 +148,7 @@ export function MobileDrawer({
 
             {/* Scrollable Navigation Body */}
             <div className="flex-1 overflow-y-auto px-4 py-3.5 space-y-1 overscroll-contain">
-              <span className="block px-3 py-1 text-[11px] font-medium text-slate-400">
+              <span className="block px-3 py-1 text-[11px] font-medium text-slate-600">
                 {isEn ? 'Main Menu' : 'Menu Utama'}
               </span>
 
@@ -166,7 +166,7 @@ export function MobileDrawer({
                     }`}
                   >
                     <Home
-                      className={`size-5 shrink-0 ${isHomeActive ? 'text-blue-600' : 'text-slate-400'}`}
+                      className={`size-5 shrink-0 ${isHomeActive ? 'text-blue-600' : 'text-slate-600'}`}
                       aria-hidden="true"
                     />
                     <span>{t('home')}</span>
@@ -189,7 +189,7 @@ export function MobileDrawer({
                         className="flex items-center gap-3.5 flex-1 min-h-11 focus-visible:ring-2 focus-visible:ring-blue-600 rounded-lg outline-none"
                       >
                         <BookOpen
-                          className={`size-5 shrink-0 ${isClassesActive ? 'text-blue-600' : 'text-slate-400'}`}
+                          className={`size-5 shrink-0 ${isClassesActive ? 'text-blue-600' : 'text-slate-600'}`}
                           aria-hidden="true"
                         />
                         <span>{t('classes')}</span>
@@ -225,7 +225,7 @@ export function MobileDrawer({
                           <div className="px-3.5 py-2.5 space-y-3.5">
                             {PROGRAM_CATEGORIES.map((category) => (
                               <div key={category.titleId} className="space-y-1">
-                                <span className="block px-2 text-[11px] font-medium text-slate-400">
+                                <span className="block px-2 text-[11px] font-medium text-slate-600">
                                   {isEn ? category.titleEn : category.titleId}
                                 </span>
                                 <div className="space-y-0.5">
@@ -274,7 +274,7 @@ export function MobileDrawer({
                     }`}
                   >
                     <Info
-                      className={`size-5 shrink-0 ${isAboutActive ? 'text-blue-600' : 'text-slate-400'}`}
+                      className={`size-5 shrink-0 ${isAboutActive ? 'text-blue-600' : 'text-slate-600'}`}
                       aria-hidden="true"
                     />
                     <span>{t('about')}</span>
@@ -294,7 +294,7 @@ export function MobileDrawer({
                     }`}
                   >
                     <PhoneCall
-                      className={`size-5 shrink-0 ${isContactActive ? 'text-blue-600' : 'text-slate-400'}`}
+                      className={`size-5 shrink-0 ${isContactActive ? 'text-blue-600' : 'text-slate-600'}`}
                       aria-hidden="true"
                     />
                     <span>{t('contact')}</span>

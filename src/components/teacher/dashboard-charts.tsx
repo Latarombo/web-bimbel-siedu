@@ -1,7 +1,7 @@
 "use client";
 
 /*
- * Grafik dashboard guru — pola shadcn ChartContainer + recharts v3, sama
+ * Grafik dashboard guru: pola shadcn ChartContainer + recharts v3, sama
  * seperti admin/enrollment-trend-chart dan parent/nilai-trend-chart. Data
  * dihitung di server (angka nyata dari DB), komponen ini hanya merender.
  */

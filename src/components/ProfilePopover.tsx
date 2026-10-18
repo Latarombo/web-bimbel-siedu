@@ -101,7 +101,7 @@ const ProfilePopover: React.FC<ProfilePopoverProps> = ({
               {initials}
             </span>
             <span className="whitespace-nowrap text-sm font-semibold text-slate-800">{role}</span>
-            <PopIcon icon="chevronRight" className="h-4 w-4 text-slate-400" />
+            <PopIcon icon="chevronRight" className="h-4 w-4 text-slate-600" />
           </span>
         </Link>
 

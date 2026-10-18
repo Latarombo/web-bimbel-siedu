@@ -66,7 +66,7 @@ function getMonday(d: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), diff);
 }
 
-// Day name mappings — must match i18n keys: day_Minggu, day_Senin, ...
+// Day name mappings: must match i18n keys: day_Minggu, day_Senin, ...
 const DAY_KEYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as const;
 
 export function TeacherCalendarView({
@@ -567,7 +567,7 @@ export function TeacherCalendarView({
                   >
                     {daySessions.length === 0 ? (
                       <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-slate-200/80 p-2 text-center">
-                        <span className="text-xs font-medium text-slate-400">-</span>
+                        <span className="text-xs font-medium text-slate-600">-</span>
                       </div>
                     ) : (
                       daySessions.map((session) => {
@@ -617,7 +617,7 @@ export function TeacherCalendarView({
                               {/* Top Row: Time & Mini Status Badge */}
                               <div className="flex items-center justify-between gap-1">
                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold tabular-nums text-slate-700">
-                                  <Clock className="size-2.5 text-slate-400" />
+                                  <Clock className="size-2.5 text-slate-600" />
                                   {session.jamMulai} - {session.jamSelesai}
                                 </span>
                                 <span
@@ -649,7 +649,7 @@ export function TeacherCalendarView({
                                 )}
                               </span>
                               {!isCancelled && (
-                                <span className="text-[10px] font-semibold tabular-nums text-slate-400">
+                                <span className="text-[10px] font-semibold tabular-nums text-slate-600">
                                   {session.pesertaCount} siswa
                                 </span>
                               )}
@@ -826,7 +826,7 @@ export function TeacherCalendarView({
                     }
                   }}
                   className={`min-h-[90px] sm:min-h-[115px] p-1.5 transition-colors flex flex-col justify-between ${
-                    day.isCurrentMonth ? 'bg-white' : 'bg-slate-50/60 text-slate-400'
+                    day.isCurrentMonth ? 'bg-white' : 'bg-slate-50/60 text-slate-600'
                   } ${day.isToday ? 'bg-blue-50/30' : ''} ${
                     hasSessions ? 'cursor-pointer hover:bg-blue-50/20' : ''
                   }`}
@@ -839,7 +839,7 @@ export function TeacherCalendarView({
                           ? 'bg-blue-600 text-white shadow-2xs'
                           : day.isCurrentMonth
                           ? 'text-slate-800'
-                          : 'text-slate-400'
+                          : 'text-slate-600'
                       }`}
                     >
                       {day.dayNum}

@@ -180,7 +180,7 @@ export function FilterKatalogModal({
           type="button"
           onClick={onClose}
           aria-label={tCommon("closeDialog")}
-          className="absolute top-5 right-5 rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
+          className="absolute top-5 right-5 rounded-full p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-600 transition cursor-pointer"
         >
           <svg
             className="h-5 w-5"

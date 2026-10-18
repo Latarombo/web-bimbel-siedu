@@ -14,7 +14,9 @@ import {
   RotateCcw,
   Info,
   Loader2,
+  Share2,
 } from 'lucide-react';
+import { createSessionNotesWaLink } from '@/lib/whatsapp';
 
 interface SessionJournalFormProps {
   kelasId: number;
@@ -24,6 +26,7 @@ interface SessionJournalFormProps {
   initialPr?: string;
   isDraf?: boolean;
   diterbitkanPada?: string | null;
+  classNameTitle?: string;
 }
 
 export function SessionJournalForm({
@@ -34,6 +37,7 @@ export function SessionJournalForm({
   initialPr = '',
   isDraf = true,
   diterbitkanPada = null,
+  classNameTitle,
 }: SessionJournalFormProps) {
   const t = useTranslations('teacher');
   const [state, formAction, isPending] = useActionState<GuruState, FormData>(
@@ -44,6 +48,14 @@ export function SessionJournalForm({
   const [materi, setMateri] = useState(initialMateri);
   const [pr, setPr] = useState(initialPr);
   const [actionType, setActionType] = useState<'draf' | 'terbitkan' | 'tarik'>('draf');
+
+  const waLink = createSessionNotesWaLink({
+    className: classNameTitle || `Kelas #${kelasId}`,
+    sessionDate: tanggal,
+    materi: materi,
+    pr: pr,
+    portalUrl: typeof window !== 'undefined' ? window.location.origin : 'https://siedu.id',
+  });
 
   const isPublished = !isDraf && Boolean(diterbitkanPada);
 
@@ -154,11 +166,11 @@ export function SessionJournalForm({
           >
             <BookOpen className="size-4 text-blue-600" />
             <span>{t('materials')}</span>
-            <span className="text-[11px] font-normal text-slate-400">
+            <span className="text-[11px] font-normal text-slate-600">
               (Wajib jika diterbitkan)
             </span>
           </label>
-          <span className="text-[11px] text-slate-400 tabular-nums">
+          <span className="text-[11px] text-slate-600 tabular-nums">
             {materi.length} karakter
           </span>
         </div>
@@ -169,7 +181,7 @@ export function SessionJournalForm({
           onChange={(e) => setMateri(e.target.value)}
           placeholder={t('materialsPlaceholder')}
           rows={4}
-          className="w-full rounded-2xl border border-slate-200/90 bg-white p-3.5 text-xs text-slate-900 leading-relaxed transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
+          className="w-full rounded-2xl border border-slate-200/90 bg-white p-3.5 text-xs text-slate-900 leading-relaxed transition-colors placeholder:text-slate-500 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
         />
       </div>
 
@@ -182,11 +194,11 @@ export function SessionJournalForm({
           >
             <ClipboardList className="size-4 text-amber-500" />
             <span>{t('homework')}</span>
-            <span className="text-[11px] font-normal text-slate-400">
+            <span className="text-[11px] font-normal text-slate-600">
               (Opsional)
             </span>
           </label>
-          <span className="text-[11px] text-slate-400 tabular-nums">
+          <span className="text-[11px] text-slate-600 tabular-nums">
             {pr.length} karakter
           </span>
         </div>
@@ -197,63 +209,79 @@ export function SessionJournalForm({
           onChange={(e) => setPr(e.target.value)}
           placeholder={t('homeworkPlaceholder')}
           rows={3}
-          className="w-full rounded-2xl border border-slate-200/90 bg-white p-3.5 text-xs text-slate-900 leading-relaxed transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
+          className="w-full rounded-2xl border border-slate-200/90 bg-white p-3.5 text-xs text-slate-900 leading-relaxed transition-colors placeholder:text-slate-500 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
         />
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-wrap items-center justify-end gap-3 border-t border-slate-100 pt-5">
-        {isPublished ? (
-          <>
-            <button
-              type="submit"
-              disabled={isPending}
-              onClick={() => setActionType('tarik')}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-200 bg-white px-5 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-5">
+        <div>
+          {materi.trim().length > 0 ? (
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-700 active:scale-95 transition-all cursor-pointer"
             >
-              <RotateCcw className="size-3.5" />
-              <span>{t('withdrawToDraft')}</span>
-            </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              onClick={() => setActionType('terbitkan')}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-            >
-              {isPending ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
+              <Share2 className="size-3.5" />
+              <span>Bagikan ke WhatsApp</span>
+            </a>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {isPublished ? (
+            <>
+              <button
+                type="submit"
+                disabled={isPending}
+                onClick={() => setActionType('tarik')}
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-rose-200 bg-white px-5 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              >
+                <RotateCcw className="size-3.5" />
+                <span>{t('withdrawToDraft')}</span>
+              </button>
+              <button
+                type="submit"
+                disabled={isPending}
+                onClick={() => setActionType('terbitkan')}
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              >
+                {isPending ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Save className="size-3.5" />
+                )}
+                <span>{isPending ? t('saving') : t('sessionJournalSaveChanges')}</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="submit"
+                disabled={isPending}
+                onClick={() => setActionType('draf')}
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              >
                 <Save className="size-3.5" />
-              )}
-              <span>{isPending ? t('saving') : t('sessionJournalSaveChanges')}</span>
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="submit"
-              disabled={isPending}
-              onClick={() => setActionType('draf')}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-            >
-              <Save className="size-3.5" />
-              <span>{t('saveDraft')}</span>
-            </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              onClick={() => setActionType('terbitkan')}
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
-            >
-              {isPending ? (
-                <Loader2 className="size-3.5 animate-spin" />
-              ) : (
-                <Send className="size-3.5" />
-              )}
-              <span>{isPending ? t('saving') : t('publishToParents')}</span>
-            </button>
-          </>
-        )}
+                <span>{t('saveDraft')}</span>
+              </button>
+              <button
+                type="submit"
+                disabled={isPending}
+                onClick={() => setActionType('terbitkan')}
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-blue-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              >
+                {isPending ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Send className="size-3.5" />
+                )}
+                <span>{isPending ? t('saving') : t('publishToParents')}</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </form>
   );

@@ -13,10 +13,12 @@ export default function LoginForm({
     next,
     googleEnabled = false,
     oauthError,
+    resetSuccess = false,
 }: {
     next?: string;
     googleEnabled?: boolean;
     oauthError?: string;
+    resetSuccess?: boolean;
 }) {
     const t = useTranslations('auth');
     const [state, formAction, pending] = useActionState(login, initial);
@@ -38,6 +40,19 @@ export default function LoginForm({
             <h2 className="text-2xl sm:text-[20px] sm:leading-[1.3] font-bold text-slate-900 mb-8">
                 {t('loginTitle')}
             </h2>
+
+            {/* Banner Sukses Reset Password */}
+            {resetSuccess ? (
+                <div
+                    className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800 mb-5 flex items-center gap-2.5"
+                    role="status"
+                >
+                    <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>{t('resetSuccessAlert')}</span>
+                </div>
+            ) : null}
 
             {/* Error OAuth — terima dari server page (?error=OAuthAccountNotLinked dll.) */}
             {oauthError ? (
@@ -71,7 +86,7 @@ export default function LoginForm({
                         value={draft.email}
                         onChange={(e) => setDraftField('email', e.target.value)}
                         placeholder={t('emailPlaceholder')}
-                        className="w-full px-4 py-3 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400"
+                        className="w-full px-4 py-3 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500"
                     />
                 </div>
 
@@ -100,12 +115,12 @@ export default function LoginForm({
                             required
                             autoComplete="current-password"
                             placeholder={t('passwordPlaceholder')}
-                            className="w-full px-4 py-3 pr-12 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400"
+                            className="w-full px-4 py-3 pr-12 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500"
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-600 focus:outline-none"
                             aria-label={
                                 showPassword
                                     ? t('hidePassword')
@@ -167,7 +182,7 @@ export default function LoginForm({
                 <button
                     type="submit"
                     disabled={pending}
-                    className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
+                    className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-600 text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
                 >
                     <span>{pending ? t('processing') : t('continue')}</span>
                 </button>
@@ -178,7 +193,7 @@ export default function LoginForm({
                     <div className="w-full border-t border-slate-200"></div>
                 </div>
                 <div className="relative flex justify-center">
-                    <span className="bg-white px-4 text-xs font-medium text-slate-400 tracking-wider">
+                    <span className="bg-white px-4 text-xs font-medium text-slate-600 tracking-wider">
                         {t('or')}
                     </span>
                 </div>

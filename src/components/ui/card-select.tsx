@@ -250,7 +250,7 @@ export function CardSelect({
       >
         <div className="flex items-center gap-3 overflow-hidden min-w-0">
           {icon && (
-            <span className="shrink-0 text-slate-400 grid place-items-center">
+            <span className="shrink-0 text-slate-600 grid place-items-center">
               {icon}
             </span>
           )}
@@ -262,14 +262,14 @@ export function CardSelect({
                 ? size === "sm"
                   ? "text-slate-800"
                   : "text-slate-800 font-medium"
-                : "text-slate-400"
+                : "text-slate-600"
             )}
           >
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
         <ChevronsUpDown
-          className="w-4 h-4 text-slate-400 shrink-0 ml-2"
+          className="w-4 h-4 text-slate-600 shrink-0 ml-2"
           aria-hidden="true"
         />
       </button>
@@ -306,7 +306,7 @@ export function CardSelect({
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="p-1.5 rounded-lg text-slate-600 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                 aria-label={t('close')}
               >
                 <X className="w-5 h-5" />
@@ -317,7 +317,7 @@ export function CardSelect({
             {isSearchable && (
               <div className="relative mb-2 shrink-0">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Search className="size-4 text-slate-400" />
+                  <Search className="size-4 text-slate-600" />
                 </div>
                 <input
                   ref={searchInputRef}
@@ -328,7 +328,7 @@ export function CardSelect({
                     setActiveIndex(0);
                   }}
                   placeholder={t('searchOptions')}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-xs sm:text-sm text-slate-800 placeholder:text-slate-500 focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
                 />
               </div>
             )}
@@ -339,7 +339,7 @@ export function CardSelect({
               className="overflow-y-auto max-h-60 sm:max-h-64 space-y-1 pr-1 overscroll-contain [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 hover:[&::-webkit-scrollbar-thumb]:bg-slate-400"
             >
               {filteredOptions.length === 0 ? (
-                <div className="py-6 text-center text-xs text-slate-400">
+                <div className="py-6 text-center text-xs text-slate-600">
                   {t('noMatchingOptions')}
                 </div>
               ) : (
@@ -377,7 +377,7 @@ export function CardSelect({
                           )}
                         </div>
                         {opt.description && (
-                          <p className="text-xs text-slate-400 font-normal truncate mt-0.5">
+                          <p className="text-xs text-slate-600 font-normal truncate mt-0.5">
                             {opt.description}
                           </p>
                         )}

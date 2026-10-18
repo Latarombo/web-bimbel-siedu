@@ -5,6 +5,18 @@ import { TableOfContents } from "@/components/ui/table-of-contents";
 import { getPrivasi } from "@/lib/privacy-policy";
 import { LegalHeader } from "@/components/legal/legal-header";
 import { BackToTop } from "@/components/ui/back-to-top";
+import type { Metadata } from "next";
+import { publicMetadata } from "@/lib/metadata";
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const tr = await getTranslations({ locale, namespace: "public" });
+  return publicMetadata({
+    title: tr("metaPrivacyTitle"),
+    description: tr("metaPrivacyDescription"),
+    path: "/privacy-policy",
+  });
+}
 
 export default async function PrivacyPage() {
   const tr = await getTranslations("public");

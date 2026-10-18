@@ -233,7 +233,7 @@ export function TeacherSidebar({
               onClick={onToggleCollapse}
               aria-label={t("sidebarClose")}
               title={t("sidebarClose")}
-              className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
+              className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
             >
               <PanelLeft className="size-5" />
             </button>
@@ -273,7 +273,7 @@ export function TeacherSidebar({
                         className={`size-5 stroke-[1.8] ${
                           active
                             ? 'text-blue-600'
-                            : 'text-slate-400 group-hover:text-slate-600'
+                            : 'text-slate-600 group-hover:text-slate-600'
                         }`}
                       />
                     </div>
@@ -404,11 +404,11 @@ export function TeacherSidebar({
                   <p className="truncate text-xs font-bold text-slate-900">
                     {userName}
                   </p>
-                  <p className="truncate text-[11px] text-slate-400">
+                  <p className="truncate text-[11px] text-slate-600">
                     {userEmail}
                   </p>
                 </div>
-                <ChevronRight className={`size-4 text-slate-400 shrink-0 ml-1 transition-transform ${isProfileMenuOpen ? 'rotate-90' : ''}`} />
+                <ChevronRight className={`size-4 text-slate-600 shrink-0 ml-1 transition-transform ${isProfileMenuOpen ? 'rotate-90' : ''}`} />
               </div>
             </button>
 
@@ -431,7 +431,7 @@ export function TeacherSidebar({
                     <p className="text-xs font-bold text-slate-900 truncate">{userName}</p>
                     <p className="text-[11px] text-slate-500 capitalize">{role}</p>
                     {userEmail && (
-                      <p className="text-[10px] text-slate-400 truncate mt-0.5">{userEmail}</p>
+                      <p className="text-[10px] text-slate-600 truncate mt-0.5">{userEmail}</p>
                     )}
                   </div>
                   <div className="py-1">
@@ -440,7 +440,7 @@ export function TeacherSidebar({
                       onClick={() => setIsProfileMenuOpen(false)}
                       className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
                     >
-                      <User className="size-4 text-slate-400" />
+                      <User className="size-4 text-slate-600" />
                       <span>Profil Guru</span>
                     </Link>
                     <button
@@ -505,7 +505,7 @@ export function TeacherSidebar({
               <button
                 type="button"
                 onClick={() => setIsDrawerOpen(false)}
-                className="grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 cursor-pointer"
+                className="grid size-8 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer"
               >
                 <X className="size-5" />
               </button>
@@ -540,7 +540,7 @@ export function TeacherSidebar({
                         <div className="flex items-center gap-3">
                           <Icon
                             className={`size-5 ${
-                              active ? 'text-blue-600' : 'text-slate-400'
+                              active ? 'text-blue-600' : 'text-slate-600'
                             }`}
                           />
                           <span>{item.name}</span>
@@ -600,7 +600,7 @@ export function TeacherSidebar({
                     <p className="truncate text-xs font-bold text-slate-900">
                       {userName}
                     </p>
-                    <p className="truncate text-[11px] text-slate-400">
+                    <p className="truncate text-[11px] text-slate-600">
                       {userEmail}
                     </p>
                   </div>
@@ -608,7 +608,7 @@ export function TeacherSidebar({
                 <button
                   type="button"
                   onClick={() => setIsLogoutOpen(true)}
-                  className="rounded-lg p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 cursor-pointer"
+                  className="rounded-lg p-2 text-slate-600 hover:bg-rose-50 hover:text-rose-600 cursor-pointer"
                   title={tAdmin('logout')}
                 >
                   <LogOut className="size-4" />

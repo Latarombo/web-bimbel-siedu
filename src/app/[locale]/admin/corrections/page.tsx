@@ -181,7 +181,7 @@ export default async function AdminCorrections({
                           <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                             {item.entitas === "presensi" ? t("attendance") : t("grades")} #{item.entitasId}
                           </span>
-                          <span className="text-xs text-slate-400">·</span>
+                          <span className="text-xs text-slate-600">·</span>
                           <span className="text-xs text-slate-500">{fmtTanggal(item.createdAt)}</span>
                         </div>
                         <Badge tone="amber">{t("statusPending")}</Badge>
@@ -284,7 +284,7 @@ export default async function AdminCorrections({
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold text-slate-900">{targetInfo.target}</span>
-                        <span className="text-xs text-slate-400">·</span>
+                        <span className="text-xs text-slate-600">·</span>
                         <span className="text-xs text-slate-500">
                           {item.entitas} #{item.entitasId}
                         </span>
@@ -330,7 +330,7 @@ export default async function AdminCorrections({
                       <span className="font-semibold text-slate-900">
                         [{a.aksi}] {a.entitas} #{a.entitasId}
                       </span>
-                      <span className="tabular-nums text-slate-400">{fmtTanggal(a.createdAt)}</span>
+                      <span className="tabular-nums text-slate-600">{fmtTanggal(a.createdAt)}</span>
                     </div>
                     <p className="text-slate-500">
                       Aktor: {actor?.name ?? `User #${a.aktorId}`} ({actor?.role ?? "system"})

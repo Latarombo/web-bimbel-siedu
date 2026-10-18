@@ -165,7 +165,7 @@ export default function AccountInfoForm({
                   setClientErrors((prev) => ({ ...prev, name: undefined }));
                 }}
                 aria-invalid={errors.name || clientErrors.name ? true : undefined}
-                className="w-full px-3.5 py-2.5 text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400"
+                className="w-full px-3.5 py-2.5 text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500"
               />
               {errors.name || clientErrors.name ? (
                 <p className="mt-1 text-xs text-rose-600">
@@ -196,14 +196,14 @@ export default function AccountInfoForm({
                   setClientErrors((prev) => ({ ...prev, nomor_telepon: undefined }));
                 }}
                 aria-invalid={errors.nomor_telepon || clientErrors.nomor_telepon ? true : undefined}
-                className="w-full px-3.5 py-2.5 text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400"
+                className="w-full px-3.5 py-2.5 text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500"
               />
               {errors.nomor_telepon || clientErrors.nomor_telepon ? (
                 <p className="mt-1 text-xs text-rose-600">
                   {errors.nomor_telepon ?? clientErrors.nomor_telepon}
                 </p>
               ) : (
-                <p className="mt-1 text-[11px] text-slate-400">
+                <p className="mt-1 text-[11px] text-slate-600">
                   {t('phoneHint')}
                 </p>
               )}
@@ -215,7 +215,7 @@ export default function AccountInfoForm({
                 type="button"
                 onClick={handleNextStep}
                 disabled={isValidatingStep1}
-                className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-bold py-3 rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center cursor-pointer"
+                className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-600 text-white text-sm font-bold py-3 rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center cursor-pointer"
               >
                 <span>{isValidatingStep1 ? t('processing') : t('continue')}</span>
               </button>
@@ -275,7 +275,7 @@ export default function AccountInfoForm({
                 value={draft.detail_alamat}
                 onChange={(e) => setDraftField('detail_alamat', e.target.value)}
                 aria-invalid={errors.detail_alamat ? true : undefined}
-                className="w-full px-3.5 py-2 text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 resize-none"
+                className="w-full px-3.5 py-2 text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500 resize-none"
               />
               {errors.detail_alamat ? (
                 <p id="detail-alamat-error" className="mt-1 text-xs text-rose-600">
@@ -365,7 +365,7 @@ export default function AccountInfoForm({
               <button
                 type="submit"
                 disabled={pending}
-                className="flex-1 bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-400 text-white text-sm font-bold py-3 rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center cursor-pointer"
+                className="flex-1 bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-600 text-white text-sm font-bold py-3 rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center cursor-pointer"
               >
                 <span>{pending ? t('processing') : t('continue')}</span>
               </button>

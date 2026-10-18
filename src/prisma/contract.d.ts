@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'d5530a44ba157ae16ad531f25db8d75aaa2589bc221aa9aa8d04bb5d67c9e332'>;
+  StorageHashBase<'62c70b569a6fc3ef54da90968758496e532cf04fa77ebec2d858866d87149531'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -348,6 +348,13 @@ export type FieldOutputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
+    readonly PasswordResetToken: {
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly email: CodecTypes['pg/text@1']['output'];
+      readonly tokenHash: CodecTypes['pg/text@1']['output'];
+      readonly expiresAt: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
+    };
     readonly Pembayaran: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly pendaftaranId: CodecTypes['pg/int4@1']['output'];
@@ -630,6 +637,13 @@ export type FieldInputTypes = {
       readonly nilaiKuantitatif: CodecTypes['pg/numeric@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
+    };
+    readonly PasswordResetToken: {
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly email: CodecTypes['pg/text@1']['input'];
+      readonly tokenHash: CodecTypes['pg/text@1']['input'];
+      readonly expiresAt: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
     readonly Pembayaran: {
       readonly id: CodecTypes['pg/int4@1']['input'];
@@ -914,6 +928,13 @@ export type StorageColumnTypes = {
       readonly tanggal: CodecTypes['pg/date-string@1']['output'];
       readonly updated_at: CodecTypes['pg/timestamptz-string@1']['output'];
     };
+    readonly password_reset_tokens: {
+      readonly created_at: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly email: CodecTypes['pg/text@1']['output'];
+      readonly expires_at: CodecTypes['pg/timestamptz-string@1']['output'];
+      readonly id: CodecTypes['pg/int4@1']['output'];
+      readonly token_hash: CodecTypes['pg/text@1']['output'];
+    };
     readonly pembayaran: {
       readonly cicilan_ke: CodecTypes['pg/int4@1']['output'] | null;
       readonly created_at: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -1196,6 +1217,13 @@ export type StorageColumnInputTypes = {
       readonly pendaftaran_id: CodecTypes['pg/int4@1']['input'];
       readonly tanggal: CodecTypes['pg/date-string@1']['input'];
       readonly updated_at: CodecTypes['pg/timestamptz-string@1']['input'];
+    };
+    readonly password_reset_tokens: {
+      readonly created_at: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly email: CodecTypes['pg/text@1']['input'];
+      readonly expires_at: CodecTypes['pg/timestamptz-string@1']['input'];
+      readonly id: CodecTypes['pg/int4@1']['input'];
+      readonly token_hash: CodecTypes['pg/text@1']['input'];
     };
     readonly pembayaran: {
       readonly cicilan_ke: CodecTypes['pg/int4@1']['input'] | null;
@@ -2335,6 +2363,57 @@ type ContractBase = Omit<
                   };
                 },
               ];
+            };
+            readonly password_reset_tokens: {
+              columns: {
+                readonly id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: false;
+                  readonly default: {
+                    readonly kind: 'function';
+                    readonly expression: 'autoincrement()';
+                  };
+                };
+                readonly email: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly token_hash: {
+                  readonly nativeType: 'text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                };
+                readonly expires_at: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                };
+                readonly created_at: {
+                  readonly nativeType: 'timestamptz';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                  readonly nullable: false;
+                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['token_hash'] }];
+              indexes: readonly [
+                {
+                  readonly name: 'password_reset_tokens_email_idx_46df9cad';
+                  readonly prefix: 'password_reset_tokens_email_idx';
+                  readonly columns: readonly ['email'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'password_reset_tokens_expires_at_idx_35365ada';
+                  readonly prefix: 'password_reset_tokens_expires_at_idx';
+                  readonly columns: readonly ['expires_at'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [];
             };
             readonly pembayaran: {
               columns: {
@@ -3918,6 +3997,10 @@ type ContractBase = Omit<
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'LaporanFotoStatus';
     };
+    readonly password_reset_tokens: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'PasswordResetToken';
+    };
   };
   readonly domain: {
     readonly namespaces: {
@@ -4766,6 +4849,48 @@ type ContractBase = Omit<
                 readonly nilaiKuantitatif: { readonly column: 'nilai_kuantitatif' };
                 readonly createdAt: { readonly column: 'created_at' };
                 readonly updatedAt: { readonly column: 'updated_at' };
+              };
+            };
+          };
+          readonly PasswordResetToken: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
+              readonly email: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly tokenHash: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly expiresAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+              readonly createdAt: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-string@1';
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'password_reset_tokens';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly email: { readonly column: 'email' };
+                readonly tokenHash: { readonly column: 'token_hash' };
+                readonly expiresAt: { readonly column: 'expires_at' };
+                readonly createdAt: { readonly column: 'created_at' };
               };
             };
           };
