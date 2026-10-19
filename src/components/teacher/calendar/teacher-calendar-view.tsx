@@ -12,6 +12,7 @@ import {
   List,
   ArrowRight,
 } from 'lucide-react';
+import { FilterDropdown } from '@/components/ui/filter-dropdown';
 
 export interface TeacherCalendarSessionItem {
   kelasId: number;
@@ -385,24 +386,19 @@ export function TeacherCalendarView({
         <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           {/* Class Filter Dropdown */}
           {classes.length > 1 && (
-            <div className="relative">
-              <select
-                value={selectedClassId ?? ''}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setSelectedClassId(val ? Number(val) : null);
-                }}
-                aria-label={t('filterClass')}
-                className="h-8.5 rounded-xl border border-slate-200 bg-white pl-2.5 pr-7 text-xs font-semibold text-slate-700 shadow-2xs transition-colors hover:border-slate-300 focus-visible:border-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/20 cursor-pointer"
-              >
-                <option value="">{t('allClasses') || 'Semua Kelas'}</option>
-                {classes.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} ({c.jenjang})
-                  </option>
-                ))}
-              </select>
-            </div>
+            <FilterDropdown
+              value={String(selectedClassId ?? '')}
+              onChange={(val) => setSelectedClassId(val ? Number(val) : null)}
+              options={[
+                { value: '', label: t('allClasses') || 'Semua Kelas' },
+                ...classes.map((c) => ({
+                  value: String(c.id),
+                  label: `${c.name} (${c.jenjang})`,
+                })),
+              ]}
+              size="sm"
+              ariaLabel={t('filterClass')}
+            />
           )}
 
           {/* Quick Scope Segmented Pill (Desktop) */}

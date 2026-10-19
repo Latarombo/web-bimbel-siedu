@@ -2,9 +2,10 @@
 
 import { useTranslations, useLocale } from 'next-intl';
 import { useActionState, useState, useEffect } from "react";
-import { Field, Input, Select } from "@/components/ui/field";
+import { Field, Input } from "@/components/ui/field";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
+import { CardSelect } from "@/components/ui/card-select";
 import {
   saveChildInfo,
   updateChild,
@@ -137,34 +138,60 @@ export default function ChildForm({
       </Field>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label={t('educationLevel')} required error={err("jenjang_terakhir")}>
-          <Select
+        <div>
+          <label
+            htmlFor="jenjang_terakhir"
+            className="block text-sm font-semibold text-slate-700 mb-1.5"
+          >
+            {t('educationLevel')} <span className="text-danger" aria-hidden="true">*</span>
+          </label>
+          <CardSelect
+            id="jenjang_terakhir"
             name="jenjang_terakhir"
             required
+            size="md"
             value={draft.jenjang_terakhir}
-            onChange={(e) => handleJenjangChange(e.target.value as 'TK' | 'SD' | 'SMP' | 'SMA')}
-          >
-            <option value="" disabled>{t('selectEducationLevel')}</option>
-            {JENJANG_LIST.map((j) => (
-              <option key={j.value} value={j.value}>{j.label}</option>
-            ))}
-          </Select>
-        </Field>
+            onChange={(val) => handleJenjangChange(val as 'TK' | 'SD' | 'SMP' | 'SMA')}
+            options={JENJANG_LIST}
+            placeholder={t('selectEducationLevel')}
+            modalTitle={t('educationLevel')}
+            ariaInvalid={!!err("jenjang_terakhir")}
+            ariaDescribedby={err("jenjang_terakhir") ? "jenjang-error" : undefined}
+          />
+          {err("jenjang_terakhir") ? (
+            <p id="jenjang-error" className="mt-1.5 text-xs text-rose-600 font-medium" role="alert">
+              {err("jenjang_terakhir")}
+            </p>
+          ) : null}
+        </div>
 
-        <Field label={t('classLevel')} required error={err("tingkat")}>
-          <Select
+        <div>
+          <label
+            htmlFor="tingkat"
+            className="block text-sm font-semibold text-slate-700 mb-1.5"
+          >
+            {t('classLevel')} <span className="text-danger" aria-hidden="true">*</span>
+          </label>
+          <CardSelect
+            id="tingkat"
             name="tingkat"
             required
+            size="md"
             value={draft.tingkat}
-            onChange={(e) => setDraftField('tingkat', e.target.value)}
+            onChange={(val) => setDraftField('tingkat', val)}
             disabled={!draft.jenjang_terakhir}
-          >
-            <option value="" disabled>{t('selectClassPrompt')}</option>
-            {currentKelasOptions.map((k) => (
-              <option key={k.value} value={k.value}>{k.label}</option>
-            ))}
-          </Select>
-        </Field>
+            options={currentKelasOptions}
+            placeholder={t('selectClassPrompt')}
+            modalTitle={t('classLevel')}
+            ariaInvalid={!!err("tingkat")}
+            ariaDescribedby={err("tingkat") ? "tingkat-error" : undefined}
+          />
+          {err("tingkat") ? (
+            <p id="tingkat-error" className="mt-1.5 text-xs text-rose-600 font-medium" role="alert">
+              {err("tingkat")}
+            </p>
+          ) : null}
+        </div>
       </div>
 
       <div>
@@ -221,7 +248,22 @@ export default function ChildForm({
       </Field>
 
       {state.error ? (
-        <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{state.error}</p>
+        <div
+          className="flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"
+          role="alert"
+        >
+          <svg
+            className="h-5 w-5 shrink-0 text-rose-600 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4m0 4h.01" />
+          </svg>
+          <div className="flex-1 leading-relaxed">{state.error}</div>
+        </div>
       ) : null}
 
       <Button type="submit" className="min-h-11 w-full" disabled={pending}>

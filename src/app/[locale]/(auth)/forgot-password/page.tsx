@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { AuthFullPageShell } from "@/components/auth-full-page-shell";
+import { WaveShell } from "@/components/wave-shell";
 import ForgotForm from "@/components/auth/forgot-form";
 
 export async function generateMetadata() {
@@ -9,8 +9,8 @@ export async function generateMetadata() {
 
 export default async function ForgotPage() {
   return (
-    <AuthFullPageShell>
+    <WaveShell>
       <ForgotForm />
-    </AuthFullPageShell>
+    </WaveShell>
   );
 }

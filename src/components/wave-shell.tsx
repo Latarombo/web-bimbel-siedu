@@ -5,20 +5,15 @@ import { SITE } from '@/lib/site';
 import { getTranslations } from 'next-intl/server';
 
 /**
- * Shell full-page untuk halaman auth yang berdiri sendiri (forgot-password,
- * reset-password). Mirip layout halaman login — blue gradient, header
- * (logo + bantuan + bahasa), footer, wave animation — tapi tanpa hero/ilustrasi.
- * Card form dirender centered di tengah.
- *
- * AuthShell lama tetap dipakai untuk halaman yang embed di dalam layout lain
- * (register step, edit anak).
+ * Shell layar penuh dengan latar biru gradasi, header (logo + bantuan + bahasa),
+ * footer, serta animasi ombak (WaveAnimation). Form dirender centered di tengah.
  */
-export async function AuthFullPageShell({ children }: { children: React.ReactNode }) {
+export async function WaveShell({ children }: { children: React.ReactNode }) {
   const t = await getTranslations('auth');
 
   return (
     <div className="relative flex min-h-dvh flex-col overflow-hidden bg-linear-to-br from-blue-700 via-blue-600 to-cyan-400">
-      {/* Header — logo kiri, bantuan + bahasa kanan (konsisten dgn login) */}
+      {/* Header — logo kiri, bantuan + bahasa kanan */}
       <AuthTopBar />
 
       {/* Main — card centered */}

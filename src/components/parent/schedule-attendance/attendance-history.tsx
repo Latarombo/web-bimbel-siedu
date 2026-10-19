@@ -6,6 +6,8 @@ import { Card, CardPad } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations, useLocale } from "next-intl";
 
+import { FilterDropdown } from "@/components/ui/filter-dropdown";
+
 export function AttendanceHistory() {
   const { state } = useAttendance();
   const tr = useTranslations("parent");
@@ -23,23 +25,25 @@ export function AttendanceHistory() {
     alpa: tr("text119"),
   };
 
+  const filterOptions = [
+    { value: "semua" as const, label: tr("allStatuses") },
+    { value: "hadir" as const, label: tr("text116") },
+    { value: "izin" as const, label: tr("text117") },
+    { value: "sakit" as const, label: tr("text118") },
+    { value: "alpa" as const, label: tr("text119") },
+  ];
+
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-bold text-slate-900">{tr("attendanceHistory")}</h3>
-        <select 
-          className="text-xs border border-slate-200 rounded-md py-1 pl-2 pr-6 bg-white focus:outline-none focus:ring-1 focus:ring-brand"
+        <FilterDropdown
           value={filter}
-          onChange={(e) =>
-            setFilter(e.target.value as "semua" | "hadir" | "izin" | "sakit" | "alpa")
-          }
-        >
-          <option value="semua">{tr("allStatuses")}</option>
-          <option value="hadir">{tr("text116")}</option>
-          <option value="izin">{tr("text117")}</option>
-          <option value="sakit">{tr("text118")}</option>
-          <option value="alpa">{tr("text119")}</option>
-        </select>
+          onChange={(val) => setFilter(val)}
+          options={filterOptions}
+          size="sm"
+          align="end"
+        />
       </div>
 
       {filteredRecords.length === 0 ? (

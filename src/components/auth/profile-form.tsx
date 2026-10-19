@@ -51,17 +51,40 @@ export default function ProfileForm({
   return (
     <form action={formAction} className="space-y-5">
       {state.ok ? (
-        <p
+        <div
           role="status"
-          className="rounded-lg bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800"
+          className="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
         >
-          {t('profileSaved')}
-        </p>
+          <svg
+            className="h-5 w-5 shrink-0 text-emerald-600 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M9 12l2 2 4-4" />
+          </svg>
+          <div className="flex-1 leading-relaxed font-medium">{t('profileSaved')}</div>
+        </div>
       ) : null}
       {state.error ? (
-        <p role="alert" className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {state.error}
-        </p>
+        <div
+          role="alert"
+          className="flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"
+        >
+          <svg
+            className="h-5 w-5 shrink-0 text-rose-600 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4m0 4h.01" />
+          </svg>
+          <div className="flex-1 leading-relaxed">{state.error}</div>
+        </div>
       ) : null}
 
       <Field label={t('email')} hint={t('emailReadOnly')}>

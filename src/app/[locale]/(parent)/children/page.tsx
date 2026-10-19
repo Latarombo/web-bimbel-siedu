@@ -95,7 +95,7 @@ export default async function ChildrenPage() {
           </svg>
         </div>
 
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div>
             <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl lg:text-4xl">
               {tr("text006")}
@@ -108,7 +108,7 @@ export default async function ChildrenPage() {
       </section>
 
       {/* 2. DAFTAR KARTU BENTO ANAK / EMPTY STATE (Overlap ke Hero) */}
-      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 space-y-6">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 space-y-6">
         {childrenList.length === 0 ? (
           <div className="rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-white p-8 sm:p-12 text-center shadow-sm max-w-2xl mx-auto space-y-5">
             <div className="mx-auto flex size-16 items-center justify-center rounded-2xl bg-blue-50 text-brand border border-blue-100 shadow-2xs">

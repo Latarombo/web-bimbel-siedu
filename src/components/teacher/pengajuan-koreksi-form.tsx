@@ -109,8 +109,8 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
       ) : null}
 
       <div>
-        <label htmlFor="select-locked-entry" className="block text-xs font-semibold text-slate-700">
-          {t("selectLockedEntry")} <span className="text-red-500">*</span>
+        <label htmlFor="select-locked-entry" className="block text-sm font-semibold text-slate-700 mb-1.5">
+          {t("selectLockedEntry")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
         </label>
         <CardSelect
           id="select-locked-entry"
@@ -123,12 +123,11 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
           }))}
           placeholder={t("selectEntryPlaceholder")}
           modalTitle={t("selectLockedEntry")}
-          className="mt-1"
         />
       </div>
 
       {selectedEntry ? (
-        <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/50 p-3.5">
+        <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 sm:p-4">
           <div className="text-xs text-slate-500">
             <span className="font-medium text-slate-700">{t("currentData")}: </span>
             {selectedEntry.ringkasan}
@@ -137,8 +136,8 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
           {selectedEntry.entitas === "presensi" ? (
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-700">
-                  {t("proposedStatus")} <span className="text-red-500">*</span>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                  {t("proposedStatus")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
                 </label>
                 <CardSelect
                   value={proposedStatus}
@@ -150,12 +149,11 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
                     { value: "alpa", label: t("statusAlpa") },
                   ]}
                   modalTitle={t("proposedStatus")}
-                  className="mt-1"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700">
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                   {t("additionalNotes")}
                 </label>
                 <input
@@ -163,15 +161,15 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
                   value={proposedNotes}
                   onChange={(e) => setProposedNotes(e.target.value)}
                   placeholder={t("notesPlaceholder")}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                  className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white"
                 />
               </div>
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-700">
-                  {t("proposedGrade")} (0-100) <span className="text-red-500">*</span>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                  {t("proposedGrade")} (0-100) <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
                 </label>
                 <input
                   type="number"
@@ -180,12 +178,12 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
                   value={proposedGrade}
                   onChange={(e) => setProposedGrade(e.target.value)}
                   required
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                  className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700">
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                   {t("additionalNotes")}
                 </label>
                 <input
@@ -193,15 +191,15 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
                   value={proposedNotes}
                   onChange={(e) => setProposedNotes(e.target.value)}
                   placeholder={t("notesPlaceholder")}
-                  className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+                  className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700">
-              {t("correctionReason")} <span className="text-red-500">*</span>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              {t("correctionReason")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
             </label>
             <textarea
               rows={2}
@@ -210,7 +208,7 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder={t("correctionStep2Body")}
-              className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+              className="w-full px-3.5 py-2.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 resize-y bg-white"
             />
           </div>
 

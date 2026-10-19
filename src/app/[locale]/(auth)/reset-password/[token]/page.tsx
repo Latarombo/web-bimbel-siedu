@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { AuthShell } from "@/components/auth-shell";
+import { WaveShell } from "@/components/wave-shell";
 import ResetForm from "@/components/auth/reset-form";
 import { verifyResetToken } from "@/app/actions/password-reset";
 import { Link } from "@/i18n/navigation";
@@ -18,10 +18,10 @@ export default async function ResetPage({ params }: { params: Promise<{ token: s
 
   if (!verification.valid) {
     return (
-      <AuthShell title={t('authHero')}>
-        <div className="text-center py-4">
+      <WaveShell>
+        <div className="text-center py-2">
           {/* Warning Icon */}
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-rose-100">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-rose-100 shadow-xs">
             <svg
               className="h-7 w-7 text-rose-600"
               fill="none"
@@ -38,39 +38,38 @@ export default async function ResetPage({ params }: { params: Promise<{ token: s
             </svg>
           </div>
 
-          <h2 className="text-xl font-bold text-slate-900 mb-2">
+          <h2 className="text-xl sm:text-[22px] font-bold text-slate-900 mb-2 tracking-tight">
             {t('tokenInvalidTitle')}
           </h2>
-          <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+          <p className="text-sm text-slate-600 mb-6 leading-relaxed max-w-sm mx-auto">
             {t('tokenInvalidDesc')}
           </p>
 
           <div className="space-y-3">
             <Link
               href="/forgot-password"
-              className="block w-full bg-brand hover:bg-brand-strong text-white text-sm font-semibold py-3 rounded-lg transition-colors text-center shadow-xs"
+              className="w-full bg-brand hover:bg-brand-strong text-white text-sm font-semibold py-3 rounded-lg transition-colors flex items-center justify-center text-center shadow-xs cursor-pointer"
             >
               {t('requestNewLink')}
             </Link>
 
-            <Link
-              href="/login"
-              className="inline-block text-sm font-semibold text-slate-600 hover:text-slate-900 hover:underline transition-colors"
-            >
-              {t('backLogin')}
-            </Link>
+            <div className="mt-4 text-center">
+              <Link
+                href="/login"
+                className="inline-block text-sm font-semibold text-brand hover:text-brand-strong transition-colors cursor-pointer"
+              >
+                {t('backLogin')}
+              </Link>
+            </div>
           </div>
         </div>
-      </AuthShell>
+      </WaveShell>
     );
   }
 
   return (
-    <AuthShell title={t('authHero')}>
-      <h2 className="text-2xl sm:text-[20px] sm:leading-[1.3] font-bold text-slate-900 mb-8">
-        {t('resetPassword')}
-      </h2>
+    <WaveShell>
       <ResetForm token={token} email={verification.email} />
-    </AuthShell>
+    </WaveShell>
   );
 }

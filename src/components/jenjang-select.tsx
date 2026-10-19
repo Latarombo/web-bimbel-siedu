@@ -1,5 +1,7 @@
 "use client";
 
+import { Select } from "@/components/ui/field";
+
 // Select jenjang: submit form induk saat nilai berubah (form tanpa tombol Cari).
 export function JenjangSelect({
   name,
@@ -13,7 +15,7 @@ export function JenjangSelect({
   className?: string;
 }) {
   return (
-    <select
+    <Select
       name={name}
       defaultValue={value}
       className={className}
@@ -24,6 +26,6 @@ export function JenjangSelect({
           {o.label}
         </option>
       ))}
-    </select>
+    </Select>
   );
 }

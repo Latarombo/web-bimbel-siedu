@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useId } from 'react';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronsUpDown, ChevronDown, X } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface DatePickerProps {
@@ -19,6 +19,7 @@ export interface DatePickerProps {
     ariaDescribedby?: string;
     className?: string;
     locale?: string;
+    size?: 'sm' | 'md';
 }
 
 const MONTHS_ID = [
@@ -71,6 +72,7 @@ export function DatePicker({
     ariaDescribedby,
     className,
     locale = 'id',
+    size = 'md',
 }: DatePickerProps) {
     const generatedId = useId();
     const inputId = id || generatedId;
@@ -326,21 +328,23 @@ export function DatePicker({
                 aria-invalid={ariaInvalid}
                 aria-describedby={ariaDescribedby}
                 className={cn(
-                    'w-full flex items-center justify-between px-3.5 py-3 text-base text-left rounded-xl transition-all duration-200 cursor-pointer select-none bg-white',
+                    'w-full flex items-center justify-between text-left rounded-xl transition-all duration-200 cursor-pointer select-none bg-white',
+                    size === 'sm' ? 'h-8.5 px-3 text-xs' : 'h-11 px-3.5 text-base sm:text-sm',
                     'border border-slate-200 hover:border-slate-300',
                     isOpen
-                        ? 'border-blue-400 ring-4 ring-blue-100 shadow-xs'
-                        : 'focus:outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100',
+                        ? 'border-brand ring-2 ring-brand/15 shadow-xs'
+                        : 'focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15',
                     disabled && 'bg-slate-50 opacity-60 cursor-not-allowed pointer-events-none',
-                    ariaInvalid && 'border-rose-400 focus:ring-rose-100'
+                    ariaInvalid && 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15',
+                    className
                 )}
             >
-                <div className="flex items-center gap-3 overflow-hidden">
-                    <CalendarIcon className="w-5 h-5 text-slate-600 shrink-0" aria-hidden="true" />
+                <div className="flex items-center gap-3 overflow-hidden min-w-0">
+                    <CalendarIcon className={cn("text-slate-400 shrink-0", size === "sm" ? "w-4 h-4" : "w-4.5 h-4.5")} aria-hidden="true" />
                     <span
                         className={cn(
                             'truncate',
-                            selectedValue ? 'text-slate-800 font-medium' : 'text-slate-600'
+                            selectedValue ? 'text-slate-800 font-medium' : 'text-slate-400'
                         )}
                     >
                         {selectedValue
@@ -348,7 +352,13 @@ export function DatePicker({
                             : defaultPlaceholder}
                     </span>
                 </div>
-                <ChevronsUpDown className="w-4 h-4 text-slate-600 shrink-0 ml-2" aria-hidden="true" />
+                <ChevronDown
+                    className={cn(
+                        'w-4 h-4 text-slate-400 shrink-0 ml-2 transition-transform duration-200',
+                        isOpen && 'rotate-180 text-brand'
+                    )}
+                    aria-hidden="true"
+                />
             </button>
 
             {/* Popover Card & Mobile Bottom Sheet */}
@@ -374,9 +384,9 @@ export function DatePicker({
                             // Base styling
                             'bg-white z-50 transition-all overscroll-contain',
                             // Mobile (<640px): Bottom Sheet Modal
-                            'fixed inset-x-0 bottom-0 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto sm:max-h-none sm:overflow-visible shadow-2xl',
+                            'fixed inset-x-0 bottom-0 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto sm:max-h-none sm:overflow-visible shadow-2xl animate-in slide-in-from-bottom duration-200',
                             // Desktop (>=640px): Popover Dropdown
-                            'sm:absolute sm:inset-auto sm:top-full sm:left-0 sm:mt-2 sm:w-[328px] sm:rounded-2xl sm:p-4 sm:border sm:border-slate-200 sm:shadow-xl sm:shadow-slate-950/20'
+                            'sm:absolute sm:inset-auto sm:top-full sm:left-0 sm:mt-2 sm:w-[328px] sm:rounded-2xl sm:p-4 sm:border sm:border-slate-200 sm:shadow-xl sm:shadow-slate-950/20 sm:animate-in sm:fade-in-0 sm:zoom-in-95 sm:duration-150'
                         )}
                     >
                         {/* Mobile Handle & Close Bar */}
@@ -387,7 +397,7 @@ export function DatePicker({
                             <button
                                 type="button"
                                 onClick={() => setIsOpen(false)}
-                                className="p-1.5 rounded-lg text-slate-600 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                             >
                                 <X className="w-5 h-5" />
                             </button>

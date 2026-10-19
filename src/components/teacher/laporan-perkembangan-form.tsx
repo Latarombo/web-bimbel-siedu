@@ -133,14 +133,14 @@ export default function LaporanPerkembanganForm({
       {/* Catatan Internal Guru (Privat) */}
       <div className="rounded-xl border border-amber-200/80 bg-amber-50/40 p-3.5 sm:p-4">
         <div className="flex items-center justify-between gap-2">
-          <label htmlFor="catatan_internal" className="text-xs font-bold text-amber-900">
+          <label htmlFor="catatan_internal" className="text-sm font-semibold text-amber-950">
             {t('internalNoteLabel')}
           </label>
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
             Privat
           </span>
         </div>
-        <p className="mt-1 text-[11px] text-amber-700/90">
+        <p className="mt-1 text-xs text-amber-800/90 leading-relaxed">
           {t('internalNoteHelp')}
         </p>
         <Textarea
@@ -150,21 +150,21 @@ export default function LaporanPerkembanganForm({
           onChange={(e) => setCatatanInternal(e.target.value)}
           placeholder={t('internalNotePlaceholder')}
           rows={3}
-          className="mt-2 w-full border-amber-200 bg-white text-xs leading-relaxed"
+          className="mt-2 w-full border-amber-200 bg-white text-base sm:text-sm leading-relaxed"
         />
       </div>
 
       {/* Laporan untuk Orang Tua (Publik) */}
       <div className="rounded-xl border border-blue-200/80 bg-blue-50/30 p-3.5 sm:p-4">
         <div className="flex items-center justify-between gap-2">
-          <label htmlFor="laporan_ortu" className="text-xs font-bold text-blue-950">
+          <label htmlFor="laporan_ortu" className="text-sm font-semibold text-blue-950">
             {t('parentReportLabel')}
           </label>
-          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[11px] font-semibold text-blue-800">
+          <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
             Untuk Orang Tua
           </span>
         </div>
-        <p className="mt-1 text-[11px] text-blue-800/80">
+        <p className="mt-1 text-xs text-blue-900/80 leading-relaxed">
           {t('parentReportHelp')}
         </p>
         <Textarea

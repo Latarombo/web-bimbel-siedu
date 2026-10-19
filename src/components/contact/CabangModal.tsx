@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useTranslations } from "next-intl";
-import { Search, MapPin, Phone, MessageCircle, ExternalLink, X } from "lucide-react";
-import { DAFTAR_CABANG, type Cabang } from "@/lib/cabang";
+import { useTranslations, useLocale } from "next-intl";
+import { Search, MapPin, MessageCircle, ExternalLink, X } from "lucide-react";
+import { DAFTAR_CABANG, getCabangNama } from "@/lib/cabang";
 import { useScrollLock } from "@/lib/use-scroll-lock";
 
 export function CabangModalTrigger() {
   const t = useTranslations("public");
+  const locale = useLocale();
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -35,7 +36,9 @@ export function CabangModalTrigger() {
     return DAFTAR_CABANG.filter(
       (c) =>
         c.nama.toLowerCase().includes(q) ||
+        (c.namaEn && c.namaEn.toLowerCase().includes(q)) ||
         c.wilayah.toLowerCase().includes(q) ||
+        (c.wilayahEn && c.wilayahEn.toLowerCase().includes(q)) ||
         c.alamat.toLowerCase().includes(q)
     );
   }, [search]);
@@ -65,18 +68,16 @@ export function CabangModalTrigger() {
           />
 
           {/* Modal Box */}
-          <div className="relative flex max-h-[90vh] sm:max-h-[85vh] w-full max-w-3xl flex-col rounded-2xl sm:rounded-3xl border border-slate-200 bg-white shadow-2xl transition-all animate-in zoom-in-95 overflow-hidden">
+          <div className="relative flex max-h-[90vh] sm:max-h-[85vh] w-full max-w-3xl flex-col rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all animate-in zoom-in-95 overflow-hidden">
             {/* Header Dialog */}
-            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3.5 sm:px-6 sm:py-4.5 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="grid size-9 place-items-center rounded-xl bg-brand-soft text-brand shrink-0">
-                  <MapPin className="size-5" />
-                </div>
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4 sm:px-6 sm:py-5 shrink-0">
+              <div className="flex items-center gap-3">
+                <MapPin className="size-6 text-slate-700 shrink-0" strokeWidth={2} />
                 <div>
-                  <h3 id="modal-cabang-title" className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
+                  <h3 id="modal-cabang-title" className="text-base sm:text-lg font-bold text-slate-900 leading-tight tracking-tight">
                     {t("branchModalTitle")}
                   </h3>
-                  <p className="text-[11px] sm:text-xs text-slate-500">
+                  <p className="text-xs sm:text-sm text-slate-500 font-normal mt-0.5">
                     {t("branchModalSubtitle")}
                   </p>
                 </div>
@@ -113,7 +114,7 @@ export function CabangModalTrigger() {
                   </button>
                 )}
               </div>
-              <div className="mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] sm:text-xs text-slate-500">
+              <div className="mt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-slate-500">
                 <span>{t("branchShowingCount", { filtered: filteredCabang.length, total: DAFTAR_CABANG.length })}</span>
                 <span className="font-medium text-slate-600">{t("branchRegionMalang")}</span>
               </div>
@@ -123,9 +124,10 @@ export function CabangModalTrigger() {
             <div data-lenis-prevent className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 sm:space-y-3.5 min-h-[220px] sm:min-h-[260px]">
               {filteredCabang.length > 0 ? (
                 filteredCabang.map((cabang) => {
+                  const namaCabang = getCabangNama(cabang, locale);
                   const waUrl = cabang.wa
                     ? `https://wa.me/${cabang.wa}?text=${encodeURIComponent(
-                        t("branchWaMessage", { name: cabang.nama })
+                        t("branchWaMessage", { name: namaCabang })
                       )}`
                     : null;
 
@@ -137,16 +139,16 @@ export function CabangModalTrigger() {
                       <div className="space-y-1.5 flex-1">
                         <div>
                           <h4 className="text-sm font-bold text-slate-900 group-hover:text-brand transition-colors">
-                            {cabang.nama}
+                            {namaCabang}
                           </h4>
                         </div>
                         <p className="text-xs leading-relaxed text-slate-600">
                           {cabang.alamat}
                         </p>
                         {cabang.telepon && (
-                          <div className="flex items-center gap-1.5 text-xs text-slate-500 pt-0.5">
-                            <Phone className="size-3 text-slate-600" />
-                            <span>{t("branchPhonePrefix")} {cabang.telepon}</span>
+                          <div className="flex items-center gap-1.5 text-xs pt-0.5">
+                            <span className="font-medium text-slate-500">{t("branchPhonePrefix")}</span>
+                            <span className="font-semibold text-slate-800">{cabang.telepon}</span>
                           </div>
                         )}
                       </div>
@@ -160,7 +162,7 @@ export function CabangModalTrigger() {
                           className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 sm:py-1.5 text-xs font-semibold text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-colors shadow-2xs"
                         >
                           <ExternalLink className="size-3 text-slate-600" />
-                          <span>Maps</span>
+                          <span>{t("branchMapsBtn")}</span>
                         </a>
 
                         {waUrl ? (
@@ -199,7 +201,7 @@ export function CabangModalTrigger() {
             <div className="border-t border-slate-100 bg-slate-50 px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-slate-500 text-center sm:text-left shrink-0">
               <span>{t("branchNeedHelp")}</span>
               <a
-                href="https://wa.me/6283846480817?text=Halo%20Admin%20Siedu%2C%20saya%20ingin%20konsultasi%20mengenai%20cabang%20terdekat"
+                href={`https://wa.me/6283846480817?text=${encodeURIComponent(t("branchAskHeadOfficeWa"))}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-bold text-brand hover:underline inline-flex items-center justify-center sm:justify-start gap-1"

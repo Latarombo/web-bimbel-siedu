@@ -159,18 +159,18 @@ export function SessionJournalForm({
 
       {/* Materi Pembelajaran Textarea */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-1.5">
           <label
             htmlFor="catatan-materi"
-            className="flex items-center gap-2 text-xs font-bold text-slate-800"
+            className="flex items-center gap-2 text-sm font-semibold text-slate-700"
           >
-            <BookOpen className="size-4 text-blue-600" />
+            <BookOpen className="size-4 text-brand" />
             <span>{t('materials')}</span>
-            <span className="text-[11px] font-normal text-slate-600">
+            <span className="text-xs font-normal text-slate-500">
               (Wajib jika diterbitkan)
             </span>
           </label>
-          <span className="text-[11px] text-slate-600 tabular-nums">
+          <span className="text-xs text-slate-500 tabular-nums">
             {materi.length} karakter
           </span>
         </div>
@@ -181,24 +181,24 @@ export function SessionJournalForm({
           onChange={(e) => setMateri(e.target.value)}
           placeholder={t('materialsPlaceholder')}
           rows={4}
-          className="w-full rounded-2xl border border-slate-200/90 bg-white p-3.5 text-xs text-slate-900 leading-relaxed transition-colors placeholder:text-slate-500 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600/20"
+          className="w-full rounded-xl border border-slate-200 bg-white p-3.5 text-base sm:text-sm text-slate-800 leading-relaxed transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/15"
         />
       </div>
 
       {/* Pekerjaan Rumah (PR) Textarea */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-1.5">
           <label
             htmlFor="catatan-pr"
-            className="flex items-center gap-2 text-xs font-bold text-slate-800"
+            className="flex items-center gap-2 text-sm font-semibold text-slate-700"
           >
             <ClipboardList className="size-4 text-amber-500" />
             <span>{t('homework')}</span>
-            <span className="text-[11px] font-normal text-slate-600">
+            <span className="text-xs font-normal text-slate-500">
               (Opsional)
             </span>
           </label>
-          <span className="text-[11px] text-slate-600 tabular-nums">
+          <span className="text-xs text-slate-500 tabular-nums">
             {pr.length} karakter
           </span>
         </div>

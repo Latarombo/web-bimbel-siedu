@@ -1,7 +1,7 @@
 export const SITE = {
   nama: "Siedu",
   email: "halo@siedu.id",
-  telepon: "(0341) 752389",
+  telepon: "0341-752389",
   whatsapp: "0838-4648-0817",
   alamat: [
     "Gg. 7 No.47, RT.7/RW.2",

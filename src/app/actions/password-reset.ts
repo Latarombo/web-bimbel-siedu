@@ -9,11 +9,13 @@ import { z } from 'zod';
 import { db } from '@/prisma/db';
 import { generateSecureToken, hashToken } from '@/lib/token';
 import { sendPasswordResetEmail } from '@/lib/mail';
+import { checkRateLimit, checkCooldown, getClientIp } from '@/lib/rate-limit';
 
 export type ForgotPasswordState = {
   success?: boolean;
   error?: string;
   email?: string;
+  cooldownRemaining?: number;
 };
 
 export type ResetPasswordState = {
@@ -28,8 +30,11 @@ const emailSchema = z.object({
 
 /**
  * Meminta link reset password.
- * Menerapkan prinsip keamanan anti-enumerasi: respon sukses selalu dikembalikan
- * baik email terdaftar maupun tidak, agar penyerang tidak bisa menebak email terdaftar.
+ * Menerapkan prinsip keamanan anti-enumerasi dan rate limiting (OWASP standard):
+ * - Rate limit per IP: Max 5 request / 15 menit
+ * - Cooldown per email: 60 detik jeda antar pengiriman
+ * - Quota per email: Max 5 request / 1 jam
+ * - Cooldown persisten via tabel password_reset_tokens di database
  */
 export async function requestPasswordReset(
   _prev: ForgotPasswordState,
@@ -49,10 +54,57 @@ export async function requestPasswordReset(
 
   const normalizedEmail = parsed.data.email;
 
+  // 1. Proteksi per IP: cegah bot membanjiri request
+  const headerList = await headers();
+  const clientIp = getClientIp(headerList);
+  const ipRate = checkRateLimit(`pwd_reset_ip:${clientIp}`, 5, 15 * 60 * 1000);
+  if (!ipRate.allowed) {
+    return {
+      error: t('rateLimitIpExceeded'),
+      email: rawEmail,
+      cooldownRemaining: ipRate.retryAfterSeconds,
+    };
+  }
+
+  // 2. Cooldown per email (in-memory): cegah spam klik berulang kali (60 detik)
+  const emailCooldown = checkCooldown(`pwd_reset_email_cd:${normalizedEmail}`, 60 * 1000);
+  if (!emailCooldown.allowed) {
+    return {
+      error: t('rateLimitCooldown', { seconds: emailCooldown.retryAfterSeconds }),
+      email: normalizedEmail,
+      cooldownRemaining: emailCooldown.retryAfterSeconds,
+    };
+  }
+
+  // 3. Batas kuota per email: Max 5 request dalam 1 jam
+  const emailHourly = checkRateLimit(`pwd_reset_email_hr:${normalizedEmail}`, 5, 60 * 60 * 1000);
+  if (!emailHourly.allowed) {
+    return {
+      error: t('rateLimitEmailExceeded'),
+      email: normalizedEmail,
+      cooldownRemaining: emailHourly.retryAfterSeconds,
+    };
+  }
+
   try {
     const user = await db.orm.public.User.where((u) => u.email.eq(normalizedEmail)).first();
 
     if (user) {
+      // 4. Cooldown persisten via database (bila server restart / multiple cluster)
+      const existingToken = await db.orm.public.PasswordResetToken.where((t) => t.email.eq(normalizedEmail)).first();
+      if (existingToken) {
+        const elapsed = Date.now() - new Date(existingToken.createdAt).getTime();
+        const cooldownMs = 60 * 1000;
+        if (elapsed < cooldownMs) {
+          const remainingSeconds = Math.max(1, Math.ceil((cooldownMs - elapsed) / 1000));
+          return {
+            error: t('rateLimitCooldown', { seconds: remainingSeconds }),
+            email: normalizedEmail,
+            cooldownRemaining: remainingSeconds,
+          };
+        }
+      }
+
       const rawToken = generateSecureToken();
       const tokenHash = hashToken(rawToken);
 
@@ -69,7 +121,6 @@ export async function requestPasswordReset(
       });
 
       // Tentukan base origin secara dinamis
-      const headerList = await headers();
       const host = headerList.get('host');
       const proto = headerList.get('x-forwarded-proto') ?? 'http';
       const origin = process.env.AUTH_URL || (host ? `${proto}://${host}` : 'http://localhost:3000');
@@ -87,6 +138,7 @@ export async function requestPasswordReset(
     return {
       success: true,
       email: normalizedEmail,
+      cooldownRemaining: 60,
     };
   } catch (err) {
     console.error('[PASSWORD RESET ERROR]', err);
@@ -182,6 +234,6 @@ export async function executePasswordReset(
   // Hapus seluruh token reset untuk email ini (single-use)
   await db.orm.public.PasswordResetToken.where((t) => t.email.eq(record.email)).delete();
 
-  // Redirect ke /login dengan status sukses
-  return redirect({ href: '/login?reset=success', locale });
+  // Kembalikan state sukses agar antarmuka bertransisi langsung ke Kartu Sukses Mandiri (Opsi A)
+  return { success: true };
 }

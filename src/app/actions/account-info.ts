@@ -7,6 +7,8 @@ import { z } from 'zod';
 import { db } from '@/prisma/db';
 import { auth } from '@/lib/auth';
 
+import { validateIndonesianPhone, getPhoneLookupVariants } from '@/lib/phone';
+
 const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
   name: z.string({error: t('invalidField')}).trim().min(2, t('nameMin')),
   wilayah: z.string({error: t('invalidField')}).trim().min(1, t('districtRequired')),
@@ -14,50 +16,47 @@ const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.obj
   nomor_telepon: z
     .string({error: t('invalidField')})
     .trim()
-    .min(8, t('phoneMinDigits'))
-    .max(30, t('phoneMax'))
-    .regex(/^[0-9+\-\s()]*$/, t('phoneCharacters')),
+    .min(10, t('phoneMinDigits'))
+    .max(20, t('phoneMax')),
   // Consent PRD F1/BR#25 — wajib HANYA jika belum pernah disetujui
   // (akun Google melewati step 1, jadi consent ditagih di sini).
   consent_privasi: z.boolean().optional(),
   consent_wali: z.boolean().optional(),
 });
 
-const step1Schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
-  name: z.string({error: t('invalidField')}).trim().min(2, t('nameMin')),
-  nomor_telepon: z
-    .string({error: t('invalidField')})
-    .trim()
-    .min(8, t('phoneMinDigits'))
-    .max(30, t('phoneMax'))
-    .regex(/^[0-9+\-\s()]*$/, t('phoneCharacters')),
-});
-
 export async function validateStep1(
   name: string,
   nomorTelepon: string,
-): Promise<{ valid: boolean; fieldErrors?: { name?: string; nomor_telepon?: string } }> {
+): Promise<{
+  valid: boolean;
+  normalizedPhone?: string;
+  fieldErrors?: { name?: string; nomor_telepon?: string };
+}> {
   const locale = await getLocaleDariCookie();
   const t = await getTranslations({locale, namespace: 'auth'});
   const session = await auth();
   if (!session?.user || session.user.role !== 'orang_tua')
     return { valid: false, fieldErrors: { nomor_telepon: t('sessionExpired') } };
 
-  const parsed = step1Schema(t).safeParse({
-    name,
-    nomor_telepon: nomorTelepon,
-  });
+  const fieldErrors: { name?: string; nomor_telepon?: string } = {};
 
-  if (!parsed.success) {
-    const fieldErrors: { name?: string; nomor_telepon?: string } = {};
-    for (const issue of parsed.error.issues) {
-      if (issue.path[0] === 'name') fieldErrors.name = issue.message;
-      if (issue.path[0] === 'nomor_telepon') fieldErrors.nomor_telepon = issue.message;
-    }
+  if (!name.trim() || name.trim().length < 2) {
+    fieldErrors.name = t('nameMin');
+  }
+
+  const phoneRes = validateIndonesianPhone(nomorTelepon);
+  if (!phoneRes.valid) {
+    fieldErrors.nomor_telepon = t(phoneRes.errorKey ?? 'phoneCharacters');
+  }
+
+  if (Object.keys(fieldErrors).length > 0) {
     return { valid: false, fieldErrors };
   }
 
-  const existingUser = await db.orm.public.User.where({ nomorTelepon: parsed.data.nomor_telepon }).first();
+  const normalizedPhone = phoneRes.normalized!;
+  const lookupVariants = getPhoneLookupVariants(normalizedPhone);
+
+  const existingUser = await db.orm.public.User.where((u) => u.nomorTelepon.in(lookupVariants)).first();
   if (existingUser && existingUser.id !== Number(session.user.id)) {
     return {
       valid: false,
@@ -65,7 +64,7 @@ export async function validateStep1(
     };
   }
 
-  return { valid: true };
+  return { valid: true, normalizedPhone };
 }
 
 export type AccountInfoState = {
@@ -125,7 +124,21 @@ export async function saveAccountInfo(
   }
   const { name, wilayah, detail_alamat, nomor_telepon, consent_privasi, consent_wali } = parsed.data;
 
-  const existingUser = await db.orm.public.User.where({ nomorTelepon: nomor_telepon }).first();
+  const phoneRes = validateIndonesianPhone(nomor_telepon);
+  if (!phoneRes.valid) {
+    return {
+      error: t('checkForm'),
+      fieldErrors: { nomor_telepon: t(phoneRes.errorKey ?? 'phoneCharacters') },
+      name: nameKetik,
+      nomor_telepon: teleponKetik,
+      wilayah: wilayahKetik,
+      detail_alamat: detailAlamatKetik,
+    };
+  }
+
+  const normalizedPhone = phoneRes.normalized!;
+  const lookupVariants = getPhoneLookupVariants(normalizedPhone);
+  const existingUser = await db.orm.public.User.where((u) => u.nomorTelepon.in(lookupVariants)).first();
   if (existingUser && existingUser.id !== Number(session.user.id)) {
     return {
       error: t('checkForm'),
@@ -157,7 +170,7 @@ export async function saveAccountInfo(
   await db.orm.public.User.where({ id: Number(session.user.id) }).update({
     name,
     alamat: alamatGabung,
-    nomorTelepon: nomor_telepon,
+    nomorTelepon: normalizedPhone,
     ...(needsConsent ? { privasiDisetujuiAt: now, waliDisetujuiAt: now } : {}),
   });
   return redirect({href: '/register/child-info', locale});

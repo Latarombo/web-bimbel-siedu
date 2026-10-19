@@ -236,53 +236,80 @@ export default async function ScheduleAttendancePage({
   }).sort((a, b) => b.laporan.tanggal.localeCompare(a.laporan.tanggal));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-6">
-      {/* Hero Header Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 p-6 sm:p-8 text-white shadow-xl shadow-blue-600/10">
-        <div className="absolute -right-10 -bottom-10 size-60 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-xs border border-white/20">
-              <CalendarDays className="size-3.5" />
-              <span>{tr("saHeroBadge")}</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              {tr("saHeroTitle")}
-            </h1>
-            <p className="text-xs sm:text-sm text-blue-100 max-w-xl leading-relaxed">
-              {tr("saHeroDesc")}
-            </p>
-          </div>
+    <div className="min-h-full bg-slate-50/50 pb-16">
+      {/* Hero Header Full-Bleed (Konsisten dengan Beranda / Akun Anak / Tagihan) */}
+      <section className="relative overflow-hidden bg-[#1d4ed8] text-white pt-8 pb-16 sm:pt-10 sm:pb-20 shadow-xs border-b border-blue-900/20">
+        {/* Gelombang sudut khas Siedu */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+          <svg
+            className="absolute -right-8 -top-8 w-72 sm:w-96 md:w-[480px]"
+            viewBox="0 0 400 280"
+            fill="none"
+          >
+            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="white" fillOpacity="0.05" />
+            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="white" fillOpacity="0.07" />
+            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="white" fillOpacity="0.09" />
+          </svg>
 
-          {/* Quick Stats Badges */}
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
-            <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
-              <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
-                {tr("saStatClasses")}
-              </span>
-              <span className="text-xl font-extrabold text-white tabular-nums">
-                {milikSaya.length}
-              </span>
+          <svg
+            className="absolute -left-8 -bottom-8 w-64 sm:w-80 md:w-[420px]"
+            viewBox="0 0 360 260"
+            fill="none"
+          >
+            <path d="M0 60 C90 105, 180 175, 280 260 L0 260 Z" fill="white" fillOpacity="0.05" />
+            <path d="M0 120 C75 155, 145 205, 210 260 L0 260 Z" fill="white" fillOpacity="0.07" />
+            <path d="M0 180 C50 205, 100 230, 140 260 L0 260 Z" fill="white" fillOpacity="0.08" />
+          </svg>
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-xs border border-white/20">
+                <CalendarDays className="size-3.5" />
+                <span>{tr("saHeroBadge")}</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight">
+                {tr("saHeroTitle")}
+              </h1>
+              <p className="text-xs sm:text-sm lg:text-base text-blue-100/90 max-w-2xl leading-relaxed font-medium">
+                {tr("saHeroDesc")}
+              </p>
             </div>
-            <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
-              <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
-                {tr("saStatSessions")}
-              </span>
-              <span className="text-xl font-extrabold text-white tabular-nums">
-                {jadwalRecords.length}
-              </span>
-            </div>
-            <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
-              <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
-                {tr("saStatAttendance")}
-              </span>
-              <span className="text-xl font-extrabold text-white tabular-nums">
-                {presensiRecords.length}
-              </span>
+
+            {/* Quick Stats Badges */}
+            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+              <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
+                <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
+                  {tr("saStatClasses")}
+                </span>
+                <span className="text-xl font-extrabold text-white tabular-nums">
+                  {milikSaya.length}
+                </span>
+              </div>
+              <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
+                <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
+                  {tr("saStatSessions")}
+                </span>
+                <span className="text-xl font-extrabold text-white tabular-nums">
+                  {jadwalRecords.length}
+                </span>
+              </div>
+              <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
+                <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
+                  {tr("saStatAttendance")}
+                </span>
+                <span className="text-xl font-extrabold text-white tabular-nums">
+                  {presensiRecords.length}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      {/* Konten: Filter Anak, Tabs, dan Isi (sejajar max-w-7xl di atas) */}
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-6">
 
       {/* Filter Per Anak jika ada anak terdaftar */}
       {anak.length > 1 && (
@@ -504,6 +531,7 @@ export default async function ScheduleAttendancePage({
         )}
       </div>
     )}
-  </div>
+      </div>
+    </div>
   );
 }

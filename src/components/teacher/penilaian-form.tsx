@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { savePenilaianBatch, tarikPenilaian } from "@/app/actions/teacher";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select } from "@/components/ui/field";
 
 export interface StudentAssessmentRow {
   pendaftaranId: number;
@@ -236,8 +237,8 @@ export function PenilaianForm({
       {/* Meta Assessment Form */}
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="sm:col-span-1">
-          <label htmlFor="assessment-name" className="block text-xs font-semibold text-slate-700">
-            {t("assessmentName")} <span className="text-red-500">*</span>
+          <label htmlFor="assessment-name" className="block text-sm font-semibold text-slate-700 mb-1.5">
+            {t("assessmentName")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
           </label>
           <input
             id="assessment-name"
@@ -246,13 +247,13 @@ export function PenilaianForm({
             value={nama}
             onChange={(e) => setNama(e.target.value)}
             placeholder={t("assessmentNamePlaceholder")}
-            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+            className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white"
           />
         </div>
 
         <div>
-          <label htmlFor="assessment-date" className="block text-xs font-semibold text-slate-700">
-            {t("assessmentDate")} <span className="text-red-500">*</span>
+          <label htmlFor="assessment-date" className="block text-sm font-semibold text-slate-700 mb-1.5">
+            {t("assessmentDate")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
           </label>
           <input
             id="assessment-date"
@@ -260,13 +261,13 @@ export function PenilaianForm({
             required
             value={tanggal}
             onChange={(e) => setTanggal(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+            className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white"
           />
         </div>
 
         <div>
-          <label htmlFor="assessment-max" className="block text-xs font-semibold text-slate-700">
-            {t("maxScore")} <span className="text-red-500">*</span>
+          <label htmlFor="assessment-max" className="block text-sm font-semibold text-slate-700 mb-1.5">
+            {t("maxScore")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
           </label>
           <input
             id="assessment-max"
@@ -276,9 +277,9 @@ export function PenilaianForm({
             required
             value={nilaiMaksimum}
             onChange={(e) => setNilaiMaksimum(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15"
+            className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white"
           />
-          <p className="mt-0.5 text-[11px] text-slate-600">{t("maxScoreHelp")}</p>
+          <p className="mt-1 text-xs text-slate-500">{t("maxScoreHelp")}</p>
         </div>
       </div>
 
@@ -307,7 +308,8 @@ export function PenilaianForm({
                     {s.nama}
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <select
+                    <Select
+                      size="sm"
                       value={cur.statusHasil}
                       onChange={(e) =>
                         handleStatusChange(
@@ -315,12 +317,12 @@ export function PenilaianForm({
                           e.target.value as "belum_dinilai" | "dinilai" | "tidak_ikut",
                         )
                       }
-                      className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-800 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
+                      className="w-36 text-center mx-auto"
                     >
                       <option value="dinilai">{t("statusDinilai")}</option>
                       <option value="belum_dinilai">{t("statusBelumDinilai")}</option>
                       <option value="tidak_ikut">{t("statusTidakIkut")}</option>
-                    </select>
+                    </Select>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1.5">
