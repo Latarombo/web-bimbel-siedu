@@ -78,7 +78,7 @@ export function OfficialReportCard({ data }: { data: OfficialReportCardData }) {
   });
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-6 sm:py-10">
+    <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
       {/* Top Action Bar (Hidden on Print) */}
       <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
         <a

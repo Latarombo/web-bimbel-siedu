@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useId, useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronsUpDown, Check, X, Search } from "lucide-react";
+import { ChevronDown, Check, X, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface CardSelectOption {
@@ -239,37 +239,40 @@ export function CardSelect({
         aria-describedby={ariaDescribedby}
         className={cn(
           "w-full flex items-center justify-between text-left rounded-xl transition-all duration-200 cursor-pointer select-none bg-white",
-          size === "sm" ? "px-3.5 py-2.5 text-sm" : "px-3.5 py-3 text-base",
+          size === "sm" ? "h-8.5 px-3 text-xs" : "h-11 px-3.5 text-base sm:text-sm",
           "border border-slate-200 hover:border-slate-300",
           isOpen
-            ? "border-blue-400 ring-4 ring-blue-100 shadow-xs"
-            : "focus:outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100",
+            ? "border-brand ring-2 ring-brand/15 shadow-xs"
+            : "focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15",
           disabled && "bg-slate-50 opacity-60 cursor-not-allowed pointer-events-none",
-          ariaInvalid && "border-rose-400 focus:ring-rose-100"
+          ariaInvalid && "border-rose-400 focus:border-rose-500 focus:ring-rose-500/15"
         )}
       >
         <div className="flex items-center gap-3 overflow-hidden min-w-0">
           {icon && (
-            <span className="shrink-0 text-slate-600 grid place-items-center">
+            <span className="shrink-0 text-slate-400 grid place-items-center">
               {icon}
             </span>
           )}
           <span
             className={cn(
               "truncate",
-              size === "sm" ? "text-sm" : "text-sm sm:text-base",
+              size === "sm" ? "text-xs" : "text-base sm:text-sm",
               selectedOption
                 ? size === "sm"
                   ? "text-slate-800"
                   : "text-slate-800 font-medium"
-                : "text-slate-600"
+                : "text-slate-400"
             )}
           >
             {selectedOption ? selectedOption.label : placeholder}
           </span>
         </div>
-        <ChevronsUpDown
-          className="w-4 h-4 text-slate-600 shrink-0 ml-2"
+        <ChevronDown
+          className={cn(
+            "size-4 text-slate-400 shrink-0 ml-2 transition-transform duration-200",
+            isOpen && "rotate-180 text-brand"
+          )}
           aria-hidden="true"
         />
       </button>
@@ -293,9 +296,9 @@ export function CardSelect({
               // Base styling
               "bg-white z-50 transition-all flex flex-col",
               // Mobile (<640px): Bottom Sheet Modal
-              "fixed inset-x-0 bottom-0 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto sm:max-h-none sm:overflow-visible shadow-2xl",
+              "fixed inset-x-0 bottom-0 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto sm:max-h-none sm:overflow-visible shadow-2xl animate-in slide-in-from-bottom duration-200",
               // Desktop (>=640px): Popover Floating Card
-              "sm:absolute sm:inset-auto sm:top-full sm:left-0 sm:mt-2 sm:w-full sm:rounded-2xl sm:p-2 sm:border sm:border-slate-200 sm:shadow-xl sm:shadow-slate-950/20"
+              "sm:absolute sm:inset-auto sm:top-full sm:left-0 sm:mt-2 sm:w-full sm:rounded-2xl sm:p-2 sm:border sm:border-slate-200 sm:shadow-xl sm:shadow-slate-950/20 sm:animate-in sm:fade-in-0 sm:zoom-in-95 sm:duration-150"
             )}
           >
             {/* Mobile Handle & Close Bar */}
@@ -306,7 +309,7 @@ export function CardSelect({
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-lg text-slate-600 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                 aria-label={t('close')}
               >
                 <X className="w-5 h-5" />
@@ -317,7 +320,7 @@ export function CardSelect({
             {isSearchable && (
               <div className="relative mb-2 shrink-0">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Search className="size-4 text-slate-600" />
+                  <Search className="size-4 text-slate-400" />
                 </div>
                 <input
                   ref={searchInputRef}
@@ -328,7 +331,7 @@ export function CardSelect({
                     setActiveIndex(0);
                   }}
                   placeholder={t('searchOptions')}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-xs sm:text-sm text-slate-800 placeholder:text-slate-500 focus:border-blue-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand/15"
                 />
               </div>
             )}
@@ -339,7 +342,7 @@ export function CardSelect({
               className="overflow-y-auto max-h-60 sm:max-h-64 space-y-1 pr-1 overscroll-contain [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 hover:[&::-webkit-scrollbar-thumb]:bg-slate-400"
             >
               {filteredOptions.length === 0 ? (
-                <div className="py-6 text-center text-xs text-slate-600">
+                <div className="py-6 text-center text-xs text-slate-500">
                   {t('noMatchingOptions')}
                 </div>
               ) : (
@@ -361,7 +364,7 @@ export function CardSelect({
                         opt.disabled
                           ? "opacity-40 cursor-not-allowed pointer-events-none"
                           : isSelected
-                            ? "bg-blue-50/90 text-blue-700 font-bold border border-blue-200/80 shadow-2xs"
+                            ? "bg-brand/10 text-brand-strong font-bold border border-brand/20 shadow-2xs"
                             : isActive
                               ? "bg-slate-100/80 text-slate-900 font-medium"
                               : "hover:bg-slate-50 text-slate-700 font-medium"
@@ -377,7 +380,7 @@ export function CardSelect({
                           )}
                         </div>
                         {opt.description && (
-                          <p className="text-xs text-slate-600 font-normal truncate mt-0.5">
+                          <p className="text-xs text-slate-500 font-normal truncate mt-0.5">
                             {opt.description}
                           </p>
                         )}
@@ -385,7 +388,7 @@ export function CardSelect({
 
                       {isSelected && (
                         <Check
-                          className="size-4 text-blue-600 shrink-0 stroke-[2.5]"
+                          className="size-4 text-brand shrink-0 stroke-[2.5]"
                           aria-hidden="true"
                         />
                       )}

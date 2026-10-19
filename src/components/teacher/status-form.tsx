@@ -172,7 +172,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
         <form onSubmit={handleSubmit} className="mt-6 space-y-6">
           {/* Pilih Kelas */}
           <div>
-            <label htmlFor="class-select" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="class-select" className="block text-sm font-semibold text-slate-700 mb-1.5">
               {t('classSelect')}
             </label>
             <CardSelect
@@ -185,7 +185,6 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
               }))}
               placeholder={t('selectClassPlaceholder')}
               modalTitle={t('classSelect')}
-              className="mt-1"
             />
           </div>
 
@@ -254,7 +253,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
 
           {/* Konten Teks */}
           <div>
-            <label htmlFor="content-text" className="block text-sm font-medium text-slate-700">
+            <label htmlFor="content-text" className="block text-sm font-semibold text-slate-700 mb-1.5">
               {t('statusContent')}
             </label>
             <textarea
@@ -263,13 +262,13 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
               value={kontenTeks}
               onChange={(e) => setKontenTeks(e.target.value)}
               placeholder={t('statusContentPlaceholder')}
-              className="mt-1 block w-full rounded-lg border border-slate-300 p-3 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 resize-y bg-white"
             />
           </div>
 
           {/* Foto Kegiatan (Maks 5) */}
           <div>
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
               {t('statusPhotos')} ({photos.length}/5)
             </label>
             <div className="mt-2 flex gap-2">

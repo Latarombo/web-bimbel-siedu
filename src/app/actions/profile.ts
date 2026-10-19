@@ -5,6 +5,7 @@ import { getLocaleDariCookie } from '@/i18n/locale';
 import { z } from 'zod';
 import { auth } from '@/lib/auth';
 import { db } from '@/prisma/db';
+import { validateIndonesianPhone, getPhoneLookupVariants } from '@/lib/phone';
 
 const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
   name: z.string({error: t('invalidField')}).trim().min(2, t('nameMin')),
@@ -12,9 +13,8 @@ const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.obj
   nomor_telepon: z
     .string({error: t('invalidField')})
     .trim()
-    .min(8, t('phoneRequired'))
-    .max(30, t('phoneMax'))
-    .regex(/^[0-9+\-\s()]*$/, t('phoneCharacters')),
+    .min(10, t('phoneMinDigits'))
+    .max(20, t('phoneMax')),
 });
 
 export type ProfileState = {
@@ -51,7 +51,18 @@ export async function updateProfile(
     return { error: t('checkProfile'), fieldErrors, ...raw };
   }
 
-  const existingUser = await db.orm.public.User.where({ nomorTelepon: parsed.data.nomor_telepon }).first();
+  const phoneRes = validateIndonesianPhone(parsed.data.nomor_telepon);
+  if (!phoneRes.valid) {
+    return {
+      error: t('checkProfile'),
+      fieldErrors: { nomor_telepon: t(phoneRes.errorKey ?? 'phoneCharacters') },
+      ...raw,
+    };
+  }
+
+  const normalizedPhone = phoneRes.normalized!;
+  const lookupVariants = getPhoneLookupVariants(normalizedPhone);
+  const existingUser = await db.orm.public.User.where((u) => u.nomorTelepon.in(lookupVariants)).first();
   if (existingUser && existingUser.id !== Number(session.user.id)) {
     return {
       error: t('checkProfile'),
@@ -63,7 +74,7 @@ export async function updateProfile(
   await db.orm.public.User.where({ id: Number(session.user.id) }).update({
     name: parsed.data.name,
     alamat: parsed.data.alamat || null,
-    nomorTelepon: parsed.data.nomor_telepon,
+    nomorTelepon: normalizedPhone,
   });
-  return { ok: true, name: parsed.data.name, alamat: raw.alamat, nomor_telepon: raw.nomor_telepon };
+  return { ok: true, name: parsed.data.name, alamat: raw.alamat, nomor_telepon: normalizedPhone };
 }

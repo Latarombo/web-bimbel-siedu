@@ -2,7 +2,9 @@
 
 import { useTranslations } from "next-intl";
 
-export function CabangScrollTrigger() {
+import { ArrowDown } from "lucide-react";
+
+export function CabangScrollTrigger({ className }: { className?: string } = {}) {
   const t = useTranslations("public");
 
   function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
@@ -19,9 +21,13 @@ export function CabangScrollTrigger() {
     <button
       type="button"
       onClick={handleClick}
-      className="mt-1 inline-flex items-center font-bold text-brand hover:text-brand-dark hover:underline transition-colors text-sm cursor-pointer"
+      className={
+        className ??
+        "inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-brand hover:text-brand-strong hover:underline transition-colors cursor-pointer"
+      }
     >
       <span>{t("cabangViewOffice")}</span>
+      <ArrowDown className="size-3.5" />
     </button>
   );
 }

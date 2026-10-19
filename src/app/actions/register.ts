@@ -46,25 +46,31 @@ export async function registerParent(
     const fieldErrors: Record<string, string> = {};
     for (const issue of parsed.error.issues)
       fieldErrors[String(issue.path[0])] ??= issue.message;
-    return { error: t('checkForm'), fieldErrors, email: emailKetik };
+    return { fieldErrors, email: emailKetik };
   }
   const { email, password } = parsed.data;
 
-  const existing = await db.orm.public.User.where((u) => u.email.eq(email)).first();
-  if (existing)
-    return { error: t('emailRegistered'), fieldErrors: { email: t('emailTaken') }, email };
+  try {
+    const existing = await db.orm.public.User.where((u) => u.email.eq(email)).first();
+    if (existing) {
+      return { fieldErrors: { email: t('emailRegistered') }, email };
+    }
 
-  await db.orm.public.User.create({
-    role: 'orang_tua',
-    name: email.split('@')[0],
-    email,
-    password: await bcrypt.hash(password, 10),
-    // BR#32: kolom NOT NULL — placeholder sampai user mengisi Nomor HP di
-    // step 2 (saveAccountInfo memvalidasi minimal 8 karakter).
-    nomorTelepon: '',
-    // privasiDisetujuiAt / waliDisetujuiAt sengaja TIDAK diisi di sini —
-    // consent dicatat saat step 2 (saveAccountInfo) setelah diceklis user.
-  });
+    await db.orm.public.User.create({
+      role: 'orang_tua',
+      name: email.split('@')[0],
+      email,
+      password: await bcrypt.hash(password, 10),
+      // BR#32: kolom NOT NULL — placeholder sampai user mengisi Nomor HP di
+      // step 2 (saveAccountInfo memvalidasi minimal 8 karakter).
+      nomorTelepon: '',
+      // privasiDisetujuiAt / waliDisetujuiAt sengaja TIDAK diisi di sini —
+      // consent dicatat saat step 2 (saveAccountInfo) setelah diceklis user.
+    });
+  } catch (err) {
+    console.error('[REGISTER ERROR]', err);
+    return { error: t('serverError'), email };
+  }
 
   try {
     await signIn('credentials', { email, password, redirectTo: getPathname({href: '/register/account-info', locale}) });

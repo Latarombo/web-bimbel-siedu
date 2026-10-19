@@ -18,6 +18,8 @@ import {
   Mail,
   Lock,
   User,
+  GraduationCap,
+  Users,
 } from 'lucide-react';
 
 export interface ChildEditData {
@@ -98,7 +100,7 @@ export function ChildEditForm({
   const umur = hitungUmur(anak.tanggalLahir, tr);
 
   const inputBase =
-    'w-full pl-10 pr-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-slate-500 bg-white';
+    'w-full h-11 pl-10 pr-4 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-slate-500 bg-white';
 
   const currentKelasOptions = jenjang ? KELAS_OPTIONS[jenjang] : [];
 
@@ -165,10 +167,10 @@ export function ChildEditForm({
             <div>
               <label
                 htmlFor="nama"
-                className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+                className="block text-sm font-semibold text-slate-700 mb-1.5"
               >
                 {t('childFullName')}{' '}
-                <span className="text-rose-500">*</span>
+                <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
               </label>
               <div className="relative">
                 <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
@@ -195,9 +197,9 @@ export function ChildEditForm({
             <div>
               <label
                 htmlFor="tanggal_lahir"
-                className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+                className="block text-sm font-semibold text-slate-700 mb-1.5"
               >
-                {t('childBirth')} <span className="text-rose-500">*</span>
+                {t('childBirth')} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
               </label>
               <DatePicker
                 id="tanggal_lahir"
@@ -225,9 +227,9 @@ export function ChildEditForm({
               <div>
                 <label
                   htmlFor="jenjang_terakhir"
-                  className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+                  className="block text-sm font-semibold text-slate-700 mb-1.5"
                 >
-                  {t('educationLevel')} <span className="text-rose-500">*</span>
+                  {t('educationLevel')} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
                 </label>
                 <CardSelect
                   id="jenjang_terakhir"
@@ -255,9 +257,9 @@ export function ChildEditForm({
               <div>
                 <label
                   htmlFor="tingkat"
-                  className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+                  className="block text-sm font-semibold text-slate-700 mb-1.5"
                 >
-                  {t('classLevel')} <span className="text-rose-500">*</span>
+                  {t('classLevel')} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
                 </label>
                 <CardSelect
                   id="tingkat"
@@ -286,9 +288,9 @@ export function ChildEditForm({
           <div>
             <label
               htmlFor="nomor_telepon"
-              className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+              className="block text-sm font-semibold text-slate-700 mb-1.5"
             >
-              {t('childPhoneLabel')} <span className="text-rose-500">*</span>
+              {t('childPhoneLabel')} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
             </label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
@@ -345,10 +347,10 @@ export function ChildEditForm({
           <div>
             <label
               htmlFor="email_notifikasi"
-              className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+              className="block text-sm font-semibold text-slate-700 mb-1.5"
             >
               {t('childEmail')}{' '}
-              <span className="text-xs font-normal text-slate-600">
+              <span className="text-xs font-normal text-slate-500">
                 {t('optionalParen')}
               </span>
             </label>
@@ -410,10 +412,20 @@ export function ChildEditForm({
         {/* Global Error Banner */}
         {state.error && (
           <div
-            className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700"
+            className="flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"
             role="alert"
           >
-            {state.error}
+            <svg
+              className="h-5 w-5 shrink-0 text-rose-600 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4m0 4h.01" />
+            </svg>
+            <div className="flex-1 leading-relaxed">{state.error}</div>
           </div>
         )}
 
@@ -422,7 +434,7 @@ export function ChildEditForm({
           <button
             type="submit"
             disabled={pending}
-            className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-600 text-white text-sm sm:text-base font-semibold py-3 sm:py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center active:scale-[0.99] cursor-pointer"
+            className="w-full bg-brand hover:bg-brand-strong disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm sm:text-base font-semibold py-3 sm:py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center active:scale-[0.99] cursor-pointer"
           >
             <span>{pending ? t('processing') : tr('saveChanges')}</span>
           </button>

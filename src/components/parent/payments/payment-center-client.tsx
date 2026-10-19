@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type {
   EnrollmentBillingGroup,
@@ -13,6 +13,7 @@ import { PaymentSummaryStrip } from "./payment-summary-strip";
 import { EnrollmentGroupCard } from "./enrollment-group-card";
 import { QuickPayModal } from "./quick-pay-modal";
 import { ReceiptModal } from "./receipt-modal";
+import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import {
   Search,
   CheckCircle2,
@@ -23,6 +24,7 @@ import {
   BookOpen,
   Filter,
   ArrowRight,
+  ArrowUpDown,
 } from "lucide-react";
 
 interface Props {
@@ -48,6 +50,8 @@ export function PaymentCenterClient({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const t = useTranslations("parent");
+  const locale = useLocale();
+  const isEn = locale === "en";
 
   // Tab state: "belum-lunas" or "riwayat"
   const [tab, setTab] = useState<"belum-lunas" | "riwayat">(
@@ -64,6 +68,16 @@ export function PaymentCenterClient({
 
   // Search input state
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Sort state: recent (default), oldest, highest, lowest (ala referensi)
+  const [sortBy, setSortBy] = useState<"recent" | "oldest" | "highest" | "lowest">("recent");
+
+  const sortOptions = useMemo(() => [
+    { value: "recent" as const, label: isEn ? "Recent" : "Terbaru" },
+    { value: "oldest" as const, label: isEn ? "Oldest" : "Terlama" },
+    { value: "highest" as const, label: isEn ? "Highest Amount" : "Nominal Tertinggi" },
+    { value: "lowest" as const, label: isEn ? "Lowest Amount" : "Nominal Terendah" },
+  ], [isEn]);
 
   // Modals
   const [payModalBill, setPayModalBill] = useState<PaymentItem | null>(null);
@@ -98,7 +112,7 @@ export function PaymentCenterClient({
     syncUrl(tab, nextAnak);
   };
 
-  // Filter groups according to active Tab, Selected Child, and Search Query
+  // Filter & sort groups according to active Tab, Selected Child, Search Query, and Sort By
   const filteredGroups = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
 
@@ -121,13 +135,14 @@ export function PaymentCenterClient({
         if (targetBills.length === 0) return null;
 
         // Search query filter
+        let matchingBills = targetBills;
         if (q) {
           const matchGroup =
             group.namaAnak.toLowerCase().includes(q) ||
             group.namaMapel.toLowerCase().includes(q) ||
             (group.tingkat && group.tingkat.toLowerCase().includes(q));
 
-          const matchingBills = targetBills.filter(
+          matchingBills = targetBills.filter(
             (b) =>
               matchGroup ||
               b.tipe.toLowerCase().includes(q) ||
@@ -135,20 +150,33 @@ export function PaymentCenterClient({
           );
 
           if (matchingBills.length === 0) return null;
-
-          return {
-            ...group,
-            tagihan: matchingBills,
-          };
         }
+
+        // Sort bills inside group
+        const sortedBills = [...matchingBills].sort((a, b) => {
+          if (sortBy === "highest") return b.jumlah - a.jumlah;
+          if (sortBy === "lowest") return a.jumlah - b.jumlah;
+          const dateA = a.dibayarPada || a.jatuhTempo || a.createdAt;
+          const dateB = b.dibayarPada || b.jatuhTempo || b.createdAt;
+          if (sortBy === "oldest") return dateA.localeCompare(dateB);
+          return dateB.localeCompare(dateA);
+        });
 
         return {
           ...group,
-          tagihan: targetBills,
+          tagihan: sortedBills,
         };
       })
-      .filter((g): g is EnrollmentBillingGroup => g !== null);
-  }, [groups, tab, selectedAnak, searchQuery]);
+      .filter((g): g is EnrollmentBillingGroup => g !== null)
+      .sort((a, b) => {
+        if (sortBy === "highest") return b.totalBiaya - a.totalBiaya;
+        if (sortBy === "lowest") return a.totalBiaya - b.totalBiaya;
+        const dateA = a.tagihan[0]?.dibayarPada || a.tagihan[0]?.jatuhTempo || a.tagihan[0]?.createdAt || "";
+        const dateB = b.tagihan[0]?.dibayarPada || b.tagihan[0]?.jatuhTempo || b.tagihan[0]?.createdAt || "";
+        if (sortBy === "oldest") return dateA.localeCompare(dateB);
+        return dateB.localeCompare(dateA);
+      });
+  }, [groups, tab, selectedAnak, searchQuery, sortBy]);
 
   const totalBillsCount = useMemo(() => {
     return filteredGroups.reduce((acc, g) => acc + g.tagihan.length, 0);
@@ -248,25 +276,40 @@ export function PaymentCenterClient({
             </button>
           </nav>
 
-          {/* Search Bar Input */}
-          <div className="relative w-full lg:w-72">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-600" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t("paymentsSearchPlaceholder")}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-8 text-xs sm:text-sm text-slate-800 placeholder-slate-400 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+          {/* Controls: Search Bar & Sort Dropdown */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
+            {/* Search Bar Input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-600" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t("paymentsSearchPlaceholder")}
+                className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-9 pr-8 text-xs sm:text-sm text-slate-800 placeholder-slate-400 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Sort Dropdown (Sesuai Desain Referensi) */}
+            <FilterDropdown
+              value={sortBy}
+              onChange={setSortBy}
+              options={sortOptions}
+              icon={<ArrowUpDown className="size-3.5" />}
+              prefixLabel={isEn ? "Sort: " : "Urutkan: "}
+              align="end"
+              triggerClassName="h-10 text-xs sm:text-sm"
+              contentClassName="min-w-[190px]"
             />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-600 cursor-pointer"
-              >
-                <X className="size-3.5" />
-              </button>
-            )}
           </div>
         </div>
 

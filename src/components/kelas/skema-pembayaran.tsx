@@ -142,10 +142,10 @@ export function SkemaPembayaran({
 
           {/* 1. Bagian: Tujuan Pembelian (Profil Anak) */}
           <div id="tujuan-pembelian" className="mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-bold text-slate-700">Tujuan Pembelian</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-sm font-semibold text-slate-700">Tujuan Pembelian</label>
               {isOrangTua && anak.length > 0 && (
-                <span className="text-[11px] text-slate-600">Pilih profil siswa</span>
+                <span className="text-xs text-slate-500">Pilih profil siswa</span>
               )}
             </div>
 
@@ -348,7 +348,7 @@ export function SkemaPembayaran({
 
           {/* 2. Bagian: Pilihan Metode Bayar (Lunas vs DP) */}
           <div className="mt-5 pt-4 border-t border-slate-100">
-            <label className="text-xs font-bold text-slate-700 block mb-2">{tr("text196")}</label>
+            <label className="text-sm font-semibold text-slate-700 block mb-1.5">{tr("text196")}</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"

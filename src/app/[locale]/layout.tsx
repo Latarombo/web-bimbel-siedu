@@ -48,6 +48,12 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       title,
       description,
     },
+    icons: {
+      icon: [
+        { url: "/svg/symbol_siedu.svg", type: "image/svg+xml" },
+      ],
+      apple: "/svg/symbol_siedu.svg",
+    },
   };
 }
 

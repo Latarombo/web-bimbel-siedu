@@ -97,7 +97,7 @@ function BelumAdaProfilState({
   return (
     <div className="min-h-full bg-slate-50/50 pb-20">
       {/* 1. Hero Welcome Header */}
-      <section className="relative overflow-hidden bg-[#1d4ed8] text-white pt-8 pb-20 sm:pt-10 sm:pb-24 px-4 sm:px-6 lg:px-8 border-b border-blue-900/20 shadow-xs">
+      <section className="relative overflow-hidden bg-[#1d4ed8] text-white pt-8 pb-20 sm:pt-10 sm:pb-24 border-b border-blue-900/20 shadow-xs">
         {/* Gelombang sudut tanpa gradient persis halaman katalog */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
           <svg
@@ -121,7 +121,7 @@ function BelumAdaProfilState({
           </svg>
         </div>
 
-        <div className="relative mx-auto max-w-5xl">
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight text-white">
             {tr("welcomeTitle", {
               name: userName ?? tr("defaultParentGreeting"),
@@ -134,7 +134,7 @@ function BelumAdaProfilState({
       </section>
 
       {/* 2. Konten Onboarding melayang ke hero */}
-      <div className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 -mt-10 sm:-mt-12 space-y-8">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mt-10 sm:-mt-12 space-y-8">
         {/* Card Utama: 3 Langkah Memulai */}
         <div className="rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 lg:p-10 shadow-sm space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">

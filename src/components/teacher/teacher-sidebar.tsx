@@ -423,7 +423,7 @@ export function TeacherSidebar({
 
                 {/* Dropdown Card */}
                 <div
-                  className={`absolute bottom-full mb-2 w-60 rounded-2xl border border-slate-200/90 bg-white p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 ${
+                  className={`absolute bottom-full mb-2 w-60 rounded-2xl border border-slate-100 bg-white p-1.5 shadow-xl ring-1 ring-slate-900/5 z-50 animate-in fade-in zoom-in-95 duration-150 ${
                     !isCollapsed ? 'left-0' : 'left-full ml-3'
                   }`}
                 >

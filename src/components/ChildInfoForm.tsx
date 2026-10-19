@@ -253,22 +253,22 @@ export default function ChildInfoForm({
     };
 
     const inputBase =
-        'w-full pl-10 sm:pl-11 pr-4 py-2.5 sm:py-3 text-sm sm:text-base text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all placeholder:text-slate-500 bg-white';
+        'w-full h-11 pl-10 sm:pl-11 pr-4 text-base sm:text-sm text-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white';
 
     const currentKelasOptions = jenjang ? KELAS_OPTIONS[jenjang] : [];
 
     return (
-        <div className="bg-white rounded-2xl sm:rounded-3xl shadow-xl border border-slate-100 p-6 sm:p-8 w-full max-w-[460px] mx-auto">
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-1.5 sm:mb-2">
+        <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md mx-auto transition-all">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-2">
                 {title ?? t('childTitle')}
             </h2>
             {subtitle ? (
-                <p className="text-xs sm:text-sm text-slate-500 mb-6 leading-relaxed">{subtitle}</p>
+                <p className="text-sm text-slate-600 mb-6 leading-relaxed">{subtitle}</p>
             ) : (
-                <div className="mb-5" />
+                <div className="mb-6" />
             )}
 
-            <form action={formAction} className="space-y-4 sm:space-y-4.5">
+            <form action={formAction} className="space-y-5">
                 {redirectTo ? (
                     <input type="hidden" name="redirect_to" value={redirectTo} />
                 ) : null}
@@ -277,7 +277,7 @@ export default function ChildInfoForm({
                 <div>
                     <label
                         htmlFor="nama"
-                        className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+                        className="block text-sm font-semibold text-slate-700 mb-1.5"
                     >
                         {t('childFullName')}{' '}
                         <span className="text-danger" aria-hidden="true">
@@ -302,11 +302,15 @@ export default function ChildInfoForm({
                             }}
                             aria-invalid={errors.nama ? true : undefined}
                             aria-describedby={errors.nama ? 'nama-error' : undefined}
-                            className={inputBase}
+                            className={`${inputBase} ${
+                                errors.nama
+                                    ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
+                                    : 'border-slate-200'
+                            }`}
                         />
                     </div>
                     {errors.nama ? (
-                        <p id="nama-error" className="mt-1 text-xs text-rose-600">
+                        <p id="nama-error" className="mt-1.5 text-xs text-rose-600 font-medium">
                             {errors.nama}
                         </p>
                     ) : null}
@@ -316,7 +320,7 @@ export default function ChildInfoForm({
                 <div>
                     <label
                         htmlFor="tanggal_lahir"
-                        className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+                        className="block text-sm font-semibold text-slate-700 mb-1.5"
                     >
                         {t('childBirth')}{' '}
                         <span className="text-danger" aria-hidden="true">
@@ -338,7 +342,7 @@ export default function ChildInfoForm({
                         }
                     />
                     {errors.tanggal_lahir ? (
-                        <p id="tgl-error" className="mt-1.5 text-xs text-rose-600">
+                        <p id="tgl-error" className="mt-1.5 text-xs text-rose-600 font-medium">
                             {errors.tanggal_lahir}
                         </p>
                     ) : null}
@@ -350,7 +354,7 @@ export default function ChildInfoForm({
                     <div>
                         <label
                             htmlFor="jenjang_terakhir"
-                            className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+                            className="block text-sm font-semibold text-slate-700 mb-1.5"
                         >
                             {t('educationLevel')}{' '}
                             <span className="text-danger" aria-hidden="true">
@@ -361,6 +365,7 @@ export default function ChildInfoForm({
                             id="jenjang_terakhir"
                             name="jenjang_terakhir"
                             required
+                            size="md"
                             value={jenjang}
                             onChange={(val) =>
                                 handleJenjangChange(
@@ -379,7 +384,7 @@ export default function ChildInfoForm({
                             }
                         />
                         {errors.jenjang_terakhir ? (
-                            <p id="jenjang-error" className="mt-1 text-xs text-rose-600">
+                            <p id="jenjang-error" className="mt-1.5 text-xs text-rose-600 font-medium">
                                 {errors.jenjang_terakhir}
                             </p>
                         ) : null}
@@ -389,7 +394,7 @@ export default function ChildInfoForm({
                     <div>
                         <label
                             htmlFor="tingkat"
-                            className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+                            className="block text-sm font-semibold text-slate-700 mb-1.5"
                         >
                             {t('classLevel')}{' '}
                             <span className="text-danger" aria-hidden="true">
@@ -400,6 +405,7 @@ export default function ChildInfoForm({
                             id="tingkat"
                             name="tingkat"
                             required
+                            size="md"
                             value={tingkat}
                             onChange={(val) => {
                                 setTingkat(val);
@@ -416,7 +422,7 @@ export default function ChildInfoForm({
                             }
                         />
                         {errors.tingkat ? (
-                            <p id="tingkat-error" className="mt-1 text-xs text-rose-600">
+                            <p id="tingkat-error" className="mt-1.5 text-xs text-rose-600 font-medium">
                                 {errors.tingkat}
                             </p>
                         ) : null}
@@ -427,7 +433,7 @@ export default function ChildInfoForm({
                 <div>
                     <label
                         htmlFor="nomor_telepon"
-                        className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+                        className="block text-sm font-semibold text-slate-700 mb-1.5"
                     >
                         {t('childPhoneLabel')}{' '}
                         <span className="text-danger" aria-hidden="true">
@@ -458,8 +464,10 @@ export default function ChildInfoForm({
                                 errors.nomor_telepon ? 'hp-error' : undefined
                             }
                             className={`${inputBase} ${
-                                hpTerkunci ? 'bg-slate-50 text-slate-500' : ''
-                            }`}
+                                errors.nomor_telepon
+                                    ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
+                                    : 'border-slate-200'
+                            } ${hpTerkunci ? 'bg-slate-50 text-slate-500' : ''}`}
                         />
                     </div>
                     {ortuPunyaHp && (
@@ -496,7 +504,7 @@ export default function ChildInfoForm({
                         </div>
                     )}
                     {errors.nomor_telepon ? (
-                        <p id="hp-error" className="mt-1 text-xs text-rose-600">
+                        <p id="hp-error" className="mt-1.5 text-xs text-rose-600 font-medium">
                             {errors.nomor_telepon}
                         </p>
                     ) : null}
@@ -506,10 +514,10 @@ export default function ChildInfoForm({
                 <div>
                     <label
                         htmlFor="email_notifikasi"
-                        className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2"
+                        className="block text-sm font-semibold text-slate-700 mb-1.5"
                     >
                         {t('childEmail')}{' '}
-                        <span className="text-xs font-normal text-slate-600">
+                        <span className="text-xs font-normal text-slate-500">
                             {t('optionalParen')}
                         </span>
                     </label>
@@ -536,51 +544,69 @@ export default function ChildInfoForm({
                                     ? 'email-error'
                                     : undefined
                             }
-                            className={inputBase}
+                            className={`${inputBase} ${
+                                errors.email_notifikasi
+                                    ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
+                                    : 'border-slate-200'
+                            }`}
                         />
                     </div>
                     {errors.email_notifikasi ? (
-                        <p id="email-error" className="mt-1 text-xs text-rose-600">
+                        <p id="email-error" className="mt-1.5 text-xs text-rose-600 font-medium">
                             {errors.email_notifikasi}
                         </p>
                     ) : null}
                 </div>
 
                 {state.error ? (
-                    <p
-                        className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700"
+                    <div
+                        className="flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"
                         role="alert"
                     >
-                        {state.error}
-                    </p>
+                        <svg
+                            className="h-5 w-5 shrink-0 text-rose-600 mt-0.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                        >
+                            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4m0 4h.01" />
+                        </svg>
+                        <div className="flex-1 leading-relaxed">{state.error}</div>
+                    </div>
                 ) : null}
 
-                {/* Action Buttons Group (Tombol Utama & Tombol Sekunder/Lewati) */}
-                <div className="pt-2 space-y-2.5">
+                {/* Action Buttons: Tombol Utama (w-full) & Tombol Sekunder / Lewati (Link Teks Bersih — Opsi A) */}
+                <div className="pt-2">
                     <button
                         type="submit"
                         disabled={pending}
-                        className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-600 text-white text-sm sm:text-base font-semibold py-3 sm:py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center active:scale-[0.99] cursor-pointer"
+                        className="w-full bg-brand hover:bg-brand-strong disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
                     >
                         <span>{pending ? t('processing') : (submitLabel ?? t('createChild'))}</span>
                     </button>
+                </div>
 
-                    {backHref ? (
+                {backHref ? (
+                    <div className="mt-6 text-center">
                         <Link
                             href={backHref}
-                            className="w-full flex items-center justify-center py-2.5 sm:py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-semibold transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-xs"
+                            className="inline-block text-sm font-semibold text-brand hover:text-brand-strong transition-colors cursor-pointer"
                         >
-                            <span>{backLabel ?? t('cancelBackDashboard')}</span>
+                            {backLabel ?? t('cancelBackDashboard')}
                         </Link>
-                    ) : showSkip ? (
+                    </div>
+                ) : showSkip ? (
+                    <div className="mt-6 text-center">
                         <Link
                             href="/home"
-                            className="w-full flex items-center justify-center py-2.5 sm:py-3 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300 text-slate-700 hover:text-slate-900 text-xs sm:text-sm font-semibold transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-xs"
+                            className="inline-block text-sm font-semibold text-brand hover:text-brand-strong transition-colors cursor-pointer"
                         >
-                            <span>{t('skipChildStep')}</span>
+                            {t('skipChildStep')}
                         </Link>
-                    ) : null}
-                </div>
+                    </div>
+                ) : null}
             </form>
         </div>
     );

@@ -253,24 +253,25 @@ const DashboardNavbar: React.FC<DashboardNavbarProps> = ({
                         onLogout={() => setIsLogoutOpen(true)}
                       />
                     ) : (
-                      <div className="w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2">
-                        <div className="px-4 py-2 border-b border-gray-100">
-                          <p className="text-sm font-medium text-gray-900">{userName}</p>
-                          <p className="text-xs text-gray-500">{role}</p>
+                      <div className="w-56 bg-white rounded-2xl shadow-xl border border-slate-100 ring-1 ring-slate-900/5 p-1.5 animate-in fade-in-0 zoom-in-95 duration-150">
+                        <div className="px-3 py-2 border-b border-slate-100 mb-1">
+                          <p className="text-sm font-bold text-slate-900 truncate">{userName}</p>
+                          <p className="text-xs text-slate-500 font-medium capitalize">{role}</p>
                         </div>
                         <Link
                           href="/profile"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-xl transition-colors"
                           onClick={() => setIsDropdownOpen(false)}
                         >
                           {t('nav.profile')}
                         </Link>
-                        <div className="px-4 py-2">
+                        <div className="px-2 py-1">
                           <LanguageSwitcher placement="bottom" />
                         </div>
+                        <div className="h-px bg-slate-100 my-1" />
                         <button
                           onClick={() => setIsLogoutOpen(true)}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-50"
+                          className="w-full text-left px-3 py-2 text-sm font-medium text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
                         >
                           {t('nav.logout')}
                         </button>

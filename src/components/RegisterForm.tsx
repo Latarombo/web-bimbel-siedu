@@ -33,17 +33,36 @@ const passwordRules = [
 
     return (
         <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md">
-            {/* Judul auth: 24px di HP, 20px mulai sm, tebal 700, jarak bawah 32px. */}
-            <h2 className="text-2xl sm:text-[20px] sm:leading-[1.3] font-bold text-slate-900 mb-8">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 mb-6 sm:mb-8">
                 {t('registerTitle')}
             </h2>
+
+            {/* Error dari server — banner rose dengan ikon lingkaran seru sesuai referensi */}
+            {state.error ? (
+                <div
+                    className="flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 mb-5"
+                    role="alert"
+                >
+                    <svg
+                        className="h-5 w-5 shrink-0 text-rose-600 mt-0.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                    >
+                        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4m0 4h.01" />
+                    </svg>
+                    <div className="flex-1 leading-relaxed">{state.error}</div>
+                </div>
+            ) : null}
 
             <form action={formAction} className="space-y-5">
                 {/* Email */}
                 <div>
                     <label
                         htmlFor="email"
-                        className="block text-sm font-semibold text-slate-700 mb-2"
+                        className="block text-sm font-semibold text-slate-700 mb-1.5"
                     >
                         {t('email')}{' '}
                         <span className="text-danger" aria-hidden="true">*</span>
@@ -59,7 +78,11 @@ const passwordRules = [
                         onChange={(e) => setDraftField('email', e.target.value)}
                         aria-invalid={errors.email ? true : undefined}
                         aria-describedby={errors.email ? 'email-error' : undefined}
-                        className="w-full px-4 py-3 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500"
+                        className={`w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 ${
+                            errors.email
+                                ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
+                                : 'border-slate-200'
+                        }`}
                     />
                     {errors.email ? (
                         <p id="email-error" className="mt-1 text-xs text-rose-600">
@@ -72,7 +95,7 @@ const passwordRules = [
                 <div>
                     <label
                         htmlFor="password"
-                        className="block text-sm font-semibold text-slate-700 mb-2"
+                        className="block text-sm font-semibold text-slate-700 mb-1.5"
                     >
                         {t('password')}{' '}
                         <span className="text-danger" aria-hidden="true">*</span>
@@ -93,12 +116,16 @@ const passwordRules = [
                                     .filter(Boolean)
                                     .join(' ') || undefined
                             }
-                            className="w-full px-4 py-3 pr-12 text-base text-slate-800 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500"
+                            className={`w-full h-11 px-3.5 pr-12 text-base sm:text-sm text-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 ${
+                                errors.password
+                                    ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
+                                    : 'border-slate-200'
+                            }`}
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 -m-1 rounded-full text-slate-600 hover:text-slate-600 hover:bg-slate-100 focus:outline-none cursor-pointer"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:text-slate-700 hover:bg-slate-100 focus:outline-none cursor-pointer transition-colors"
                             aria-label={
                                 showPassword
                                     ? t('hidePassword')
@@ -191,21 +218,11 @@ const passwordRules = [
                     ) : null}
                 </div>
 
-                {/* Error dari server */}
-                {state.error ? (
-                    <p
-                        className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-700"
-                        role="alert"
-                    >
-                        {state.error}
-                    </p>
-                ) : null}
-
                 {/* Submit */}
                 <button
                     type="submit"
                     disabled={pending}
-                    className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-600 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
+                    className="w-full bg-brand hover:bg-brand-strong disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
                 >
                     <span>{pending ? t('processing') : t('register')}</span>
                 </button>

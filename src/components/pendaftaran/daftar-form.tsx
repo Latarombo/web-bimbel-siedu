@@ -269,9 +269,9 @@ export default function DaftarForm({
 
             {/* 1. Profil Siswa Terpilih */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-slate-700">Tujuan Pembelian</label>
-                <span className="text-[11px] text-slate-500">Profil siswa terdaftar</span>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-semibold text-slate-700">Tujuan Pembelian</label>
+                <span className="text-xs text-slate-500">Profil siswa terdaftar</span>
               </div>
 
               {selectedChild ? (

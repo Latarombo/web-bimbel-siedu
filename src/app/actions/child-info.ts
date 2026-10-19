@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/prisma/db";
 import { auth } from "@/lib/auth";
+import { validateIndonesianPhone, normalizeIndonesianPhone, getPhoneLookupVariants } from "@/lib/phone";
 
 const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
   nama: z.string({error: t('invalidField')}).trim().min(2, t('childNameMin')),
@@ -25,9 +26,8 @@ const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.obj
   nomor_telepon: z
     .string({error: t('phoneRequired')})
     .trim()
-    .min(8, t('phoneMin') || "Nomor HP minimal 8 digit")
-    .max(30, t('phoneMax'))
-    .regex(/^[0-9+\-\s()]*$/, t('phoneCharacters')),
+    .min(10, t('phoneMinDigits'))
+    .max(20, t('phoneMax')),
 });
 
 export type ChildInfoState = {
@@ -102,14 +102,32 @@ export async function saveChildInfo(
   }
   const d = parsed.data;
 
+  // Validasi format nomor telepon Indonesia
+  const phoneRes = validateIndonesianPhone(d.nomor_telepon);
+  if (!phoneRes.valid) {
+    return {
+      error: t('checkChild'),
+      fieldErrors: { nomor_telepon: t(phoneRes.errorKey ?? 'phoneCharacters') },
+      nama: namaKetik,
+      tanggal_lahir: String(formData.get("tanggal_lahir") ?? ""),
+      jenjang_terakhir: jenjangKetik,
+      tingkat: tingkatKetik,
+      email_notifikasi: emailKetik,
+      nomor_telepon: teleponKetik,
+    };
+  }
+
+  const normalizedHpAnak = phoneRes.normalized!;
+
   // Validasi keunikan nomor telepon jika berbeda dari nomor telepon orang tua
   const parent = await db.orm.public.User.where({ id: ortuId }).first();
   const hpOrtu = parent?.nomorTelepon?.trim() ?? "";
-  const hpAnak = d.nomor_telepon.trim();
+  const normalizedHpOrtu = normalizeIndonesianPhone(hpOrtu);
 
-  if (hpAnak !== hpOrtu) {
+  if (normalizedHpAnak !== normalizedHpOrtu) {
+    const variants = getPhoneLookupVariants(normalizedHpAnak);
     // 1. Cek apakah nomor telepon sudah terdaftar di akun User lain
-    const userConflict = await db.orm.public.User.where({ nomorTelepon: hpAnak }).first();
+    const userConflict = await db.orm.public.User.where((u) => u.nomorTelepon.in(variants)).first();
     if (userConflict && userConflict.id !== ortuId) {
       return {
         error: t('checkChild'),
@@ -124,7 +142,7 @@ export async function saveChildInfo(
     }
 
     // 2. Cek apakah nomor telepon sudah terdaftar di Anak orang tua lain
-    const anakConflict = await db.orm.public.Anak.where({ nomorTelepon: hpAnak }).first();
+    const anakConflict = await db.orm.public.Anak.where((a) => a.nomorTelepon.in(variants)).first();
     if (anakConflict && anakConflict.orangTuaId !== ortuId) {
       return {
         error: t('checkChild'),
@@ -146,7 +164,7 @@ export async function saveChildInfo(
     jenjangTerakhir: d.jenjang_terakhir,
     tingkat: d.tingkat,
     emailNotifikasi: d.email_notifikasi || null,
-    nomorTelepon: d.nomor_telepon,
+    nomorTelepon: normalizedHpAnak,
   });
   revalidatePath(getPathname({href: "/children", locale}));
   const redirectTo = String(formData.get("redirect_to") || "/home");
@@ -216,20 +234,32 @@ export async function updateChild(
     return { error: t('checkChild'), fieldErrors };
   }
 
+  // Validasi format nomor telepon Indonesia
+  const phoneRes = validateIndonesianPhone(teleponKetik);
+  if (!phoneRes.valid) {
+    return {
+      error: t('checkChild'),
+      fieldErrors: { nomor_telepon: t(phoneRes.errorKey ?? 'phoneCharacters') },
+    };
+  }
+
+  const normalizedHpAnak = phoneRes.normalized!;
+
   // Validasi keunikan nomor telepon jika berbeda dari nomor telepon orang tua
   const parent = await db.orm.public.User.where({ id: ortuId }).first();
   const hpOrtu = parent?.nomorTelepon?.trim() ?? "";
-  const hpAnak = teleponKetik;
+  const normalizedHpOrtu = normalizeIndonesianPhone(hpOrtu);
 
-  if (hpAnak !== hpOrtu) {
+  if (normalizedHpAnak !== normalizedHpOrtu) {
+    const variants = getPhoneLookupVariants(normalizedHpAnak);
     // 1. Cek apakah nomor telepon sudah terdaftar di akun User lain
-    const userConflict = await db.orm.public.User.where({ nomorTelepon: hpAnak }).first();
+    const userConflict = await db.orm.public.User.where((u) => u.nomorTelepon.in(variants)).first();
     if (userConflict && userConflict.id !== ortuId) {
       return { error: t('checkChild'), fieldErrors: { nomor_telepon: t('phoneAlreadyUsed') } };
     }
 
     // 2. Cek apakah nomor telepon sudah terdaftar di Anak lain (di luar anak ini sendiri)
-    const anakConflict = await db.orm.public.Anak.where({ nomorTelepon: hpAnak }).first();
+    const anakConflict = await db.orm.public.Anak.where((a) => a.nomorTelepon.in(variants)).first();
     if (anakConflict && anakConflict.id !== anakId && anakConflict.orangTuaId !== ortuId) {
       return { error: t('checkChild'), fieldErrors: { nomor_telepon: t('phoneAlreadyUsed') } };
     }
@@ -285,7 +315,7 @@ export async function updateChild(
     jenjangTerakhir: finalJenjang,
     tingkat: finalTingkat,
     emailNotifikasi: emailKetik || null,
-    nomorTelepon: hpAnak,
+    nomorTelepon: normalizedHpAnak,
     persetujuanFoto: persetujuanFotoKetik,
   });
 

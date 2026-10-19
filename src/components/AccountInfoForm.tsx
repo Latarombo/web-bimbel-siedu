@@ -103,6 +103,9 @@ export default function AccountInfoForm({
       if (!res.valid && res.fieldErrors) {
         setClientErrors(res.fieldErrors);
       } else {
+        if (res.normalizedPhone) {
+          setDraftField('nomor_telepon', res.normalizedPhone);
+        }
         setStep(2);
       }
     } catch {
@@ -113,11 +116,11 @@ export default function AccountInfoForm({
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 w-full max-w-md transition-all">
-      <h2 className="text-xl sm:text-2xl font-black text-slate-900 mb-2 tracking-tight">
+    <div className="bg-white rounded-3xl shadow-2xl p-8 sm:p-10 w-full max-w-md transition-all">
+      <h2 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2 tracking-tight">
         {step === 1 ? 'Lengkapi Data Diri' : 'Alamat Domisili'}
       </h2>
-      <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+      <p className="text-sm text-slate-600 mb-6 leading-relaxed">
         {step === 1
           ? 'Masukkan nama lengkap dan nomor telepon aktif Anda untuk keperluan konfirmasi pendaftaran.'
           : 'Pilih wilayah kecamatan dan alamat domisili untuk pencocokan kelas & lokasi bimbingan belajar.'}
@@ -126,29 +129,72 @@ export default function AccountInfoForm({
       {/* Dikembalikan gerbang dashboard karena mencoba lanjut sebelum selesai (hanya di langkah 1) */}
       {dikembalikan && step === 1 ? (
         <div
-          className="mb-4 rounded-xl bg-amber-50 px-3.5 py-2.5 text-xs text-amber-800 border border-amber-200"
+          className="mb-6 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
           role="alert"
         >
-          {t('accountIncomplete')}
+          <svg
+            className="h-5 w-5 shrink-0 text-amber-600 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4m0 4h.01" />
+          </svg>
+          <div className="flex-1 leading-relaxed">{t('accountIncomplete')}</div>
         </div>
       ) : null}
 
       {/* Akun via Google: pengingat consent */}
       {needsConsent && isGoogle && step === 1 ? (
-        <div className="mb-4 rounded-xl bg-blue-50 px-3.5 py-2.5 text-xs text-slate-600 border border-blue-100">
-          {t('googleConsent')}
+        <div
+          className="mb-6 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900"
+          role="alert"
+        >
+          <svg
+            className="h-5 w-5 shrink-0 text-blue-600 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 16v-4m0-4h.01" />
+          </svg>
+          <div className="flex-1 leading-relaxed">{t('googleConsent')}</div>
         </div>
       ) : null}
 
-      <form action={formAction} className="space-y-4">
+      {/* Error server jika ada */}
+      {state.error ? (
+        <div
+          className="mb-6 flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"
+          role="alert"
+        >
+          <svg
+            className="h-5 w-5 shrink-0 text-rose-600 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4m0 4h.01" />
+          </svg>
+          <div className="flex-1 leading-relaxed">{state.error}</div>
+        </div>
+      ) : null}
+
+      <form action={formAction} className="space-y-5">
         {/* ================= LANGKAH 1: KONTAK & IDENTITAS ================= */}
         {step === 1 && (
-          <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="space-y-5 animate-in fade-in duration-200">
             {/* Nama Lengkap */}
             <div>
               <label
                 htmlFor="name"
-                className="block text-xs font-semibold text-slate-700 mb-1.5"
+                className="block text-sm font-semibold text-slate-700 mb-1.5"
               >
                 {t('fullName')} <span className="text-danger" aria-hidden="true">*</span>
               </label>
@@ -165,10 +211,14 @@ export default function AccountInfoForm({
                   setClientErrors((prev) => ({ ...prev, name: undefined }));
                 }}
                 aria-invalid={errors.name || clientErrors.name ? true : undefined}
-                className="w-full px-3.5 py-2.5 text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500"
+                className={`w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 ${
+                  errors.name || clientErrors.name
+                    ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
+                    : 'border-slate-200'
+                }`}
               />
               {errors.name || clientErrors.name ? (
-                <p className="mt-1 text-xs text-rose-600">
+                <p className="mt-1.5 text-xs text-rose-600 font-medium">
                   {errors.name ?? clientErrors.name}
                 </p>
               ) : null}
@@ -178,7 +228,7 @@ export default function AccountInfoForm({
             <div>
               <label
                 htmlFor="nomor_telepon"
-                className="block text-xs font-semibold text-slate-700 mb-1.5"
+                className="block text-sm font-semibold text-slate-700 mb-1.5"
               >
                 {t('phone')} <span className="text-danger" aria-hidden="true">*</span>
               </label>
@@ -196,14 +246,18 @@ export default function AccountInfoForm({
                   setClientErrors((prev) => ({ ...prev, nomor_telepon: undefined }));
                 }}
                 aria-invalid={errors.nomor_telepon || clientErrors.nomor_telepon ? true : undefined}
-                className="w-full px-3.5 py-2.5 text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500"
+                className={`w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 ${
+                  errors.nomor_telepon || clientErrors.nomor_telepon
+                    ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
+                    : 'border-slate-200'
+                }`}
               />
               {errors.nomor_telepon || clientErrors.nomor_telepon ? (
-                <p className="mt-1 text-xs text-rose-600">
+                <p className="mt-1.5 text-xs text-rose-600 font-medium">
                   {errors.nomor_telepon ?? clientErrors.nomor_telepon}
                 </p>
               ) : (
-                <p className="mt-1 text-[11px] text-slate-600">
+                <p className="mt-1.5 text-xs text-slate-500">
                   {t('phoneHint')}
                 </p>
               )}
@@ -215,7 +269,7 @@ export default function AccountInfoForm({
                 type="button"
                 onClick={handleNextStep}
                 disabled={isValidatingStep1}
-                className="w-full bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-600 text-white text-sm font-bold py-3 rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center cursor-pointer"
+                className="w-full bg-brand hover:bg-brand-strong disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs mt-2"
               >
                 <span>{isValidatingStep1 ? t('processing') : t('continue')}</span>
               </button>
@@ -225,7 +279,7 @@ export default function AccountInfoForm({
 
         {/* ================= LANGKAH 2: ALAMAT DOMISILI & PERSETUJUAN ================= */}
         {step === 2 && (
-          <div className="space-y-4 animate-in fade-in duration-200">
+          <div className="space-y-5 animate-in fade-in duration-200">
             {/* Hidden inputs untuk nilai Langkah 1 agar terkirim ke Server Action */}
             <input type="hidden" name="name" value={draft.name} />
             <input type="hidden" name="nomor_telepon" value={draft.nomor_telepon} />
@@ -234,7 +288,7 @@ export default function AccountInfoForm({
             <div>
               <label
                 htmlFor="wilayah"
-                className="block text-xs font-semibold text-slate-700 mb-1.5"
+                className="block text-sm font-semibold text-slate-700 mb-1.5"
               >
                 {t('districtRegion')} <span className="text-danger" aria-hidden="true">*</span>
               </label>
@@ -242,7 +296,7 @@ export default function AccountInfoForm({
                 id="wilayah"
                 name="wilayah"
                 required
-                size="sm"
+                size="md"
                 value={draft.wilayah}
                 onChange={(val) => setDraftField('wilayah', val)}
                 options={WILAYAH_OPTIONS.map((opt) => ({ value: opt.value, label: opt.label }))}
@@ -252,7 +306,7 @@ export default function AccountInfoForm({
                 ariaDescribedby={errors.wilayah ? 'wilayah-error' : undefined}
               />
               {errors.wilayah ? (
-                <p id="wilayah-error" className="mt-1 text-xs text-rose-600">
+                <p id="wilayah-error" className="mt-1.5 text-xs text-rose-600 font-medium">
                   {errors.wilayah}
                 </p>
               ) : null}
@@ -262,7 +316,7 @@ export default function AccountInfoForm({
             <div>
               <label
                 htmlFor="detail_alamat"
-                className="block text-xs font-semibold text-slate-700 mb-1.5"
+                className="block text-sm font-semibold text-slate-700 mb-1.5"
               >
                 {t('streetAddress')} <span className="text-danger" aria-hidden="true">*</span>
               </label>
@@ -275,10 +329,14 @@ export default function AccountInfoForm({
                 value={draft.detail_alamat}
                 onChange={(e) => setDraftField('detail_alamat', e.target.value)}
                 aria-invalid={errors.detail_alamat ? true : undefined}
-                className="w-full px-3.5 py-2 text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-500 resize-none"
+                className={`w-full px-3.5 py-2.5 text-base sm:text-sm text-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 resize-none ${
+                  errors.detail_alamat
+                    ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
+                    : 'border-slate-200'
+                }`}
               />
               {errors.detail_alamat ? (
-                <p id="detail-alamat-error" className="mt-1 text-xs text-rose-600">
+                <p id="detail-alamat-error" className="mt-1.5 text-xs text-rose-600 font-medium">
                   {errors.detail_alamat}
                 </p>
               ) : null}
@@ -286,7 +344,7 @@ export default function AccountInfoForm({
 
             {/* Consent (PRD F1) bila belum pernah disetujui */}
             {needsConsent ? (
-              <fieldset className="space-y-2 pt-1">
+              <fieldset className="space-y-2.5 pt-1">
                 <legend className="sr-only">{t('consent')}</legend>
                 <div className="flex items-start gap-2.5">
                   <input
@@ -299,7 +357,7 @@ export default function AccountInfoForm({
                   />
                   <label
                     htmlFor="consent_privasi"
-                    className="text-xs text-slate-600 leading-snug cursor-pointer"
+                    className="text-xs sm:text-sm text-slate-600 leading-snug cursor-pointer"
                   >
                     {t('consentRead')}{' '}
                     <Link
@@ -331,43 +389,38 @@ export default function AccountInfoForm({
                   />
                   <label
                     htmlFor="consent_wali"
-                    className="text-xs text-slate-600 leading-snug cursor-pointer"
+                    className="text-xs sm:text-sm text-slate-600 leading-snug cursor-pointer"
                   >
                     {t('guardianConsent')}
                   </label>
                 </div>
                 {errors.consent_privasi || errors.consent_wali ? (
-                  <p className="text-xs text-rose-600">
+                  <p className="mt-1 text-xs text-rose-600 font-medium">
                     {errors.consent_privasi ?? errors.consent_wali}
                   </p>
                 ) : null}
               </fieldset>
             ) : null}
 
-            {state.error ? (
-              <p
-                className="rounded-xl bg-rose-50 px-3.5 py-2 text-xs text-rose-700 border border-rose-200"
-                role="alert"
-              >
-                {state.error}
-              </p>
-            ) : null}
-
-            {/* Tombol Aksi: Kembali & Simpan */}
-            <div className="pt-2 flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="flex items-center justify-center px-4 py-3 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors cursor-pointer shrink-0"
-              >
-                <span>Kembali</span>
-              </button>
+            {/* Tombol Aksi: Lanjutkan (Primary w-full) & Kembali (Link Teks Bersih — Opsi A) */}
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={pending}
-                className="flex-1 bg-brand hover:bg-brand-strong disabled:bg-slate-200 disabled:text-slate-600 text-white text-sm font-bold py-3 rounded-xl transition-all shadow-md active:scale-[0.99] flex items-center justify-center cursor-pointer"
+                className="w-full bg-brand hover:bg-brand-strong disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
               >
                 <span>{pending ? t('processing') : t('continue')}</span>
+              </button>
+            </div>
+
+            <div className="mt-6 text-center">
+              <button
+                type="button"
+                onClick={() => setStep(1)}
+                disabled={pending}
+                className="inline-block text-sm font-semibold text-brand hover:text-brand-strong transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {t('backStep')}
               </button>
             </div>
           </div>

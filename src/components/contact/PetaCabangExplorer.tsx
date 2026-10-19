@@ -1,17 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState, useMemo } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import "leaflet/dist/leaflet.css";
 import {
-  Building2,
   Search,
-  Phone,
   Compass,
-  Copy,
-  Check,
+  MapPin,
+  X,
 } from "lucide-react";
-import { KANTOR_PUSAT, DAFTAR_CABANG, type Cabang } from "@/lib/cabang";
+import {
+  KANTOR_PUSAT,
+  DAFTAR_CABANG,
+  getCabangNama,
+  getCabangWilayah,
+  type Cabang,
+} from "@/lib/cabang";
 import { MAPS_SEARCH_URL, MAPS_ATTRIBUTION_URL } from "@/lib/site";
 
 const OSM_TILES = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
@@ -23,36 +27,57 @@ type LeafletHost = HTMLDivElement & { _leaflet_id?: number | null };
 // Gabungkan Kantor Pusat di urutan pertama beserta seluruh cabang Malang Raya
 const SEMUA_CABANG: Cabang[] = [KANTOR_PUSAT, ...DAFTAR_CABANG];
 
-// Simpan state di module level agar saat switch bahasa, cabang & tab aktif tidak reset
-let globalSelectedCabangId = "pusat";
-let globalActiveCabangTab: "list" | "map" = "list";
-
-function getInitialCabangState(): { id: string; tab: "list" | "map" } {
-  if (typeof window === "undefined") {
-    return { id: globalSelectedCabangId, tab: globalActiveCabangTab };
-  }
-  const params = new URLSearchParams(window.location.search);
-  const c = params.get("cabang");
-  const tab = params.get("tab");
-  const validId = c && SEMUA_CABANG.some((cb) => cb.id === c) ? c : globalSelectedCabangId;
-  const validTab = tab === "map" || tab === "list" ? tab : globalActiveCabangTab;
-  return { id: validId, tab: validTab };
+interface PetaCabangExplorerProps {
+  initialCabangId?: string;
+  initialTab?: "list" | "map";
 }
 
-export default function PetaCabangExplorer() {
+export default function PetaCabangExplorer({
+  initialCabangId,
+  initialTab,
+}: PetaCabangExplorerProps = {}) {
   const t = useTranslations("public");
+  const locale = useLocale();
   const [search, setSearch] = useState("");
-  const [selectedId, setSelectedId] = useState<string>(() => getInitialCabangState().id);
-  const [activeTab, setActiveTab] = useState<"list" | "map">(() => getInitialCabangState().tab);
-  const [isHighlighted, setIsHighlighted] = useState(false);
-  const [copiedPhone, setCopiedPhone] = useState(false);
 
-  const updateUrl = (newId: string, newTab: "list" | "map") => {
-    globalSelectedCabangId = newId;
-    globalActiveCabangTab = newTab;
+  const defaultId =
+    initialCabangId && SEMUA_CABANG.some((cb) => cb.id === initialCabangId)
+      ? initialCabangId
+      : null;
+  const defaultTab = initialTab === "map" || initialTab === "list" ? initialTab : "list";
+
+  const [selectedId, setSelectedId] = useState<string | null>(defaultId);
+  const [activeTab, setActiveTab] = useState<"list" | "map">(defaultTab);
+  const [isHighlighted, setIsHighlighted] = useState(false);
+
+  // Sesuaikan state saat props dari server berubah (mis. switch bahasa via Next.js navigation)
+  const [prevInitialCabangId, setPrevInitialCabangId] = useState(initialCabangId);
+  if (initialCabangId !== prevInitialCabangId) {
+    setPrevInitialCabangId(initialCabangId);
+    if (initialCabangId && SEMUA_CABANG.some((cb) => cb.id === initialCabangId)) {
+      setSelectedId(initialCabangId);
+    } else {
+      setSelectedId(null);
+    }
+  }
+
+  const [prevInitialTab, setPrevInitialTab] = useState(initialTab);
+  if (initialTab !== prevInitialTab) {
+    setPrevInitialTab(initialTab);
+    if (initialTab === "map" || initialTab === "list") {
+      setActiveTab(initialTab);
+    }
+  }
+
+  const activeTabRef = useRef(activeTab);
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  const updateUrl = (newId: string | null, newTab: "list" | "map") => {
     if (typeof window !== "undefined") {
       const url = new URL(window.location.href);
-      if (newId && newId !== "pusat") {
+      if (newId) {
         url.searchParams.set("cabang", newId);
       } else {
         url.searchParams.delete("cabang");
@@ -74,9 +99,51 @@ export default function PetaCabangExplorer() {
   };
 
   const selectedCabang = useMemo(
-    () => SEMUA_CABANG.find((c) => c.id === selectedId) || KANTOR_PUSAT,
+    () => (selectedId ? SEMUA_CABANG.find((c) => c.id === selectedId) || null : null),
     [selectedId]
   );
+
+  const initialCabangRef = useRef(selectedCabang);
+
+  // Sinkronkan dari URL bar saat browser back/forward (popstate)
+  useEffect(() => {
+    function syncFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const c = params.get("cabang");
+      const tab = params.get("tab");
+      const validId = c && SEMUA_CABANG.some((cb) => cb.id === c) ? c : null;
+      const validTab = tab === "map" || tab === "list" ? tab : "list";
+      setSelectedId(validId);
+      setActiveTab(validTab);
+      if (mapRef.current) {
+        if (validId) {
+          const target = SEMUA_CABANG.find((cb) => cb.id === validId);
+          if (target) {
+            mapRef.current.flyTo([target.lat, target.lng], target.id === "pusat" ? 12 : 16);
+          }
+        } else {
+          const bounds = SEMUA_CABANG.map((cb) => [cb.lat, cb.lng] as [number, number]);
+          mapRef.current.fitBounds(bounds, { padding: [40, 40] });
+        }
+      }
+    }
+
+    window.addEventListener("popstate", syncFromUrl);
+    return () => {
+      window.removeEventListener("popstate", syncFromUrl);
+    };
+  }, []);
+
+  // Scroll otomatis ke kartu cabang aktif saat pertama mount jika bukan pusat
+  useEffect(() => {
+    if (selectedId && selectedId !== "pusat") {
+      const cardEl = document.getElementById(`cabang-card-${selectedId}`);
+      if (cardEl) {
+        cardEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const wadahRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -90,7 +157,9 @@ export default function PetaCabangExplorer() {
     return SEMUA_CABANG.filter(
       (c) =>
         c.nama.toLowerCase().includes(q) ||
+        (c.namaEn && c.namaEn.toLowerCase().includes(q)) ||
         c.wilayah.toLowerCase().includes(q) ||
+        (c.wilayahEn && c.wilayahEn.toLowerCase().includes(q)) ||
         c.alamat.toLowerCase().includes(q)
     );
   }, [search]);
@@ -134,10 +203,15 @@ export default function PetaCabangExplorer() {
       const host = wadahRef.current as LeafletHost;
       if (host._leaflet_id) return;
 
-      // Inisialisasi peta berpusat pada koordinat Kantor Pusat Siedu
+      // Inisialisasi peta berpusat pada koordinat cabang yang dipilih atau cakupan seluruh cabang Malang
+      const currentCabang = initialCabangRef.current;
+      const initialCenter: [number, number] = currentCabang
+        ? [currentCabang.lat, currentCabang.lng]
+        : [KANTOR_PUSAT.lat, KANTOR_PUSAT.lng];
+      const initialZoom = currentCabang ? (currentCabang.id === "pusat" ? 12 : 15) : 12;
       const map = L.map(wadahRef.current, {
-        center: [KANTOR_PUSAT.lat, KANTOR_PUSAT.lng],
-        zoom: 12,
+        center: initialCenter,
+        zoom: initialZoom,
         zoomControl: true,
         scrollWheelZoom: false,
         dragging: true,
@@ -148,6 +222,12 @@ export default function PetaCabangExplorer() {
         maxZoom: 19,
         attribution: ATTR,
       }).addTo(map);
+
+      // Jika belum ada cabang yang dipilih, tampilkan seluruh cabang di peta
+      if (!currentCabang) {
+        const bounds = SEMUA_CABANG.map((c) => [c.lat, c.lng] as [number, number]);
+        map.fitBounds(bounds, { padding: [40, 40] });
+      }
 
       setTimeout(() => {
         map.invalidateSize();
@@ -176,13 +256,13 @@ export default function PetaCabangExplorer() {
         const isPusat = c.id === "pusat";
         const marker = L.marker([c.lat, c.lng], {
           icon: buatIkon(isPusat),
-          title: c.nama,
+          title: getCabangNama(c, locale),
         }).addTo(map);
 
         // Saat marker diklik di peta, pusatkan peta ke cabang dan pilih kartu di list
         marker.on("click", () => {
           setSelectedId(c.id);
-          updateUrl(c.id, activeTab);
+          updateUrl(c.id, activeTabRef.current);
           if (mapRef.current) {
             mapRef.current.panTo([c.lat, c.lng], { animate: true });
           }
@@ -203,7 +283,7 @@ export default function PetaCabangExplorer() {
         mapRef.current = null;
       }
     };
-  }, [activeTab]);
+  }, [activeTab, locale]);
 
   // Handler saat kartu cabang di list diklik
   function handleSelectCabang(c: Cabang) {
@@ -226,48 +306,19 @@ export default function PetaCabangExplorer() {
 
   // Tombol reset/tampilkan semua cabang
   function handleFitAllBounds() {
+    setSelectedId(null);
+    updateUrl(null, activeTab);
     if (!mapRef.current) return;
     const bounds = SEMUA_CABANG.map((c) => [c.lat, c.lng] as [number, number]);
     mapRef.current.fitBounds(bounds, { padding: [40, 40] });
   }
 
-  // Handler salin nomor telepon cabang ke clipboard
-  function handleCopyPhone(phone: string) {
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(phone);
-      setCopiedPhone(true);
-      setTimeout(() => {
-        setCopiedPhone(false);
-      }, 2000);
-    }
-  }
-
   return (
     <div
       id="peta-lokasi"
-      className="rounded-3xl border border-slate-200 bg-white shadow-md overflow-hidden scroll-mt-24"
+      className="rounded-2xl border border-slate-200/90 bg-white shadow-2xs overflow-hidden scroll-mt-24"
     >
-      {/* 1. Header Bar: Mempertahankan Informasi Kantor Pusat Siedu */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 bg-slate-50/90 px-4 py-3 sm:px-6 sm:py-3.5">
-        <div className="flex items-center gap-3">
-          <span className="grid size-9 place-items-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100/80 shadow-2xs shrink-0">
-            <Building2 className="size-4.5" />
-          </span>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm sm:text-base font-bold text-slate-900">
-                {t("branchExplorerTitle")}
-              </h3>
-            </div>
-            <p className="text-xs text-slate-500">
-              {t("branchExplorerSubtitle")}
-            </p>
-          </div>
-        </div>
-
-      </div>
-
-      {/* 2. Mobile Tab Switcher (Hanya Muncul di Smartphone < 640px) */}
+      {/* 1. Mobile Tab Switcher (Hanya Muncul di Smartphone < 640px) */}
       <div className="flex sm:hidden border-b border-slate-200 bg-slate-100 p-1">
         <button
           type="button"
@@ -298,12 +349,12 @@ export default function PetaCabangExplorer() {
         </button>
       </div>
 
-      {/* 3. Split View Explorer Container (Screenshot Reference Layout) */}
-      <div className="flex flex-col sm:flex-row h-[420px] sm:h-[460px] md:h-[480px] lg:h-[500px] relative overflow-hidden bg-slate-50">
+      {/* 3. Split View Explorer Container (Lebih Lega & Proporsional di Layar Desktop) */}
+      <div className="flex flex-col sm:flex-row h-[460px] sm:h-[500px] md:h-[520px] lg:h-[560px] relative overflow-hidden bg-slate-50">
         {/* Sisi Kiri: Sidebar Pencarian & List Cabang */}
         <div
           data-lenis-prevent
-          className={`w-full sm:w-[320px] md:w-[350px] lg:w-[380px] flex flex-col h-full min-h-0 border-r border-slate-200 bg-white shrink-0 z-10 transition-all ${
+          className={`w-full sm:w-[320px] md:w-[360px] lg:w-[390px] flex flex-col h-full min-h-0 border-r border-slate-200 bg-white shrink-0 z-10 transition-all ${
             activeTab === "map" ? "hidden sm:flex" : "flex"
           } ${
             isHighlighted
@@ -312,9 +363,9 @@ export default function PetaCabangExplorer() {
           }`}
         >
           {/* Kolom Pencarian */}
-          <div className="shrink-0 p-3 sm:p-3.5 border-b border-slate-100 bg-slate-50/70">
+          <div className="shrink-0 p-3.5 border-b border-slate-100 bg-white">
             <div className="relative">
-              <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-600" />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-slate-500" />
               <input
                 ref={searchRef}
                 type="search"
@@ -322,20 +373,20 @@ export default function PetaCabangExplorer() {
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t("branchSearchExplorerPlaceholder")}
-                className="w-full rounded-xl border border-slate-200 bg-white py-1.5 pl-10 pr-3.5 text-sm text-slate-900 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
+                className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-10 pr-3.5 text-sm text-slate-900 placeholder:text-slate-500 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 transition-all"
               />
             </div>
 
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-              <span>
+            <div className="mt-2.5 flex items-center justify-between text-xs text-slate-500">
+              <span className="font-medium">
                 {t("branchShowingExplorer", { count: filteredCabang.length })}
               </span>
               <button
                 type="button"
                 onClick={handleFitAllBounds}
-                className="text-[11px] font-bold text-brand hover:underline inline-flex items-center gap-1 cursor-pointer"
+                className="text-xs font-semibold text-brand hover:underline inline-flex items-center gap-1 cursor-pointer"
               >
-                <Compass className="size-3" />
+                <Compass className="size-3.5" />
                 <span>{t("branchViewAll")}</span>
               </button>
             </div>
@@ -345,7 +396,7 @@ export default function PetaCabangExplorer() {
           <div
             data-lenis-prevent
             onWheel={(e) => e.stopPropagation()}
-            className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-2.5 space-y-2 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 hover:[&::-webkit-scrollbar-thumb]:bg-slate-400"
+            className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-3 space-y-2.5 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 hover:[&::-webkit-scrollbar-thumb]:bg-slate-400"
           >
             {filteredCabang.length > 0 ? (
               filteredCabang.map((c) => {
@@ -355,33 +406,72 @@ export default function PetaCabangExplorer() {
                     id={`cabang-card-${c.id}`}
                     key={c.id}
                     onClick={() => handleSelectCabang(c)}
-                    className={`group cursor-pointer rounded-xl border p-2.5 sm:p-3 transition-all text-left ${
+                    className={`group cursor-pointer rounded-xl border p-3.5 transition-all text-left ${
                       isSelected
-                        ? "border-brand bg-brand-soft/20 shadow-xs ring-1 ring-brand/30"
-                        : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/80"
+                        ? "border-brand bg-blue-50/50 shadow-xs ring-1 ring-brand/20"
+                        : "border-slate-200/80 bg-white hover:border-slate-300 hover:bg-slate-50/50 shadow-2xs"
                     }`}
                   >
-                    <div>
-                      <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-brand transition-colors">
-                        {c.nama}
+                    {/* Header: Ikon Lokasi + Nama Cabang (Tanpa pill badge & tanpa truncate) */}
+                    <div className="flex items-start gap-2">
+                      <MapPin
+                        className={`size-4 shrink-0 mt-0.5 ${
+                          c.id === "pusat" ? "text-rose-600" : "text-slate-700"
+                        }`}
+                        strokeWidth={2}
+                      />
+                      <h4 className="text-sm font-bold tracking-tight text-slate-900 leading-snug">
+                        {getCabangNama(c, locale)}
                       </h4>
                     </div>
-                    <p className="mt-0.5 text-[11px] sm:text-xs text-slate-600 leading-relaxed line-clamp-2">
+
+                    {/* Alamat Cabang Lengkap Tanpa Pemotongan */}
+                    <p className="mt-1.5 text-xs text-slate-600 leading-relaxed font-normal">
                       {c.alamat}
                     </p>
+
                     {c.telepon && (
-                      <div className="mt-1 flex items-center gap-1.5 text-[11px] text-slate-600">
-                        <Phone className="size-3 text-brand shrink-0" />
-                        <span className="text-slate-500 font-semibold text-[10px]">{t("branchPhonePrefix")}</span>
-                        <span className="font-medium text-slate-700">{c.telepon}</span>
+                      <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-600">
+                        <span className="font-normal text-slate-500">{t("branchPhonePrefix")}</span>
+                        <span className="font-normal text-slate-600">
+                          {c.telepon}
+                        </span>
                       </div>
                     )}
+
+                    {/* Tombol aksi yang muncul saat card di-hover atau aktif terpilih */}
+                    <div
+                      className={`mt-2.5 pt-2 border-t border-slate-100 items-center gap-2 transition-all ${
+                        isSelected ? "flex" : "hidden group-hover:flex"
+                      }`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <a
+                        href={c.mapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 inline-flex items-center justify-center rounded-lg bg-brand hover:bg-brand-strong py-1.5 px-2 text-xs font-semibold text-white shadow-2xs transition-all"
+                        title={t("branchDirections")}
+                      >
+                        <span className="truncate">{t("branchDirections")}</span>
+                      </a>
+
+                      {c.telepon && (
+                        <a
+                          href={`tel:${c.telepon.replace(/\D/g, "")}`}
+                          className="flex-1 inline-flex items-center justify-center rounded-lg border border-brand bg-white hover:bg-blue-50 hover:border-brand-strong py-1.5 px-2 text-xs font-semibold text-brand shadow-2xs transition-all"
+                          title={t("branchContact")}
+                        >
+                          <span className="truncate">{t("branchContact")}</span>
+                        </a>
+                      )}
+                    </div>
                   </div>
                 );
               })
             ) : (
-              <div className="py-12 text-center text-xs text-slate-600">
-                <Search className="size-6 mx-auto mb-2 opacity-40" />
+              <div className="py-12 text-center text-xs text-slate-500">
+                <Search className="size-6 mx-auto mb-2 opacity-40 text-slate-400" />
                 <p>{t("branchExplorerNotFound", { search })}</p>
               </div>
             )}
@@ -400,91 +490,93 @@ export default function PetaCabangExplorer() {
           />
 
           {/* Floating Action Card di Peta (Pojok Kiri Bawah) - Dinamis Sesuai Cabang Aktif */}
-          <div className="pointer-events-none absolute bottom-2.5 left-2.5 right-2.5 sm:right-auto sm:left-3.5 sm:bottom-3.5 z-10">
-            <div className="pointer-events-auto flex flex-col gap-2 rounded-2xl border border-slate-200/90 bg-white/95 p-3 sm:p-3.5 shadow-xl backdrop-blur-md max-w-[360px] sm:max-w-[380px]">
-              {/* Baris Atas: Nama Cabang */}
-              <div>
-                <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight">
-                  {selectedCabang.nama}
-                </h4>
-              </div>
+          {selectedCabang && (
+            <div className="pointer-events-none absolute bottom-3 left-3 right-3 sm:right-auto sm:left-4 sm:bottom-4 z-10">
+              <div className="pointer-events-auto flex flex-col gap-2.5 rounded-2xl border border-slate-200/90 bg-white/95 p-4 shadow-xl shadow-slate-900/10 backdrop-blur-md max-w-[360px] sm:max-w-[380px] transition-all">
+                {/* Baris Atas: Wilayah/Kategori di atas nama + Ikon Lokasi & Nama Cabang + Tombol Tutup */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span
+                      className={`text-[11px] font-semibold tracking-wide ${
+                        selectedCabang.id === "pusat" ? "text-rose-600" : "text-brand"
+                      }`}
+                    >
+                      {selectedCabang.id === "pusat" ? t("contactHeadOffice") : getCabangWilayah(selectedCabang, locale)}
+                    </span>
+                    <div className="mt-1 flex items-start gap-1.5">
+                      <MapPin
+                        className={`size-4 shrink-0 mt-0.5 ${
+                          selectedCabang.id === "pusat" ? "text-rose-600" : "text-slate-700"
+                        }`}
+                        strokeWidth={2}
+                      />
+                      <h4 className="text-sm sm:text-base font-bold text-slate-900 leading-snug tracking-tight">
+                        {getCabangNama(selectedCabang, locale)}
+                      </h4>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedId(null);
+                      updateUrl(null, activeTab);
+                    }}
+                    className="rounded-lg p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+                    aria-label={t("cardSelectClose")}
+                    title={t("cardSelectClose")}
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
 
-              {/* Baris Tengah: Alamat Cabang */}
-              <p className="text-[11px] font-medium text-slate-600 leading-relaxed line-clamp-2">
-                {selectedCabang.alamat}
-              </p>
+                {/* Baris Tengah: Alamat Cabang Lengkap */}
+                <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                  {selectedCabang.alamat}
+                </p>
 
-              {/* Baris Nomor Telepon (Bisa Diklik + Tombol Salin) */}
-              {selectedCabang.telepon && (
-                <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-100/90 border border-slate-200 px-2.5 py-1.5 text-xs">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <Phone className="size-3.5 text-brand shrink-0" />
-                    <span className="text-[11px] font-bold text-slate-800 shrink-0">{t("branchPhonePrefix")}</span>
+                {/* Baris Nomor Telepon */}
+                {selectedCabang.telepon && (
+                  <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                    <span className="font-normal text-slate-500">{t("branchPhonePrefix")}</span>
                     <a
-                      href={`tel:${selectedCabang.telepon.replace(/[^0-9+]/g, "")}`}
-                      className="font-bold text-slate-900 hover:text-brand hover:underline truncate text-[11px] transition-colors"
-                      title={t("branchCallPhone")}
+                      href={`tel:${selectedCabang.telepon.replace(/\D/g, "")}`}
+                      className="font-normal text-slate-600 hover:text-brand hover:underline transition-colors"
                     >
                       {selectedCabang.telepon}
                     </a>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleCopyPhone(selectedCabang.telepon!)}
-                    className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold transition-all shrink-0 cursor-pointer ${
-                      copiedPhone
-                        ? "bg-emerald-100 text-emerald-700 border border-emerald-300"
-                        : "bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs"
-                    }`}
-                    title={t("branchCopyPhone")}
-                    aria-label={t("branchCopyPhone")}
-                  >
-                    {copiedPhone ? (
-                      <>
-                        <Check className="size-3 text-emerald-600" />
-                        <span>{t("branchCopied")}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="size-3 text-slate-500" />
-                        <span>{t("branchCopy")}</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
+                )}
 
-              {/* Baris Bawah: 2 Tombol Aksi Berdampingan */}
-              <div className="flex items-center gap-2 pt-0.5">
-                <a
-                  href={selectedCabang.mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 inline-flex items-center justify-center rounded-lg bg-brand px-3 py-1.5 text-[11px] font-bold text-white shadow-2xs hover:bg-brand-strong active:scale-95 transition-all cursor-pointer"
-                >
-                  <span>{t("branchDirections")}</span>
-                </a>
-
-                {selectedCabang.wa && (
+                {/* Baris Bawah: Tombol Aksi (Petunjuk Arah & Hubungi) */}
+                <div className="mt-1 pt-2.5 border-t border-slate-100 flex items-center gap-2">
                   <a
-                    href={`https://wa.me/${selectedCabang.wa}?text=${encodeURIComponent(
-                      t("branchExplorerWaText", { name: selectedCabang.nama })
-                    )}`}
+                    href={selectedCabang.mapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 inline-flex items-center justify-center rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-2xs hover:bg-emerald-700 active:scale-95 transition-all cursor-pointer"
+                    className="flex-1 inline-flex items-center justify-center rounded-lg bg-brand hover:bg-brand-strong py-1.5 px-2 text-xs font-semibold text-white shadow-2xs transition-all"
+                    title={t("branchDirections")}
                   >
-                    <span>WhatsApp</span>
+                    <span className="truncate">{t("branchDirections")}</span>
                   </a>
-                )}
+
+                  {selectedCabang.telepon && (
+                    <a
+                      href={`tel:${selectedCabang.telepon.replace(/\D/g, "")}`}
+                      className="flex-1 inline-flex items-center justify-center rounded-lg border border-brand bg-white hover:bg-blue-50 hover:border-brand-strong py-1.5 px-2 text-xs font-semibold text-brand shadow-2xs transition-all"
+                      title={t("branchContact")}
+                    >
+                      <span className="truncate">{t("branchContact")}</span>
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 
       {/* 4. Attribution Bar OpenStreetMap */}
-      <div className="border-t border-slate-100 bg-slate-50/80 px-4 py-2 text-center text-[11px] text-slate-500">
+      <div className="border-t border-slate-100 bg-white px-4 py-2 text-center text-xs text-slate-500">
         {t("branchMapAttribution")}{" "}
         <a
           href={MAPS_ATTRIBUTION_URL}
