@@ -131,7 +131,7 @@ export default function LoginForm({
                         </label>
                         <Link
                             href="/forgot-password"
-                            className="text-sm text-blue-600 hover:text-brand-strong font-medium"
+                            className="text-xs text-blue-600 hover:text-brand-strong font-medium transition-colors"
                         >
                             {t('forgotLink')}
                         </Link>
