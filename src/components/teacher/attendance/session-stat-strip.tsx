@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { Users, CheckCircle2, AlertCircle, Lock, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface SessionStatStripProps {
   totalSiswa: number;
@@ -26,28 +26,19 @@ export function SessionStatStrip({
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 mb-6">
       {/* 1. Total Siswa */}
       <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-2xs">
-        <div className="flex items-center gap-2 text-slate-500">
-          <Users className="size-4 text-slate-600" aria-hidden="true" />
-          <span className="text-xs font-semibold">{t('students')}</span>
-        </div>
+        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{t('students')}</span>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className="text-2xl font-bold text-slate-900 tabular-nums">
+          <span className="text-2xl font-extrabold text-slate-950 tabular-nums">
             {totalSiswa}
           </span>
-          <span className="text-xs text-slate-500">{t('studentsCount', { count: totalSiswa })}</span>
+          <span className="text-xs text-slate-600">{t('studentsCount', { count: totalSiswa })}</span>
         </div>
       </div>
 
       {/* 2. Progres Presensi Terisi */}
       <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-2xs">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-slate-500">
-            <CheckCircle2
-              className={`size-4 ${isComplete ? 'text-emerald-600' : 'text-slate-600'}`}
-              aria-hidden="true"
-            />
-            <span className="text-xs font-semibold">{t('filled')}</span>
-          </div>
+          <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{t('filled')}</span>
           <span
             className={`rounded px-2 py-0.5 text-xs font-semibold tabular-nums ${
               isComplete
@@ -59,10 +50,10 @@ export function SessionStatStrip({
           </span>
         </div>
         <div className="mt-2 flex items-baseline gap-1.5">
-          <span className="text-2xl font-bold text-slate-900 tabular-nums">
+          <span className="text-2xl font-extrabold text-slate-950 tabular-nums">
             {terisi}
           </span>
-          <span className="text-xs text-slate-500">
+          <span className="text-xs text-slate-600">
             / {totalSiswa}
           </span>
         </div>
@@ -70,18 +61,12 @@ export function SessionStatStrip({
 
       {/* 3. Perlu Perhatian (Izin, Sakit, Alpa) */}
       <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-2xs">
-        <div className="flex items-center gap-2 text-slate-500">
-          <AlertCircle
-            className={`size-4 ${perluPerhatian > 0 ? 'text-amber-500' : 'text-slate-600'}`}
-            aria-hidden="true"
-          />
-          <span className="text-xs font-semibold">{t('needsAttention')}</span>
-        </div>
+        <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{t('needsAttention')}</span>
         <div className="mt-2 flex items-baseline gap-2">
-          <span className={`text-2xl font-bold tabular-nums ${perluPerhatian > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
+          <span className={`text-2xl font-extrabold tabular-nums ${perluPerhatian > 0 ? 'text-amber-600' : 'text-slate-950'}`}>
             {perluPerhatian}
           </span>
-          <span className="text-xs text-slate-500">{t('attentionCount', { count: perluPerhatian })}</span>
+          <span className="text-xs text-slate-600">{t('attentionCount', { count: perluPerhatian })}</span>
         </div>
       </div>
 
@@ -89,10 +74,7 @@ export function SessionStatStrip({
       <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-2xs flex flex-col justify-between">
         <div>
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-slate-500">
-              <Lock className="size-4 text-slate-600" aria-hidden="true" />
-              <span className="text-xs font-semibold">{t('sevenDayRule')}</span>
-            </div>
+            <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">{t('sevenDayRule')}</span>
             {terkunciN > 0 ? (
               <span className="rounded bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-700">
                 {terkunciN} {t('locked')}
@@ -103,7 +85,7 @@ export function SessionStatStrip({
               </span>
             )}
           </div>
-          <p className="mt-2 text-xs text-slate-600 line-clamp-1">
+          <p className="mt-2 text-xs text-slate-700 line-clamp-1">
             {terkunciN > 0
               ? t('sessionLockedCount', { count: terkunciN })
               : t('noSessionLocked')}

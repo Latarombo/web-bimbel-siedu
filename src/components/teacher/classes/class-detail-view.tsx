@@ -5,17 +5,8 @@ import { Link } from "@/i18n/navigation";
 import {
   Search,
   MoreVertical,
-  Download,
-  Calendar,
-  Clock,
-  ClipboardCheck,
-  FileSpreadsheet,
-  Camera,
-  GraduationCap,
   ChevronLeft,
   ChevronRight,
-  BookOpen,
-  Users,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -116,16 +107,16 @@ export function ClassDetailView({
   return (
     <div className="space-y-6">
       {/* 1. Breadcrumbs Header */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500">
-        <Link href="/teacher/dashboard" className="hover:text-slate-800 transition-colors">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-600">
+        <Link href="/teacher/dashboard" className="hover:text-slate-950 transition-colors">
           Dashboard
         </Link>
         <span>/</span>
-        <Link href="/teacher/classes" className="hover:text-slate-800 transition-colors">
+        <Link href="/teacher/classes" className="hover:text-slate-950 transition-colors">
           Kelas Diampu
         </Link>
         <span>/</span>
-        <span className="font-semibold text-slate-800 truncate">
+        <span className="font-semibold text-slate-900 truncate">
           {className} {jenjang} {tingkat ? `· ${tingkat}` : ""}
         </span>
       </nav>
@@ -134,10 +125,10 @@ export function ClassDetailView({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-950">
               {className} · {jenjang} {tingkat ? `(${tingkat})` : ""}
             </h1>
-            <span className="inline-flex items-center rounded bg-slate-100 text-slate-700 text-xs font-semibold px-2.5 py-1">
+            <span className="inline-flex items-center rounded bg-slate-100 text-slate-800 text-xs font-semibold px-2.5 py-1">
               {students.length} Siswa
             </span>
             <span className="inline-flex items-center rounded bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-2 py-0.5">
@@ -146,7 +137,7 @@ export function ClassDetailView({
             </span>
           </div>
           {periodeNama && (
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            <p className="text-xs sm:text-sm text-slate-600 mt-1">
               Periode: {periodeNama} · Kapasitas: {students.length} dari {kuotaMaksimum} siswa ({capacityPct}%)
             </p>
           )}
@@ -156,17 +147,15 @@ export function ClassDetailView({
           {firstTodaySession ? (
             <Link
               href={`/teacher/classes/${classId}/sessions/${todayStr}/attendance?sesi=${firstTodaySession.jadwalItemId}`}
-              className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors min-h-[44px] cursor-pointer"
+              className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors min-h-[44px] cursor-pointer"
             >
-              <ClipboardCheck className="size-4" />
               <span>Catat Presensi Hari Ini</span>
             </Link>
           ) : (
             <Link
               href="/teacher/grades/new"
-              className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 hover:bg-blue-700 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors min-h-[44px] cursor-pointer"
+              className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors min-h-[44px] cursor-pointer"
             >
-              <GraduationCap className="size-4" />
               <span>+ Buat Penilaian</span>
             </Link>
           )}
@@ -174,10 +163,9 @@ export function ClassDetailView({
           <a
             href={`/api/export/class/${classId}?type=summary`}
             download
-            className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-300 bg-white hover:bg-slate-50 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 transition-colors min-h-[44px] cursor-pointer"
+            className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 transition-colors min-h-[44px] cursor-pointer"
             title="Unduh rekap ringkasan"
           >
-            <Download className="size-4 text-slate-500" />
             <span>Ekspor</span>
           </a>
         </div>
@@ -194,12 +182,11 @@ export function ClassDetailView({
             className={`flex items-center gap-2 py-3.5 px-2 border-b-2 text-sm font-semibold whitespace-nowrap transition-colors min-h-[44px] cursor-pointer ${
               activeTab === "roster"
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+                : "border-transparent text-slate-700 hover:text-slate-950 hover:border-slate-300"
             }`}
           >
-            <Users className="size-4 shrink-0" />
             <span>Roster Siswa</span>
-            <span className="ml-1 inline-flex items-center rounded bg-slate-100 text-slate-700 text-xs font-semibold px-1.5 py-0.5">
+            <span className="ml-1 inline-flex items-center rounded bg-slate-100 text-slate-800 text-xs font-semibold px-1.5 py-0.5">
               {students.length}
             </span>
           </button>
@@ -212,12 +199,11 @@ export function ClassDetailView({
             className={`flex items-center gap-2 py-3.5 px-2 border-b-2 text-sm font-semibold whitespace-nowrap transition-colors min-h-[44px] cursor-pointer ${
               activeTab === "schedule"
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+                : "border-transparent text-slate-700 hover:text-slate-950 hover:border-slate-300"
             }`}
           >
-            <Calendar className="size-4 shrink-0" />
             <span>Jadwal & Sesi</span>
-            <span className="ml-1 inline-flex items-center rounded bg-slate-100 text-slate-700 text-xs font-semibold px-1.5 py-0.5">
+            <span className="ml-1 inline-flex items-center rounded bg-slate-100 text-slate-800 text-xs font-semibold px-1.5 py-0.5">
               {schedules.length}
             </span>
           </button>
@@ -230,10 +216,9 @@ export function ClassDetailView({
             className={`flex items-center gap-2 py-3.5 px-2 border-b-2 text-sm font-semibold whitespace-nowrap transition-colors min-h-[44px] cursor-pointer ${
               activeTab === "summary"
                 ? "border-blue-600 text-blue-600"
-                : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300"
+                : "border-transparent text-slate-700 hover:text-slate-950 hover:border-slate-300"
             }`}
           >
-            <BookOpen className="size-4 shrink-0" />
             <span>Ringkasan & Aksi Kelas</span>
           </button>
         </nav>
@@ -246,10 +231,10 @@ export function ClassDetailView({
           {/* Toolbar: Counter Left, Search & Filter Right */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 className="text-base font-bold text-slate-900">
+              <h2 className="text-base font-bold text-slate-950">
                 Total Siswa ({filteredStudents.length})
               </h2>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600">
                 Daftar murid terdaftar dalam rombongan belajar ini.
               </p>
             </div>
@@ -266,7 +251,7 @@ export function ClassDetailView({
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-48 sm:w-64 rounded-md border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+                  className="w-48 sm:w-64 rounded-md border border-slate-200 bg-white py-2 pl-9 pr-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-blue-600 focus:outline-hidden"
                 />
               </div>
 
@@ -278,7 +263,7 @@ export function ClassDetailView({
                     setStatusFilter(e.target.value as "all" | "terdaftar" | "tertunggak");
                     setCurrentPage(1);
                   }}
-                  className="rounded-md border border-slate-200 bg-white py-2 pl-3 pr-8 text-xs sm:text-sm font-medium text-slate-700 focus:border-blue-600 focus:outline-hidden cursor-pointer"
+                  className="rounded-md border border-slate-200 bg-white py-2 pl-3 pr-8 text-xs sm:text-sm font-medium text-slate-800 focus:border-blue-600 focus:outline-hidden cursor-pointer"
                 >
                   <option value="all">Semua Status</option>
                   <option value="terdaftar">Terdaftar</option>
@@ -293,7 +278,7 @@ export function ClassDetailView({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-600">
+                  <tr className="border-b border-slate-200 bg-slate-50/70 text-xs font-semibold text-slate-700">
                     <th scope="col" className="py-3.5 px-4 sm:px-6">Siswa</th>
                     <th scope="col" className="py-3.5 px-4">Status</th>
                     <th scope="col" className="py-3.5 px-4 text-center">Kehadiran</th>
@@ -305,7 +290,7 @@ export function ClassDetailView({
                 <tbody className="divide-y divide-slate-100">
                   {paginatedStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-500 text-sm">
+                      <td colSpan={6} className="py-12 text-center text-slate-600 text-sm">
                         Tidak ada siswa yang sesuai dengan filter pencarian.
                       </td>
                     </tr>
@@ -323,10 +308,10 @@ export function ClassDetailView({
                                 {initial}
                               </div>
                               <div>
-                                <p className="font-semibold text-slate-900 line-clamp-1">
+                                <p className="font-semibold text-slate-950 line-clamp-1">
                                   {s.nama}
                                 </p>
-                                <p className="text-xs text-slate-500 mt-0.5">
+                                <p className="text-xs text-slate-600 mt-0.5">
                                   ID: {s.id} · Anak #{s.anakId}
                                 </p>
                               </div>
@@ -352,38 +337,38 @@ export function ClassDetailView({
                           <td className="py-3.5 px-4 text-center">
                             {s.tercatat > 0 ? (
                               <div>
-                                <span className="font-semibold text-slate-900 tabular-nums text-xs sm:text-sm">
+                                <span className="font-bold text-slate-950 tabular-nums text-xs sm:text-sm">
                                   {s.hadir}/{s.tercatat} Sesi
                                 </span>
-                                <span className="block text-[11px] text-slate-500">
+                                <span className="block text-[11px] text-slate-600">
                                   ({attendancePct}%)
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-xs text-slate-400">Belum ada sesi</span>
+                              <span className="text-xs text-slate-500">Belum ada sesi</span>
                             )}
                           </td>
 
                           {/* 4. Nilai Rata-rata */}
                           <td className="py-3.5 px-4 text-center">
                             {s.rata != null ? (
-                              <span className="font-bold text-slate-900 tabular-nums text-sm">
+                              <span className="font-extrabold text-slate-950 tabular-nums text-sm">
                                 {s.rata}
                               </span>
                             ) : (
-                              <span className="text-xs text-slate-400">Belum dinilai</span>
+                              <span className="text-xs text-slate-500">Belum dinilai</span>
                             )}
                           </td>
 
                           {/* 5. Entri Tugas */}
-                          <td className="py-3.5 px-4 text-center tabular-nums text-xs text-slate-700">
+                          <td className="py-3.5 px-4 text-center tabular-nums text-xs font-medium text-slate-800">
                             {s.nNilai} tugas
                           </td>
 
                           {/* 6. Aksi (3-Titik Menu ala Referensi) */}
                           <td className="py-3.5 px-4 sm:px-6 text-right">
                             <DropdownMenu>
-                              <DropdownMenuTrigger className="grid size-8 place-items-center rounded-md border border-slate-200 text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors ml-auto cursor-pointer">
+                              <DropdownMenuTrigger className="grid size-8 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-950 transition-colors ml-auto cursor-pointer">
                                 <MoreVertical className="size-4" />
                                 <span className="sr-only">Buka menu aksi</span>
                               </DropdownMenuTrigger>
@@ -391,27 +376,24 @@ export function ClassDetailView({
                                 <DropdownMenuItem asChild>
                                   <Link
                                     href={`/teacher/grades/${s.id}`}
-                                    className="flex w-full items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded cursor-pointer"
+                                    className="flex w-full items-center px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-50 rounded cursor-pointer"
                                   >
-                                    <GraduationCap className="size-4 text-blue-600" />
                                     <span>Input / Lihat Nilai</span>
                                   </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
                                   <Link
                                     href={`/teacher/classes/${classId}/report/${s.id}`}
-                                    className="flex w-full items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded cursor-pointer"
+                                    className="flex w-full items-center px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-50 rounded cursor-pointer"
                                   >
-                                    <ClipboardCheck className="size-4 text-emerald-600" />
                                     <span>Lihat Rapor Siswa</span>
                                   </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
                                   <Link
                                     href={`/teacher/classes/${classId}/certificate/${s.id}`}
-                                    className="flex w-full items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 rounded cursor-pointer"
+                                    className="flex w-full items-center px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-50 rounded cursor-pointer"
                                   >
-                                    <BookOpen className="size-4 text-amber-600" />
                                     <span>Unduh Sertifikat</span>
                                   </Link>
                                 </DropdownMenuItem>
@@ -429,7 +411,7 @@ export function ClassDetailView({
             {/* Pagination Bar (Centered, Propify style) */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 bg-white">
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-600">
                   Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} sampai{" "}
                   {Math.min(currentPage * ITEMS_PER_PAGE, filteredStudents.length)} dari{" "}
                   {filteredStudents.length} siswa
@@ -440,7 +422,7 @@ export function ClassDetailView({
                     type="button"
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent rounded cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-800 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent rounded cursor-pointer"
                   >
                     <ChevronLeft className="size-3.5" />
                     <span>Sebelumnya</span>
@@ -456,7 +438,7 @@ export function ClassDetailView({
                         className={`size-7 text-xs font-bold rounded cursor-pointer ${
                           currentPage === pageNum
                             ? "bg-blue-600 text-white"
-                            : "text-slate-700 hover:bg-slate-100"
+                            : "text-slate-800 hover:bg-slate-100"
                         }`}
                       >
                         {pageNum}
@@ -468,7 +450,7 @@ export function ClassDetailView({
                     type="button"
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent rounded cursor-pointer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-slate-800 hover:bg-slate-100 disabled:opacity-40 disabled:hover:bg-transparent rounded cursor-pointer"
                   >
                     <span>Berikutnya</span>
                     <ChevronRight className="size-3.5" />
@@ -484,10 +466,10 @@ export function ClassDetailView({
       {activeTab === "schedule" && (
         <div className="space-y-4">
           <div>
-            <h2 className="text-base font-bold text-slate-900">
+            <h2 className="text-base font-bold text-slate-950">
               Jadwal Sesi Mingguan
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600">
               Waktu tatap muka rutin rombongan belajar ini dan tautan langsung pencatatan presensi.
             </p>
           </div>
@@ -495,7 +477,7 @@ export function ClassDetailView({
           <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xs">
             <div className="divide-y divide-slate-100">
               {schedules.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-500">
+                <div className="p-8 text-center text-xs text-slate-600">
                   Belum ada jadwal yang ditentukan oleh admin untuk kelas ini.
                 </div>
               ) : (
@@ -504,31 +486,23 @@ export function ClassDetailView({
                     key={j.id}
                     className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 hover:bg-slate-50 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="grid size-9 shrink-0 place-items-center rounded-md bg-blue-50 text-blue-600">
-                        <Calendar className="size-4" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">
-                          Hari {j.hari}
-                        </p>
-                        <p className="flex items-center gap-1.5 text-xs text-slate-500 mt-0.5">
-                          <Clock className="size-3 text-slate-400" />
-                          <span>
-                            {j.jamMulai.slice(0, 5)} - {j.jamSelesai.slice(0, 5)} WIB
-                          </span>
-                        </p>
-                      </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-950">
+                        Hari {j.hari}
+                      </p>
+                      <p className="text-xs text-slate-600 mt-0.5">
+                        {j.jamMulai.slice(0, 5)} - {j.jamSelesai.slice(0, 5)} WIB
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-3">
                       {j.nextSessionDate ? (
                         <div className="text-right">
-                          <span className="text-xs font-semibold text-slate-700 block">
+                          <span className="text-xs font-semibold text-slate-800 block">
                             Sesi Berikutnya: {j.nextSessionDate}
                           </span>
                           {j.nextSessionTime && (
-                            <span className="text-[11px] text-slate-500 block">
+                            <span className="text-[11px] text-slate-600 block">
                               {j.nextSessionTime}
                             </span>
                           )}
@@ -538,9 +512,8 @@ export function ClassDetailView({
                       {j.nextSessionDate ? (
                         <Link
                           href={`/teacher/classes/${classId}/sessions/${j.nextSessionDate}/attendance?sesi=${j.id}`}
-                          className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 hover:bg-blue-700 px-3 py-2 text-xs font-semibold text-white transition-colors min-h-[38px] cursor-pointer"
+                          className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-3 py-2 text-xs font-semibold text-white transition-colors min-h-[38px] cursor-pointer"
                         >
-                          <ClipboardCheck className="size-3.5" />
                           <span>Presensi</span>
                         </Link>
                       ) : null}
@@ -558,31 +531,31 @@ export function ClassDetailView({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
           {/* Card 1: Statistik Mengajar */}
           <div className="rounded-lg border border-slate-200 bg-white p-5 space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            <h3 className="text-sm font-bold text-slate-950 uppercase tracking-wider">
               Statistik Kelas
             </h3>
             <dl className="divide-y divide-slate-100 text-xs sm:text-sm">
               <div className="flex items-center justify-between py-2.5">
-                <dt className="text-slate-500">Siswa Aktif</dt>
-                <dd className="font-bold text-slate-900 tabular-nums">{stats.activeStudents} siswa</dd>
+                <dt className="text-slate-600">Siswa Aktif</dt>
+                <dd className="font-bold text-slate-950 tabular-nums">{stats.activeStudents} siswa</dd>
               </div>
               <div className="flex items-center justify-between py-2.5">
-                <dt className="text-slate-500">Entri Penilaian Guru</dt>
-                <dd className="font-bold text-slate-900 tabular-nums">{stats.totalGradeEntries} entri</dd>
+                <dt className="text-slate-600">Entri Penilaian Guru</dt>
+                <dd className="font-bold text-slate-950 tabular-nums">{stats.totalGradeEntries} entri</dd>
               </div>
               <div className="flex items-center justify-between py-2.5">
-                <dt className="text-slate-500">Presensi Tercatat</dt>
-                <dd className="font-bold text-slate-900 tabular-nums">{stats.totalRecordedAttendance} data</dd>
+                <dt className="text-slate-600">Presensi Tercatat</dt>
+                <dd className="font-bold text-slate-950 tabular-nums">{stats.totalRecordedAttendance} data</dd>
               </div>
               <div className="flex items-center justify-between py-2.5">
-                <dt className="text-slate-500">Kapasitas Kuota</dt>
-                <dd className="font-bold text-slate-900 tabular-nums">
+                <dt className="text-slate-600">Kapasitas Kuota</dt>
+                <dd className="font-bold text-slate-950 tabular-nums">
                   {students.length}/{kuotaMaksimum} ({capacityPct}%)
                 </dd>
               </div>
               <div className="flex items-center justify-between py-2.5">
-                <dt className="text-slate-500">Kuota Minimum Kelas</dt>
-                <dd className="font-semibold text-slate-700 tabular-nums">{kuotaMinimum} siswa</dd>
+                <dt className="text-slate-600">Kuota Minimum Kelas</dt>
+                <dd className="font-semibold text-slate-800 tabular-nums">{kuotaMinimum} siswa</dd>
               </div>
             </dl>
 
@@ -598,7 +571,7 @@ export function ClassDetailView({
 
           {/* Card 2: Unduhan & Rekapitulasi */}
           <div className="rounded-lg border border-slate-200 bg-white p-5 space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">
+            <h3 className="text-sm font-bold text-slate-950 uppercase tracking-wider">
               Aksi & Rekap Data
             </h3>
             <div className="space-y-2.5">
@@ -606,14 +579,9 @@ export function ClassDetailView({
                 href="/teacher/status"
                 className="flex items-center justify-between rounded-md border border-slate-200 bg-white p-3 hover:bg-slate-50 hover:border-slate-300 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <div className="grid size-8 place-items-center rounded bg-blue-50 text-blue-600">
-                    <Camera className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900">Dokumentasi Belajar</p>
-                    <p className="text-[11px] text-slate-500">Bagikan foto & jurnal kegiatan ke orang tua</p>
-                  </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-950">Dokumentasi Belajar</p>
+                  <p className="text-[11px] text-slate-600">Bagikan foto & jurnal kegiatan ke orang tua</p>
                 </div>
                 <ChevronRight className="size-4 text-slate-400" />
               </Link>
@@ -623,16 +591,11 @@ export function ClassDetailView({
                 download
                 className="flex items-center justify-between rounded-md border border-slate-200 bg-white p-3 hover:bg-slate-50 hover:border-slate-300 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <div className="grid size-8 place-items-center rounded bg-emerald-50 text-emerald-600">
-                    <FileSpreadsheet className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900">Rekap Presensi (CSV)</p>
-                    <p className="text-[11px] text-slate-500">Format spreadsheet kehadiran siswa</p>
-                  </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-950">Rekap Presensi (CSV)</p>
+                  <p className="text-[11px] text-slate-600">Format spreadsheet kehadiran siswa</p>
                 </div>
-                <Download className="size-4 text-slate-400" />
+                <span className="text-xs font-semibold text-blue-600">Unduh</span>
               </a>
 
               <a
@@ -640,16 +603,11 @@ export function ClassDetailView({
                 download
                 className="flex items-center justify-between rounded-md border border-slate-200 bg-white p-3 hover:bg-slate-50 hover:border-slate-300 transition-colors"
               >
-                <div className="flex items-center gap-3">
-                  <div className="grid size-8 place-items-center rounded bg-purple-50 text-purple-600">
-                    <FileSpreadsheet className="size-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-900">Rekap Nilai (CSV)</p>
-                    <p className="text-[11px] text-slate-500">Format spreadsheet nilai & progres</p>
-                  </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-950">Rekap Nilai (CSV)</p>
+                  <p className="text-[11px] text-slate-600">Format spreadsheet nilai & progres</p>
                 </div>
-                <Download className="size-4 text-slate-400" />
+                <span className="text-xs font-semibold text-blue-600">Unduh</span>
               </a>
             </div>
           </div>

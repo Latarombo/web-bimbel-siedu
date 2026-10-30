@@ -6,7 +6,6 @@ import { collect } from "@/lib/collect";
 import { rencanakanSesi } from "@/lib/rencana-sesi";
 import { tanggalWIB } from "@/lib/hari";
 import { PageShell, PageHeader } from "@/components/admin/ui";
-import { Calendar, Clock, AlertCircle, CheckCircle2 } from "lucide-react";
 import {
   TeacherCalendarView,
   type TeacherCalendarSessionItem,
@@ -40,7 +39,7 @@ export default async function TeacherCalendarPage() {
           desc={t("calendarDescription")}
         />
         <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-2xs">
-          <p className="text-sm font-semibold text-slate-500">{t("noAssignedClasses")}</p>
+          <p className="text-sm font-semibold text-slate-600">{t("noAssignedClasses")}</p>
         </div>
       </PageShell>
     );
@@ -175,27 +174,17 @@ export default async function TeacherCalendarPage() {
         {/* 4 SLEEK KPI STAT CARDS */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {/* Card 1: Total Sesi */}
-          <div className="group rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xs transition-all hover:border-slate-300 hover:shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Sesi</span>
-              <div className="grid size-9 place-items-center rounded-xl border border-blue-100/80 bg-blue-50 text-blue-600 transition-transform group-hover:scale-105">
-                <Calendar className="size-4" />
-              </div>
-            </div>
-            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-slate-900">
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xs">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Total Sesi</span>
+            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-slate-950">
               {allSessions.length}
             </p>
             <p className="mt-1 text-xs font-medium text-slate-600">Semester ini</p>
           </div>
 
           {/* Card 2: Sesi Hari Ini */}
-          <div className="group rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xs transition-all hover:border-blue-200 hover:shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">{t("todaySessions")}</span>
-              <div className="grid size-9 place-items-center rounded-xl border border-blue-200/80 bg-blue-500 text-white transition-transform group-hover:scale-105 shadow-2xs">
-                <Clock className="size-4" />
-              </div>
-            </div>
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xs">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">{t("todaySessions")}</span>
             <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-blue-600">
               {todayCount}
             </p>
@@ -203,27 +192,17 @@ export default async function TeacherCalendarPage() {
           </div>
 
           {/* Card 3: Perlu Presensi */}
-          <div className="group rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xs transition-all hover:border-amber-200 hover:shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Perlu Presensi</span>
-              <div className="grid size-9 place-items-center rounded-xl border border-amber-100/80 bg-amber-50 text-amber-600 transition-transform group-hover:scale-105">
-                <AlertCircle className="size-4" />
-              </div>
-            </div>
-            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-amber-600">
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xs">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Perlu Presensi</span>
+            <p className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${pendingAttendanceCount > 0 ? "text-amber-600" : "text-slate-950"}`}>
               {pendingAttendanceCount}
             </p>
             <p className="mt-1 text-xs font-medium text-slate-600">Belum dicatat</p>
           </div>
 
           {/* Card 4: Presensi Selesai */}
-          <div className="group rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xs transition-all hover:border-emerald-200 hover:shadow-xs">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Presensi Selesai</span>
-              <div className="grid size-9 place-items-center rounded-xl border border-emerald-100/80 bg-emerald-50 text-emerald-600 transition-transform group-hover:scale-105">
-                <CheckCircle2 className="size-4" />
-              </div>
-            </div>
+          <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-2xs">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Presensi Selesai</span>
             <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-emerald-600">
               {completedAttendanceCount}
             </p>

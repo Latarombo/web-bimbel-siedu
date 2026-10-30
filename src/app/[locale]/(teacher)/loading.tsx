@@ -2,14 +2,9 @@ export default function TeacherLoading() {
   return (
     <div className="w-full space-y-6 p-4 sm:p-6 lg:p-8 animate-pulse">
       {/* Header Skeleton */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-5">
-        <div className="space-y-2">
-          <div className="h-8 w-56 rounded-xl bg-slate-200" />
-          <div className="h-4 w-80 rounded-lg bg-slate-100" />
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-10 w-28 rounded-xl bg-slate-200" />
-        </div>
+      <div className="border-b border-slate-100 pb-5 space-y-2">
+        <div className="h-8 w-56 rounded-xl bg-slate-200" />
+        <div className="h-4 w-80 rounded-lg bg-slate-100" />
       </div>
 
       {/* Metric Cards Skeleton */}

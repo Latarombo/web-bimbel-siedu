@@ -9,17 +9,8 @@ import { TeacherAnalyticsSection } from "@/components/teacher/dashboard-charts";
 import { TeacherDashboardTabs } from "@/components/teacher/dashboard/teacher-dashboard-tabs";
 import {
   ChevronRight,
-  Calendar,
   CheckCircle2,
-  GraduationCap,
-  BookOpen,
-  Clock,
-  ClipboardCheck,
-  TrendingUp,
-  Users,
   AlertCircle,
-  FileText,
-  CalendarDays,
   ArrowUpRight,
   Check,
 } from "lucide-react";
@@ -267,10 +258,10 @@ export default async function TeacherDashboard() {
         <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
-              <h2 className="text-base font-bold text-slate-900 tracking-tight">
+              <h2 className="text-base font-bold text-slate-950 tracking-tight">
                 {t("todayFocusTitle")}
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">{t("todayFocusDesc")}</p>
+              <p className="text-xs text-slate-600 mt-0.5">{t("todayFocusDesc")}</p>
             </div>
             <span className="text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
               {sesiHariIni.length} Sesi Terjadwal
@@ -289,8 +280,7 @@ export default async function TeacherDashboard() {
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                        <Clock className="size-3.5 text-slate-500" />
+                      <span className="text-xs font-bold text-slate-800">
                         {session.jamMulai} - {session.jamSelesai} WIB
                       </span>
                       <span className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-semibold ${tema.badge}`}>
@@ -299,7 +289,7 @@ export default async function TeacherDashboard() {
                     </div>
 
                     <div>
-                      <h3 className="text-sm font-bold text-slate-900 line-clamp-1">
+                      <h3 className="text-sm font-bold text-slate-950 line-clamp-1">
                         {session.mapel}
                       </h3>
                       <p className="text-xs text-slate-600 line-clamp-1 mt-0.5">
@@ -323,13 +313,12 @@ export default async function TeacherDashboard() {
 
                     <Link
                       href={`/teacher/classes/${session.kelasId}/sessions/${hariIniStr}/attendance`}
-                      className={`inline-flex items-center gap-1.5 rounded-md px-3.5 py-2 text-xs font-semibold min-h-[38px] transition-colors cursor-pointer ${
+                      className={`inline-flex items-center justify-center rounded-md px-3.5 py-2 text-xs font-semibold min-h-[38px] transition-colors cursor-pointer ${
                         isDone
                           ? "border border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
                           : "bg-blue-600 text-white hover:bg-blue-700"
                       }`}
                     >
-                      <ClipboardCheck className="size-3.5" />
                       <span>{isDone ? t("attendance") : t("fillAttendance")}</span>
                     </Link>
                   </div>
@@ -344,10 +333,10 @@ export default async function TeacherDashboard() {
       <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5 space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">
+            <h2 className="text-base font-bold text-slate-950 tracking-tight">
               {t("gradingQueue")}
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-slate-600 mt-0.5">
               {antreanPenilaian.length > 0
                 ? t("pendingAssessmentsCount", { count: antreanPenilaian.length })
                 : t("allTasksGraded")}
@@ -378,11 +367,11 @@ export default async function TeacherDashboard() {
                       {initial}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-slate-900">
+                      <p className="text-sm font-semibold text-slate-950">
                         {item.anakNama}
                       </p>
-                      <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-slate-500">
-                        <span className="font-medium text-slate-700">{item.penilaianJudul}</span>
+                      <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-slate-600">
+                        <span className="font-medium text-slate-800">{item.penilaianJudul}</span>
                         <span>·</span>
                         <span>{item.kelasNama}</span>
                         <span>·</span>
@@ -395,10 +384,9 @@ export default async function TeacherDashboard() {
 
                   <Link
                     href={`/teacher/grades/${item.pendaftaranId}`}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-800 transition-colors cursor-pointer min-h-[38px] shrink-0"
+                    className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-800 transition-colors cursor-pointer min-h-[38px] shrink-0"
                   >
                     <span>{t("giveGrade")}</span>
-                    <ChevronRight className="size-3" />
                   </Link>
                 </div>
               );
@@ -418,8 +406,8 @@ export default async function TeacherDashboard() {
         ) : (
           <div className="py-6 text-center space-y-1">
             <CheckCircle2 className="size-6 text-emerald-600 mx-auto" />
-            <p className="text-sm font-semibold text-slate-800">{t("allTasksGraded")}</p>
-            <p className="text-xs text-slate-500">{t("noNewAssessments")}</p>
+            <p className="text-sm font-semibold text-slate-950">{t("allTasksGraded")}</p>
+            <p className="text-xs text-slate-600">{t("noNewAssessments")}</p>
           </div>
         )}
       </div>
@@ -430,13 +418,12 @@ export default async function TeacherDashboard() {
           href={firstUnfinishedSession ? `/teacher/classes/${firstUnfinishedSession.kelasId}/sessions/${hariIniStr}/attendance` : "/teacher/classes"}
           className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-3.5 hover:border-slate-300 hover:bg-slate-50 transition-all min-h-[88px]"
         >
-          <div className="flex items-center justify-between">
-            <ClipboardCheck className="size-4 text-blue-600" />
+          <div className="flex justify-end">
             <ArrowUpRight className="size-3.5 text-slate-400" />
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-900">{t("quickAttendance")}</p>
-            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
+            <p className="text-xs font-bold text-slate-950">{t("quickAttendance")}</p>
+            <p className="text-xs text-slate-600 mt-0.5 line-clamp-1">
               {sesiHariIni.length > 0 ? `${sesiHariIni.length} sesi hari ini` : "Presensi kelas"}
             </p>
           </div>
@@ -446,13 +433,12 @@ export default async function TeacherDashboard() {
           href="/teacher/grades/new"
           className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-3.5 hover:border-slate-300 hover:bg-slate-50 transition-all min-h-[88px]"
         >
-          <div className="flex items-center justify-between">
-            <GraduationCap className="size-4 text-emerald-600" />
+          <div className="flex justify-end">
             <ArrowUpRight className="size-3.5 text-slate-400" />
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-900">{t("quickNewAssessment")}</p>
-            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">Input nilai tugas</p>
+            <p className="text-xs font-bold text-slate-950">{t("quickNewAssessment")}</p>
+            <p className="text-xs text-slate-600 mt-0.5 line-clamp-1">Input nilai tugas</p>
           </div>
         </Link>
 
@@ -460,13 +446,12 @@ export default async function TeacherDashboard() {
           href="/teacher/status"
           className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-3.5 hover:border-slate-300 hover:bg-slate-50 transition-all min-h-[88px]"
         >
-          <div className="flex items-center justify-between">
-            <FileText className="size-4 text-purple-600" />
+          <div className="flex justify-end">
             <ArrowUpRight className="size-3.5 text-slate-400" />
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-900">{t("quickLearningJournal")}</p>
-            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">Catatan pembelajaran</p>
+            <p className="text-xs font-bold text-slate-950">{t("quickLearningJournal")}</p>
+            <p className="text-xs text-slate-600 mt-0.5 line-clamp-1">Catatan pembelajaran</p>
           </div>
         </Link>
 
@@ -474,13 +459,12 @@ export default async function TeacherDashboard() {
           href="/teacher/calendar"
           className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-3.5 hover:border-slate-300 hover:bg-slate-50 transition-all min-h-[88px]"
         >
-          <div className="flex items-center justify-between">
-            <CalendarDays className="size-4 text-amber-600" />
+          <div className="flex justify-end">
             <ArrowUpRight className="size-3.5 text-slate-400" />
           </div>
           <div>
-            <p className="text-xs font-bold text-slate-900">{t("quickFullCalendar")}</p>
-            <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">Jadwal tatap muka</p>
+            <p className="text-xs font-bold text-slate-950">{t("quickFullCalendar")}</p>
+            <p className="text-xs text-slate-600 mt-0.5 line-clamp-1">Jadwal tatap muka</p>
           </div>
         </Link>
       </div>
@@ -549,8 +533,7 @@ export default async function TeacherDashboard() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 text-xs text-slate-700 bg-slate-50 rounded-md p-2.5">
-                    <Calendar className="size-4 shrink-0 text-slate-500" />
+                  <div className="text-xs text-slate-700 bg-slate-50 rounded-md p-2.5">
                     <span className="line-clamp-1">{jadwalStr}</span>
                   </div>
 
@@ -577,10 +560,9 @@ export default async function TeacherDashboard() {
                   </span>
                   <Link
                     href={`/teacher/classes/${k.id}`}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 hover:bg-blue-700 py-2 px-3 text-xs font-semibold text-white transition-colors min-h-[38px]"
+                    className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 py-2 px-3 text-xs font-semibold text-white transition-colors min-h-[38px]"
                   >
                     <span>{t("classDetail")}</span>
-                    <ChevronRight className="size-3.5" />
                   </Link>
                 </div>
               </div>
@@ -589,7 +571,6 @@ export default async function TeacherDashboard() {
         </div>
       ) : (
         <div className="rounded-lg border border-dashed border-slate-200 bg-white p-8 text-center space-y-1.5">
-          <BookOpen className="size-8 mx-auto text-slate-400" />
           <p className="text-sm font-bold text-slate-700">{t("noActiveClassesYet")}</p>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             {t("noActiveClassesDesc")}
@@ -641,30 +622,13 @@ export default async function TeacherDashboard() {
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
       
       {/* 1. Header Bersih Tanpa Gradient */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-            {t("welcomeTeacher", { name: teacherName })}
-          </h1>
-          <p className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            <Calendar className="size-4 text-slate-400" />
-            <span>{tanggalLengkap} · Waktu Indonesia Barat</span>
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {sesiHariIni.length > 0 ? (
-            <div className="inline-flex items-center gap-2 rounded-md bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-3 py-1.5 text-xs font-semibold text-blue-800 dark:text-blue-300">
-              <span className="size-2 rounded-full bg-blue-600 dark:bg-blue-400" />
-              <span>{t("sessionsCountToday", { count: sesiHariIni.length })}</span>
-            </div>
-          ) : (
-            <div className="inline-flex items-center gap-2 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300">
-              <span className="size-2 rounded-full bg-slate-400" />
-              <span>{t("noScheduleToday")}</span>
-            </div>
-          )}
-        </div>
+      <div className="pb-4 border-b border-slate-200 dark:border-slate-800">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
+          {t("welcomeTeacher", { name: teacherName })}
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+          {tanggalLengkap} · Waktu Indonesia Barat
+        </p>
       </div>
 
       {/* 2. Urgent Action Alert (Muncul jika ada sesi yang belum dicatat) */}
@@ -672,23 +636,20 @@ export default async function TeacherDashboard() {
         <div className="rounded-lg border border-amber-300 bg-amber-50/70 p-4 sm:p-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-start gap-3">
-              <div className="grid size-9 shrink-0 place-items-center rounded-md bg-amber-100 text-amber-800 mt-0.5">
-                <Clock className="size-5" />
-              </div>
+              <AlertCircle className="size-5 text-amber-600 shrink-0 mt-0.5" />
               <div>
-                <h2 className="text-sm font-bold text-slate-900">
+                <h2 className="text-sm font-bold text-slate-950">
                   Presensi Belum Dicatat
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-700 mt-0.5">
+                <p className="text-xs sm:text-sm text-slate-800 mt-0.5">
                   Sesi <strong>{firstUnfinishedSession.mapel}</strong> ({firstUnfinishedSession.jamMulai} - {firstUnfinishedSession.jamSelesai} WIB) di rombel {firstUnfinishedSession.kelasNama} memerlukan pencatatan kehadiran.
                 </p>
               </div>
             </div>
             <Link
               href={`/teacher/classes/${firstUnfinishedSession.kelasId}/sessions/${hariIniStr}/attendance`}
-              className="inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-blue-700 active:scale-[0.99] transition-all min-h-[44px] shrink-0"
+              className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-blue-700 active:scale-[0.99] transition-all min-h-[44px] shrink-0"
             >
-              <ClipboardCheck className="size-4" />
               <span>{t("recordAttendanceNow")}</span>
             </Link>
           </div>
@@ -704,12 +665,9 @@ export default async function TeacherDashboard() {
         </div>
       ) : nextSession ? (
         <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <div className="flex items-center gap-3">
-            <CalendarDays className="size-5 text-slate-500 shrink-0" />
-            <p className="text-xs sm:text-sm text-slate-700">
-              Jadwal mengajar berikutnya: <strong className="text-slate-900">{nextSession.dayLabel}</strong> ({nextSession.session.jamMulai} - {nextSession.session.jamSelesai} WIB) · {nextSession.session.mapel}
-            </p>
-          </div>
+          <p className="text-xs sm:text-sm text-slate-800">
+            Jadwal mengajar berikutnya: <strong className="text-slate-950">{nextSession.dayLabel}</strong> ({nextSession.session.jamMulai} - {nextSession.session.jamSelesai} WIB) · {nextSession.session.mapel}
+          </p>
         </div>
       ) : null}
 
@@ -717,68 +675,52 @@ export default async function TeacherDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Card 1: Kelas Diampu */}
         <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              {t("taughtClasses")}
-            </p>
-            <BookOpen className="size-4 text-slate-400" />
-          </div>
-          <p className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 tabular-nums">
+          <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+            {t("taughtClasses")}
+          </p>
+          <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
             {kelasAktif.length}
           </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
             {t("totalClassesCount", { count: kelas.length })}
           </p>
         </div>
 
         {/* Card 2: Total Murid */}
         <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              {t("totalStudents")}
-            </p>
-            <Users className="size-4 text-slate-400" />
-          </div>
-          <p className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 tabular-nums">
+          <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+            {t("totalStudents")}
+          </p>
+          <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
             {uniqueStudentsCount}
           </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
             {t("enrollmentsCount", { count: siswaAktif.length })}
           </p>
         </div>
 
         {/* Card 3: Perlu Dinilai */}
         <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              {t("needsGrading")}
-            </p>
-            {antreanPenilaian.length > 0 ? (
-              <AlertCircle className="size-4 text-amber-500" />
-            ) : (
-              <CheckCircle2 className="size-4 text-emerald-500" />
-            )}
-          </div>
-          <p className={`mt-2 text-2xl sm:text-3xl font-bold tracking-tight tabular-nums ${antreanPenilaian.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-slate-100"}`}>
+          <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+            {t("needsGrading")}
+          </p>
+          <p className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${antreanPenilaian.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-950 dark:text-white"}`}>
             {antreanPenilaian.length}
           </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
             {antreanPenilaian.length > 0 ? "Menunggu penilaian" : t("statusDone")}
           </p>
         </div>
 
         {/* Card 4: Kehadiran Hari Ini / Keseluruhan */}
         <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              {sesiHariIni.length > 0 ? "Kehadiran Hari Ini" : t("overallAttendanceRate")}
-            </p>
-            <TrendingUp className="size-4 text-slate-400" />
-          </div>
-          <p className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 tabular-nums">
+          <p className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
+            {sesiHariIni.length > 0 ? "Kehadiran Hari Ini" : t("overallAttendanceRate")}
+          </p>
+          <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
             {sesiHariIni.length > 0 ? `${pctPresensiHariIni}%` : `${overallAttendanceRate}%`}
           </p>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
             {sesiHariIni.length > 0 ? t("studentsRatio", { filled: totalTerisiHariIni, total: totalSiswaHariIni }) : `${totalPresensiAll} presensi`}
           </p>
         </div>

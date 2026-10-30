@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { CalendarDays, BookOpen, BarChart3 } from "lucide-react";
 
 interface TeacherDashboardTabsProps {
   agendaContent: ReactNode;
@@ -48,10 +47,9 @@ export function TeacherDashboardTabs({
             className={`flex items-center gap-2 py-3.5 px-3 border-b-2 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer min-h-[44px] ${
               activeTab === "agenda"
                 ? "border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-500"
-                : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:border-slate-700"
+                : "border-transparent text-slate-700 hover:text-slate-950 hover:border-slate-300 dark:text-slate-300 dark:hover:text-slate-50 dark:hover:border-slate-700"
             }`}
           >
-            <CalendarDays className="size-4 shrink-0" />
             <span>{labels.agendaTab}</span>
             {pendingGradingCount > 0 ? (
               <span className="ml-1 inline-flex items-center justify-center rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-xs font-bold px-1.5 py-0.5">
@@ -75,10 +73,9 @@ export function TeacherDashboardTabs({
             className={`flex items-center gap-2 py-3.5 px-3 border-b-2 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer min-h-[44px] ${
               activeTab === "classes"
                 ? "border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-500"
-                : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:border-slate-700"
+                : "border-transparent text-slate-700 hover:text-slate-950 hover:border-slate-300 dark:text-slate-300 dark:hover:text-slate-50 dark:hover:border-slate-700"
             }`}
           >
-            <BookOpen className="size-4 shrink-0" />
             <span>{labels.classesTab}</span>
             <span className="ml-1 inline-flex items-center justify-center rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-medium px-1.5 py-0.5">
               {activeClassesCount}
@@ -96,10 +93,9 @@ export function TeacherDashboardTabs({
             className={`flex items-center gap-2 py-3.5 px-3 border-b-2 text-sm font-semibold whitespace-nowrap transition-colors cursor-pointer min-h-[44px] ${
               activeTab === "analytics"
                 ? "border-blue-600 text-blue-600 dark:text-blue-400 dark:border-blue-500"
-                : "border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:border-slate-700"
+                : "border-transparent text-slate-700 hover:text-slate-950 hover:border-slate-300 dark:text-slate-300 dark:hover:text-slate-50 dark:hover:border-slate-700"
             }`}
           >
-            <BarChart3 className="size-4 shrink-0" />
             <span>{labels.analyticsTab}</span>
           </button>
         </nav>

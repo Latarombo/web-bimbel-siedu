@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { TeacherSidebar } from './teacher-sidebar';
-import { TeacherHeader } from './teacher-header';
 import {
   TeacherQuickSearch,
   type QuickSearchClassItem,
@@ -95,12 +94,6 @@ export function TeacherShell({
           isCollapsed ? 'lg:pl-[100px]' : 'lg:pl-[288px]'
         }`}
       >
-        <TeacherHeader
-          badgeCounts={badgeCounts}
-          onOpenMobileDrawer={() => setIsDrawerOpen(true)}
-          onOpenSearch={() => setIsSearchOpen(true)}
-        />
-
         <main id="main" className="flex-1">
           {children}
         </main>

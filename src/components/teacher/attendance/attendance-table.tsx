@@ -7,8 +7,6 @@ import { AttendanceStickyBar } from './attendance-sticky-bar';
 import { StudentAvatar } from '@/components/parent/student-avatar';
 import {
   Search,
-  Check,
-  RotateCcw,
   Lock,
   CheckCircle2,
   AlertCircle,
@@ -153,17 +151,15 @@ export function AttendanceTable({
           <button
             type="button"
             onClick={handleMarkAllPresent}
-            className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100/70 active:scale-95 cursor-pointer"
+            className="inline-flex items-center justify-center rounded-md bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100/70 active:scale-95 cursor-pointer"
           >
-            <Check className="size-3.5 stroke-[2.5]" />
             <span>{t('markAllPresent')}</span>
           </button>
           <button
             type="button"
             onClick={handleClearAll}
-            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 active:scale-95 cursor-pointer"
+            className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 transition-colors hover:bg-slate-50 active:scale-95 cursor-pointer"
           >
-            <RotateCcw className="size-3.5" />
             <span>{t('clearAll')}</span>
           </button>
         </div>
@@ -180,7 +176,7 @@ export function AttendanceTable({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari nama siswa..."
-            className="w-full rounded-md border border-slate-200 bg-white py-1.5 pl-9 pr-8 text-xs text-slate-900 transition-colors placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+            className="w-full rounded-md border border-slate-200 bg-white py-1.5 pl-9 pr-8 text-xs text-slate-900 transition-colors placeholder:text-slate-500 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
           />
           {search && (
             <button
@@ -199,7 +195,7 @@ export function AttendanceTable({
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px] border-collapse text-left">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 uppercase tracking-wider">
                 <th scope="col" className="w-12 px-4 py-3 text-center">
                   No
                 </th>
@@ -229,7 +225,7 @@ export function AttendanceTable({
                     }`}
                   >
                     {/* 1. Nomor */}
-                    <td className="px-4 py-3 text-center font-medium text-slate-500 tabular-nums">
+                    <td className="px-4 py-3 text-center font-medium text-slate-600 tabular-nums">
                       {idx + 1}
                     </td>
 
@@ -242,7 +238,7 @@ export function AttendanceTable({
                           size="xs"
                         />
                         <div className="min-w-0">
-                          <p className="font-semibold text-slate-900 truncate">
+                          <p className="font-semibold text-slate-950 truncate">
                             {s.nama}
                           </p>
                           {s.terkunci && (
@@ -283,7 +279,7 @@ export function AttendanceTable({
                                       : st.tone === 'blue'
                                         ? 'bg-blue-600 text-white shadow-xs'
                                         : 'bg-rose-600 text-white shadow-xs'
-                                  : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                  : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-950'
                               }`}
                             >
                               <input
@@ -312,7 +308,7 @@ export function AttendanceTable({
                         defaultValue={s.catatan ?? ''}
                         disabled={s.terkunci}
                         placeholder={t('notesPlaceholder')}
-                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 transition-colors placeholder:text-slate-500 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:bg-slate-100 disabled:cursor-not-allowed"
                       />
                     </td>
 
@@ -324,7 +320,7 @@ export function AttendanceTable({
                           Kunci
                         </span>
                       ) : currentStatus ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold capitalize text-slate-700">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold capitalize text-slate-800">
                           <span
                             className={`size-2 rounded-full ${
                               currentStatus === 'hadir'
@@ -348,13 +344,13 @@ export function AttendanceTable({
         </div>
 
         {filteredSiswa.length === 0 && (
-          <div className="p-8 text-center text-xs text-slate-500">
+          <div className="p-8 text-center text-xs text-slate-600">
             Tidak ada siswa yang cocok dengan pencarian &quot;{search}&quot;.
           </div>
         )}
       </div>
 
-      <p className="text-xs text-slate-500 leading-relaxed px-1">
+      <p className="text-xs text-slate-600 leading-relaxed px-1">
         {t('attendanceFormHelp')}
       </p>
 

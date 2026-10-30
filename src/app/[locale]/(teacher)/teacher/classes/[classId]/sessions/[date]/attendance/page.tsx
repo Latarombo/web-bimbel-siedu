@@ -141,8 +141,8 @@ export default async function AttendancePage({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
-      {/* Top Navigation & Status Badge */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      {/* Top Navigation */}
+      <div>
         <Link
           href={`/teacher/classes/${kid}`}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
@@ -150,10 +150,6 @@ export default async function AttendancePage({
           <ArrowLeft className="size-3.5" />
           <span>Kembali ke Detail Kelas</span>
         </Link>
-        <span className="inline-flex items-center gap-1.5 self-start sm:self-auto rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs">
-          <span className="size-2 rounded-full bg-blue-600" />
-          {t("filledRatio", { count: terisi, total: siswa.length })}
-        </span>
       </div>
 
       {/* Title & Metadata */}

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { AttendanceTable, type SiswaPresensi } from './attendance-table';
 import { SessionJournalForm } from './session-journal-form';
-import { Users, FileText, CheckCircle2 } from 'lucide-react';
 
 interface TeacherAttendanceManagerProps {
   kelasId: number;
@@ -49,16 +48,15 @@ export function TeacherAttendanceManager({
             className={`flex items-center gap-2 pb-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
               activeTab === 'attendance'
                 ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                : 'border-transparent text-slate-700 hover:text-slate-950'
             }`}
           >
-            <Users className="size-4" />
             <span>{t('attendanceList')}</span>
             <span
               className={`rounded px-1.5 py-0.5 text-xs font-semibold tabular-nums ${
                 isComplete
                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  : 'bg-slate-100 text-slate-700 border border-slate-200'
+                  : 'bg-slate-100 text-slate-800 border border-slate-200'
               }`}
             >
               {terisiCount}/{siswa.length}
@@ -71,18 +69,17 @@ export function TeacherAttendanceManager({
             className={`flex items-center gap-2 pb-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
               activeTab === 'journal'
                 ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                : 'border-transparent text-slate-700 hover:text-slate-950'
             }`}
           >
-            <FileText className="size-4" />
             <span>{t('sessionNotesTitle')}</span>
             {isJournalPublished ? (
-              <span className="inline-flex items-center gap-1 rounded bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 text-xs font-semibold text-emerald-700">
-                <CheckCircle2 className="size-3" />
+              <span className="inline-flex items-center gap-1.5 rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
                 {t('published')}
               </span>
             ) : (
-              <span className="rounded bg-slate-100 border border-slate-200 px-1.5 py-0.5 text-xs font-medium text-slate-600">
+              <span className="rounded bg-slate-100 border border-slate-200 px-1.5 py-0.5 text-xs font-medium text-slate-700">
                 {t('draftStatus')}
               </span>
             )}

@@ -12,7 +12,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { PieChart as PieChartIcon, BarChart3, TrendingUp, CalendarDays } from "lucide-react";
+import { PieChart as PieChartIcon } from "lucide-react";
 
 export type RekapSlice = { key: string; label: string; value: number; color: string };
 export type HariAktivitas = { label: string; hadir: number };
@@ -56,7 +56,7 @@ export function RekapPresensiDonut({ data, total }: { data: RekapSlice[]; total:
           y="46%"
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-slate-900 dark:fill-slate-100 text-2xl font-black tabular-nums"
+          className="fill-slate-950 dark:fill-slate-50 text-2xl font-black tabular-nums"
         >
           {total}
         </text>
@@ -65,7 +65,7 @@ export function RekapPresensiDonut({ data, total }: { data: RekapSlice[]; total:
           y="60%"
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-slate-500 dark:fill-slate-400 text-[10px] font-semibold uppercase tracking-wider"
+          className="fill-slate-600 dark:fill-slate-400 text-[10px] font-semibold uppercase tracking-wider"
         >
           Presensi
         </text>
@@ -138,17 +138,11 @@ export function TeacherAnalyticsSection({
       <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-2">
-              <div className="grid size-7 place-items-center rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
-                <PieChartIcon className="size-4 stroke-[2]" />
-              </div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                {labels.distributionTitle}
-              </h3>
-            </div>
+            <h3 className="text-sm font-bold text-slate-950 dark:text-slate-50 tracking-tight">
+              {labels.distributionTitle}
+            </h3>
             {totalPresensi > 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                <TrendingUp className="size-3" />
+              <span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
                 <span>{overallAttendanceRate}% Hadir</span>
               </span>
             )}
@@ -173,11 +167,11 @@ export function TeacherAnalyticsSection({
                             className="size-2.5 rounded-full shrink-0"
                             style={{ backgroundColor: item.color }}
                           />
-                          <span className="font-semibold text-slate-700 dark:text-slate-300">{item.label}</span>
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">{item.label}</span>
                         </div>
                         <div className="flex items-center gap-2 font-bold tabular-nums">
-                          <span className="text-slate-900 dark:text-slate-100">{item.value}</span>
-                          <span className="text-slate-500 dark:text-slate-400 text-[11px]">({pct}%)</span>
+                          <span className="text-slate-950 dark:text-slate-50">{item.value}</span>
+                          <span className="text-slate-600 dark:text-slate-400 text-[11px]">({pct}%)</span>
                         </div>
                       </div>
                     );
@@ -189,8 +183,8 @@ export function TeacherAnalyticsSection({
                 <div className="grid size-11 place-items-center rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 mx-auto mb-2">
                   <PieChartIcon className="size-5 stroke-[1.5]" />
                 </div>
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{labels.noAttendanceYet}</p>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto mt-1">
+                <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{labels.noAttendanceYet}</p>
+                <p className="text-[11px] text-slate-600 dark:text-slate-400 max-w-xs mx-auto mt-1">
                   {labels.noAttendanceDesc}
                 </p>
               </div>
@@ -198,9 +192,9 @@ export function TeacherAnalyticsSection({
           </div>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
           <span>{labels.totalAttendance}</span>
-          <span className="font-bold text-slate-800 dark:text-slate-200 tabular-nums">{totalPresensi} data</span>
+          <span className="font-bold text-slate-950 dark:text-slate-50 tabular-nums">{totalPresensi} data</span>
         </div>
       </div>
 
@@ -208,27 +202,21 @@ export function TeacherAnalyticsSection({
       <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
         <div>
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-2">
-              <div className="grid size-7 place-items-center rounded-lg bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400">
-                <BarChart3 className="size-4 stroke-[2]" />
-              </div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight">
-                {labels.weeklyTrendTitle}
-              </h3>
-            </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 text-[11px] font-bold text-blue-700 dark:text-blue-300">
-              <CalendarDays className="size-3" />
+            <h3 className="text-sm font-bold text-slate-950 dark:text-slate-50 tracking-tight">
+              {labels.weeklyTrendTitle}
+            </h3>
+            <span className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 text-[11px] font-bold text-blue-700 dark:text-blue-300">
               <span>7 Hari</span>
             </span>
           </div>
 
           <div className="mt-3">
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2">{labels.weeklyTrendSubtitle}</p>
+            <p className="text-[11px] text-slate-600 dark:text-slate-400 mb-2">{labels.weeklyTrendSubtitle}</p>
             <AktivitasMingguanBar data={aktivitasData} label="Siswa Hadir" />
           </div>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
           <span>Total Siswa Hadir (7 Hari)</span>
           <span className="font-bold text-blue-600 dark:text-blue-400 tabular-nums">{totalAktivitasHadir} kehadiran</span>
         </div>

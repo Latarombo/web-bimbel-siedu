@@ -37,3 +37,11 @@ powershell.exe -NonInteractive -NoProfile -Command "Set-Location 'D:\projek_reac
 3. **Smallest Viable Increment (Implementasi Bertahap & Tepat Sasaran):**
    - Buat implementasi dalam iterasi terkecil yang langsung berfungsi dan bisa diverifikasi.
    - Jangan menambahkan komponen atau data dummy yang tidak relevan dengan esensi tugas.
+
+4. **Pembatasan Ikon & Anti-Visual Clutter (Icon Restraint):**
+   - DILARANG menambahkan ikon dekoratif/pemanis (*decorative icons*) pada tombol teks standar, heading, atau label jika teks sudah jelas maknanya.
+   - DILARANG membuat ikon di dalam kotak/lingkaran berwarna (*icon in tinted circles/squares*) pada kartu metrik atau kartu KPI. Metrik harus mengandalkan kekuatan tipografi dan angka yang jujur (mengikuti prinsip `app-screens.md`: *"KPIs are type, not tiles"*).
+   - Ikon HANYA diperbolehkan untuk 3 kondisi:
+     1. Navigasi utama (misalnya icon baris sidebar) untuk membantu pemindaian visual (*visual scanning*).
+     2. Tombol mandiri tanpa teks (*icon-only button* yang wajib disertai atribut aksesibilitas `aria-label`).
+     3. Indikator status kritis yang memerlukan pengenalan instan (misal: alert sukses/peringatan/error).

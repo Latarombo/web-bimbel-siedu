@@ -4,17 +4,10 @@ import { useActionState, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { saveCatatanPertemuan, type GuruState } from '@/app/actions/teacher';
 import {
-  BookOpen,
-  ClipboardList,
   CheckCircle2,
   AlertCircle,
-  Clock,
-  Send,
-  Save,
-  RotateCcw,
   Info,
   Loader2,
-  Share2,
 } from 'lucide-react';
 import { createSessionNotesWaLink } from '@/lib/whatsapp';
 
@@ -68,48 +61,33 @@ export function SessionJournalForm({
 
       {/* Header Status Strip */}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/70 p-4">
-        <div className="flex items-center gap-3">
-          <div
-            className={`grid size-9 place-items-center rounded-md ${
-              isPublished
-                ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-slate-200/70 text-slate-700'
-            }`}
-          >
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-700">
+              Status Jurnal:
+            </span>
             {isPublished ? (
-              <CheckCircle2 className="size-5" />
+              <span className="inline-flex items-center gap-1.5 rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                <span className="size-1.5 rounded-full bg-emerald-500" />
+                {t('published')}
+              </span>
             ) : (
-              <Clock className="size-5" />
+              <span className="inline-flex items-center gap-1.5 rounded bg-slate-100 border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-800">
+                <span className="size-1.5 rounded-full bg-slate-400" />
+                {t('draftStatus')}
+              </span>
             )}
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-slate-500">
-                Status Jurnal:
-              </span>
-              {isPublished ? (
-                <span className="inline-flex items-center gap-1.5 rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                  <span className="size-1.5 rounded-full bg-emerald-500" />
-                  {t('published')}
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 rounded bg-slate-100 border border-slate-200 px-2 py-0.5 text-xs font-medium text-slate-700">
-                  <span className="size-1.5 rounded-full bg-slate-400" />
-                  {t('draftStatus')}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-500 mt-1">
-              {isPublished
-                ? 'Catatan dapat dibaca langsung oleh wali murid di portal orang tua.'
-                : 'Masih berupa draf pribadi. Belum dipublikasikan ke orang tua.'}
-            </p>
-          </div>
+          <p className="text-xs text-slate-600 mt-1">
+            {isPublished
+              ? 'Catatan dapat dibaca langsung oleh wali murid di portal orang tua.'
+              : 'Masih berupa draf pribadi. Belum dipublikasikan ke orang tua.'}
+          </p>
         </div>
 
         {isPublished && diterbitkanPada ? (
-          <div className="text-right text-xs text-slate-500">
-            <span className="font-medium text-slate-700">Diterbitkan pada: </span>
+          <div className="text-right text-xs text-slate-600">
+            <span className="font-semibold text-slate-800">Diterbitkan pada: </span>
             <span className="tabular-nums font-semibold">
               {new Date(diterbitkanPada).toLocaleTimeString('id-ID', {
                 hour: '2-digit',
@@ -162,15 +140,14 @@ export function SessionJournalForm({
         <div className="flex items-center justify-between mb-1">
           <label
             htmlFor="catatan-materi"
-            className="flex items-center gap-2 text-sm font-semibold text-slate-800"
+            className="flex items-center gap-2 text-sm font-bold text-slate-950"
           >
-            <BookOpen className="size-4 text-blue-600" />
             <span>{t('materials')}</span>
-            <span className="text-xs font-normal text-slate-500">
+            <span className="text-xs font-normal text-slate-600">
               (Wajib jika diterbitkan)
             </span>
           </label>
-          <span className="text-xs text-slate-500 tabular-nums">
+          <span className="text-xs text-slate-600 tabular-nums">
             {materi.length} karakter
           </span>
         </div>
@@ -181,7 +158,7 @@ export function SessionJournalForm({
           onChange={(e) => setMateri(e.target.value)}
           placeholder={t('materialsPlaceholder')}
           rows={4}
-          className="w-full rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-900 leading-relaxed transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="w-full rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-900 leading-relaxed transition-colors placeholder:text-slate-500 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
         />
       </div>
 
@@ -190,15 +167,14 @@ export function SessionJournalForm({
         <div className="flex items-center justify-between mb-1">
           <label
             htmlFor="catatan-pr"
-            className="flex items-center gap-2 text-sm font-semibold text-slate-800"
+            className="flex items-center gap-2 text-sm font-bold text-slate-950"
           >
-            <ClipboardList className="size-4 text-amber-500" />
             <span>{t('homework')}</span>
-            <span className="text-xs font-normal text-slate-500">
+            <span className="text-xs font-normal text-slate-600">
               (Opsional)
             </span>
           </label>
-          <span className="text-xs text-slate-500 tabular-nums">
+          <span className="text-xs text-slate-600 tabular-nums">
             {pr.length} karakter
           </span>
         </div>
@@ -209,7 +185,7 @@ export function SessionJournalForm({
           onChange={(e) => setPr(e.target.value)}
           placeholder={t('homeworkPlaceholder')}
           rows={3}
-          className="w-full rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-900 leading-relaxed transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+          className="w-full rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-900 leading-relaxed transition-colors placeholder:text-slate-500 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
         />
       </div>
 
@@ -221,9 +197,8 @@ export function SessionJournalForm({
               href={waLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-10 items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 active:scale-95 transition-colors cursor-pointer"
+              className="inline-flex min-h-10 items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-emerald-700 active:scale-95 transition-colors cursor-pointer"
             >
-              <Share2 className="size-3.5" />
               <span>Bagikan ke WhatsApp</span>
             </a>
           ) : null}
@@ -236,22 +211,17 @@ export function SessionJournalForm({
                 type="submit"
                 disabled={isPending}
                 onClick={() => setActionType('tarik')}
-                className="inline-flex min-h-10 items-center gap-2 rounded-md border border-rose-200 bg-white px-4 py-2 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                className="inline-flex min-h-10 items-center justify-center rounded-md border border-rose-200 bg-white px-4 py-2 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
-                <RotateCcw className="size-3.5" />
                 <span>{t('withdrawToDraft')}</span>
               </button>
               <button
                 type="submit"
                 disabled={isPending}
                 onClick={() => setActionType('terbitkan')}
-                className="inline-flex min-h-10 items-center gap-2 rounded-md bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
-                {isPending ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Save className="size-3.5" />
-                )}
+                {isPending ? <Loader2 className="size-3.5 animate-spin" /> : null}
                 <span>{isPending ? t('saving') : t('sessionJournalSaveChanges')}</span>
               </button>
             </>
@@ -261,22 +231,17 @@ export function SessionJournalForm({
                 type="submit"
                 disabled={isPending}
                 onClick={() => setActionType('draf')}
-                className="inline-flex min-h-10 items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                className="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-800 transition-colors hover:bg-slate-50 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
-                <Save className="size-3.5" />
                 <span>{t('saveDraft')}</span>
               </button>
               <button
                 type="submit"
                 disabled={isPending}
                 onClick={() => setActionType('terbitkan')}
-                className="inline-flex min-h-10 items-center gap-2 rounded-md bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-blue-600 px-5 py-2 text-xs font-semibold text-white shadow-xs transition-colors hover:bg-blue-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
-                {isPending ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Send className="size-3.5" />
-                )}
+                {isPending ? <Loader2 className="size-3.5 animate-spin" /> : null}
                 <span>{isPending ? t('saving') : t('publishToParents')}</span>
               </button>
             </>

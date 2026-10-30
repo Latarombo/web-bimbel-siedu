@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Save, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface AttendanceStickyBarProps {
   counts: {
@@ -65,10 +65,7 @@ export function AttendanceStickyBar({ counts, pending }: AttendanceStickyBarProp
                   <span>{t('saving')}</span>
                 </>
               ) : (
-                <>
-                  <Save className="size-4" aria-hidden="true" />
-                  <span>{t('saveAttendance')}</span>
-                </>
+                <span>{t('saveAttendance')}</span>
               )}
             </button>
           </div>
