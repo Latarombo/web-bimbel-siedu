@@ -77,16 +77,38 @@ function DropdownMenuItem({
   inset,
   active,
   children,
+  asChild,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Item> & {
   inset?: boolean;
   active?: boolean;
 }) {
+  if (asChild) {
+    return (
+      <DropdownMenuPrimitive.Item
+        data-slot="dropdown-menu-item"
+        asChild
+        className={cn(
+          "relative flex cursor-pointer select-none items-center justify-between rounded-md px-3.5 py-2.5 text-sm font-medium outline-none transition-colors",
+          active
+            ? "bg-blue-50/90 text-blue-600 font-semibold"
+            : "text-slate-700 hover:bg-slate-50 hover:text-slate-900 focus:bg-slate-50 focus:text-slate-900",
+          inset && "pl-8",
+          props.disabled && "pointer-events-none opacity-50",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </DropdownMenuPrimitive.Item>
+    );
+  }
+
   return (
     <DropdownMenuPrimitive.Item
       data-slot="dropdown-menu-item"
       className={cn(
-        "relative flex cursor-pointer select-none items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-medium outline-none transition-colors",
+        "relative flex cursor-pointer select-none items-center justify-between rounded-md px-3.5 py-2.5 text-sm font-medium outline-none transition-colors",
         active
           ? "bg-blue-50/90 text-blue-600 font-semibold"
           : "text-slate-700 hover:bg-slate-50 hover:text-slate-900 focus:bg-slate-50 focus:text-slate-900",
@@ -97,7 +119,7 @@ function DropdownMenuItem({
       {...props}
     >
       {children}
-      {active && <Check className="size-4 shrink-0 stroke-[2.5] text-blue-600 ml-2" />}
+      {active ? <Check className="size-4 shrink-0 stroke-[2.5] text-blue-600 ml-2" /> : null}
     </DropdownMenuPrimitive.Item>
   );
 }

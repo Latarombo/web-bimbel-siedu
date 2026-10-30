@@ -15,5 +15,29 @@
   "closeDialog": "Tutup dialog",
   "searchOptions": "Cari opsi...",
   "noMatchingOptions": "Tidak ada opsi yang sesuai",
-  "clearSearch": "Hapus pencarian"
+  "clearSearch": "Hapus pencarian",
+  "notFound": {
+    "badge": "404",
+    "title": "Halaman Tidak Ditemukan",
+    "description": "Maaf, halaman yang Anda cari tidak tersedia, sudah dipindahkan, atau tautan yang dimasukkan salah.",
+    "backHome": "Kembali ke Beranda",
+    "exploreClasses": "Jelajahi Kelas",
+    "backDashboardAdmin": "Kembali ke Dashboard Admin",
+    "backDashboardTeacher": "Kembali ke Dashboard Guru",
+    "backDashboardParent": "Kembali ke Dashboard",
+    "helpPrompt": "Butuh bantuan?",
+    "contactUs": "Hubungi Kami"
+  },
+  "error": {
+    "badge": "500",
+    "title": "Terjadi Kendala pada Sistem",
+    "description": "Sistem kami mengalami kendala tak terduga saat memproses halaman ini. Anda dapat mencoba memuat ulang halaman.",
+    "retry": "Muat Ulang Halaman",
+    "backHome": "Kembali ke Beranda",
+    "digestLabel": "ID Referensi:",
+    "helpPrompt": "Kendala terus berlanjut?",
+    "contactUs": "Hubungi Bantuan"
+  }
 }
+
+

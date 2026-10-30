@@ -15,5 +15,29 @@
   "closeDialog": "Close dialog",
   "searchOptions": "Search options...",
   "noMatchingOptions": "No matching options",
-  "clearSearch": "Clear search"
+  "clearSearch": "Clear search",
+  "notFound": {
+    "badge": "404",
+    "title": "Page Not Found",
+    "description": "Sorry, the page you are looking for does not exist, has been moved, or the link entered is incorrect.",
+    "backHome": "Back to Home",
+    "exploreClasses": "Explore Classes",
+    "backDashboardAdmin": "Back to Admin Dashboard",
+    "backDashboardTeacher": "Back to Teacher Dashboard",
+    "backDashboardParent": "Back to Dashboard",
+    "helpPrompt": "Need help?",
+    "contactUs": "Contact Us"
+  },
+  "error": {
+    "badge": "500",
+    "title": "Something Went Wrong",
+    "description": "Our system encountered an unexpected issue while processing this page. You can try reloading the page.",
+    "retry": "Reload Page",
+    "backHome": "Back to Home",
+    "digestLabel": "Reference ID:",
+    "helpPrompt": "Issue persists?",
+    "contactUs": "Contact Support"
+  }
 }
+
+

@@ -1,13 +1,11 @@
 import { getTranslations, getLocale } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
-import { redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { hariDariTanggal, dalamJendela7Hari, tanggalValid } from "@/lib/hari";
-import { ButtonLink } from "@/components/ui/button";
-import { PageShell, PageHeader, Panel } from "@/components/admin/ui";
+import { ArrowLeft } from "lucide-react";
 import { SessionStatStrip, TeacherAttendanceManager } from "@/components/teacher/attendance";
 
 export const dynamic = "force-dynamic";
@@ -69,20 +67,30 @@ export default async function AttendancePage({
 
   if (!item) {
     return (
-      <PageShell>
-        <PageHeader backHref={`/teacher/classes/${kid}`} title={t("attendanceTitle", { day: t(`day_${hari}`), date: new Date(`${date}T00:00:00+07:00`).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", { timeZone: "Asia/Jakarta" }) })} desc={kelasLabel} />
-        <Panel className="mt-6">
-          <div className="px-4 py-14 text-center sm:px-6">
-            <p className="text-sm font-bold text-slate-900">{t("notTeachingDate", { date })}</p>
-            <p className="mt-1 text-[13px] text-slate-500">
-              {t("classSchedule", { schedule: jadwal.map((j) => t(`day_${j.hari}`)).join(", ") || t("notScheduledAdmin") })}
-            </p>
-            <div className="mt-4 flex justify-center gap-2">
-              <ButtonLink href={`/teacher/classes/${kid}`} variant="outline">{t("backToClass")}</ButtonLink>
-            </div>
+      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
+        <Link
+          href={`/teacher/classes/${kid}`}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+        >
+          <ArrowLeft className="size-3.5" />
+          <span>{t("backToClass")}</span>
+        </Link>
+        <div className="rounded-lg border border-slate-200 bg-white p-12 text-center shadow-2xs">
+          <p className="text-base font-bold text-slate-900">{t("notTeachingDate", { date })}</p>
+          <p className="mt-1 text-xs text-slate-500">
+            {t("classSchedule", { schedule: jadwal.map((j) => t(`day_${j.hari}`)).join(", ") || t("notScheduledAdmin") })}
+          </p>
+          <div className="mt-6 flex justify-center">
+            <Link
+              href={`/teacher/classes/${kid}`}
+              className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            >
+              <ArrowLeft className="size-3.5" />
+              <span>{t("backToClass")}</span>
+            </Link>
           </div>
-        </Panel>
-      </PageShell>
+        </div>
+      </div>
     );
   }
 
@@ -128,62 +136,89 @@ export default async function AttendancePage({
   const perluPerhatian = existing.filter((x) => STATUS_WARN.has(x.status)).length;
   const terkunciN = anakList.filter((a) => a.terkunci).length;
 
+  const jamMulaiText = (sesiTersimpan?.jamMulai ?? item.jamMulai).slice(0, 5);
+  const jamSelesaiText = (sesiTersimpan?.jamSelesai ?? item.jamSelesai).slice(0, 5);
+
   return (
-    <PageShell>
-      <PageHeader
-        backHref={`/teacher/classes/${kid}`}
-        title={t("attendanceTitle", { day: t(`day_${hari}`), date: new Date(`${date}T00:00:00+07:00`).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", { timeZone: "Asia/Jakarta" }) })}
-        desc={t("attendanceDescription", { class: kelasLabel, start: (sesiTersimpan?.jamMulai ?? item.jamMulai).slice(0, 5), end: (sesiTersimpan?.jamSelesai ?? item.jamSelesai).slice(0, 5) })}
-        meta={t("filledRatio", { count: terisi, total: siswa.length })}
+    <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
+      {/* Top Navigation & Status Badge */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <Link
+          href={`/teacher/classes/${kid}`}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+        >
+          <ArrowLeft className="size-3.5" />
+          <span>Kembali ke Detail Kelas</span>
+        </Link>
+        <span className="inline-flex items-center gap-1.5 self-start sm:self-auto rounded-md border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs">
+          <span className="size-2 rounded-full bg-blue-600" />
+          {t("filledRatio", { count: terisi, total: siswa.length })}
+        </span>
+      </div>
+
+      {/* Title & Metadata */}
+      <div className="border-b border-slate-200 pb-5">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+          {t("attendanceTitle", {
+            day: t(`day_${hari}`),
+            date: new Date(`${date}T00:00:00+07:00`).toLocaleDateString(
+              locale === "en" ? "en-GB" : "id-ID",
+              { timeZone: "Asia/Jakarta" }
+            ),
+          })}
+        </h1>
+        <p className="mt-1 text-xs text-slate-500">
+          {kelasLabel} · Pukul {jamMulaiText} - {jamSelesaiText} WIB
+        </p>
+
+        {/* Multi-session selector (if class has multiple sessions in 1 day) */}
+        {sesiHariIni.length > 1 ? (
+          <nav aria-label={t("chooseTodaySession")} className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-slate-500 mr-1">Pilih Sesi:</span>
+            {sesiHariIni.map((j) => (
+              <Link
+                key={j.id}
+                href={`/teacher/classes/${kid}/sessions/${date}/attendance?sesi=${j.id}`}
+                aria-current={j.id === item.id ? "page" : undefined}
+                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                  j.id === item.id
+                    ? "bg-blue-600 text-white shadow-xs"
+                    : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                }`}
+              >
+                <span className="tabular-nums">{j.jamMulai.slice(0, 5)} - {j.jamSelesai.slice(0, 5)}</span>
+              </Link>
+            ))}
+          </nav>
+        ) : null}
+      </div>
+
+      {/* 4-Stat Strip */}
+      <SessionStatStrip
+        totalSiswa={siswa.length}
+        terisi={terisi}
+        perluPerhatian={perluPerhatian}
+        terkunciN={terkunciN}
       />
 
-      {sesiHariIni.length > 1 ? (
-        <nav aria-label={t("chooseTodaySession")} className="mt-4 flex flex-wrap gap-2">
-          {sesiHariIni.map((j) => (
-            <Link
-              key={j.id}
-              href={`/teacher/classes/${kid}/sessions/${date}/attendance?sesi=${j.id}`}
-              aria-current={j.id === item.id ? "page" : undefined}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-1 ${
-                j.id === item.id
-                  ? "bg-blue-600 text-white shadow-xs"
-                  : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-              }`}
-            >
-              <span className="tabular-nums">{j.jamMulai.slice(0, 5)}–{j.jamSelesai.slice(0, 5)}</span>
-            </Link>
-          ))}
-        </nav>
-      ) : null}
-
-      <div className="mt-6 space-y-6">
-        {/* Full-width Stat Strip */}
-        <SessionStatStrip
-          totalSiswa={siswa.length}
-          terisi={terisi}
-          perluPerhatian={perluPerhatian}
-          terkunciN={terkunciN}
-        />
-
-        {/* Dual-Tab Attendance & Session Journal Manager */}
-        <TeacherAttendanceManager
-          kelasId={kid}
-          jadwalItemId={item.id}
-          tanggal={tanggal}
-          siswa={anakList}
-          classNameTitle={kelasLabel}
-          catatanPertemuan={
-            catatanPertemuan
-              ? {
-                  materi: catatanPertemuan.materi,
-                  pr: catatanPertemuan.pr,
-                  draf: catatanPertemuan.draf,
-                  diterbitkanPada: catatanPertemuan.diterbitkanPada,
-                }
-              : null
-          }
-        />
-      </div>
-    </PageShell>
+      {/* Attendance & Session Notes Dual-Tab Manager */}
+      <TeacherAttendanceManager
+        kelasId={kid}
+        jadwalItemId={item.id}
+        tanggal={tanggal}
+        siswa={anakList}
+        classNameTitle={kelasLabel}
+        catatanPertemuan={
+          catatanPertemuan
+            ? {
+                materi: catatanPertemuan.materi,
+                pr: catatanPertemuan.pr,
+                draf: catatanPertemuan.draf,
+                diterbitkanPada: catatanPertemuan.diterbitkanPada,
+              }
+            : null
+        }
+      />
+    </div>
   );
 }

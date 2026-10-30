@@ -114,7 +114,7 @@ export function AttendanceTable({
 
   if (siswa.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-10 text-center">
+      <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 p-10 text-center">
         <p className="text-sm font-medium text-slate-500">{t('noSessionStudents')}</p>
       </div>
     );
@@ -130,7 +130,7 @@ export function AttendanceTable({
       {state.error ? (
         <div
           role="alert"
-          className="flex items-center gap-2.5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800"
+          className="flex items-center gap-2.5 rounded-md border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-800"
         >
           <AlertCircle className="size-4 shrink-0 text-rose-600" />
           <span>{state.error}</span>
@@ -140,7 +140,7 @@ export function AttendanceTable({
       {state.ok && !state.error ? (
         <div
           role="status"
-          className="flex items-center gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"
+          className="flex items-center gap-2.5 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-800"
         >
           <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
           <span>{t('attendanceSaved')}</span>
@@ -148,12 +148,12 @@ export function AttendanceTable({
       ) : null}
 
       {/* Control Toolbar: Quick Actions + Search Bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={handleMarkAllPresent}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-700 transition-colors hover:bg-emerald-100/80 active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100/70 active:scale-95 cursor-pointer"
           >
             <Check className="size-3.5 stroke-[2.5]" />
             <span>{t('markAllPresent')}</span>
@@ -161,7 +161,7 @@ export function AttendanceTable({
           <button
             type="button"
             onClick={handleClearAll}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-slate-50 active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 active:scale-95 cursor-pointer"
           >
             <RotateCcw className="size-3.5" />
             <span>{t('clearAll')}</span>
@@ -173,20 +173,20 @@ export function AttendanceTable({
           <label htmlFor="search-student" className="sr-only">
             Cari siswa
           </label>
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-slate-600" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" />
           <input
             id="search-student"
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari nama siswa..."
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/60 py-1.5 pl-9 pr-8 text-xs text-slate-900 transition-colors placeholder:text-slate-500 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/20"
+            className="w-full rounded-md border border-slate-200 bg-white py-1.5 pl-9 pr-8 text-xs text-slate-900 transition-colors placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-slate-600 hover:text-slate-600 cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
             >
               <X className="size-3.5" />
             </button>
@@ -195,24 +195,24 @@ export function AttendanceTable({
       </div>
 
       {/* Spreadsheet Table Container */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-2xs">
+      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px] border-collapse text-left">
             <thead>
-              <tr className="border-b border-slate-100 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                <th scope="col" className="w-12 px-4 py-3.5 text-center">
+              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                <th scope="col" className="w-12 px-4 py-3 text-center">
                   No
                 </th>
-                <th scope="col" className="px-4 py-3.5">
+                <th scope="col" className="px-4 py-3">
                   Siswa
                 </th>
-                <th scope="col" className="w-64 px-4 py-3.5 text-center">
+                <th scope="col" className="w-64 px-4 py-3 text-center">
                   Status Kehadiran
                 </th>
-                <th scope="col" className="px-4 py-3.5">
+                <th scope="col" className="px-4 py-3">
                   {t('notesOptional')}
                 </th>
-                <th scope="col" className="w-24 px-4 py-3.5 text-center">
+                <th scope="col" className="w-28 px-4 py-3 text-center">
                   Status
                 </th>
               </tr>
@@ -225,11 +225,11 @@ export function AttendanceTable({
                   <tr
                     key={s.pendaftaranId}
                     className={`transition-colors hover:bg-slate-50/70 ${
-                      s.terkunci ? 'bg-slate-50/40 opacity-85' : ''
+                      s.terkunci ? 'bg-slate-50/50 opacity-85' : ''
                     }`}
                   >
                     {/* 1. Nomor */}
-                    <td className="px-4 py-3 text-center font-medium text-slate-600 tabular-nums">
+                    <td className="px-4 py-3 text-center font-medium text-slate-500 tabular-nums">
                       {idx + 1}
                     </td>
 
@@ -246,8 +246,8 @@ export function AttendanceTable({
                             {s.nama}
                           </p>
                           {s.terkunci && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-700">
-                              <Lock className="size-2.5" />
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700">
+                              <Lock className="size-3" />
                               {t('lockedAdminRule')}
                             </span>
                           )}
@@ -270,26 +270,20 @@ export function AttendanceTable({
                             <label
                               key={st.key}
                               title={`${s.nama}: ${st.fullLabel}`}
-                              className={`group relative flex size-9 cursor-pointer items-center justify-center rounded-xl text-xs font-extrabold transition-all select-none active:scale-95 ${
+                              className={`group relative flex size-8 cursor-pointer items-center justify-center rounded-md text-xs font-bold transition-all select-none active:scale-95 ${
                                 s.terkunci
                                   ? 'cursor-not-allowed opacity-50'
                                   : ''
                               } ${
                                 isSelected
                                   ? st.tone === 'emerald'
-                                    ? 'bg-emerald-600 text-white shadow-xs ring-2 ring-emerald-500/30'
+                                    ? 'bg-emerald-600 text-white shadow-xs'
                                     : st.tone === 'amber'
-                                      ? 'bg-amber-500 text-white shadow-xs ring-2 ring-amber-500/30'
+                                      ? 'bg-amber-500 text-white shadow-xs'
                                       : st.tone === 'blue'
-                                        ? 'bg-blue-600 text-white shadow-xs ring-2 ring-blue-500/30'
-                                        : 'bg-rose-600 text-white shadow-xs ring-2 ring-rose-500/30'
-                                  : st.tone === 'emerald'
-                                    ? 'border border-emerald-200/80 bg-emerald-50/50 text-emerald-700 hover:bg-emerald-100/70'
-                                    : st.tone === 'amber'
-                                      ? 'border border-amber-200/80 bg-amber-50/50 text-amber-700 hover:bg-amber-100/70'
-                                      : st.tone === 'blue'
-                                        ? 'border border-blue-200/80 bg-blue-50/50 text-blue-700 hover:bg-blue-100/70'
-                                        : 'border border-rose-200/80 bg-rose-50/50 text-rose-700 hover:bg-rose-100/70'
+                                        ? 'bg-blue-600 text-white shadow-xs'
+                                        : 'bg-rose-600 text-white shadow-xs'
+                                  : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                               }`}
                             >
                               <input
@@ -318,19 +312,19 @@ export function AttendanceTable({
                         defaultValue={s.catatan ?? ''}
                         disabled={s.terkunci}
                         placeholder={t('notesPlaceholder')}
-                        className="w-full rounded-lg border border-slate-200/90 bg-slate-50/40 px-3 py-1.5 text-xs text-slate-800 transition-colors placeholder:text-slate-500 hover:border-slate-300 focus:border-blue-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600/20 disabled:bg-slate-100/60 disabled:cursor-not-allowed"
+                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 transition-colors placeholder:text-slate-400 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:bg-slate-100 disabled:cursor-not-allowed"
                       />
                     </td>
 
                     {/* 5. Status Icon Indicator */}
                     <td className="px-4 py-3 text-center">
                       {s.terkunci ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
-                          <Lock className="size-2.5" />
+                        <span className="inline-flex items-center gap-1 rounded bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
+                          <Lock className="size-3" />
                           Kunci
                         </span>
                       ) : currentStatus ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold capitalize text-slate-700">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold capitalize text-slate-700">
                           <span
                             className={`size-2 rounded-full ${
                               currentStatus === 'hadir'

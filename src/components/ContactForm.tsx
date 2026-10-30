@@ -2,11 +2,11 @@
 import { useTranslations } from "next-intl";
 
 
-import { useActionState, useState, useEffect } from 'react';
+import { useActionState, useState, useEffect, useMemo } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { kirimPesanKontak, type KontakState } from '@/app/actions/kontak';
 import { SUBJEK } from '@/lib/kontak';
-import { Select } from '@/components/ui/field';
+import { CardSelect } from '@/components/ui/card-select';
 
 const initial: KontakState = {};
 
@@ -26,10 +26,10 @@ function Label({ htmlFor, children, required }: { htmlFor: string; children: Rea
  );
 }
 
-function FieldError({ error }: { error?: string }) {
+function FieldError({ error, id }: { error?: string; id?: string }) {
  if (!error) return null;
  return (
-  <p className="mt-1.5 text-xs font-medium text-danger" role="alert">
+  <p id={id} className="mt-1.5 text-xs font-medium text-danger" role="alert">
    {error}
   </p>
  );
@@ -57,6 +57,24 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
  const tr = useTranslations("public");
  const [state, formAction, pending] = useActionState(kirimPesanKontak, initial);
  const errors = state.fieldErrors ?? {};
+
+ const jenjangOptions = useMemo(
+   () =>
+     JENJANG.map((j) => ({
+       value: j,
+       label: tr(`level${j}`),
+     })),
+   [tr]
+ );
+
+ const subjekOptions = useMemo(
+   () =>
+     SUBJEK.map((s, idx) => ({
+       value: s,
+       label: tr(`contactSubject${idx}`),
+     })),
+   [tr]
+ );
 
  const [draft, setDraftField, , clearDraft] = useFormDraft<ContactDraft>(
    "siedu_draft_contact",
@@ -181,24 +199,19 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
      <div className="grid gap-4.5 sm:grid-cols-2">
       <div>
        <Label htmlFor="jenjang">{tr("text173")}</Label>
-       <Select
+       <CardSelect
         id="jenjang"
         name="jenjang"
+        size="md"
         value={draft.jenjang}
-        onChange={(e) => setDraftField("jenjang", e.target.value)}
-        aria-invalid={errors.jenjang ? true : undefined}
-        className={`h-11 rounded-xl text-sm ${!draft.jenjang ? "text-slate-400" : "text-slate-800"}`}
-       >
-        <option value="" className="text-slate-400">
-         {tr("text174")}
-        </option>
-        {JENJANG.map((j) => (
-         <option key={j} value={j} className="text-slate-800">
-          {tr(`level${j}`)}
-         </option>
-        ))}
-       </Select>
-       <FieldError error={errors.jenjang} />
+        onChange={(val) => setDraftField("jenjang", val)}
+        options={jenjangOptions}
+        placeholder={tr("text174")}
+        modalTitle={tr("text173")}
+        ariaInvalid={Boolean(errors.jenjang)}
+        ariaDescribedby={errors.jenjang ? "jenjang-error" : undefined}
+       />
+       <FieldError error={errors.jenjang} id="jenjang-error" />
       </div>
 
       <div>
@@ -221,25 +234,20 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
      <div>
       <Label htmlFor="subjek" required>
        {tr("text177")}</Label>
-      <Select
+      <CardSelect
        id="subjek"
        name="subjek"
        required
+       size="md"
        value={draft.subjek}
-       onChange={(e) => setDraftField("subjek", e.target.value)}
-       aria-invalid={errors.subjek ? true : undefined}
-       className={`h-11 rounded-xl text-sm ${!draft.subjek ? "text-slate-400" : "text-slate-800"}`}
-      >
-       <option value="" className="text-slate-400">
-        {tr("text178")}
-       </option>
-       {SUBJEK.map((s, idx) => (
-        <option key={s} value={s} className="text-slate-800">
-         {tr(`contactSubject${idx}`)}
-        </option>
-       ))}
-      </Select>
-      <FieldError error={errors.subjek} />
+       onChange={(val) => setDraftField("subjek", val)}
+       options={subjekOptions}
+       placeholder={tr("text178")}
+       modalTitle={tr("text177")}
+       ariaInvalid={Boolean(errors.subjek)}
+       ariaDescribedby={errors.subjek ? "subjek-error" : undefined}
+      />
+      <FieldError error={errors.subjek} id="subjek-error" />
      </div>
 
     <div>

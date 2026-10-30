@@ -6,6 +6,10 @@ import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { TeacherShell } from "@/components/teacher/teacher-shell";
 import { dalamJendela7Hari } from "@/lib/hari";
+import type {
+  QuickSearchClassItem,
+  QuickSearchStudentItem,
+} from "@/components/teacher/teacher-quick-search";
 
 export const dynamic = "force-dynamic";
 
@@ -29,13 +33,16 @@ export default async function TeacherLayout({ children }: { children: React.Reac
   const kelasIdsArray = kelas.map((k) => k.id);
   const kelasIds = new Set(kelasIdsArray);
 
-  const [pendaftaran, penilaian, presensi] = await Promise.all([
+  const [pendaftaran, penilaian, presensi, mapel] = await Promise.all([
     kelasIdsArray.length
       ? collect(db.orm.public.Pendaftaran.where((p) => p.kelasId.in(kelasIdsArray)).all())
       : Promise.resolve([]),
     collect(db.orm.public.Penilaian.where((p) => p.dibuatOleh.eq(guruId)).all()),
     collect(db.orm.public.Presensi.where((x) => x.dicatatOleh.eq(guruId)).all()),
+    collect(db.orm.public.MataPelajaran.all()),
   ]);
+
+  const mapelById = new Map(mapel.map((m) => [m.id, m.nama]));
 
   const penilaianIdsArray = penilaian.map((p) => p.id);
   const penilaianIds = new Set(penilaianIdsArray);
@@ -54,6 +61,29 @@ export default async function TeacherLayout({ children }: { children: React.Reac
   const terkunci = presensi.filter((x) => !dalamJendela7Hari(x.createdAt)).length;
   const kelasAktif = kelas.filter((k) => k.status === "aktif").length;
 
+  // Search dataset: classes & active students
+  const searchClasses: QuickSearchClassItem[] = kelas.map((k) => ({
+    id: k.id,
+    name: mapelById.get(k.mataPelajaranId) ?? `Kelas #${k.id}`,
+    jenjang: k.jenjang,
+    tingkat: k.tingkat,
+  }));
+
+  const activeAnakIds = [...new Set(siswaAktif.map((s) => s.anakId))];
+  const anakList = activeAnakIds.length
+    ? await collect(db.orm.public.Anak.where((a) => a.id.in(activeAnakIds)).all())
+    : [];
+  const anakById = new Map(anakList.map((a) => [a.id, a.nama]));
+  const kelasNamaById = new Map(
+    kelas.map((k) => [k.id, mapelById.get(k.mataPelajaranId) ?? `Kelas #${k.id}`])
+  );
+
+  const searchStudents: QuickSearchStudentItem[] = siswaAktif.map((s) => ({
+    id: s.id,
+    nama: anakById.get(s.anakId) ?? `Siswa #${s.anakId}`,
+    kelasNama: (s.kelasId ? kelasNamaById.get(s.kelasId) : undefined) ?? "Kelas",
+  }));
+
   return (
     <TeacherShell
       role={t("teacher")}
@@ -66,6 +96,8 @@ export default async function TeacherLayout({ children }: { children: React.Reac
         siswaBelumNilai: siswaBelumNilai,
         presensiTerkunci: terkunci,
       }}
+      searchClasses={searchClasses}
+      searchStudents={searchStudents}
     >
       {children}
     </TeacherShell>

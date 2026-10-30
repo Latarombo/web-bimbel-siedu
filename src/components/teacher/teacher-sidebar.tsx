@@ -1,10 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect, useRef } from 'react';
-import { useTranslations, useLocale } from 'next-intl';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
 import LogoutDialog from '@/components/LogoutDialog';
+import { TeacherThemeSwitch } from './teacher-theme-switch';
 import {
   LayoutGrid,
   BookOpen,
@@ -12,13 +13,10 @@ import {
   Ruler,
   FileText,
   ClipboardCheck,
-  Settings,
-  ChevronRight,
-  PanelLeft,
-  Languages,
   LogOut,
-  User,
   X,
+  ChevronsLeft,
+  ChevronsRight,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -42,6 +40,9 @@ interface TeacherSidebarProps {
   };
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  isDrawerOpen?: boolean;
+  onCloseDrawer?: () => void;
+  onOpenLogout?: () => void;
 }
 
 export function TeacherSidebar({
@@ -52,16 +53,27 @@ export function TeacherSidebar({
   badgeCounts,
   isCollapsed,
   onToggleCollapse,
+  isDrawerOpen: isDrawerOpenProp,
+  onCloseDrawer: onCloseDrawerProp,
+  onOpenLogout: onOpenLogoutProp,
 }: TeacherSidebarProps) {
   const t = useTranslations('teacher');
   const tAdmin = useTranslations('shared.admin');
-  const locale = useLocale();
   const pathname = usePathname();
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isLogoutOpen, setIsLogoutOpen] = useState(false);
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [internalDrawerOpen, setInternalDrawerOpen] = useState(false);
+  const [internalLogoutOpen, setInternalLogoutOpen] = useState(false);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
+
+  const effectiveDrawerOpen = isDrawerOpenProp !== undefined ? isDrawerOpenProp : internalDrawerOpen;
+  const handleCloseDrawer = useCallback(() => {
+    if (onCloseDrawerProp) {
+      onCloseDrawerProp();
+    } else {
+      setInternalDrawerOpen(false);
+    }
+  }, [onCloseDrawerProp]);
+  const handleOpenLogout = onOpenLogoutProp ?? (() => setInternalLogoutOpen(true));
 
   // Clear pendingHref on route change
   const [prevPathname, setPrevPathname] = useState(pathname);
@@ -85,52 +97,64 @@ export function TeacherSidebar({
     .join('')
     .toUpperCase() || 'GU';
 
-  // Master Flat Navigation for Siedu Teacher Portal
-  const NAV_ITEMS: NavItemDef[] = [
+  // Grouped Navigation for Siedu Teacher Portal
+  interface NavSectionDef {
+    id: string;
+    title: string;
+    items: NavItemDef[];
+  }
+
+  const NAV_SECTIONS: NavSectionDef[] = [
     {
-      id: 'dashboard',
-      name: t('dashboard') || 'Dashboard',
-      href: '/teacher/dashboard',
-      icon: LayoutGrid,
+      id: 'teaching',
+      title: 'Pembelajaran',
+      items: [
+        {
+          id: 'dashboard',
+          name: t('navDashboard') || 'Dashboard',
+          href: '/teacher/dashboard',
+          icon: LayoutGrid,
+        },
+        {
+          id: 'classes',
+          name: t('navClasses') || 'Kelas',
+          href: '/teacher/classes',
+          icon: BookOpen,
+          badge: badgeCounts.kelasAktif > 0 ? badgeCounts.kelasAktif : undefined,
+        },
+        {
+          id: 'schedule',
+          name: t('navSchedule') || 'Jadwal',
+          href: '/teacher/calendar',
+          icon: Calendar,
+        },
+      ],
     },
     {
-      id: 'classes',
-      name: t('assignedClassesTitle') || 'Kelas Diampu',
-      href: '/teacher/classes',
-      icon: BookOpen,
-      badge: badgeCounts.kelasAktif > 0 ? badgeCounts.kelasAktif : undefined,
-    },
-    {
-      id: 'schedule',
-      name: t('calendarTitle') || 'Kalender Jadwal',
-      href: '/teacher/calendar',
-      icon: Calendar,
-    },
-    {
-      id: 'grades',
-      name: t('gradesTitle') || 'Penilaian & Nilai',
-      href: '/teacher/grades',
-      icon: Ruler,
-      badge: badgeCounts.siswaBelumNilai > 0 ? badgeCounts.siswaBelumNilai : undefined,
-    },
-    {
-      id: 'journal',
-      name: t('sessionNotesTitle') || 'Jurnal Pembelajaran',
-      href: '/teacher/status',
-      icon: FileText,
-    },
-    {
-      id: 'corrections',
-      name: t('corrections') || 'Pengajuan Koreksi',
-      href: '/teacher/corrections',
-      icon: ClipboardCheck,
-      badge: badgeCounts.presensiTerkunci > 0 ? badgeCounts.presensiTerkunci : undefined,
-    },
-    {
-      id: 'profile',
-      name: t('profile') || 'Pengaturan & Profil',
-      href: '/teacher/profile',
-      icon: Settings,
+      id: 'administration',
+      title: 'Administrasi',
+      items: [
+        {
+          id: 'grades',
+          name: t('navGrades') || 'Nilai',
+          href: '/teacher/grades',
+          icon: Ruler,
+          badge: badgeCounts.siswaBelumNilai > 0 ? badgeCounts.siswaBelumNilai : undefined,
+        },
+        {
+          id: 'journal',
+          name: t('navJournal') || 'Jurnal',
+          href: '/teacher/status',
+          icon: FileText,
+        },
+        {
+          id: 'corrections',
+          name: t('navCorrections') || 'Koreksi',
+          href: '/teacher/corrections',
+          icon: ClipboardCheck,
+          badge: badgeCounts.presensiTerkunci > 0 ? badgeCounts.presensiTerkunci : undefined,
+        },
+      ],
     },
   ];
 
@@ -140,77 +164,74 @@ export function TeacherSidebar({
     return current === href || current.startsWith(href + '/');
   };
 
-  // Close menus on escape key
+  // Close drawer on escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setIsDrawerOpen(false);
-        setIsProfileMenuOpen(false);
+        handleCloseDrawer();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [handleCloseDrawer]);
 
   return (
     <>
       {/* ========================================================= */}
-      {/* DESKTOP SIDEBAR (FIXED ANCHOR GRID - ZERO SCROLLBAR BUG)  */}
+      {/* DESKTOP SIDEBAR (MEDTBANK FLOATING ISLAND STYLE)          */}
       {/* ========================================================= */}
       <aside
         data-lenis-prevent
         onWheel={(e) => e.stopPropagation()}
-        className={`fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-slate-100 bg-white shadow-[1px_0_16px_rgba(0,0,0,0.03)] transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:flex ${
-          isCollapsed ? 'w-[72px]' : 'w-[268px]'
+        className={`fixed top-3 bottom-3 left-3 z-40 hidden flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 shadow-xl shadow-slate-900/5 dark:shadow-black/40 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:flex ${
+          isCollapsed ? 'w-[72px]' : 'w-[260px]'
         }`}
       >
+        {/* Medtbank-style Circular Toggle Button straddling the right border */}
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          aria-label={isCollapsed ? "Buka sidebar" : t("sidebarClose")}
+          title={isCollapsed ? "Buka sidebar" : t("sidebarClose")}
+          className="absolute -right-3 top-6 z-50 grid size-6.5 place-items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-md transition-all duration-200 hover:scale-110 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+        >
+          {isCollapsed ? (
+            <ChevronsRight className="size-3.5 stroke-[2.2]" />
+          ) : (
+            <ChevronsLeft className="size-3.5 stroke-[2.2]" />
+          )}
+        </button>
+
         {/* Top Header / Brand Logo */}
         <div
           onWheel={handleHeaderOrFooterWheel}
-          className="relative flex h-18 shrink-0 items-center border-b border-slate-100/80 px-3"
+          className="relative flex h-14 sm:h-16 shrink-0 items-center border-b border-slate-200/80 dark:border-slate-800 px-3 rounded-t-2xl"
         >
-          {/* Collapsed Mode: Logo button with hover PanelLeft icon */}
+          {/* Collapsed Mode: Centered Official Symbol */}
           <div
-            className={`flex items-center justify-center transition-opacity duration-200 ${
+            className={`flex items-center justify-center w-full transition-opacity duration-200 ${
               isCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none absolute'
             }`}
           >
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              aria-label="Buka sidebar"
-              className="group relative flex size-12 shrink-0 items-center justify-center rounded-xl transition-colors hover:bg-blue-50 cursor-pointer"
+            <Link
+              href="/teacher/dashboard"
+              className="flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              title="Siedu Portal Guru"
             >
-              {/* Official Symbol */}
-              <div className="flex size-8 items-center justify-center transition-all duration-200 group-hover:scale-0 group-hover:opacity-0">
-                <Image
-                  src="/svg/symbol_siedu.svg"
-                  alt="Siedu"
-                  width={34}
-                  height={34}
-                  className="size-8 object-contain"
-                  priority
-                />
-              </div>
-
-              {/* PanelLeft icon on hover */}
-              <div
-                aria-hidden="true"
-                className="absolute inset-0 flex items-center justify-center text-blue-600 opacity-0 scale-75 transition-all duration-200 group-hover:opacity-100 group-hover:scale-100"
-              >
-                <PanelLeft className="size-5 stroke-[2]" />
-              </div>
-
-              {/* Tooltip */}
-              <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-xl border border-slate-200/90 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 opacity-0 shadow-lg transition-all duration-150 group-hover:opacity-100 z-50">
-                Buka sidebar
-              </div>
-            </button>
+              <Image
+                src="/svg/symbol_siedu.svg"
+                alt="Siedu"
+                width={32}
+                height={32}
+                className="size-7.5 object-contain"
+                priority
+              />
+            </Link>
           </div>
 
-          {/* Expanded Mode: Full Logo + Collapse Toggle */}
+          {/* Expanded Mode: Full Logo */}
           <div
-            className={`flex items-center justify-between w-full pl-2 pr-1 transition-opacity duration-250 ${
+            className={`flex items-center w-full pl-2 transition-opacity duration-250 ${
               !isCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none absolute'
             }`}
           >
@@ -224,19 +245,18 @@ export function TeacherSidebar({
                 alt="Siedu"
                 width={116}
                 height={32}
-                className="h-7 w-auto object-contain"
+                className="h-7 w-auto object-contain dark:hidden"
+                priority
+              />
+              <Image
+                src="/images/Logo-white.png"
+                alt="Siedu"
+                width={116}
+                height={32}
+                className="h-7 w-auto object-contain hidden dark:block"
                 priority
               />
             </Link>
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              aria-label={t("sidebarClose")}
-              title={t("sidebarClose")}
-              className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-700 cursor-pointer"
-            >
-              <PanelLeft className="size-5" />
-            </button>
           </div>
         </div>
 
@@ -245,267 +265,201 @@ export function TeacherSidebar({
           ref={navRef}
           data-lenis-prevent
           onWheel={(e) => e.stopPropagation()}
-          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-3 py-4 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-3 py-3 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] dark:[scrollbar-color:#334155_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700"
         >
-          <ul className="space-y-1 pb-6">
-            {NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const active = isRouteActive(item.href);
-
-              return (
-                <li key={item.id} className="relative">
-                  <Link
-                    href={item.href}
-                    prefetch={true}
-                    aria-current={active ? 'page' : undefined}
-                    onClick={() => {
-                      if (pathname !== item.href) setPendingHref(item.href);
-                    }}
-                    className={`group relative flex h-11 items-center rounded-xl px-3 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                      active
-                        ? 'bg-blue-50/90 text-blue-600 font-semibold'
-                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          <nav className="space-y-4 pb-4">
+            {NAV_SECTIONS.map((section, sectionIdx) => (
+              <div key={section.id} className="space-y-1">
+                {/* Category Header */}
+                {!isCollapsed ? (
+                  <div
+                    className={`px-3 text-sm font-medium text-slate-800 dark:text-slate-300 ${
+                      sectionIdx > 0 ? 'pt-3 pb-1' : 'pb-1'
                     }`}
                   >
-                    {/* Icon at rock-solid fixed anchor */}
-                    <div className="flex size-6 shrink-0 items-center justify-center">
-                      <Icon
-                        className={`size-5 stroke-[1.8] ${
-                          active
-                            ? 'text-blue-600'
-                            : 'text-slate-600 group-hover:text-slate-600'
-                        }`}
-                      />
-                    </div>
+                    {section.title}
+                  </div>
+                ) : (
+                  sectionIdx > 0 && <div className="my-2 border-t border-slate-200 dark:border-slate-800" />
+                )}
 
-                    {/* Text label: zero width when collapsed to eliminate horizontal overflow */}
-                    <div
-                      className={`flex-1 min-w-0 flex items-center justify-between transition-all duration-200 ${
-                        isCollapsed
-                          ? 'opacity-0 pointer-events-none max-w-0 w-0 overflow-hidden ml-0'
-                          : 'opacity-100 max-w-full ml-3'
-                      }`}
-                    >
-                      <span className="truncate text-sm whitespace-nowrap">
-                        {item.name}
-                      </span>
+                <ul className="space-y-1">
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const active = isRouteActive(item.href);
 
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <span className="inline-flex items-center justify-center rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white shadow-2xs ml-2 shrink-0">
-                          {item.badge}
-                        </span>
-                      )}
-                    </div>
+                    return (
+                      <li key={item.id} className="relative">
+                        <Link
+                          href={item.href}
+                          prefetch={true}
+                          aria-current={active ? 'page' : undefined}
+                          onClick={() => {
+                            if (pathname !== item.href) setPendingHref(item.href);
+                          }}
+                          className={`group relative flex h-10 items-center rounded-md px-3 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                            active
+                              ? 'bg-slate-100 text-slate-950 font-semibold dark:bg-slate-800 dark:text-white'
+                              : 'text-slate-800 hover:bg-slate-50 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-slate-100'
+                          }`}
+                        >
+                          {/* Icon at rock-solid fixed anchor */}
+                          <div className="flex size-5 shrink-0 items-center justify-center">
+                            <Icon
+                              className={`size-4.5 ${
+                                active
+                                  ? 'text-slate-950 dark:text-white stroke-[2.2]'
+                                  : 'text-slate-800 group-hover:text-slate-950 dark:text-slate-300 dark:group-hover:text-slate-100 stroke-[1.8]'
+                              }`}
+                            />
+                          </div>
 
-                    {/* Collapsed floating tooltip */}
-                    {isCollapsed && (
-                      <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-xl border border-slate-200/90 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 opacity-0 shadow-lg transition-all duration-150 group-hover:opacity-100 z-50">
-                        {item.name}
-                        {item.badge !== undefined && item.badge > 0 && (
-                          <span className="ml-2 rounded-full bg-blue-600 px-1.5 py-0.2 text-[10px] font-bold text-white">
-                            {item.badge}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+                          {/* Text label: zero width when collapsed to eliminate horizontal overflow */}
+                          <div
+                            className={`flex-1 min-w-0 flex items-center justify-between transition-all duration-200 ${
+                              isCollapsed
+                                ? 'opacity-0 pointer-events-none max-w-0 w-0 overflow-hidden ml-0'
+                                : 'opacity-100 max-w-full ml-3'
+                            }`}
+                          >
+                            <span className="truncate text-sm whitespace-nowrap">
+                              {item.name}
+                            </span>
+
+                            {item.badge !== undefined && item.badge > 0 && (
+                              <span
+                                className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold ml-2 shrink-0 ${
+                                  active
+                                    ? 'bg-slate-200/80 text-slate-800 dark:bg-slate-700 dark:text-slate-200'
+                                    : 'bg-slate-100 text-slate-500 border border-slate-200/60 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                                }`}
+                              >
+                                {item.badge}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Collapsed floating tooltip */}
+                          {isCollapsed && (
+                            <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-900 dark:text-white opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
+                              {item.name}
+                              {item.badge !== undefined && item.badge > 0 && (
+                                <span className="ml-2 rounded bg-slate-100 dark:bg-slate-700 px-1.5 py-0.2 text-[10px] font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600">
+                                  {item.badge}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </nav>
         </div>
 
-        {/* Bottom Section: Language Capsule Switcher & User Profile (overflow-visible for popups) */}
+        {/* Bottom Section: Theme Switch + User Profile & Direct Logout (Medtbank style) */}
         <div
           onWheel={handleHeaderOrFooterWheel}
-          className="relative border-t border-slate-100 p-3 space-y-3 shrink-0"
+          className="relative border-t border-slate-200 dark:border-slate-800 p-3 shrink-0 rounded-b-2xl space-y-2.5"
         >
-          {/* Language Switcher Capsule [ID | EN] */}
-          <div className="relative flex items-center justify-center min-h-9">
-            {/* Expanded Capsule */}
-            <div
-              className={`w-full transition-opacity duration-200 ${
-                !isCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none absolute w-0 max-w-0 overflow-hidden'
-              }`}
-            >
-              <div className="flex items-center rounded-2xl bg-slate-100 p-1">
-                <Link
-                  href={pathname}
-                  locale="id"
-                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-1.5 text-xs font-bold transition-all ${
-                    locale === 'id'
-                      ? 'bg-white text-slate-900 shadow-2xs'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  <Languages className="size-3.5 shrink-0" />
-                  <span>ID</span>
-                </Link>
-                <Link
-                  href={pathname}
-                  locale="en"
-                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-1.5 text-xs font-bold transition-all ${
-                    locale === 'en'
-                      ? 'bg-white text-slate-900 shadow-2xs'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  <Languages className="size-3.5 shrink-0" />
-                  <span>EN</span>
-                </Link>
-              </div>
-            </div>
+          {/* Theme Switcher */}
+          <TeacherThemeSwitch isCollapsed={isCollapsed} />
 
-            {/* Collapsed Compact Lang Button */}
-            <div
-              className={`flex items-center justify-center transition-opacity duration-200 ${
-                isCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none absolute'
-              }`}
-            >
+          {!isCollapsed ? (
+            /* Expanded State: Clean Profile Card with Direct Logout Button */
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/90 p-2 transition-colors">
               <Link
-                href={pathname}
-                locale={locale === 'id' ? 'en' : 'id'}
-                title={`Ganti bahasa ke ${locale === 'id' ? 'English' : 'Indonesia'}`}
-                aria-label={`Ganti bahasa ke ${locale === 'id' ? 'English' : 'Indonesia'}`}
-                className="group relative flex size-11 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
+                href="/teacher/profile"
+                className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-85 transition-opacity"
+                title="Lihat Profil Guru"
               >
-                <Languages className="size-5 stroke-[1.8]" />
-                {/* Tooltip */}
-                <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-xl border border-slate-200/90 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 opacity-0 shadow-lg transition-all duration-150 group-hover:opacity-100 z-50">
-                  {locale === 'id' ? 'Switch to English' : 'Ganti ke Bahasa Indonesia'}
+                <div className="grid size-9 shrink-0 place-items-center rounded-md bg-amber-400 text-xs font-black text-amber-950 shadow-2xs">
+                  {initials}
                 </div>
-              </Link>
-            </div>
-          </div>
-
-          {/* User Profile Card (Avatar anchored left, text fades) */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-              aria-haspopup="true"
-              aria-expanded={isProfileMenuOpen}
-              className="group relative flex h-12 w-full items-center rounded-2xl p-1.5 text-left transition-colors hover:bg-slate-50 cursor-pointer"
-            >
-              {/* Warm Amber Avatar: Fixed left anchor, never jumps */}
-              <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-400 text-xs font-black text-amber-950 shadow-2xs">
-                {initials}
-              </div>
-
-              {/* User info: zero width when collapsed to eliminate horizontal overflow */}
-              <div
-                className={`flex-1 min-w-0 flex items-center justify-between transition-all duration-200 ${
-                  isCollapsed
-                    ? 'opacity-0 pointer-events-none max-w-0 w-0 overflow-hidden ml-0'
-                    : 'opacity-100 max-w-full ml-3'
-                }`}
-              >
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-bold text-slate-900">
+                  <p className="truncate text-xs font-semibold text-slate-900 dark:text-slate-100">
                     {userName}
                   </p>
-                  <p className="truncate text-[11px] text-slate-600">
-                    {userEmail}
+                  <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
+                    {role || "Guru"}
                   </p>
                 </div>
-                <ChevronRight className={`size-4 text-slate-600 shrink-0 ml-1 transition-transform ${isProfileMenuOpen ? 'rotate-90' : ''}`} />
-              </div>
-            </button>
-
-            {/* Profile Dropdown Menu with Backdrop for Reliable Closing */}
-            {isProfileMenuOpen && (
-              <>
-                {/* Transparent backdrop to close dropdown on outside click */}
-                <div
-                  className="fixed inset-0 z-40 cursor-default"
-                  onClick={() => setIsProfileMenuOpen(false)}
-                />
-
-                {/* Dropdown Card */}
-                <div
-                  className={`absolute bottom-full mb-2 w-60 rounded-2xl border border-slate-100 bg-white p-1.5 shadow-xl ring-1 ring-slate-900/5 z-50 animate-in fade-in zoom-in-95 duration-150 ${
-                    !isCollapsed ? 'left-0' : 'left-full ml-3'
-                  }`}
-                >
-                  <div className="border-b border-slate-100 px-3 py-2.5">
-                    <p className="text-xs font-bold text-slate-900 truncate">{userName}</p>
-                    <p className="text-[11px] text-slate-500 capitalize">{role}</p>
-                    {userEmail && (
-                      <p className="text-[10px] text-slate-600 truncate mt-0.5">{userEmail}</p>
-                    )}
-                  </div>
-                  <div className="py-1">
-                    <Link
-                      href="/teacher/profile"
-                      onClick={() => setIsProfileMenuOpen(false)}
-                      className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-                    >
-                      <User className="size-4 text-slate-600" />
-                      <span>Profil Guru</span>
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsProfileMenuOpen(false);
-                        setIsLogoutOpen(true);
-                      }}
-                      className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
-                    >
-                      <LogOut className="size-4" />
-                      <span>{tAdmin('logout')}</span>
-                    </button>
-                  </div>
+              </Link>
+              <button
+                type="button"
+                onClick={handleOpenLogout}
+                className="grid size-8 shrink-0 place-items-center rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors cursor-pointer"
+                title={tAdmin('logout')}
+                aria-label={tAdmin('logout')}
+              >
+                <LogOut className="size-4" />
+              </button>
+            </div>
+          ) : (
+            /* Collapsed State: Centered Avatar + Logout Icon */
+            <div className="flex flex-col items-center gap-2">
+              <Link
+                href="/teacher/profile"
+                className="group relative flex size-10 shrink-0 items-center justify-center rounded-md bg-amber-400 text-xs font-black text-amber-950 shadow-2xs hover:opacity-90 transition-opacity"
+                aria-label="Profil Guru"
+              >
+                {initials}
+                <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-900 dark:text-white opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
+                  {userName} · Profil
                 </div>
-              </>
-            )}
-          </div>
+              </Link>
+              <button
+                type="button"
+                onClick={handleOpenLogout}
+                className="group relative flex size-9 shrink-0 items-center justify-center rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors cursor-pointer"
+                title={tAdmin('logout')}
+                aria-label={tAdmin('logout')}
+              >
+                <LogOut className="size-4" />
+                <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-rose-500 dark:text-rose-400 opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
+                  {tAdmin('logout')}
+                </div>
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
       {/* ========================================================= */}
-      {/* MOBILE TOPBAR & DRAWER                                    */}
+      {/* MOBILE DRAWER (Controlled by TeacherShell & TeacherHeader)*/}
       {/* ========================================================= */}
-      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-100 bg-white/95 backdrop-blur-md px-4 lg:hidden">
-        <Link href="/teacher/dashboard" className="flex items-center">
-          <Image
-            src="/images/Logo.png"
-            alt="Siedu"
-            width={110}
-            height={30}
-            className="h-6 w-auto object-contain"
-            priority
-          />
-        </Link>
-        <button
-          type="button"
-          onClick={() => setIsDrawerOpen(true)}
-          aria-label="Buka navigasi"
-          className="grid size-9 place-items-center rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 cursor-pointer"
-        >
-          <PanelLeft className="size-5" />
-        </button>
-      </header>
-
-      {/* Mobile Drawer Overlay */}
-      {isDrawerOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
+      {effectiveDrawerOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true">
           <div
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
-            onClick={() => setIsDrawerOpen(false)}
+            className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
+            onClick={handleCloseDrawer}
           />
-          <div className="fixed inset-y-0 left-0 flex w-[280px] max-w-[85vw] flex-col bg-white shadow-2xl animate-in slide-in-from-left duration-250">
-            <div className="flex h-16 items-center justify-between border-b border-slate-100 px-4">
-              <Image
-                src="/images/Logo.png"
-                alt="Siedu"
-                width={110}
-                height={30}
-                className="h-6 w-auto object-contain"
-              />
+          <div className="fixed inset-y-0 left-0 flex w-[280px] max-w-[85vw] flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 shadow-2xl animate-in slide-in-from-left duration-250">
+            <div className="flex h-14 sm:h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 px-4">
+              <Link href="/teacher/dashboard" onClick={handleCloseDrawer} className="flex items-center">
+                <Image
+                  src="/images/Logo.png"
+                  alt="Siedu"
+                  width={110}
+                  height={30}
+                  className="h-6 w-auto object-contain dark:hidden"
+                />
+                <Image
+                  src="/images/Logo-white.png"
+                  alt="Siedu"
+                  width={110}
+                  height={30}
+                  className="h-6 w-auto object-contain hidden dark:block"
+                />
+              </Link>
               <button
                 type="button"
-                onClick={() => setIsDrawerOpen(false)}
-                className="grid size-8 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 cursor-pointer"
+                onClick={handleCloseDrawer}
+                className="grid size-8 place-items-center rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                aria-label="Tutup navigasi"
               >
                 <X className="size-5" />
               </button>
@@ -514,102 +468,101 @@ export function TeacherSidebar({
             <div
               data-lenis-prevent
               onWheel={(e) => e.stopPropagation()}
-              className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-4 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300"
+              className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-4 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] dark:[scrollbar-color:#334155_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700"
             >
-              <ul className="space-y-1 pb-6">
-                {NAV_ITEMS.map((item) => {
-                  const Icon = item.icon;
-                  const active = isRouteActive(item.href);
+              <nav className="space-y-4 pb-6">
+                {NAV_SECTIONS.map((section, sectionIdx) => (
+                  <div key={section.id} className="space-y-1">
+                    <div
+                      className={`px-3 text-sm font-medium text-slate-800 dark:text-slate-300 ${
+                        sectionIdx > 0 ? 'pt-2 pb-1' : 'pb-1'
+                      }`}
+                    >
+                      {section.title}
+                    </div>
+                    <ul className="space-y-1">
+                      {section.items.map((item) => {
+                        const Icon = item.icon;
+                        const active = isRouteActive(item.href);
 
-                  return (
-                    <li key={item.id}>
-                      <Link
-                        href={item.href}
-                        prefetch={true}
-                        aria-current={active ? 'page' : undefined}
-                        onClick={() => {
-                          if (pathname !== item.href) setPendingHref(item.href);
-                          setIsDrawerOpen(false);
-                        }}
-                        className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                          active
-                            ? 'bg-blue-50/80 font-semibold text-blue-600'
-                            : 'font-medium text-slate-600 hover:bg-slate-50'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon
-                            className={`size-5 ${
-                              active ? 'text-blue-600' : 'text-slate-600'
-                            }`}
-                          />
-                          <span>{item.name}</span>
-                        </div>
-                        {item.badge !== undefined && item.badge > 0 && (
-                          <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold text-white">
-                            {item.badge}
-                          </span>
-                        )}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
+                        return (
+                          <li key={item.id} className="relative">
+                            <Link
+                              href={item.href}
+                              prefetch={true}
+                              aria-current={active ? 'page' : undefined}
+                              onClick={() => {
+                                if (pathname !== item.href) setPendingHref(item.href);
+                                handleCloseDrawer();
+                              }}
+                              className={`group relative flex items-center justify-between rounded-md px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors ${
+                                active
+                                  ? 'bg-slate-100 font-semibold text-slate-950 dark:bg-slate-800 dark:text-white'
+                                  : 'font-medium text-slate-800 hover:bg-slate-50 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-white'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <Icon
+                                  className={`size-4.5 ${
+                                    active
+                                      ? 'text-slate-950 dark:text-white stroke-[2.2]'
+                                      : 'text-slate-800 group-hover:text-slate-950 dark:text-slate-300 dark:group-hover:text-slate-100 stroke-[1.8]'
+                                  }`}
+                                />
+                                <span>{item.name}</span>
+                              </div>
+                              {item.badge !== undefined && item.badge > 0 && (
+                                <span
+                                  className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                                    active
+                                      ? 'bg-slate-200/80 text-slate-800 dark:bg-slate-700 dark:text-slate-200'
+                                      : 'bg-slate-100 text-slate-500 border border-slate-200/60 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                                  }`}
+                                >
+                                  {item.badge}
+                                </span>
+                              )}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              </nav>
             </div>
 
-            <div className="border-t border-slate-100 p-4 space-y-3">
-              {/* Language Switcher Capsule in Mobile */}
-              <div className="flex items-center rounded-2xl bg-slate-100 p-1">
-                <Link
-                  href={pathname}
-                  locale="id"
-                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-1.5 text-xs font-bold ${
-                    locale === 'id'
-                      ? 'bg-white text-slate-900 shadow-2xs'
-                      : 'text-slate-500'
-                  }`}
-                >
-                  <Languages className="size-3.5 shrink-0" />
-                  <span>ID</span>
-                </Link>
-                <Link
-                  href={pathname}
-                  locale="en"
-                  className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl py-1.5 text-xs font-bold ${
-                    locale === 'en'
-                      ? 'bg-white text-slate-900 shadow-2xs'
-                      : 'text-slate-500'
-                  }`}
-                >
-                  <Languages className="size-3.5 shrink-0" />
-                  <span>EN</span>
-                </Link>
-              </div>
+            {/* Mobile Drawer Bottom Section */}
+            <div className="border-t border-slate-200 dark:border-slate-800 p-3 space-y-2.5">
+              <TeacherThemeSwitch isCollapsed={false} />
 
-              {/* Mobile Teacher Profile Row with Direct Profile Link */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60 p-2">
                 <Link
                   href="/teacher/profile"
-                  onClick={() => setIsDrawerOpen(false)}
-                  className="flex flex-1 items-center gap-3 min-w-0"
+                  onClick={handleCloseDrawer}
+                  className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-85 transition-opacity"
                 >
-                  <div className="grid size-9 place-items-center rounded-xl bg-amber-400 text-xs font-black text-amber-950">
+                  <div className="grid size-9 shrink-0 place-items-center rounded-md bg-amber-400 text-xs font-black text-amber-950 shadow-2xs">
                     {initials}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-slate-900">
+                    <p className="truncate text-xs font-semibold text-slate-900 dark:text-slate-100">
                       {userName}
                     </p>
-                    <p className="truncate text-[11px] text-slate-600">
-                      {userEmail}
+                    <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
+                      {role || "Guru"}
                     </p>
                   </div>
                 </Link>
                 <button
                   type="button"
-                  onClick={() => setIsLogoutOpen(true)}
-                  className="rounded-lg p-2 text-slate-600 hover:bg-rose-50 hover:text-rose-600 cursor-pointer"
+                  onClick={() => {
+                    handleCloseDrawer();
+                    handleOpenLogout();
+                  }}
+                  className="grid size-8 shrink-0 place-items-center rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors cursor-pointer"
                   title={tAdmin('logout')}
+                  aria-label={tAdmin('logout')}
                 >
                   <LogOut className="size-4" />
                 </button>
@@ -619,15 +572,17 @@ export function TeacherSidebar({
         </div>
       )}
 
-      {/* Logout Confirmation Dialog */}
-      <LogoutDialog
-        open={isLogoutOpen}
-        onOpenChange={setIsLogoutOpen}
-        userName={userName}
-        userEmail={userEmail}
-        role={role}
-        accountRole={accountRole}
-      />
+      {/* Fallback Logout Confirmation Dialog if not controlled by parent */}
+      {onOpenLogoutProp === undefined && (
+        <LogoutDialog
+          open={internalLogoutOpen}
+          onOpenChange={setInternalLogoutOpen}
+          userName={userName}
+          userEmail={userEmail}
+          role={role}
+          accountRole={accountRole}
+        />
+      )}
     </>
   );
 }
