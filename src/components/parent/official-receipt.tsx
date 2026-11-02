@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
 import { Printer, ArrowLeft, CheckCircle2, ShieldCheck, QrCode, Share2 } from 'lucide-react';
 import { rupiah, fmtTanggal } from '@/lib/format';
 import { terbilangRupiah } from '@/lib/terbilang';
@@ -28,11 +28,11 @@ export interface OfficialReceiptData {
 }
 
 export function OfficialReceipt({ data }: { data: OfficialReceiptData }) {
-  const [currentUrl, setCurrentUrl] = useState('');
-
-  useEffect(() => {
-    setCurrentUrl(window.location.href);
-  }, []);
+  const currentUrl = useSyncExternalStore(
+    () => () => {},
+    () => window.location.href,
+    () => '',
+  );
 
   const handlePrint = () => {
     window.print();

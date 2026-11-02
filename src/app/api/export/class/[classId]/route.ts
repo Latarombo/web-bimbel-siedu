@@ -35,7 +35,7 @@ export async function GET(
   }
 
   const userId = Number(session.user.id);
-  const userRole = (session.user as any).role;
+  const userRole = (session.user as { role?: string }).role;
   if (userRole !== "admin" && kelas.guruId !== userId) {
     return new Response("Forbidden", { status: 403 });
   }

@@ -9,7 +9,6 @@ import {
   X,
   Camera,
   FileText,
-  Sparkles,
   Clock,
   AlertTriangle,
   CheckCircle2,

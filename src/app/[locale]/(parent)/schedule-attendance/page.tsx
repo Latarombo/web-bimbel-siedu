@@ -5,14 +5,13 @@ import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { Card, CardPad } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { sanitizeLaporanForParent } from "@/lib/laporan-perkembangan";
 
 import { ScheduleTab } from "@/components/parent/schedule-attendance/schedule-tab";
 import { AttendanceTab } from "@/components/parent/schedule-attendance/attendance-tab";
 import { JadwalRecord } from "@/components/parent/schedule-attendance/schedule-context";
 import { PresensiRecord } from "@/components/parent/schedule-attendance/attendance-context";
-import { CalendarDays, UserCheck, Award, BookOpen, Users, Clock } from "lucide-react";
+import { CalendarDays, UserCheck, Award, BookOpen, Users } from "lucide-react";
 import { StudentAvatar } from "@/components/parent/student-avatar";
 
 export const dynamic = "force-dynamic";
@@ -20,18 +19,6 @@ export const dynamic = "force-dynamic";
 // C7 — Schedule & Attendance (tab gabungan via ?tab=, pola shadcn Tabs server-side).
 // Jadwal: JadwalItem kelas yang diikuti anak (pendaftaran aktif), dikelompokkan per hari.
 // Presensi: rows Presensi pendaftaran milik anak.
-
-function PresensiBadge({ status, label }: { status: string; label: string }) {
-  const tone =
-    status === "hadir"
-      ? "emerald"
-      : status === "izin" || status === "sakit"
-        ? "amber"
-        : status === "alpa"
-          ? "red"
-          : "slate";
-  return <Badge tone={tone}>{label}</Badge>;
-}
 
 const URUTAN_HARI = [
   "Senin",
@@ -43,10 +30,6 @@ const URUTAN_HARI = [
   "Minggu",
 ] as const;
 
-function jamPendek(t: string) {
-  return t.slice(0, 5);
-}
-
 export default async function ScheduleAttendancePage({
   searchParams,
 }: {
@@ -54,18 +37,12 @@ export default async function ScheduleAttendancePage({
 }) {
   const tr = await getTranslations("parent");
   const locale = await getLocale();
-  const statusLabels: Record<string, string> = {
-    hadir: tr("text116"),
-    izin: tr("text117"),
-    sakit: tr("text118"),
-    alpa: tr("text119"),
-  };
   const session = await auth();
   if (!session?.user) {
     return redirect({href: "/login?next=/schedule-attendance", locale});
   }
   const ortuId = Number(session.user.id);
-  const { tab, status: statusParam, anakId: anakIdParam } = await searchParams;
+  const { tab, anakId: anakIdParam } = await searchParams;
   const anakTerpilihId = anakIdParam ? Number(anakIdParam) : null;
   const tabAktif =
     tab === "presensi"
@@ -75,12 +52,6 @@ export default async function ScheduleAttendancePage({
         : tab === "laporan"
           ? "laporan"
           : "jadwal";
-  const FILTER_STATUS = ["semua", "hadir", "izin", "sakit", "alpa"] as const;
-  const statusAktif = (FILTER_STATUS as readonly string[]).includes(
-    statusParam ?? "",
-  )
-    ? (statusParam as (typeof FILTER_STATUS)[number])
-    : "semua";
 
   const anak = await collect(
     db.orm.public.Anak.where((a) => a.orangTuaId.eq(ortuId)).all(),

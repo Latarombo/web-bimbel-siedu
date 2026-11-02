@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Printer, ArrowLeft, Award, CheckCircle2, ShieldCheck, QrCode, Share2 } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
+import { Printer, ArrowLeft, Award, ShieldCheck, QrCode, Share2 } from 'lucide-react';
 import { fmtTanggal } from '@/lib/format';
 
 export interface OfficialCertificateData {
@@ -21,11 +21,11 @@ export interface OfficialCertificateData {
 }
 
 export function OfficialCertificate({ data }: { data: OfficialCertificateData }) {
-  const [currentUrl, setCurrentUrl] = useState('');
-
-  useEffect(() => {
-    setCurrentUrl(window.location.href);
-  }, []);
+  const currentUrl = useSyncExternalStore(
+    () => () => {},
+    () => window.location.href,
+    () => '',
+  );
 
   const handlePrint = () => {
     window.print();

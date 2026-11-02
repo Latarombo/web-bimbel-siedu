@@ -54,14 +54,10 @@ function persistSkema(skema: Skema, tenor: number) {
 
 export function SkemaPembayaran({
   kelasId,
-  periode,
   biayaPeriode,
   biayaDp,
   tenorMaksimum,
   sisaKuota,
-  kuotaTerisi,
-  kuotaMaksimum,
-  manfaat,
   jenjang,
   isLoggedIn,
   isOrangTua,
@@ -581,7 +577,6 @@ function BarHargaLengket({
   kelasId: number;
   sisaKuota: number;
 }) {
-  const tr = useTranslations("public");
   const [show, setShow] = useState(false);
 
   useEffect(() => {

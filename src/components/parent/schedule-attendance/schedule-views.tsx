@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useSchedule } from "./schedule-context";
+import { useSchedule, JadwalRecord } from "./schedule-context";
 import { Card, CardPad } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useTranslations, useLocale } from "next-intl";
@@ -179,16 +179,17 @@ export function DailyAgenda() {
 export function WeeklyGrid() {
   const { state } = useSchedule();
   const locale = useLocale();
+  const records = state.records;
 
   const recordsByDay = useMemo(() => {
-    const map = new Map<string, typeof state.records>();
+    const map = new Map<string, JadwalRecord[]>();
     URUTAN_HARI.forEach((h) => map.set(h, []));
-    state.records.forEach((r) => {
+    records.forEach((r) => {
       const arr = map.get(r.hari);
       if (arr) arr.push(r);
     });
     return map;
-  }, [state.records]);
+  }, [records]);
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 overflow-x-auto pb-4">

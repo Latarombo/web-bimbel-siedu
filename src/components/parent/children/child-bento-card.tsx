@@ -4,7 +4,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Lock } from 'lucide-react';
 import { StudentAvatar } from '@/components/parent/student-avatar';
-import { ChildData, JENJANG_STYLES } from './types';
+import { ChildData } from './types';
 
 interface ChildBentoCardProps {
   child: ChildData;
@@ -47,11 +47,6 @@ export function ChildBentoCard({ child, onSelect }: ChildBentoCardProps) {
   const t = useTranslations('parent');
   const locale = useLocale();
 
-  const jenjangKey = (child.jenjangTerakhir?.toUpperCase() ?? 'DEFAULT') in JENJANG_STYLES
-    ? (child.jenjangTerakhir?.toUpperCase() as keyof typeof JENJANG_STYLES)
-    : 'DEFAULT';
-  const style = JENJANG_STYLES[jenjangKey] ?? JENJANG_STYLES.DEFAULT;
-  const inisial = child.nama.trim().slice(0, 2).toUpperCase();
   const umur = hitungUmur(child.tanggalLahir, t);
 
   return (

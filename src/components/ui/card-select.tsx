@@ -229,12 +229,14 @@ export function CardSelect({
       <button
         id={inputId}
         type="button"
+        role="combobox"
         disabled={disabled}
         onClick={() => {
           if (!disabled) setIsOpen((prev) => !prev);
         }}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
+        aria-controls={`${inputId}-listbox`}
         aria-invalid={ariaInvalid}
         aria-describedby={ariaDescribedby}
         className={cn(
@@ -290,6 +292,7 @@ export function CardSelect({
           {/* Popover / Bottom Sheet Content */}
           <div
             ref={popoverRef}
+            id={`${inputId}-listbox`}
             role="listbox"
             aria-label={modalTitle}
             className={cn(

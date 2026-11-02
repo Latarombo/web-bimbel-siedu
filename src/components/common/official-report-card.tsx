@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Printer, ArrowLeft, CheckCircle2, Award, Calendar, BookOpen, UserCheck, ShieldCheck, QrCode, Share2 } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
+import { Printer, ArrowLeft, Award, BookOpen, UserCheck, ShieldCheck, Share2 } from 'lucide-react';
 import { fmtTanggal } from '@/lib/format';
 import { createReportCardWaLink } from '@/lib/whatsapp';
 
@@ -49,11 +49,11 @@ export interface OfficialReportCardData {
 }
 
 export function OfficialReportCard({ data }: { data: OfficialReportCardData }) {
-  const [currentUrl, setCurrentUrl] = useState('');
-
-  useEffect(() => {
-    setCurrentUrl(window.location.href);
-  }, []);
+  const currentUrl = useSyncExternalStore(
+    () => () => {},
+    () => window.location.href,
+    () => '',
+  );
 
   const handlePrint = () => {
     window.print();

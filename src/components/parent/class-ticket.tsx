@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 import {
   MapPin,
   Calendar,
-  Clock,
   User,
   GraduationCap,
   Sparkles,
@@ -13,8 +12,6 @@ import {
   ExternalLink,
   DoorOpen,
   CheckCircle2,
-  BookOpen,
-  AlertCircle,
   ShieldCheck,
 } from "lucide-react";
 import { SITE, MAPS_SEARCH_URL } from "@/lib/site";

@@ -148,15 +148,18 @@ export default function FaqSection() {
   const sisaFaq = faq.slice(AWAL);
 
   useEffect(() => {
-    // Sinkronkan state dengan hash URL hanya setelah hydration client selesai
-    const state = parseHashState();
-    if (state.openIndex !== null) {
-      setOpenIndex(state.openIndex);
-    }
-    if (state.semua) {
-      setSemua(true);
-    }
     isMountedRef.current = true;
+    const state = parseHashState();
+    if (state.openIndex !== null || state.semua) {
+      window.requestAnimationFrame(() => {
+        if (state.openIndex !== null) {
+          setOpenIndex(state.openIndex);
+        }
+        if (state.semua) {
+          setSemua(true);
+        }
+      });
+    }
 
     function handleHashChange() {
       const nextState = parseHashState();

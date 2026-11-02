@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
-import { Card, CardPad } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { StatusBadge, type StatusPendaftaran } from "@/components/status-badge";
@@ -20,7 +19,6 @@ import {
   Calendar,
   Lock,
   MessageCircle,
-  HelpCircle,
   Sparkles,
   AlertTriangle,
 } from "lucide-react";
@@ -120,13 +118,6 @@ export default async function EnrollmentDetailPage({
     : sisaJam > 0
       ? tr("timeRemaining", { hours: sisaJam, minutes: sisaMenit })
       : tr("timeRemainingMinutesOnly", { minutes: sisaMenit });
-
-  const metodeBayarTeks =
-    p.metodeBayar === "dp_cicilan"
-      ? p.tenorBulan
-        ? tr("paymentMethodInstallment", { tenor: p.tenorBulan })
-        : tr("paymentMethodInstallmentNoTenor")
-      : tr("paymentMethodFull");
 
   const tagihanAwalNominal = nextBill ? Number(nextBill.jumlah) : 0;
   const tagihanAwalLabel =

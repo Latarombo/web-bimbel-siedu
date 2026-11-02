@@ -18,8 +18,6 @@ import {
   Mail,
   Lock,
   User,
-  GraduationCap,
-  Users,
 } from 'lucide-react';
 
 export interface ChildEditData {

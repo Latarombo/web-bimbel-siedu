@@ -102,6 +102,11 @@ export default function ResetForm({
         <p className="text-sm text-slate-600 leading-relaxed max-w-sm mx-auto">
           {t('setNewPasswordSubtitle')}
         </p>
+        {email && (
+          <p className="mt-1.5 text-xs font-medium text-slate-500">
+            {email}
+          </p>
+        )}
       </div>
 
       <form action={formAction} className="space-y-4">

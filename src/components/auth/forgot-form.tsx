@@ -13,22 +13,26 @@ export default function ForgotForm() {
   const [email, setEmail] = useState('');
   const [dismissSuccess, setDismissSuccess] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [prevCooldownRemaining, setPrevCooldownRemaining] = useState(state.cooldownRemaining);
+
+  if (state.cooldownRemaining && state.cooldownRemaining !== prevCooldownRemaining) {
+    setPrevCooldownRemaining(state.cooldownRemaining);
+    setCooldown(state.cooldownRemaining);
+  }
 
   useEffect(() => {
-    if (state.cooldownRemaining && state.cooldownRemaining > 0) {
-      setCooldown(state.cooldownRemaining);
-      const timer = setInterval(() => {
-        setCooldown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      return () => clearInterval(timer);
-    }
-  }, [state.cooldownRemaining, state.success, state.error]);
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
 
   // ==========================================
   // STATE SUKSES: LINK RESET TERKIRIM

@@ -15,7 +15,6 @@ import {
   GraduationCap,
   Clock,
   ArrowRight,
-  ExternalLink,
   UserCheck,
   Sparkles,
   Pencil,
@@ -101,7 +100,6 @@ export function ChildQuickViewModal({
     ? (child.jenjangTerakhir?.toUpperCase() as keyof typeof JENJANG_STYLES)
     : 'DEFAULT';
   const style = JENJANG_STYLES[jenjangKey] ?? JENJANG_STYLES.DEFAULT;
-  const inisial = child.nama.trim().slice(0, 2).toUpperCase();
   const umur = hitungUmur(child.tanggalLahir, t);
 
   return (

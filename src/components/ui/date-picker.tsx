@@ -316,6 +316,7 @@ export function DatePicker({
             <button
                 id={inputId}
                 type="button"
+                role="combobox"
                 disabled={disabled}
                 onClick={() => {
                     if (!disabled) {
@@ -325,6 +326,7 @@ export function DatePicker({
                 }}
                 aria-haspopup="dialog"
                 aria-expanded={isOpen}
+                aria-controls={`${inputId}-dialog`}
                 aria-invalid={ariaInvalid}
                 aria-describedby={ariaDescribedby}
                 className={cn(
@@ -376,6 +378,7 @@ export function DatePicker({
                     {/* Popover / Sheet Content */}
                     <div
                         ref={popoverRef}
+                        id={`${inputId}-dialog`}
                         role="dialog"
                         aria-modal="true"
                         aria-label="Pilih Tanggal"

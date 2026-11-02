@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   useScroll,
   useTransform,
@@ -45,9 +45,11 @@ function TimelineRow({
     return isReducedMotion || (targetTop > 0 && heightTransform.get() >= targetTop);
   });
 
-  useEffect(() => {
+  const [prevProps, setPrevProps] = useState({ targetTop, isReducedMotion });
+  if (prevProps.targetTop !== targetTop || prevProps.isReducedMotion !== isReducedMotion) {
+    setPrevProps({ targetTop, isReducedMotion });
     setIsActive(isReducedMotion || (targetTop > 0 && heightTransform.get() >= targetTop));
-  }, [targetTop, heightTransform, isReducedMotion]);
+  }
 
   useMotionValueEvent(heightTransform, "change", (latest) => {
     if (isReducedMotion) {
@@ -215,13 +217,15 @@ export default function TransformasiTimeline({
   const dotRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [height, setHeight] = useState(0);
   const [dotTops, setDotTops] = useState<number[]>([]);
-  const [isReducedMotion, setIsReducedMotion] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsReducedMotion(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-    }
-  }, []);
+  const isReducedMotion = useSyncExternalStore(
+    (onStoreChange) => {
+      const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+      media.addEventListener("change", onStoreChange);
+      return () => media.removeEventListener("change", onStoreChange);
+    },
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => false,
+  );
 
   useEffect(() => {
     const updateMeasurements = () => {

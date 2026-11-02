@@ -517,31 +517,31 @@ export default async function TeacherDashboard() {
                     <span className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-xs font-semibold ${tema.badge}`}>
                       {k.jenjang} {k.tingkat ? `· ${k.tingkat}` : ""}
                     </span>
-                    <span className="text-xs text-slate-500 truncate max-w-[150px]">
+                    <span className="text-xs text-slate-600 dark:text-slate-400 truncate max-w-[150px]">
                       {p?.nama ?? t("activePeriodDefault")}
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="text-base font-bold text-slate-900 line-clamp-1">
+                    <h3 className="text-base font-bold text-slate-950 dark:text-slate-50 line-clamp-1">
                       {m?.nama ?? t("subjectDefault")}
                     </h3>
                     {m?.deskripsi && (
-                      <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
+                      <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1 mt-0.5">
                         {m.deskripsi}
                       </p>
                     )}
                   </div>
 
-                  <div className="text-xs text-slate-700 bg-slate-50 rounded-md p-2.5">
+                  <div className="text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 rounded-md p-2.5">
                     <span className="line-clamp-1">{jadwalStr}</span>
                   </div>
 
                   {/* Quota Progress */}
                   <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-slate-500">{t("quotaCapacity")}</span>
-                      <span className="font-semibold text-slate-900 tabular-nums">
+                      <span className="text-slate-600 dark:text-slate-400">{t("quotaCapacity")}</span>
+                      <span className="font-semibold text-slate-950 dark:text-slate-50 tabular-nums">
                         {students.length}/{k.kuotaMaksimum} siswa ({capacityPct}%)
                       </span>
                     </div>
@@ -555,7 +555,7 @@ export default async function TeacherDashboard() {
                 </div>
 
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
-                  <span className="text-xs text-slate-600 font-medium">
+                  <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">
                     {t("studentsCount", { count: students.length })}
                   </span>
                   <Link

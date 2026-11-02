@@ -54,9 +54,15 @@ export function KatalogPagination({
       className="mt-12 flex flex-col items-center justify-center gap-3"
     >
       {/* Teks ringkasan informasi terpusat */}
-      <p className="text-xs font-medium text-slate-500 sm:text-sm text-center">
-        {rangeLabel}
-      </p>
+      <div className="flex items-center justify-center gap-2 text-xs font-medium text-slate-500 sm:text-sm text-center">
+        <span>{rangeLabel}</span>
+        {pageBadgeLabel && (
+          <>
+            <span aria-hidden="true">&bull;</span>
+            <span>{pageBadgeLabel}</span>
+          </>
+        )}
+      </div>
 
       {/* Centered Segmented Island / Floating Dock */}
       <div

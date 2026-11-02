@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import HeroRain from "@/components/HeroRain";
 
@@ -91,9 +92,12 @@ export default async function HeroSection() {
                 </svg>
 
                 {/* Student Image */}
-                <img
+                <Image
                   src="/images/hero_actor.png"
                   alt={tr("text146")}
+                  width={520}
+                  height={520}
+                  priority
                   className="relative mx-auto block h-auto w-full object-contain drop-shadow-xl lg:h-full lg:w-auto"
                 />
               </div>

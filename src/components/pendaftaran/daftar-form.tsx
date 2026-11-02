@@ -183,6 +183,11 @@ export default function DaftarForm({
                 <p className="text-sm sm:text-base font-bold text-slate-900">
                   {mapelNama} {tingkat ? `(${tingkat}) ` : ""}{jenjang}
                 </p>
+                {guruNama ? (
+                  <p className="text-xs text-slate-600">
+                    Pengajar: <strong className="font-semibold text-slate-800">{guruNama}</strong>
+                  </p>
+                ) : null}
                 <p className="text-xs text-slate-500">
                   Masa aktif hingga <strong className="font-semibold text-slate-700">{formatMasaAktif(tanggalSelesai)}</strong>
                 </p>

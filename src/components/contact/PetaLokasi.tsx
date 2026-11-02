@@ -65,7 +65,12 @@ export default function PetaLokasi({ lat, lng, mapsHref, className }: PetaLokasi
         iconAnchor: [17, 44],
       });
 
-      L.marker([lat, lng], { icon: ikon }).addTo(mapInstance);
+      const marker = L.marker([lat, lng], { icon: ikon }).addTo(mapInstance);
+      if (mapsHref) {
+        marker.bindPopup(
+          `<a href="${mapsHref}" target="_blank" rel="noopener noreferrer" style="font-size:12px; font-weight:600; color:#1e40af; text-decoration:none;">Buka di Google Maps &rarr;</a>`
+        );
+      }
 
       setTimeout(() => {
         if (!dibatalkan && mapInstance) {
@@ -80,7 +85,7 @@ export default function PetaLokasi({ lat, lng, mapsHref, className }: PetaLokasi
         mapInstance.remove();
       }
     };
-  }, [lat, lng]);
+  }, [lat, lng, mapsHref]);
 
   return (
     <div

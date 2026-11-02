@@ -2,7 +2,7 @@
 
 import { getTranslations } from 'next-intl/server';
 import { getLocaleDariCookie } from '@/i18n/locale';
-import { redirect, getPathname } from '@/i18n/navigation';
+import { getPathname } from '@/i18n/navigation';
 import { headers } from 'next/headers';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';

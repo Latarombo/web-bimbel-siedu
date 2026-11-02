@@ -21,20 +21,6 @@ interface Props {
   addChildLabel?: string;
 }
 
-const JENJANG_AVATAR: Record<string, string> = {
-  TK: 'bg-amber-500 text-white',
-  SD: 'bg-sky-600 text-white',
-  SMP: 'bg-indigo-500 text-white',
-  SMA: 'bg-emerald-600 text-white',
-  DEFAULT: 'bg-blue-600 text-white',
-};
-
-function getJenjangAvatar(jenjang?: string | null) {
-  if (!jenjang) return JENJANG_AVATAR.DEFAULT;
-  const key = jenjang.toUpperCase();
-  return JENJANG_AVATAR[key] ?? JENJANG_AVATAR.DEFAULT;
-}
-
 export function ChildSwitcherDropdown({
   anakList,
   dipilihId,
