@@ -1,10 +1,9 @@
 import { getTranslations, getLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-import { redirect } from "@/i18n/navigation";
+import { redirect, Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { PageShell, PageHeader, Panel } from "@/components/admin/ui";
 import { PenilaianForm, type StudentAssessmentRow } from "@/components/teacher/penilaian-form";
 
 export const dynamic = "force-dynamic";
@@ -66,14 +65,31 @@ export default async function EditClassAssessment({
   });
 
   return (
-    <PageShell>
-      <PageHeader
-        backHref="/teacher/grades"
-        title={assessment.nama}
-        desc={kelasLabel}
-      />
+    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+        <Link href="/teacher/dashboard" className="hover:text-slate-950 dark:hover:text-slate-100 transition-colors">
+          Dashboard
+        </Link>
+        <span>/</span>
+        <Link href="/teacher/grades" className="hover:text-slate-950 dark:hover:text-slate-100 transition-colors">
+          Nilai
+        </Link>
+        <span>/</span>
+        <span className="font-semibold text-slate-900 dark:text-slate-200 truncate">
+          {assessment.nama}
+        </span>
+      </nav>
 
-      <Panel className="mt-5 p-4 sm:p-6">
+      <div className="pb-4 border-b border-slate-200 dark:border-slate-800">
+        <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
+          {assessment.nama}
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+          {kelasLabel}
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs">
         <PenilaianForm
           kelasId={assessment.kelasId}
           penilaianId={assessment.id}
@@ -84,7 +100,7 @@ export default async function EditClassAssessment({
           diterbitkanPada={assessment.diterbitkanPada}
           siswa={siswa}
         />
-      </Panel>
-    </PageShell>
+      </div>
+    </div>
   );
 }

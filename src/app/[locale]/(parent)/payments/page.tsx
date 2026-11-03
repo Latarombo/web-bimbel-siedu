@@ -92,7 +92,7 @@ export default async function PaymentsPage({
       daysUntilDue = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     }
 
-    const bisaBayar = b.status === "pending";
+    const bisaBayar = b.status === "pending" && !!p && !p.status.startsWith("dibatalkan");
 
     return {
       id: b.id,
@@ -120,7 +120,7 @@ export default async function PaymentsPage({
 
   // 6. Hitung Statistik Finansial
   const belumLunas = paymentItems.filter(
-    (b) => b.status === "pending" || b.status === "gagal"
+    (b) => (b.status === "pending" || b.status === "gagal") && b.bisaBayar
   );
   const overdueBills = belumLunas.filter((b) => b.isOverdue);
   const riwayatLunas = paymentItems.filter((b) => b.status === "berhasil");

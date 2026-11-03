@@ -146,19 +146,19 @@ export function AttendanceTable({
       ) : null}
 
       {/* Control Toolbar: Quick Actions + Search Bar */}
-      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 bg-white p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-2xs sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={handleMarkAllPresent}
-            className="inline-flex items-center justify-center rounded-md bg-emerald-50 border border-emerald-200 px-3 py-1.5 text-xs font-semibold text-emerald-700 transition-colors hover:bg-emerald-100/70 active:scale-95 cursor-pointer"
+            className="inline-flex items-center justify-center rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 transition-colors hover:bg-emerald-100/70 dark:hover:bg-emerald-900/60 active:scale-95 cursor-pointer"
           >
             <span>{t('markAllPresent')}</span>
           </button>
           <button
             type="button"
             onClick={handleClearAll}
-            className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 transition-colors hover:bg-slate-50 active:scale-95 cursor-pointer"
+            className="inline-flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-95 cursor-pointer"
           >
             <span>{t('clearAll')}</span>
           </button>
@@ -176,13 +176,13 @@ export function AttendanceTable({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Cari nama siswa..."
-            className="w-full rounded-md border border-slate-200 bg-white py-1.5 pl-9 pr-8 text-xs text-slate-900 transition-colors placeholder:text-slate-500 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+            className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 pl-9 pr-8 text-xs text-slate-900 dark:text-slate-100 transition-colors placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
           />
           {search && (
             <button
               type="button"
               onClick={() => setSearch('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
             >
               <X className="size-3.5" />
             </button>
@@ -191,11 +191,11 @@ export function AttendanceTable({
       </div>
 
       {/* Spreadsheet Table Container */}
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xs">
+      <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[700px] border-collapse text-left">
             <thead>
-              <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-700 uppercase tracking-wider">
+              <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                 <th scope="col" className="w-12 px-4 py-3 text-center">
                   No
                 </th>
@@ -213,19 +213,19 @@ export function AttendanceTable({
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-xs">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
               {filteredSiswa.map((s, idx) => {
                 const currentStatus = statuses[s.pendaftaranId];
 
                 return (
                   <tr
                     key={s.pendaftaranId}
-                    className={`transition-colors hover:bg-slate-50/70 ${
-                      s.terkunci ? 'bg-slate-50/50 opacity-85' : ''
+                    className={`transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/40 ${
+                      s.terkunci ? 'bg-slate-50/50 dark:bg-slate-800/30 opacity-85' : ''
                     }`}
                   >
                     {/* 1. Nomor */}
-                    <td className="px-4 py-3 text-center font-medium text-slate-600 tabular-nums">
+                    <td className="px-4 py-3 text-center font-medium text-slate-600 dark:text-slate-400 tabular-nums">
                       {idx + 1}
                     </td>
 
@@ -238,11 +238,11 @@ export function AttendanceTable({
                           size="xs"
                         />
                         <div className="min-w-0">
-                          <p className="font-semibold text-slate-950 truncate">
+                          <p className="font-semibold text-slate-950 dark:text-slate-50 truncate">
                             {s.nama}
                           </p>
                           {s.terkunci && (
-                            <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700">
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-400">
                               <Lock className="size-3" />
                               {t('lockedAdminRule')}
                             </span>
@@ -279,7 +279,7 @@ export function AttendanceTable({
                                       : st.tone === 'blue'
                                         ? 'bg-blue-600 text-white shadow-xs'
                                         : 'bg-rose-600 text-white shadow-xs'
-                                  : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-950'
+                                  : 'border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white'
                               }`}
                             >
                               <input
@@ -308,19 +308,19 @@ export function AttendanceTable({
                         defaultValue={s.catatan ?? ''}
                         disabled={s.terkunci}
                         placeholder={t('notesPlaceholder')}
-                        className="w-full rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-800 transition-colors placeholder:text-slate-500 hover:border-slate-300 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:bg-slate-100 disabled:cursor-not-allowed"
+                        className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-100 transition-colors placeholder:text-slate-500 dark:placeholder:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed"
                       />
                     </td>
 
                     {/* 5. Status Icon Indicator */}
                     <td className="px-4 py-3 text-center">
                       {s.terkunci ? (
-                        <span className="inline-flex items-center gap-1 rounded bg-amber-50 border border-amber-200 px-1.5 py-0.5 text-xs font-semibold text-amber-700">
+                        <span className="inline-flex items-center gap-1 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-1.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
                           <Lock className="size-3" />
                           Kunci
                         </span>
                       ) : currentStatus ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold capitalize text-slate-800">
+                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold capitalize text-slate-800 dark:text-slate-200">
                           <span
                             className={`size-2 rounded-full ${
                               currentStatus === 'hadir'
@@ -344,13 +344,13 @@ export function AttendanceTable({
         </div>
 
         {filteredSiswa.length === 0 && (
-          <div className="p-8 text-center text-xs text-slate-600">
+          <div className="p-8 text-center text-xs text-slate-600 dark:text-slate-400">
             Tidak ada siswa yang cocok dengan pencarian &quot;{search}&quot;.
           </div>
         )}
       </div>
 
-      <p className="text-xs text-slate-600 leading-relaxed px-1">
+      <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed px-1">
         {t('attendanceFormHelp')}
       </p>
 

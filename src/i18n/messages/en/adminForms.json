@@ -131,6 +131,7 @@
     "enrollmentMissing": "Enrollment not found.",
     "ended": "This enrollment has ended and cannot be cancelled.",
     "enrollmentOwnership": "This enrollment does not belong to your account.",
+    "cancelled": "Enrollment has been cancelled or expired.",
     "awaiting": "The request is still awaiting an administrator’s decision."
   },
   "enrollment": {

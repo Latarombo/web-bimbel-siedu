@@ -167,7 +167,11 @@ export async function saveChildInfo(
     nomorTelepon: normalizedHpAnak,
   });
   revalidatePath(getPathname({href: "/children", locale}));
-  const redirectTo = String(formData.get("redirect_to") || "/home");
+  const rawRedirect = String(formData.get("redirect_to") || "/home");
+  const redirectTo =
+    rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") && !rawRedirect.includes("\\")
+      ? rawRedirect
+      : "/home";
   return redirect({href: redirectTo, locale});
 }
 

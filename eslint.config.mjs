@@ -15,6 +15,7 @@ const eslintConfig = defineConfig([
     "scripts/**",
     "graphify-out/**",
     ".agents/**",
+    "agent/**",
     ".claude/**",
     ".cursor/**",
     ".devin/**",

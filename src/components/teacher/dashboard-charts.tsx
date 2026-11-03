@@ -5,6 +5,7 @@
  * seperti admin/enrollment-trend-chart dan parent/nilai-trend-chart. Data
  * dihitung di server (angka nyata dari DB), komponen ini hanya merender.
  */
+import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from "recharts";
 import {
   ChartContainer,
@@ -15,10 +16,12 @@ import {
 import { PieChart as PieChartIcon } from "lucide-react";
 
 export type RekapSlice = { key: string; label: string; value: number; color: string };
-export type HariAktivitas = { label: string; hadir: number };
+export type HariAktivitas = { label: string; hadir: number; fill?: string; fullLabel?: string };
 
 /** Donut rekap status presensi (hadir/izin/sakit/alpa). */
 export function RekapPresensiDonut({ data, total }: { data: RekapSlice[]; total: number }) {
+  const [pos, setPos] = useState<{ x: number; y: number } | undefined>(undefined);
+
   const config: ChartConfig = Object.fromEntries(
     data.map((d) => [d.key, { label: d.label, color: d.color }]),
   );
@@ -35,17 +38,56 @@ export function RekapPresensiDonut({ data, total }: { data: RekapSlice[]; total:
   }
 
   return (
-    <ChartContainer config={config} className="mx-auto aspect-square h-44">
-      <PieChart>
-        <ChartTooltip content={<ChartTooltipContent nameKey="label" hideLabel />} />
+    <ChartContainer config={config} className="mx-auto aspect-square h-44 sm:h-48">
+      <PieChart
+        onMouseMove={(_state, event) => {
+          if (event && "clientX" in event && event.currentTarget) {
+            const rect = event.currentTarget.getBoundingClientRect();
+            setPos({
+              x: event.clientX - rect.left + 12,
+              y: event.clientY - rect.top + 12,
+            });
+          }
+        }}
+        onMouseLeave={() => setPos(undefined)}
+      >
+        <ChartTooltip
+          isAnimationActive={false}
+          position={pos}
+          wrapperStyle={{ pointerEvents: "none", zIndex: 50 }}
+          content={
+            <ChartTooltipContent
+              hideLabel
+              formatter={(value, name, item) => {
+                const val = Number(value);
+                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                const itemColor = item.payload?.color ?? item.payload?.fill ?? "#10b981";
+                const labelText = item.payload?.label ?? name;
+                return (
+                  <div className="flex items-center gap-2 text-xs">
+                    <span
+                      className="size-2 rounded-full shrink-0"
+                      style={{ backgroundColor: itemColor }}
+                    />
+                    <span className="text-slate-600 dark:text-slate-400">{labelText}:</span>
+                    <span className="font-bold text-slate-950 dark:text-slate-50 tabular-nums">
+                      {val} presensi ({pct}%)
+                    </span>
+                  </div>
+                );
+              }}
+            />
+          }
+        />
         <Pie
           data={data}
           dataKey="value"
           nameKey="label"
-          innerRadius={48}
-          outerRadius={70}
+          innerRadius={50}
+          outerRadius={74}
           strokeWidth={2}
           paddingAngle={2}
+          className="cursor-pointer"
         >
           {data.map((d) => (
             <Cell key={d.key} fill={d.color} />
@@ -56,7 +98,7 @@ export function RekapPresensiDonut({ data, total }: { data: RekapSlice[]; total:
           y="46%"
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-slate-950 dark:fill-slate-50 text-2xl font-black tabular-nums"
+          className="fill-slate-950 dark:fill-slate-50 text-2xl font-black tabular-nums pointer-events-none select-none"
         >
           {total}
         </text>
@@ -65,7 +107,7 @@ export function RekapPresensiDonut({ data, total }: { data: RekapSlice[]; total:
           y="60%"
           textAnchor="middle"
           dominantBaseline="middle"
-          className="fill-slate-600 dark:fill-slate-400 text-[10px] font-semibold uppercase tracking-wider"
+          className="fill-slate-600 dark:fill-slate-400 text-xs font-medium pointer-events-none select-none"
         >
           Presensi
         </text>
@@ -78,16 +120,16 @@ export function RekapPresensiDonut({ data, total }: { data: RekapSlice[]; total:
 export function AktivitasMingguanBar({ data, label }: { data: HariAktivitas[]; label: string }) {
   const config = { hadir: { label, color: "#2563eb" } } satisfies ChartConfig;
   return (
-    <ChartContainer config={config} className="h-44 w-full">
-      <BarChart data={data} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
-        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e2e8f0" />
+    <ChartContainer config={config} className="h-[226px] w-full">
+      <BarChart data={data} margin={{ top: 12, right: 12, left: 4, bottom: 24 }}>
+        <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
         <XAxis
           dataKey="label"
           tickLine={false}
           axisLine={false}
           tickMargin={8}
           fontSize={11}
-          stroke="#64748b"
+          interval={0}
         />
         <YAxis
           tickLine={false}
@@ -95,13 +137,38 @@ export function AktivitasMingguanBar({ data, label }: { data: HariAktivitas[]; l
           fontSize={11}
           allowDecimals={false}
           width={28}
-          stroke="#64748b"
         />
         <ChartTooltip
-          cursor={{ fill: "rgba(226, 232, 240, 0.4)" }}
-          content={<ChartTooltipContent hideLabel />}
+          cursor={false}
+          isAnimationActive={false}
+          offset={12}
+          wrapperStyle={{ pointerEvents: "none", zIndex: 50 }}
+          content={
+            <ChartTooltipContent
+              labelFormatter={(_, payload) => payload?.[0]?.payload?.fullLabel ?? ""}
+              formatter={(value, _, item) => (
+                <div className="flex items-center gap-2 text-xs">
+                  <span
+                    className="size-2 rounded-full shrink-0"
+                    style={{ backgroundColor: item.payload?.fill ?? "#2563eb" }}
+                  />
+                  <span className="text-slate-600 dark:text-slate-400">{label}:</span>
+                  <span className="font-bold text-slate-950 dark:text-slate-50 tabular-nums">
+                    {value} siswa
+                  </span>
+                </div>
+              )}
+            />
+          }
         />
-        <Bar dataKey="hadir" fill="#2563eb" radius={[6, 6, 0, 0]} maxBarSize={32} />
+        <Bar dataKey="hadir" fill="#2563eb" radius={[4, 4, 0, 0]} maxBarSize={36}>
+          {data.map((item, index) => (
+            <Cell
+              key={`cell-${index}`}
+              fill={item.fill ?? (index === data.length - 1 ? "#2563eb" : "#94a3b8")}
+            />
+          ))}
+        </Bar>
       </BarChart>
     </ChartContainer>
   );
@@ -111,8 +178,8 @@ export interface TeacherAnalyticsSectionProps {
   rekapData: RekapSlice[];
   totalPresensi: number;
   aktivitasData: HariAktivitas[];
-  totalAktivitasHadir: number;
-  overallAttendanceRate: number;
+  totalAktivitasHadir?: number;
+  overallAttendanceRate?: number;
   labels: {
     distributionTitle: string;
     weeklyTrendTitle: string;
@@ -128,59 +195,55 @@ export function TeacherAnalyticsSection({
   rekapData,
   totalPresensi,
   aktivitasData,
-  totalAktivitasHadir,
-  overallAttendanceRate,
   labels,
 }: TeacherAnalyticsSectionProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* 1. Donut Distribusi Presensi Siswa */}
-      <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+      <div className="flex flex-col justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs">
         <div>
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-            <h3 className="text-sm font-bold text-slate-950 dark:text-slate-50 tracking-tight">
+          <div className="pb-3 border-b border-slate-100 dark:border-slate-800">
+            <h3 className="font-display text-sm font-bold text-slate-950 dark:text-slate-50 tracking-tight">
               {labels.distributionTitle}
             </h3>
-            {totalPresensi > 0 && (
-              <span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                <span>{overallAttendanceRate}% Hadir</span>
-              </span>
-            )}
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+              Proporsi status kehadiran siswa semester ini.
+            </p>
           </div>
 
           <div className="mt-4">
             {totalPresensi > 0 ? (
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <div className="w-full sm:w-1/2 flex justify-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-full flex justify-center">
                   <RekapPresensiDonut data={rekapData} total={totalPresensi} />
                 </div>
-                <div className="w-full sm:w-1/2 space-y-2">
-                  {rekapData.map((item) => {
-                    const pct = totalPresensi > 0 ? Math.round((item.value / totalPresensi) * 100) : 0;
-                    return (
-                      <div
-                        key={item.key}
-                        className="flex items-center justify-between rounded-xl bg-slate-50/70 dark:bg-slate-800/60 px-3 py-2 text-xs"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span
-                            className="size-2.5 rounded-full shrink-0"
-                            style={{ backgroundColor: item.color }}
-                          />
-                          <span className="font-semibold text-slate-800 dark:text-slate-200">{item.label}</span>
-                        </div>
-                        <div className="flex items-center gap-2 font-bold tabular-nums">
-                          <span className="text-slate-950 dark:text-slate-50">{item.value}</span>
-                          <span className="text-slate-600 dark:text-slate-400 text-[11px]">({pct}%)</span>
-                        </div>
+
+                {/* Status metrik diletakkan di bawah chart donut (Jumlah Saja) */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full pt-1">
+                  {rekapData.map((item) => (
+                    <div
+                      key={item.key}
+                      className="flex flex-col rounded-md border border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-800/40 p-2 text-center"
+                    >
+                      <div className="flex items-center justify-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                        <span
+                          className="size-2 rounded-full shrink-0"
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <span className="font-medium truncate text-[11px]">{item.label}</span>
                       </div>
-                    );
-                  })}
+                      <div className="mt-1 flex items-baseline justify-center">
+                        <span className="text-base sm:text-lg font-bold text-slate-950 dark:text-slate-50 tabular-nums">
+                          {item.value}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ) : (
               <div className="py-6 text-center">
-                <div className="grid size-11 place-items-center rounded-2xl bg-slate-50 dark:bg-slate-800 text-slate-400 mx-auto mb-2">
+                <div className="grid size-11 place-items-center rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 mx-auto mb-2">
                   <PieChartIcon className="size-5 stroke-[1.5]" />
                 </div>
                 <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{labels.noAttendanceYet}</p>
@@ -191,34 +254,23 @@ export function TeacherAnalyticsSection({
             )}
           </div>
         </div>
-
-        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
-          <span>{labels.totalAttendance}</span>
-          <span className="font-bold text-slate-950 dark:text-slate-50 tabular-nums">{totalPresensi} data</span>
-        </div>
       </div>
 
       {/* 2. Bar Aktivitas 7 Hari Terakhir */}
-      <div className="flex flex-col justify-between rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+      <div className="flex flex-col justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs">
         <div>
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-            <h3 className="text-sm font-bold text-slate-950 dark:text-slate-50 tracking-tight">
+          <div className="pb-3 border-b border-slate-100 dark:border-slate-800">
+            <h3 className="font-display text-sm font-bold text-slate-950 dark:text-slate-50 tracking-tight">
               {labels.weeklyTrendTitle}
             </h3>
-            <span className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 px-2.5 py-0.5 text-[11px] font-bold text-blue-700 dark:text-blue-300">
-              <span>7 Hari</span>
-            </span>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+              {labels.weeklyTrendSubtitle}
+            </p>
           </div>
 
-          <div className="mt-3">
-            <p className="text-[11px] text-slate-600 dark:text-slate-400 mb-2">{labels.weeklyTrendSubtitle}</p>
+          <div className="mt-4">
             <AktivitasMingguanBar data={aktivitasData} label="Siswa Hadir" />
           </div>
-        </div>
-
-        <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
-          <span>Total Siswa Hadir (7 Hari)</span>
-          <span className="font-bold text-blue-600 dark:text-blue-400 tabular-nums">{totalAktivitasHadir} kehadiran</span>
         </div>
       </div>
     </div>

@@ -66,9 +66,9 @@ export default function LaporanPerkembanganForm({
       <input type="hidden" name="aksi" value={actionType} />
 
       {/* Header status bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-slate-50/80 px-4 py-2.5 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/80 px-4 py-2.5 text-xs">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-slate-600">{t('status')}:</span>
+          <span className="font-semibold text-slate-600 dark:text-slate-400">{t('status')}:</span>
           {isPublished ? (
             <Badge tone="emerald">{t('publishedStatus')}</Badge>
           ) : (
@@ -76,7 +76,7 @@ export default function LaporanPerkembanganForm({
           )}
         </div>
         {isPublished && diterbitkanPada ? (
-          <span className="text-slate-500 tabular-nums">
+          <span className="text-slate-500 dark:text-slate-400 tabular-nums">
             {new Date(diterbitkanPada).toLocaleDateString('id-ID', {
               day: 'numeric',
               month: 'short',
@@ -131,16 +131,16 @@ export default function LaporanPerkembanganForm({
       </div>
 
       {/* Catatan Internal Guru (Privat) */}
-      <div className="rounded-xl border border-amber-200/80 bg-amber-50/40 p-3.5 sm:p-4">
+      <div className="rounded-xl border border-amber-200/80 dark:border-amber-900/60 bg-amber-50/40 dark:bg-amber-950/20 p-3.5 sm:p-4">
         <div className="flex items-center justify-between gap-2">
-          <label htmlFor="catatan_internal" className="text-sm font-semibold text-amber-950">
+          <label htmlFor="catatan_internal" className="text-sm font-semibold text-amber-950 dark:text-amber-200">
             {t('internalNoteLabel')}
           </label>
-          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+          <span className="rounded-full bg-amber-100 dark:bg-amber-900/60 px-2.5 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
             Privat
           </span>
         </div>
-        <p className="mt-1 text-xs text-amber-800/90 leading-relaxed">
+        <p className="mt-1 text-xs text-amber-800/90 dark:text-amber-300/80 leading-relaxed">
           {t('internalNoteHelp')}
         </p>
         <Textarea
@@ -150,21 +150,21 @@ export default function LaporanPerkembanganForm({
           onChange={(e) => setCatatanInternal(e.target.value)}
           placeholder={t('internalNotePlaceholder')}
           rows={3}
-          className="mt-2 w-full border-amber-200 bg-white text-base sm:text-sm leading-relaxed"
+          className="mt-2 w-full border-amber-200 dark:border-amber-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-base sm:text-sm leading-relaxed"
         />
       </div>
 
       {/* Laporan untuk Orang Tua (Publik) */}
-      <div className="rounded-xl border border-blue-200/80 bg-blue-50/30 p-3.5 sm:p-4">
+      <div className="rounded-xl border border-blue-200/80 dark:border-blue-900/60 bg-blue-50/30 dark:bg-blue-950/20 p-3.5 sm:p-4">
         <div className="flex items-center justify-between gap-2">
-          <label htmlFor="laporan_ortu" className="text-sm font-semibold text-blue-950">
+          <label htmlFor="laporan_ortu" className="text-sm font-semibold text-blue-950 dark:text-blue-200">
             {t('parentReportLabel')}
           </label>
-          <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
+          <span className="rounded-full bg-blue-100 dark:bg-blue-900/60 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:text-blue-300">
             Untuk Orang Tua
           </span>
         </div>
-        <p className="mt-1 text-xs text-blue-900/80 leading-relaxed">
+        <p className="mt-1 text-xs text-blue-900/80 dark:text-blue-300/80 leading-relaxed">
           {t('parentReportHelp')}
         </p>
         <Textarea
@@ -174,31 +174,31 @@ export default function LaporanPerkembanganForm({
           onChange={(e) => setLaporanOrtu(e.target.value)}
           placeholder={t('parentReportPlaceholder')}
           rows={4}
-          className="mt-2 w-full border-blue-200 bg-white text-xs leading-relaxed"
+          className="mt-2 w-full border-blue-200 dark:border-blue-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-xs leading-relaxed"
         />
 
         <div className="mt-2 flex items-center justify-end">
           <button
             type="button"
             onClick={() => setShowPreview(!showPreview)}
-            className="text-xs font-semibold text-blue-700 hover:underline"
+            className="text-xs font-semibold text-blue-700 dark:text-blue-400 hover:underline"
           >
             {showPreview ? 'Sembunyikan Pratinjau' : t('parentPreview')}
           </button>
         </div>
 
         {showPreview ? (
-          <div className="mt-3 rounded-lg border border-blue-200 bg-white p-3.5 shadow-sm">
-            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-              <span className="text-xs font-bold text-slate-900">{judul || 'Laporan Perkembangan'}</span>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+          <div className="mt-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-white dark:bg-slate-900 p-3.5 shadow-sm">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-2">
+              <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{judul || 'Laporan Perkembangan'}</span>
+              <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400">
                 {t('parentPreviewBadge')}
               </span>
             </div>
-            <p className="mt-2 text-xs text-slate-500 tabular-nums">
+            <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 tabular-nums">
               Tanggal: {tanggal}
             </p>
-            <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-800">
+            <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-slate-800 dark:text-slate-200">
               {laporanOrtu ? laporanOrtu : '(Belum ada teks laporan orang tua)'}
             </p>
           </div>

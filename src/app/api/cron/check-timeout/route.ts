@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { timingSafeEqual } from "node:crypto";
 import { processTimeouts } from "@/lib/services/pendaftaran";
 import { processTunggakan } from "@/lib/services/pembayaran";
 
@@ -14,8 +15,12 @@ export async function GET(req: Request) {
       { error: "CRON_SECRET belum diset" },
       { status: 500 },
     );
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${secret}`)
+  const authHeader = req.headers.get("authorization") ?? "";
+  const expected = `Bearer ${secret}`;
+  const authBuf = Buffer.from(authHeader);
+  const expBuf = Buffer.from(expected);
+
+  if (authBuf.length !== expBuf.length || !timingSafeEqual(authBuf, expBuf))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { dibatalkan } = await processTimeouts();

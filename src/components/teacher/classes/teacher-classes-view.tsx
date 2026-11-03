@@ -4,7 +4,6 @@ import { useState, useMemo } from "react";
 import { Link } from "@/i18n/navigation";
 import {
   Search,
-  Clock,
   AlertCircle,
 } from "lucide-react";
 
@@ -44,11 +43,28 @@ export interface TeacherClassesViewProps {
   };
 }
 
-const JENJANG_BADGES: Record<string, string> = {
-  TK: "bg-pink-50 text-pink-700 border-pink-200",
-  SD: "bg-blue-50 text-blue-700 border-blue-200",
-  SMP: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  SMA: "bg-amber-50 text-amber-800 border-amber-200",
+const JENJANG_THEMES: Record<string, { plate: string; badge: string }> = {
+  TK: {
+    plate: "bg-pink-50/70 dark:bg-pink-950/20 border-pink-100 dark:border-pink-900/40",
+    badge: "bg-pink-100/80 text-pink-700 dark:bg-pink-900/60 dark:text-pink-300 border-pink-200/80 dark:border-pink-800",
+  },
+  SD: {
+    plate: "bg-blue-50/70 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/40",
+    badge: "bg-blue-100/80 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 border-blue-200/80 dark:border-blue-800",
+  },
+  SMP: {
+    plate: "bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/40",
+    badge: "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800",
+  },
+  SMA: {
+    plate: "bg-amber-50/70 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/40",
+    badge: "bg-amber-100/80 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300 border-amber-200/80 dark:border-amber-800",
+  },
+};
+
+const DEFAULT_THEME = {
+  plate: "bg-slate-50/80 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800",
+  badge: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700",
 };
 
 export function TeacherClassesView({
@@ -57,16 +73,11 @@ export function TeacherClassesView({
   todayDayLabel,
   stats,
 }: TeacherClassesViewProps) {
-  const [statusTab, setStatusTab] = useState<"semua" | "aktif" | "dibatalkan">("semua");
   const [searchQuery, setSearchQuery] = useState("");
   const [jenjangFilter, setJenjangFilter] = useState<string>("all");
 
   const filteredClasses = useMemo(() => {
     return classes.filter((c) => {
-      // Status Tab filter
-      if (statusTab === "aktif" && c.status !== "aktif") return false;
-      if (statusTab === "dibatalkan" && c.status !== "dibatalkan") return false;
-
       // Jenjang filter
       if (jenjangFilter !== "all" && c.jenjang !== jenjangFilter) return false;
 
@@ -82,142 +93,133 @@ export function TeacherClassesView({
 
       return true;
     });
-  }, [classes, statusTab, jenjangFilter, searchQuery]);
+  }, [classes, jenjangFilter, searchQuery]);
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
       {/* 1. Header (Clean, zero gradients) */}
-      <div className="pb-4 border-b border-slate-200">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-950">
+      <div className="pb-4 border-b border-slate-200 dark:border-slate-800">
+        <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
           Kelas Diampu
         </h1>
-        <p className="text-xs sm:text-sm text-slate-600 mt-1">
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
           Daftar seluruh rombongan belajar dan jadwal pertemuan tatap muka semester ini.
         </p>
       </div>
 
       {/* 2. Top 3 Metric Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
         {/* Metric 1: Kelas Aktif */}
-        <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
-          <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-            Kelas Berjalan
-          </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold tracking-tight text-slate-950">
-              {stats.activeClasses}
-            </span>
-            <span className="text-xs text-slate-600">rombongan belajar</span>
+        <div className="relative overflow-hidden rounded-lg border border-blue-200/70 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/80 via-blue-50/20 to-white dark:from-blue-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-blue-600 dark:text-blue-400">
+          <div className="relative z-10 flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Kelas Berjalan
+                </p>
+                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-blue-100/80 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800">
+                  Aktif
+                </span>
+              </div>
+              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
+                {stats.activeClasses}
+              </p>
+            </div>
+            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
+              Rombongan belajar aktif diampu
+            </p>
           </div>
-          <p className="text-xs text-slate-600 mt-1">
-            Dari total {stats.totalClasses} kelas terdaftar
-          </p>
+          <svg
+            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
+            viewBox="0 0 400 280"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
+            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
+            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
+          </svg>
         </div>
 
         {/* Metric 2: Total Siswa */}
-        <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
-          <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-            Total Siswa Aktif
-          </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold tracking-tight text-slate-950">
-              {stats.totalStudents}
-            </span>
-            <span className="text-xs text-slate-600">murid</span>
+        <div className="relative overflow-hidden rounded-lg border border-emerald-200/70 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/80 via-emerald-50/20 to-white dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-emerald-600 dark:text-emerald-400">
+          <div className="relative z-10 flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Total Siswa Aktif
+                </p>
+                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800">
+                  Terdaftar
+                </span>
+              </div>
+              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
+                {stats.totalStudents}
+              </p>
+            </div>
+            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
+              Tersebar di seluruh rombel yang Anda bimbing
+            </p>
           </div>
-          <p className="text-xs text-slate-600 mt-1">
-            Tersebar di seluruh rombel yang Anda bimbing
-          </p>
+          <svg
+            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
+            viewBox="0 0 400 280"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
+            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
+            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
+          </svg>
         </div>
 
         {/* Metric 3: Jadwal Hari Ini */}
-        <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs">
-          <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-            Jadwal Mengajar Hari Ini
-          </span>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold tracking-tight text-slate-950">
-              {stats.todaySessionsCount}
-            </span>
-            <span className="text-xs text-slate-600">sesi ({todayDayLabel})</span>
+        <div className="relative overflow-hidden rounded-lg border border-indigo-200/70 dark:border-indigo-900/40 bg-gradient-to-br from-indigo-50/80 via-indigo-50/20 to-white dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-indigo-600 dark:text-indigo-400">
+          <div className="relative z-10 flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Jadwal Mengajar Hari Ini
+                </p>
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold border ${stats.todaySessionsCount > 0 ? "bg-indigo-100/90 text-indigo-800 dark:bg-indigo-900/70 dark:text-indigo-300 border-indigo-300/80 dark:border-indigo-800" : "bg-slate-100/90 text-slate-600 dark:bg-slate-800/80 dark:text-slate-400 border-slate-200 dark:border-slate-700"}`}>
+                  {stats.todaySessionsCount > 0 ? todayDayLabel : "Jadwal"}
+                </span>
+              </div>
+              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
+                {stats.todaySessionsCount}
+              </p>
+            </div>
+            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
+              {stats.todaySessionsCount > 0 ? "Memerlukan presensi tatap muka" : "Tidak ada jadwal kelas hari ini"}
+            </p>
           </div>
-          <p className="text-xs text-slate-600 mt-1">
-            {stats.todaySessionsCount > 0 ? "Memerlukan presensi tatap muka" : "Tidak ada jadwal kelas hari ini"}
-          </p>
+          <svg
+            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
+            viewBox="0 0 400 280"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
+            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
+            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
+          </svg>
         </div>
       </div>
 
-      {/* 3. Propify Toolbar (Underline Tabs + Search & Filters) */}
+      {/* 3. Toolbar (Search & Filters) */}
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200">
-          {/* Status Tabs */}
-          <nav className="flex space-x-6" aria-label="Tabs Status Kelas">
-            <button
-              type="button"
-              onClick={() => setStatusTab("semua")}
-              className={`flex items-center gap-2 py-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
-                statusTab === "semua"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-slate-700 hover:text-slate-950 hover:border-slate-300"
-              }`}
-            >
-              <span>Semua Kelas</span>
-              <span
-                className={`rounded px-1.5 py-0.2 text-[10px] font-bold ${
-                  statusTab === "semua"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-slate-100 text-slate-700"
-                }`}
-              >
-                {classes.length}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStatusTab("aktif")}
-              className={`flex items-center gap-2 py-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
-                statusTab === "aktif"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-slate-700 hover:text-slate-950 hover:border-slate-300"
-              }`}
-            >
-              <span>Aktif</span>
-              <span
-                className={`rounded px-1.5 py-0.2 text-[10px] font-bold ${
-                  statusTab === "aktif"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-slate-100 text-slate-700"
-                }`}
-              >
-                {stats.activeClasses}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setStatusTab("dibatalkan")}
-              className={`flex items-center gap-2 py-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
-                statusTab === "dibatalkan"
-                  ? "border-blue-600 text-blue-600"
-                  : "border-transparent text-slate-700 hover:text-slate-950 hover:border-slate-300"
-              }`}
-            >
-              <span>Dibatalkan</span>
-              <span
-                className={`rounded px-1.5 py-0.2 text-[10px] font-bold ${
-                  statusTab === "dibatalkan"
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-slate-100 text-slate-700"
-                }`}
-              >
-                {classes.length - stats.activeClasses}
-              </span>
-            </button>
-          </nav>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+          <div>
+            <h2 className="text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
+              Daftar Rombongan Belajar
+            </h2>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+              Kelola aktivitas kelas, presensi tatap muka, dan penilaian siswa.
+            </p>
+          </div>
 
           {/* Search & Jenjang Filters */}
-          <div className="flex flex-wrap items-center gap-2.5 pb-2 sm:pb-0">
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* Search Input */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" />
@@ -226,7 +228,7 @@ export function TeacherClassesView({
                 placeholder="Cari mata pelajaran, ruangan..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-48 sm:w-64 rounded-md border border-slate-200 bg-white py-1.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-blue-600 focus:outline-hidden"
+                className="w-48 sm:w-64 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
               />
             </div>
 
@@ -234,7 +236,7 @@ export function TeacherClassesView({
             <select
               value={jenjangFilter}
               onChange={(e) => setJenjangFilter(e.target.value)}
-              className="rounded-md border border-slate-200 bg-white py-1.5 pl-3 pr-8 text-xs sm:text-sm font-medium text-slate-800 focus:border-blue-600 focus:outline-hidden cursor-pointer"
+              className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 pl-3 pr-8 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 focus:border-blue-600 focus:outline-hidden cursor-pointer"
             >
               <option value="all">Semua Jenjang</option>
               <option value="TK">TK</option>
@@ -247,27 +249,26 @@ export function TeacherClassesView({
 
         {/* 4. Class Cards Grid */}
         {filteredClasses.length === 0 ? (
-          <div className="rounded-lg border border-slate-200 bg-white p-12 text-center shadow-2xs space-y-3">
-            <div className="mx-auto grid size-12 place-items-center rounded-lg bg-slate-100 text-slate-500">
+          <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center shadow-2xs space-y-3">
+            <div className="mx-auto grid size-12 place-items-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500">
               <AlertCircle className="size-6" />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-950">
+              <p className="text-sm font-bold text-slate-950 dark:text-slate-50">
                 Tidak ada kelas yang ditemukan
               </p>
-              <p className="text-xs text-slate-600 mt-0.5">
-                Coba sesuaikan kata kunci pencarian atau ganti filter status kelas.
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                Coba sesuaikan kata kunci pencarian atau ganti filter jenjang.
               </p>
             </div>
-            {(searchQuery || jenjangFilter !== "all" || statusTab !== "semua") && (
+            {(searchQuery || jenjangFilter !== "all") && (
               <button
                 type="button"
                 onClick={() => {
                   setSearchQuery("");
                   setJenjangFilter("all");
-                  setStatusTab("semua");
                 }}
-                className="inline-flex items-center rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50 transition-colors cursor-pointer"
+                className="inline-flex items-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
               >
                 Reset Semua Filter
               </button>
@@ -277,145 +278,129 @@ export function TeacherClassesView({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
             {filteredClasses.map((c) => {
               const pct = Math.min(100, Math.round((c.kuotaTerisi / Math.max(c.kuotaMaksimum, 1)) * 100));
-              const jenjangStyle = JENJANG_BADGES[c.jenjang] || "bg-slate-100 text-slate-700 border-slate-200";
+              const theme = JENJANG_THEMES[c.jenjang] || DEFAULT_THEME;
+              const todaySchedule = c.schedules.find((s) => s.isToday);
 
               return (
                 <div
                   key={c.id}
-                  className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5 shadow-2xs hover:border-slate-300 transition-all flex flex-col justify-between space-y-4"
+                  className="relative overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs hover:shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between"
                 >
-                  {/* Top: Header Info */}
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h2 className="text-base font-bold text-slate-950 tracking-tight line-clamp-1">
-                          {c.mapelNama}
-                        </h2>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-semibold ${jenjangStyle}`}>
-                            {c.jenjang} {c.tingkat ? `· ${c.tingkat}` : ""}
-                          </span>
-                          {c.ruangan && (
-                            <span className="text-xs text-slate-600">
-                              Ruang: {c.ruangan}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Status Tag */}
+                  {/* 1. Thematic Header Plate */}
+                  <div className={`p-4 sm:p-5 border-b ${theme.plate}`}>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${theme.badge}`}>
+                        {c.jenjang} {c.tingkat ? `· ${c.tingkat}` : ""}
+                      </span>
                       {c.status === "aktif" ? (
-                        <span className="inline-flex items-center rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-800 shrink-0">
-                          <span className="size-1.5 rounded-full bg-emerald-600 mr-1.5" />
+                        <span className="inline-flex items-center rounded-full bg-emerald-100/80 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 shrink-0">
+                          <span className="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 mr-1.5" />
                           Aktif
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-800 shrink-0">
-                          <span className="size-1.5 rounded-full bg-amber-600 mr-1.5" />
+                        <span className="inline-flex items-center rounded-full bg-amber-100/80 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 dark:text-amber-300 shrink-0">
+                          <span className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400 mr-1.5" />
                           Dibatalkan
                         </span>
                       )}
                     </div>
 
-                    {c.periodeNama && (
-                      <p className="text-xs text-slate-600">
-                        Periode: <span className="font-medium text-slate-800">{c.periodeNama}</span>
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Middle: Kapasitas Kuota */}
-                  <div className="space-y-1.5 bg-slate-50/70 rounded-md border border-slate-100 p-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-slate-700">Keterisian Kuota</span>
-                      <div className="flex items-baseline gap-1">
-                        <span className="font-bold text-slate-950 tabular-nums">
-                          {c.kuotaTerisi}
-                        </span>
-                        <span className="text-slate-400">/</span>
-                        <span className="text-slate-700 tabular-nums">{c.kuotaMaksimum} Siswa</span>
-                        <span className="ml-1 text-[11px] font-semibold text-slate-600">({pct}%)</span>
+                    <div className="mt-3">
+                      <h2 className="font-display text-lg font-bold text-slate-950 dark:text-white tracking-tight line-clamp-1">
+                        {c.mapelNama}
+                      </h2>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-slate-600 dark:text-slate-400">
+                        {c.ruangan && <span>Ruang {c.ruangan}</span>}
+                        {c.ruangan && c.periodeNama && <span>·</span>}
+                        {c.periodeNama && <span>{c.periodeNama}</span>}
                       </div>
                     </div>
-
-                    <div
-                      className="h-2 w-full overflow-hidden rounded bg-slate-200/80"
-                      role="progressbar"
-                      aria-valuenow={pct}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                    >
-                      <div
-                        className={`h-full rounded ${pct >= 90 ? "bg-amber-500" : "bg-blue-600"}`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
                   </div>
 
-                  {/* Middle: Jadwal Pertemuan */}
-                  <div className="space-y-2">
-                    <p className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-                      Jadwal Sesi Mingguan
-                    </p>
-
-                    {c.schedules.length === 0 ? (
-                      <p className="text-xs text-slate-500 italic">Belum ada jadwal tatap muka</p>
-                    ) : (
-                      <div className="space-y-1.5">
-                        {c.schedules.map((s) => (
+                  {/* 2. Middle Body: Clean Unboxed Metrics & Context */}
+                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
+                    {/* Grid 2 Kolom Ringkasan Data */}
+                    <div className="grid grid-cols-2 gap-4 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+                      {/* Kolom 1: Kuota & Keterisian */}
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          Kapasitas Siswa
+                        </p>
+                        <p className="mt-1 text-base sm:text-lg font-bold text-slate-950 dark:text-white tabular-nums tracking-tight">
+                          {c.kuotaTerisi} <span className="text-xs font-normal text-slate-500 dark:text-slate-400">/ {c.kuotaMaksimum}</span>
+                        </p>
+                        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                           <div
-                            key={s.id}
-                            className={`flex items-center justify-between rounded-md border px-3 py-2 text-xs transition-colors ${
-                              s.isToday
-                                ? "border-blue-200 bg-blue-50/60 text-blue-900"
-                                : "border-slate-100 bg-slate-50/40 text-slate-800"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              <Clock className={`size-3.5 ${s.isToday ? "text-blue-600" : "text-slate-500"}`} />
-                              <span className="font-bold">{s.hari}</span>
-                              <span className="text-slate-600">
-                                {s.jamMulai.slice(0, 5)} - {s.jamSelesai.slice(0, 5)} WIB
-                              </span>
-                            </div>
-
-                            {s.isToday && (
-                              <span className="rounded bg-blue-600 text-white px-1.5 py-0.2 text-[10px] font-bold">
-                                Hari Ini
-                              </span>
-                            )}
-                          </div>
-                        ))}
+                            className={`h-full rounded-full transition-all ${pct >= 90 ? "bg-amber-500" : "bg-blue-600"}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
                       </div>
-                    )}
-                  </div>
 
-                  {/* Bottom: Action Buttons */}
-                  <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <Link
-                        href={`/teacher/classes/${c.id}`}
-                        className="inline-flex items-center justify-center rounded-md bg-slate-900 px-3.5 py-2 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 transition-colors"
-                      >
-                        <span>Buka Roster Siswa</span>
-                      </Link>
-
-                      <Link
-                        href={`/teacher/grades?tab=murid&kelas=${c.id}`}
-                        className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-50 hover:text-slate-950 transition-colors"
-                      >
-                        <span>Nilai Siswa</span>
-                      </Link>
+                      {/* Kolom 2: Status Sesi Hari Ini / Jadwal */}
+                      <div>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                          {c.hasSessionToday ? "Sesi Hari Ini" : "Jadwal Pertemuan"}
+                        </p>
+                        {c.hasSessionToday && todaySchedule ? (
+                          <div>
+                            <p className="mt-1 text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400 tabular-nums tracking-tight">
+                              {todaySchedule.jamMulai.slice(0, 5)} - {todaySchedule.jamSelesai.slice(0, 5)} <span className="text-xs font-normal">WIB</span>
+                            </p>
+                            <span className="inline-flex items-center text-[11px] font-bold text-blue-700 dark:text-blue-300 mt-1">
+                              Perlu Presensi
+                            </span>
+                          </div>
+                        ) : (
+                          <div>
+                            <p className="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100 line-clamp-1">
+                              {c.schedules.length > 0 ? c.schedules.map((s) => s.hari).join(", ") : "Belum diatur"}
+                            </p>
+                            <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                              {c.schedules.length > 0 ? `${c.schedules.length} sesi per minggu` : "Jadwal tatap muka"}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {c.hasSessionToday && c.status === "aktif" && (
-                      <Link
-                        href={`/teacher/classes/${c.id}/sessions/${todayStr}/attendance`}
-                        className="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-xs font-semibold text-white shadow-xs hover:bg-blue-700 transition-colors"
-                      >
-                        <span>Presensi Hari Ini</span>
-                      </Link>
-                    )}
+                    {/* 3. Bottom: Smart Contextual Action Area */}
+                    <div className="space-y-2.5 pt-1">
+                      {c.hasSessionToday && c.status === "aktif" ? (
+                        /* Skenario 1: Ada sesi hari ini -> Primary CTA adalah Catat Presensi */
+                        <Link
+                          href={`/teacher/classes/${c.id}/sessions/${todayStr}/attendance`}
+                          className="flex w-full items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition-colors"
+                        >
+                          <span>Catat Presensi Hari Ini</span>
+                        </Link>
+                      ) : (
+                        /* Skenario 2: Tidak ada sesi hari ini -> Primary CTA adalah Buka Detail & Roster */
+                        <Link
+                          href={`/teacher/classes/${c.id}`}
+                          className="flex w-full items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-200 px-4 py-2.5 text-xs font-bold text-white dark:text-slate-900 shadow-xs transition-colors"
+                        >
+                          <span>Buka Roster Kelas</span>
+                        </Link>
+                      )}
+
+                      {/* Secondary Quick Links */}
+                      <div className="flex items-center justify-between text-xs pt-1 px-1">
+                        <Link
+                          href={`/teacher/classes/${c.id}`}
+                          className="font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors"
+                        >
+                          Roster Siswa ({c.kuotaTerisi})
+                        </Link>
+                        <span className="text-slate-300 dark:text-slate-700">·</span>
+                        <Link
+                          href={`/teacher/grades?tab=murid&kelas=${c.id}`}
+                          className="font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors"
+                        >
+                          Nilai Siswa
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </div>
               );

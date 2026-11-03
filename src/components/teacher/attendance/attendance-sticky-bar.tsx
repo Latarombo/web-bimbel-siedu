@@ -19,28 +19,28 @@ export function AttendanceStickyBar({ counts, pending }: AttendanceStickyBarProp
 
   return (
     <div className="sticky bottom-4 z-30 mt-6 transition-all">
-      <div className="mx-auto max-w-5xl rounded-lg border border-slate-200 bg-white p-3.5 shadow-lg sm:p-4">
+      <div className="mx-auto max-w-5xl rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 shadow-lg sm:p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {/* Status Counters Real-time */}
           <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 border border-emerald-200 px-2.5 py-1 text-emerald-700">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2.5 py-1 text-emerald-700 dark:text-emerald-300">
               <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
               {t('summaryPresent')}: <span className="font-bold tabular-nums">{counts.hadir}</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 border border-amber-200 px-2.5 py-1 text-amber-700">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-2.5 py-1 text-amber-700 dark:text-amber-300">
               <span className="size-2 rounded-full bg-amber-500" aria-hidden="true" />
               {t('summaryExcused')}: <span className="font-bold tabular-nums">{counts.izin}</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 border border-blue-200 px-2.5 py-1 text-blue-700">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 px-2.5 py-1 text-blue-700 dark:text-blue-300">
               <span className="size-2 rounded-full bg-blue-500" aria-hidden="true" />
               {t('summarySick')}: <span className="font-bold tabular-nums">{counts.sakit}</span>
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-50 border border-rose-200 px-2.5 py-1 text-rose-700">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 px-2.5 py-1 text-rose-700 dark:text-rose-300">
               <span className="size-2 rounded-full bg-rose-500" aria-hidden="true" />
               {t('summaryAbsent')}: <span className="font-bold tabular-nums">{counts.alpa}</span>
             </span>
             {counts.belumDiisi > 0 ? (
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 border border-slate-200 px-2.5 py-1 text-slate-700">
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-1 text-slate-700 dark:text-slate-300">
                 <span className="size-2 rounded-full bg-slate-400" aria-hidden="true" />
                 {t('summaryUnfilled')}: <span className="font-bold tabular-nums">{counts.belumDiisi}</span>
               </span>

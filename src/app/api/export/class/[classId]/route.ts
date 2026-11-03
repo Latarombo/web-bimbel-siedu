@@ -5,7 +5,14 @@ import { collect } from "@/lib/collect";
 
 function escapeCsv(val: unknown): string {
   if (val == null) return '""';
-  const str = String(val);
+  let str = String(val);
+  // Mitigasi CSV Formula Injection (CWE-1236): netralkan karakter pemicu formula
+  if (
+    typeof val === "string" &&
+    (/^[=@\t\r]/.test(str) || (/^[+\-]/.test(str) && isNaN(Number(str))))
+  ) {
+    str = `'${str}`;
+  }
   if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
     return `"${str.replace(/"/g, '""')}"`;
   }

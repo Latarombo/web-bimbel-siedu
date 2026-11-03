@@ -1,10 +1,12 @@
 'use server';
+import { headers } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
 import { getLocaleDariCookie } from '@/i18n/locale';
 
 import { z } from 'zod';
 import { db } from '@/prisma/db';
 import { SUBJEK } from '@/lib/kontak';
+import { checkRateLimit, checkCooldown, getClientIp } from '@/lib/rate-limit';
 
 /*
  * A7 — Formulir Kontak publik (halaman /contact). Pesan non-registrasi
@@ -59,6 +61,24 @@ export async function kirimPesanKontak(_prev: KontakState, formData: FormData): 
   const fieldErrors: Record<string, string> = {};
   for (const issue of parsed.error.issues) fieldErrors[String(issue.path[0])] ??= issue.message;
   return { error: t('checkForm'), fieldErrors, ...raw };
+ }
+
+ // Proteksi anti-spam / flooding database
+ const headerList = await headers();
+ const clientIp = getClientIp(headerList);
+ const cd = checkCooldown(`contact_cd:${clientIp}`, 30 * 1000);
+ if (!cd.allowed) {
+  return {
+   error: t('rateLimitContact', { seconds: cd.retryAfterSeconds }),
+   ...raw,
+  };
+ }
+ const ipRate = checkRateLimit(`contact_ip:${clientIp}`, 3, 10 * 60 * 1000);
+ if (!ipRate.allowed) {
+  return {
+   error: t('rateLimitContact', { seconds: ipRate.retryAfterSeconds }),
+   ...raw,
+  };
  }
 
  const d = parsed.data;

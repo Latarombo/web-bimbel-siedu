@@ -25,6 +25,12 @@
       "skillPath": "plugins/business-analytics/skills/kpi-dashboard-design/SKILL.md",
       "computedHash": "237c91f703641b4abd39600062d55de1dbfb1ff6d42608b0ba5bd729aefa6f55"
     },
+    "security-audit": {
+      "source": "cloudflare/security-audit-skill",
+      "sourceType": "github",
+      "skillPath": "skills/security-audit/SKILL.md",
+      "computedHash": "e6b2e317de75da97e9de18d842982994803f3a67a4a6d8154a82323dc3de8528"
+    },
     "shadcn": {
       "source": "shadcn-ui/ui",
       "sourceType": "github",

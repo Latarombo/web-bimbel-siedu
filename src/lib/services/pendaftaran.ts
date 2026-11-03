@@ -192,6 +192,11 @@ export async function processTimeouts(): Promise<{ dibatalkan: number }> {
           .build(),
       );
       await tx.execute(
+        db.raw.sql`update pembayaran set status = 'gagal', updated_at = now() where pendaftaran_id = ${p.id} and status = 'pending'`
+          .affectedCount()
+          .build(),
+      );
+      await tx.execute(
         db.raw.sql`update kelas set kuota_terisi = greatest(kuota_terisi - 1, 0), updated_at = now() where id = ${p.kelas_id}`
           .affectedCount()
           .build(),

@@ -1,4 +1,5 @@
 'use server';
+import { headers } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
 import { getLocaleDariCookie } from '@/i18n/locale';
 
@@ -7,6 +8,7 @@ import { z } from 'zod';
 import { db } from '@/prisma/db';
 import { auth, signIn, signOut } from '@/lib/auth';
 import { homeUntukUser } from '@/lib/orang-tua-lengkap';
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
@@ -25,6 +27,25 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
   // Email dikirim balik supaya field tetap terisi saat gagal (password tidak pernah di-echo).
   const emailKetik = String(formData.get('email') ?? '');
   if (!parsed.success) return { error: t('invalidCredentials'), email: emailKetik };
+
+  // Proteksi Brute-Force: per IP (maks 10 attempt / 15 menit) & per Email (maks 5 attempt / 15 menit)
+  const headerList = await headers();
+  const clientIp = getClientIp(headerList);
+  const ipRate = checkRateLimit(`login_ip:${clientIp}`, 10, 15 * 60 * 1000);
+  if (!ipRate.allowed) {
+    return {
+      error: t('rateLimitLogin', { seconds: ipRate.retryAfterSeconds }),
+      email: emailKetik,
+    };
+  }
+
+  const emailRate = checkRateLimit(`login_email:${parsed.data.email}`, 5, 15 * 60 * 1000);
+  if (!emailRate.allowed) {
+    return {
+      error: t('rateLimitLogin', { seconds: emailRate.retryAfterSeconds }),
+      email: emailKetik,
+    };
+  }
 
   const next = String(formData.get('next') ?? '');
   const target =

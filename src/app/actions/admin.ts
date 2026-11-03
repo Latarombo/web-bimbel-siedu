@@ -179,7 +179,7 @@ export async function saveGuru(
   const guruId = Number(formData.get("guru_id") ?? 0);
   try {
     if (guruId > 0) {
-      await db.orm.public.User.where({ id: guruId }).update({
+      await db.orm.public.User.where({ id: guruId, role: "guru" }).update({
         name: nama,
         email,
         alamat: alamat || null,
@@ -331,7 +331,8 @@ export async function saveKelas(
       .where((k) => k.status.eq("aktif"))
       .all(),
   );
-  const kelasIds = new Set(kelasGuru.map((k) => k.id));
+  const kelasId = Number(formData.get("kelas_id") ?? 0);
+  const kelasIds = new Set(kelasGuru.map((k) => k.id).filter((cid) => cid !== kelasId));
   const jadwalLama = await collect(db.orm.public.JadwalItem.all());
   const strip = (s: string) => s.slice(0, 5);
   for (const nl of jadwalBaru) {
@@ -362,7 +363,6 @@ export async function saveKelas(
     tenorMaksimum: d.tenor_maksimum ?? null,
     status: d.status,
   };
-  const kelasId = Number(formData.get("kelas_id") ?? 0);
   let id = kelasId;
   if (kelasId > 0) {
     await db.orm.public.Kelas.where({ id: kelasId }).update(values);
@@ -431,6 +431,13 @@ export async function prosesPengajuan(formData: FormData): Promise<void> {
       db.raw
         .sql`update pendaftaran set status = 'dibatalkan_orang_tua', updated_at = now()
  where id = ${pengajuan.pendaftaranId}`
+        .affectedCount()
+        .build(),
+    );
+    await tx.execute(
+      db.raw
+        .sql`update pembayaran set status = 'gagal', updated_at = now()
+ where pendaftaran_id = ${pengajuan.pendaftaranId} and status = 'pending'`
         .affectedCount()
         .build(),
     );

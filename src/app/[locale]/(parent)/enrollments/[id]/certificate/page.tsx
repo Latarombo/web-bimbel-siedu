@@ -1,4 +1,5 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { getOfficialCertificateData } from "@/lib/certificate";
 import { OfficialCertificate } from "@/components/common/official-certificate";
@@ -13,7 +14,7 @@ export default async function ParentCertificatePage({
   const session = await auth();
   const { id, locale } = await params;
   if (!session?.user) {
-    redirect(`/${locale}/login?next=/enrollments/${id}`);
+    return redirect({ href: `/login?next=/enrollments/${id}`, locale });
   }
 
   const pid = Number(id);

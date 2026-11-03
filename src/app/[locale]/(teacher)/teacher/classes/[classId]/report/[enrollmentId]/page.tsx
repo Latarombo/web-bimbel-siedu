@@ -1,4 +1,5 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { getOfficialReportCardData } from "@/lib/report-card";
 import { OfficialReportCard } from "@/components/common/official-report-card";
@@ -13,7 +14,7 @@ export default async function TeacherReportCardPage({
   const session = await auth();
   const { classId, enrollmentId, locale } = await params;
   if (!session?.user) {
-    redirect(`/${locale}/login?next=/teacher/classes/${classId}`);
+    return redirect({ href: `/login?next=/teacher/classes/${classId}`, locale });
   }
 
   const cid = Number(classId);

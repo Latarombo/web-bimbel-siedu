@@ -203,7 +203,7 @@ function ChartTooltipContent({
           .map((item, index) => {
             const key = `${nameKey ?? item.name ?? item.dataKey ?? "value"}`
             const itemConfig = getPayloadConfigFromPayload(config, item, key)
-            const indicatorColor = color ?? item.payload?.fill ?? item.color
+            const indicatorColor = color ?? item.payload?.fill ?? item.color ?? itemConfig?.color
 
             return (
               <div
@@ -234,6 +234,8 @@ function ChartTooltipContent({
                           )}
                           style={
                             {
+                              backgroundColor: indicatorColor,
+                              borderColor: indicatorColor,
                               "--color-bg": indicatorColor,
                               "--color-border": indicatorColor,
                             } as React.CSSProperties

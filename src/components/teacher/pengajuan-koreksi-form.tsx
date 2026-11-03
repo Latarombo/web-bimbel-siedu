@@ -88,7 +88,7 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
 
   if (lockedEntries.length === 0) {
     return (
-      <div className="rounded-lg border border-slate-100 bg-slate-50/70 p-4 text-center text-sm text-slate-500">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-4 text-center text-sm text-slate-500 dark:text-slate-400">
         {t("noLockedEntries")}
       </div>
     );
@@ -109,7 +109,7 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
       ) : null}
 
       <div>
-        <label htmlFor="select-locked-entry" className="block text-sm font-semibold text-slate-700 mb-1.5">
+        <label htmlFor="select-locked-entry" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
           {t("selectLockedEntry")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
         </label>
         <CardSelect
@@ -127,16 +127,16 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
       </div>
 
       {selectedEntry ? (
-        <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-3.5 sm:p-4">
-          <div className="text-xs text-slate-500">
-            <span className="font-medium text-slate-700">{t("currentData")}: </span>
+        <div className="space-y-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 p-3.5 sm:p-4">
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            <span className="font-medium text-slate-700 dark:text-slate-300">{t("currentData")}: </span>
             {selectedEntry.ringkasan}
           </div>
 
           {selectedEntry.entitas === "presensi" ? (
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   {t("proposedStatus")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
                 </label>
                 <CardSelect
@@ -153,7 +153,7 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   {t("additionalNotes")}
                 </label>
                 <input
@@ -161,14 +161,14 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
                   value={proposedNotes}
                   onChange={(e) => setProposedNotes(e.target.value)}
                   placeholder={t("notesPlaceholder")}
-                  className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white"
+                  className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-800"
                 />
               </div>
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   {t("proposedGrade")} (0-100) <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
                 </label>
                 <input
@@ -178,12 +178,12 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
                   value={proposedGrade}
                   onChange={(e) => setProposedGrade(e.target.value)}
                   required
-                  className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white"
+                  className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-800"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   {t("additionalNotes")}
                 </label>
                 <input
@@ -191,14 +191,14 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
                   value={proposedNotes}
                   onChange={(e) => setProposedNotes(e.target.value)}
                   placeholder={t("notesPlaceholder")}
-                  className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white"
+                  className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-800"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               {t("correctionReason")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
             </label>
             <textarea
@@ -208,7 +208,7 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder={t("correctionStep2Body")}
-              className="w-full px-3.5 py-2.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 resize-y bg-white"
+              className="w-full px-3.5 py-2.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-y bg-white dark:bg-slate-800"
             />
           </div>
 

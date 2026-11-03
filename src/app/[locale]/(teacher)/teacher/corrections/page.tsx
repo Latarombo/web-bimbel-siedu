@@ -5,7 +5,6 @@ import { Link } from "@/i18n/navigation";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { dalamJendela7Hari } from "@/lib/hari";
-import { PageShell, PageHeader, Panel, Notice } from "@/components/admin/ui";
 import { Badge } from "@/components/ui/badge";
 import { PengajuanKoreksiForm, type LockedEntryItem } from "@/components/teacher/pengajuan-koreksi-form";
 
@@ -66,37 +65,47 @@ export default async function TeacherCorrections() {
   const riwayatPengajuan = [...pengajuan].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
   return (
-    <PageShell>
-      <PageHeader
-        title={t("correctionTitle")}
-        desc={t("correctionDescription")}
-        meta={t("lockedEntriesCount", { count: total })}
-      />
+    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
+              {t("correctionTitle")}
+            </h1>
+            <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
+              {t("lockedEntriesCount", { count: total })}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+            {t("correctionDescription")}
+          </p>
+        </div>
+      </div>
 
-      <div className="mt-6 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-6">
           {/* Panel Form Pengajuan Koreksi */}
-          <Panel>
-            <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("newCorrectionRequest")}</h2>
-              <p className="text-xs text-slate-500">{t("correctionStepsHelp")}</p>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+            <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
+              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">{t("newCorrectionRequest")}</h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">{t("correctionStepsHelp")}</p>
             </div>
             <div className="p-4 sm:p-6">
               <PengajuanKoreksiForm lockedEntries={lockedEntries} />
             </div>
-          </Panel>
+          </div>
 
           {/* Panel Riwayat Pengajuan Saya */}
-          <Panel>
-            <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("myCorrectionsHistory")}</h2>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+            <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
+              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">{t("myCorrectionsHistory")}</h2>
             </div>
             {riwayatPengajuan.length === 0 ? (
-              <div className="p-6 text-center text-sm text-slate-500">
+              <div className="p-6 text-center text-sm text-slate-500 dark:text-slate-400">
                 {t("noCorrectionsYet")}
               </div>
             ) : (
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {riwayatPengajuan.map((item) => {
                   let parsedUsulan: Record<string, unknown> = {};
                   try {
@@ -121,11 +130,11 @@ export default async function TeacherCorrections() {
                     <div key={item.id} className="p-4 sm:p-6">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                          <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                             {item.entitas === "presensi" ? t("attendance") : t("grades")} #{item.entitasId}
                           </span>
-                          <span className="text-xs text-slate-600">·</span>
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-slate-400 dark:text-slate-600">·</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-400">
                             {new Date(item.createdAt).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", {
                               day: "numeric",
                               month: "short",
@@ -139,20 +148,20 @@ export default async function TeacherCorrections() {
 
                       <div className="mt-3 space-y-2 text-sm">
                         <div>
-                          <span className="font-medium text-slate-700">{t("correctionReason")}: </span>
-                          <span className="text-slate-600">{item.alasan}</span>
+                          <span className="font-medium text-slate-700 dark:text-slate-300">{t("correctionReason")}: </span>
+                          <span className="text-slate-600 dark:text-slate-400">{item.alasan}</span>
                         </div>
 
                         <div>
-                          <span className="font-medium text-slate-700">{t("proposedData")}: </span>
-                          <span className="rounded bg-slate-50 px-2 py-0.5 font-mono text-xs text-slate-800">
+                          <span className="font-medium text-slate-700 dark:text-slate-300">{t("proposedData")}: </span>
+                          <span className="rounded bg-slate-50 dark:bg-slate-800 px-2 py-0.5 font-mono text-xs text-slate-800 dark:text-slate-200">
                             {JSON.stringify(parsedUsulan)}
                           </span>
                         </div>
 
                         {item.catatanAdmin ? (
-                          <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-700">
-                            <span className="font-semibold text-slate-900">{t("adminNote")}: </span>
+                          <div className="mt-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-2.5 text-xs text-slate-700 dark:text-slate-300">
+                            <span className="font-semibold text-slate-900 dark:text-slate-100">{t("adminNote")}: </span>
                             {item.catatanAdmin}
                           </div>
                         ) : null}
@@ -162,41 +171,44 @@ export default async function TeacherCorrections() {
                 })}
               </div>
             )}
-          </Panel>
+          </div>
         </div>
 
         <div className="flex flex-col gap-4">
-          <Notice tone="blue" title={t("whyLocked")}>
-            {t("whyLockedBody")}
-          </Notice>
+          <div className="rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 p-5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-300">
+              {t("whyLocked")}
+            </h3>
+            <p className="mt-1.5 text-xs text-blue-950/80 dark:text-blue-200/80 leading-relaxed">
+              {t("whyLockedBody")}
+            </p>
+          </div>
 
-          <Panel>
-            <div className="p-4 sm:p-6">
-              <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("yourEntryStatus")}</h2>
-              <dl className="mt-3 space-y-2.5 text-sm">
-                {[
-                  [t("lockedGrades"), t("entriesCount", { count: nilaiTerkunci.length })],
-                  [t("lockedAttendance"), t("entriesCount", { count: presensiTerkunci.length })],
-                  [t("editableByYou"), t("entriesCount", { count: nilai.length - nilaiTerkunci.length + (presensi.length - presensiTerkunci.length) })],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex items-baseline justify-between gap-3">
-                    <dt className="text-slate-500">{k}</dt>
-                    <dd className="font-bold tabular-nums text-slate-900">{v}</dd>
-                  </div>
-                ))}
-              </dl>
-              <div className="mt-4 space-y-2 border-t border-slate-100 pt-4 text-sm">
-                <Link href="/teacher/grades" className="block font-semibold text-blue-700 hover:underline">
-                  {t("findEditable")}
-                </Link>
-                <Link href="/teacher/classes" className="block font-semibold text-blue-700 hover:underline">
-                  {t("attendanceByClass")}
-                </Link>
-              </div>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs">
+            <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">{t("yourEntryStatus")}</h2>
+            <dl className="mt-3 space-y-2.5 text-sm">
+              {[
+                [t("lockedGrades"), t("entriesCount", { count: nilaiTerkunci.length })],
+                [t("lockedAttendance"), t("entriesCount", { count: presensiTerkunci.length })],
+                [t("editableByYou"), t("entriesCount", { count: nilai.length - nilaiTerkunci.length + (presensi.length - presensiTerkunci.length) })],
+              ].map(([k, v]) => (
+                <div key={k} className="flex items-baseline justify-between gap-3">
+                  <dt className="text-slate-500 dark:text-slate-400">{k}</dt>
+                  <dd className="font-bold tabular-nums text-slate-900 dark:text-slate-100">{v}</dd>
+                </div>
+              ))}
+            </dl>
+            <div className="mt-4 space-y-2 border-t border-slate-100 dark:border-slate-800 pt-4 text-sm">
+              <Link href="/teacher/grades" className="block font-semibold text-blue-700 dark:text-blue-400 hover:underline">
+                {t("findEditable")}
+              </Link>
+              <Link href="/teacher/classes" className="block font-semibold text-blue-700 dark:text-blue-400 hover:underline">
+                {t("attendanceByClass")}
+              </Link>
             </div>
-          </Panel>
+          </div>
         </div>
       </div>
-    </PageShell>
+    </div>
   );
 }

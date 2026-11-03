@@ -131,6 +131,7 @@
     "enrollmentMissing": "Pendaftaran tidak ditemukan.",
     "ended": "Pendaftaran ini sudah berakhir — tidak bisa dibatalkan.",
     "enrollmentOwnership": "Pendaftaran ini bukan milik akun Anda.",
+    "cancelled": "Pendaftaran sudah dibatalkan atau kedaluwarsa.",
     "awaiting": "Pengajuan masih menunggu keputusan admin."
   },
   "enrollment": {

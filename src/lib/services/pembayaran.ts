@@ -114,7 +114,7 @@ async function terbitkanCicilanBerikutnya(
     db.raw
       .sql`insert into pembayaran (pendaftaran_id, tipe, cicilan_ke, jumlah, jatuh_tempo, status, created_at, updated_at)
                values (${pendaftaranId}, 'cicilan', ${ke}, ${jumlah}::numeric,
-                       ${plusHari(7)}::date, 'pending', now(), now())`
+                       ${plusHari(30)}::date, 'pending', now(), now())`
       .affectedCount()
       .build(),
   );
@@ -178,6 +178,32 @@ async function setelahBerhasil(tx: Tx, pendaftaranId: number) {
       ),
     );
     if (dpLunas?.ada) {
+      await tx.execute(
+        db.raw
+          .sql`update pendaftaran set status = 'terdaftar', updated_at = now()
+ where id = ${pendaftaranId}`
+          .affectedCount()
+          .build(),
+      );
+    }
+  }
+
+  // Jika sebelumnya 'tertunggak', dan sekarang tidak ada lagi tagihan yang melewati jatuh tempo,
+  // pulihkan status pendaftaran kembali menjadi 'terdaftar'.
+  if (pendaftaran.status === "tertunggak") {
+    const [adaTerlambat] = await collect(
+      tx.query(
+        db.raw.sql`select exists (
+          select 1 from pembayaran
+          where pendaftaran_id = ${pendaftaranId}
+            and status = 'pending'
+            and jatuh_tempo < current_date
+        ) as ada`
+          .returnsRow({ ada: "pg/bool@1" })
+          .build(),
+      ),
+    );
+    if (!adaTerlambat?.ada) {
       await tx.execute(
         db.raw
           .sql`update pendaftaran set status = 'terdaftar', updated_at = now()
@@ -293,9 +319,10 @@ export async function processTunggakan(): Promise<{
   menjadiTertunggak: number;
   dibatalkanTunggakan: number;
 }> {
-  const semua = await collect(db.orm.public.Pendaftaran.all());
-  const kandidat = semua.filter(
-    (p) => p.status === "terdaftar" || p.status === "tertunggak",
+  const kandidat = await collect(
+    db.orm.public.Pendaftaran.where((p) =>
+      p.status.in(["terdaftar", "tertunggak"]),
+    ).all(),
   );
 
   let menjadiTertunggak = 0;
@@ -327,6 +354,13 @@ export async function processTunggakan(): Promise<{
           db.raw
             .sql`update pendaftaran set status = 'dibatalkan_tunggakan', updated_at = now()
                      where id = ${p.id}`
+            .affectedCount()
+            .build(),
+        );
+        await tx.execute(
+          db.raw
+            .sql`update pembayaran set status = 'gagal', updated_at = now()
+                     where pendaftaran_id = ${p.id} and status = 'pending'`
             .affectedCount()
             .build(),
         );

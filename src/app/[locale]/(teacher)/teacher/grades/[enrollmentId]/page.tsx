@@ -8,7 +8,6 @@ import { collect } from "@/lib/collect";
 import { dalamJendela7Hari } from "@/lib/hari";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
-import { PageShell, PageHeader, Panel } from "@/components/admin/ui";
 import NilaiForm from "@/components/teacher/nilai-form";
 import LaporanPerkembanganForm from "@/components/teacher/laporan-perkembangan-form";
 
@@ -98,71 +97,99 @@ export default async function GradeInputPage({
   });
 
   return (
-    <PageShell>
-      <PageHeader
-        backHref="/teacher/grades"
-        title={nama}
-        desc={t("gradeStudentDescription", {
-          subject: mapel[0]?.nama ?? t("class"),
-          level: kelas.jenjang,
-          status: t(`status_${p.status}`),
-        })}
-        meta={t("gradeEntriesCount", { count: nilai.length + laporanRows.length })}
-      >
-        <ButtonLink
-          href={`/teacher/classes/${p.kelasId}/report/${p.id}`}
-          variant="outline"
-        >
-          {t("reportCard")}
-        </ButtonLink>
-      </PageHeader>
+    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
+      {/* 1. Breadcrumbs */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+        <Link href="/teacher/dashboard" className="hover:text-slate-950 dark:hover:text-slate-100 transition-colors">
+          Dashboard
+        </Link>
+        <span>/</span>
+        <Link href="/teacher/grades" className="hover:text-slate-950 dark:hover:text-slate-100 transition-colors">
+          Nilai
+        </Link>
+        <span>/</span>
+        <span className="font-semibold text-slate-900 dark:text-slate-200 truncate">
+          {nama}
+        </span>
+      </nav>
 
-      <div className="mt-6 grid items-start gap-5 lg:grid-cols-[20rem_minmax(0,1fr)]">
+      {/* 2. Page Header Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
+              {nama}
+            </h1>
+            <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
+              {t("gradeEntriesCount", { count: nilai.length + laporanRows.length })}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+            {t("gradeStudentDescription", {
+              subject: mapel[0]?.nama ?? t("class"),
+              level: kelas.jenjang,
+              status: t(`status_${p.status}`),
+            })}
+          </p>
+        </div>
+
+        <div>
+          <ButtonLink
+            href={`/teacher/classes/${p.kelasId}/report/${p.id}`}
+            variant="outline"
+          >
+            {t("reportCard")}
+          </ButtonLink>
+        </div>
+      </div>
+
+      {/* 3. Main Grid */}
+      <div className="grid items-start gap-5 lg:grid-cols-[20rem_minmax(0,1fr)]">
         {/* KIRI: kartu siswa + info kehadiran + histori kelas terkait */}
         <div className="flex flex-col gap-4 lg:sticky lg:top-6">
-          <Panel>
-            <div className="p-4 sm:p-6">
-              <div className="flex items-center gap-3">
-                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-blue-100 text-base font-bold text-blue-800">
-                  {nama.trim().charAt(0).toUpperCase()}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate font-display text-[15px] font-bold tracking-tight text-slate-900">{nama}</p>
-                  <p className="text-xs text-slate-500">{t("enrollmentId", { id: p.id })}</p>
-                </div>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs">
+            <div className="flex items-center gap-3">
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-base font-bold text-blue-800 dark:text-blue-300">
+                {nama.trim().charAt(0).toUpperCase()}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-display text-[15px] font-bold tracking-tight text-slate-900 dark:text-slate-100">{nama}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{t("enrollmentId", { id: p.id })}</p>
               </div>
-              <dl className="mt-4 space-y-2.5 border-t border-slate-100 pt-4 text-sm">
-                {[
-                  [t("recordedAttendance"), t("sessionsCount", { count: presensi.length })],
-                  [t("present"), t("sessionsCount", { count: nHadir })],
-                  [t("progressReportsTab"), `${laporanRows.length}`],
-                  [t("classAssessmentsTab"), `${hasilPenilaianRows.length}`],
-                  [t("editable"), t("editableCount", { count: editable })],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex items-baseline justify-between gap-3">
-                    <dt className="text-slate-500">{k}</dt>
-                    <dd className="font-bold tabular-nums text-slate-900">{v}</dd>
-                  </div>
-                ))}
-              </dl>
             </div>
-          </Panel>
+            <dl className="mt-4 space-y-2.5 border-t border-slate-100 dark:border-slate-800 pt-4 text-sm">
+              {[
+                [t("recordedAttendance"), t("sessionsCount", { count: presensi.length })],
+                [t("present"), t("sessionsCount", { count: nHadir })],
+                [t("progressReportsTab"), `${laporanRows.length}`],
+                [t("classAssessmentsTab"), `${hasilPenilaianRows.length}`],
+                [t("editable"), t("editableCount", { count: editable })],
+              ].map(([k, v]) => (
+                <div key={k} className="flex items-baseline justify-between gap-3">
+                  <dt className="text-slate-500 dark:text-slate-400">{k}</dt>
+                  <dd className="font-bold tabular-nums text-slate-900 dark:text-slate-100">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
 
           {/* Histori Kelas Terkait */}
-          <Panel>
-            <div className="border-b border-slate-100 px-4 py-3 sm:px-6">
-              <h3 className="text-xs font-bold text-slate-900">Histori Kelas Terkait</h3>
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+            <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-3 sm:px-6">
+              <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100">Histori Kelas Terkait</h3>
             </div>
             <div className="p-4 sm:p-6">
               {kelasTerkait.length === 0 ? (
-                <p className="text-xs text-slate-500">Tidak ada kelas lain.</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Tidak ada kelas lain.</p>
               ) : (
                 <ul className="space-y-2 text-xs">
                   {kelasTerkait.map((kt) => (
                     <li
                       key={kt.pendaftaranId}
                       className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 ${
-                        kt.isCurrent ? "bg-blue-50 font-semibold text-blue-900" : "text-slate-600"
+                        kt.isCurrent
+                          ? "bg-blue-50 dark:bg-blue-950/40 font-semibold text-blue-900 dark:text-blue-300"
+                          : "text-slate-600 dark:text-slate-400"
                       }`}
                     >
                       <span className="truncate">{kt.namaKelas}</span>
@@ -174,25 +201,25 @@ export default async function GradeInputPage({
                 </ul>
               )}
             </div>
-          </Panel>
+          </div>
         </div>
 
         {/* KANAN: Tabbed Main Content */}
         <div className="space-y-4">
           {/* Tabs switch */}
-          <nav className="inline-flex flex-wrap gap-1 rounded-full bg-slate-100 p-1 text-xs">
+          <nav className="inline-flex flex-wrap gap-1 rounded-full bg-slate-100 dark:bg-slate-800 p-1 text-xs">
             {[
-              ["perkembangan", `${t("progressReportsTab")} (${laporanRows.length})`],
-              ["penilaian", `${t("classAssessmentsTab")} (${hasilPenilaianRows.length})`],
-              ["legacy", `${t("legacyGradesTab")} (${nilai.length})`],
+              ["perkembangan", t("progressReportsTab")],
+              ["penilaian", t("classAssessmentsTab")],
+              ["legacy", t("legacyGradesTab")],
             ].map(([tabKey, tabLabel]) => (
               <Link
                 key={tabKey}
                 href={`/teacher/grades/${pid}?tab=${tabKey}`}
                 className={`rounded-full px-4 py-2 font-semibold transition-colors ${
                   activeTab === tabKey
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-600 hover:text-slate-900"
+                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 shadow-2xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
                 }`}
               >
                 {tabLabel}
@@ -203,48 +230,48 @@ export default async function GradeInputPage({
           {activeTab === "perkembangan" ? (
             <div className="space-y-4">
               {/* Form Laporan Perkembangan Baru */}
-              <Panel>
-                <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-                  <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+                <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
+                  <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">
                     {t("newProgressReport")}
                   </h2>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     Catatan internal guru disimpan terpisah dan aman dari publikasi orang tua.
                   </p>
                 </div>
                 <div className="p-4 sm:p-6">
                   <LaporanPerkembanganForm pendaftaranId={pid} />
                 </div>
-              </Panel>
+              </div>
 
               {/* Riwayat Laporan Perkembangan */}
-              <Panel>
-                <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-                  <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+                <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
+                  <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">
                     Riwayat Laporan Perkembangan
                   </h2>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     Daftar laporan perkembangan anak yang telah disimpan atau diterbitkan ke orang tua.
                   </p>
                 </div>
                 {laporanRows.length === 0 ? (
                   <div className="px-4 py-12 text-center sm:px-6">
-                    <p className="text-sm font-semibold text-slate-700">{t("noProgressReportsYet")}</p>
+                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">{t("noProgressReportsYet")}</p>
                   </div>
                 ) : (
-                  <ul className="divide-y divide-slate-100">
+                  <ul className="divide-y divide-slate-100 dark:divide-slate-800">
                     {laporanRows.map((l) => (
                       <li key={l.id} className="p-4 sm:p-6 space-y-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="flex items-center gap-2.5">
-                            <span className="font-bold text-slate-900 text-sm">{l.judul}</span>
+                            <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">{l.judul}</span>
                             {l.draf ? (
                               <Badge tone="slate">{t("draftStatus")}</Badge>
                             ) : (
                               <Badge tone="emerald">{t("publishedStatus")}</Badge>
                             )}
                           </div>
-                          <span className="text-xs text-slate-500 tabular-nums">
+                          <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
                             {new Date(`${l.tanggal}T00:00:00+07:00`).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", {
                               day: "numeric",
                               month: "short",
@@ -256,26 +283,26 @@ export default async function GradeInputPage({
 
                         {/* Catatan Internal (jika ada) */}
                         {l.catatanInternal ? (
-                          <div className="rounded-lg border border-amber-200/80 bg-amber-50/50 p-3 text-xs">
-                            <span className="font-bold text-amber-900">{t("internalNoteLabel")}: </span>
-                            <span className="text-amber-950 whitespace-pre-line">{l.catatanInternal}</span>
+                          <div className="rounded-lg border border-amber-200/80 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20 p-3 text-xs">
+                            <span className="font-bold text-amber-900 dark:text-amber-300">{t("internalNoteLabel")}: </span>
+                            <span className="text-amber-950 dark:text-amber-200 whitespace-pre-line">{l.catatanInternal}</span>
                           </div>
                         ) : null}
 
                         {/* Laporan Orang Tua */}
                         {l.laporanOrtu ? (
-                          <div className="rounded-lg border border-blue-100 bg-blue-50/40 p-3 text-xs">
-                            <span className="font-bold text-blue-900">{t("parentReportLabel")}: </span>
-                            <span className="text-slate-800 whitespace-pre-line">{l.laporanOrtu}</span>
+                          <div className="rounded-lg border border-blue-100 dark:border-blue-900/60 bg-blue-50/40 dark:bg-blue-950/20 p-3 text-xs">
+                            <span className="font-bold text-blue-900 dark:text-blue-300">{t("parentReportLabel")}: </span>
+                            <span className="text-slate-800 dark:text-slate-200 whitespace-pre-line">{l.laporanOrtu}</span>
                           </div>
                         ) : null}
 
                         {/* Edit details form */}
                         <details className="mt-2 group">
-                          <summary className="cursor-pointer list-none text-xs font-semibold text-blue-700 hover:underline">
+                          <summary className="cursor-pointer list-none text-xs font-semibold text-blue-700 dark:text-blue-400 hover:underline">
                             {t("editEntry")}
                           </summary>
-                          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
                             <LaporanPerkembanganForm
                               pendaftaranId={pid}
                               laporanId={l.id}
@@ -292,35 +319,35 @@ export default async function GradeInputPage({
                     ))}
                   </ul>
                 )}
-              </Panel>
+              </div>
             </div>
           ) : activeTab === "penilaian" ? (
-            <Panel>
-              <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-                <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+              <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
+                <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">
                   {t("classAssessmentsTab")}
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Hasil tugas dan penilaian kelas yang diikuti oleh siswa ini.
                 </p>
               </div>
               {hasilPenilaianRows.length === 0 ? (
                 <div className="px-4 py-12 text-center sm:px-6">
-                  <p className="text-sm font-semibold text-slate-700">{t("noAssessmentsYet")}</p>
+                  <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">{t("noAssessmentsYet")}</p>
                 </div>
               ) : (
-                <ul className="divide-y divide-slate-100">
+                <ul className="divide-y divide-slate-100 dark:divide-slate-800">
                   {hasilPenilaianRows.map((h) => {
                     const pen = penilaianMap.get(h.penilaianId);
                     return (
                       <li key={h.id} className="p-4 sm:p-6 flex flex-wrap items-center justify-between gap-3">
                         <div>
-                          <p className="text-sm font-bold text-slate-900">{pen?.nama ?? `Penilaian #${h.penilaianId}`}</p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{pen?.nama ?? `Penilaian #${h.penilaianId}`}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
                             Tanggal: {pen?.tanggal} {pen?.draf ? `· (${t("draftStatus")})` : `· (${t("publishedStatus")})`}
                           </p>
                           {h.catatan ? (
-                            <p className="mt-1.5 text-xs text-slate-700 bg-slate-50 rounded px-2 py-1">
+                            <p className="mt-1.5 text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded px-2 py-1">
                               {h.catatan}
                             </p>
                           ) : null}
@@ -329,10 +356,10 @@ export default async function GradeInputPage({
                           <span
                             className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${
                               h.statusHasil === "dinilai"
-                                ? "bg-emerald-100 text-emerald-800"
+                                ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300"
                                 : h.statusHasil === "tidak_ikut"
-                                  ? "bg-rose-100 text-rose-800"
-                                  : "bg-slate-100 text-slate-700"
+                                  ? "bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300"
+                                  : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
                             }`}
                           >
                             {h.statusHasil === "dinilai"
@@ -345,32 +372,32 @@ export default async function GradeInputPage({
                   })}
                 </ul>
               )}
-            </Panel>
+            </div>
           ) : (
             /* Tab: Nilai Individu (Legacy) */
             <div className="space-y-4">
-              <Panel>
-                <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-                  <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("newGradeEntry")}</h2>
-                  <p className="text-xs text-slate-500">{t("gradeInputHelp")}</p>
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+                <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
+                  <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">{t("newGradeEntry")}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{t("gradeInputHelp")}</p>
                 </div>
                 <div className="p-4 sm:p-6">
                   <NilaiForm pendaftaranId={pid} />
                 </div>
-              </Panel>
+              </div>
 
-              <Panel>
-                <div className="border-b border-slate-100 px-4 py-4 sm:px-6">
-                  <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">{t("gradeHistory")}</h2>
-                  <p className="text-xs text-slate-500">{t("historyHelp")}</p>
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+                <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
+                  <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">{t("gradeHistory")}</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{t("historyHelp")}</p>
                 </div>
                 {nilai.length === 0 ? (
                   <div className="px-4 py-14 text-center sm:px-6">
-                    <p className="text-sm font-bold text-slate-900">{t("noStudentEntries")}</p>
-                    <p className="mt-1 text-[13px] text-slate-500">{t("firstProgressHelp")}</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{t("noStudentEntries")}</p>
+                    <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">{t("firstProgressHelp")}</p>
                   </div>
                 ) : (
-                  <ul className="divide-y divide-slate-100">
+                  <ul className="divide-y divide-slate-100 dark:divide-slate-800">
                     {nilai.map((n) => {
                       const terkunci = !dalamJendela7Hari(n.createdAt);
                       const v = n.nilaiKuantitatif == null ? null : Number(n.nilaiKuantitatif);
@@ -378,17 +405,17 @@ export default async function GradeInputPage({
                         <li key={n.id} className="px-4 py-5 sm:px-6">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="flex items-center gap-3">
-                              <span className="font-display text-lg font-extrabold tabular-nums tracking-tight text-slate-900">
+                              <span className="font-display text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-slate-100">
                                 {v != null ? v : ""}
                               </span>
                               <div>
-                                <p className="text-sm font-semibold text-slate-900">
+                                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                                   {new Date(`${n.tanggal}T00:00:00+07:00`).toLocaleDateString(
                                     locale === "en" ? "en-GB" : "id-ID",
                                     { timeZone: "Asia/Jakarta" },
                                   )}
                                 </p>
-                                <p className="text-xs text-slate-500">
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
                                   {terkunci ? t("lockedAdmin") : t("editableWindow")}
                                 </p>
                               </div>
@@ -402,16 +429,16 @@ export default async function GradeInputPage({
                             )}
                           </div>
                           {n.catatanKualitatif ? (
-                            <p className="mt-2.5 whitespace-pre-line break-words rounded-xl bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-700">
+                            <p className="mt-2.5 whitespace-pre-line break-words rounded-xl bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                               {n.catatanKualitatif}
                             </p>
                           ) : null}
                           {!terkunci ? (
                             <details className="mt-3 group">
-                              <summary className="cursor-pointer list-none text-sm font-semibold text-blue-700 hover:underline">
+                              <summary className="cursor-pointer list-none text-sm font-semibold text-blue-700 dark:text-blue-400 hover:underline">
                                 {t("editEntry")}
                               </summary>
-                              <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                              <div className="mt-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 p-4">
                                 <NilaiForm
                                   pendaftaranId={pid}
                                   nilaiId={n.id}
@@ -429,18 +456,18 @@ export default async function GradeInputPage({
                     })}
                   </ul>
                 )}
-                <p className="border-t border-slate-100 px-4 py-3 text-xs leading-relaxed text-slate-500 sm:px-6">
+                <p className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400 sm:px-6">
                   {t("needLockedCorrection")}{" "}
-                  <Link href="/teacher/corrections" className="font-semibold text-blue-700 hover:underline">
+                  <Link href="/teacher/corrections" className="font-semibold text-blue-700 dark:text-blue-400 hover:underline">
                     {t("viewAdminCorrection")}
                   </Link>
                   .
                 </p>
-              </Panel>
+              </div>
             </div>
           )}
         </div>
       </div>
-    </PageShell>
+    </div>
   );
 }

@@ -177,9 +177,10 @@ export async function savePresensi(
       };
     return { ok: true };
   });
-  if (result.error) return result;
 
   revalidatePath('/[locale]/teacher/classes/[classId]/sessions/[date]/attendance', 'page');
+  revalidatePath('/[locale]/teacher/dashboard', 'page');
+  if (result.error) return result;
   return { ok: true };
 }
 
@@ -218,6 +219,7 @@ export async function saveNilai(_prev: GuruState, formData: FormData): Promise<G
     db.orm.public.Pendaftaran.where((x) => x.id.eq(d.pendaftaran_id)).all(),
   );
   if (!p) return { error: t("enrollmentNotFound") };
+  if (p.status.startsWith("dibatalkan")) return { error: t("studentEnrollmentCancelled") };
   const [k] = await collect(
     db.orm.public.Kelas.where((x) => x.id.eq(p.kelasId))
       .where((x) => x.guruId.eq(guruId))
@@ -845,6 +847,13 @@ export async function bagikanStatusPembelajaran(
     const penerimaRaw = formData.getAll("penerima_ids");
     penerimaPendaftaranIds = penerimaRaw.map(Number).filter(Boolean);
   }
+
+  // Sanitasi skema URL foto: hanya izinkan https://, http://, atau relative path aman
+  mediaUrls = mediaUrls.filter(
+    (u) =>
+      typeof u === "string" &&
+      (/^https?:\/\//i.test(u) || (u.startsWith("/") && !u.startsWith("//") && !u.includes("\\")))
+  );
 
   const locale = await getLocaleDariCookie();
   const t = await getTranslations({ locale, namespace: "teacher" });

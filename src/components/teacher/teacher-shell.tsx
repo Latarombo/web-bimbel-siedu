@@ -14,11 +14,6 @@ interface TeacherShellProps {
   userName: string;
   userEmail: string | null;
   accountRole: string;
-  badgeCounts: {
-    kelasAktif: number;
-    siswaBelumNilai: number;
-    presensiTerkunci: number;
-  };
   initialCollapsed?: boolean;
   searchClasses?: QuickSearchClassItem[];
   searchStudents?: QuickSearchStudentItem[];
@@ -30,7 +25,6 @@ export function TeacherShell({
   userName,
   userEmail,
   accountRole,
-  badgeCounts,
   initialCollapsed = false,
   searchClasses = [],
   searchStudents = [],
@@ -81,7 +75,6 @@ export function TeacherShell({
         userName={userName}
         userEmail={userEmail}
         accountRole={accountRole}
-        badgeCounts={badgeCounts}
         isCollapsed={isCollapsed}
         onToggleCollapse={handleToggleCollapse}
         isDrawerOpen={isDrawerOpen}

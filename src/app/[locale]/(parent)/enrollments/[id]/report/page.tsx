@@ -1,4 +1,5 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
+import { redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { getOfficialReportCardData } from "@/lib/report-card";
 import { OfficialReportCard } from "@/components/common/official-report-card";
@@ -13,7 +14,7 @@ export default async function ParentReportCardPage({
   const session = await auth();
   const { id, locale } = await params;
   if (!session?.user) {
-    redirect(`/${locale}/login?next=/enrollments/${id}`);
+    return redirect({ href: `/login?next=/enrollments/${id}`, locale });
   }
 
   const pid = Number(id);

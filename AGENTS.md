@@ -45,3 +45,7 @@ powershell.exe -NonInteractive -NoProfile -Command "Set-Location 'D:\projek_reac
      1. Navigasi utama (misalnya icon baris sidebar) untuk membantu pemindaian visual (*visual scanning*).
      2. Tombol mandiri tanpa teks (*icon-only button* yang wajib disertai atribut aksesibilitas `aria-label`).
      3. Indikator status kritis yang memerlukan pengenalan instan (misal: alert sukses/peringatan/error).
+
+5. **Pemisahan Deskripsi & Counter Data (Anti-Redundant Counter):**
+   - DILARANG menyisipkan atau menggabungkan counter angka/total dinamis ke dalam kalimat deskripsi, subtitle grafik/kartu, atau helper text (contoh dilarang: `"Jumlah siswa dengan status 'hadir' per hari · 1 kehadiran"` atau `"Daftar kelas aktif · 5 kelas"`).
+   - Teks deskripsi/subtitle HANYA bertugas menjelaskan konteks atau makna visualisasi data secara bersih. Angka atau metrik harus berdiri sendiri pada elemen data yang semestinya (misalnya: kartu KPI, data bar chart, badge terpisah, atau tooltip), bukan ditempelkan redundan di samping kalimat deskripsi.

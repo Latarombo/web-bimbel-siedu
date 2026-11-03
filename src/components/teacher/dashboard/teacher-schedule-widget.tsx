@@ -185,7 +185,7 @@ export function TeacherScheduleWidget({
       <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
         {/* Calendar Header: Month + Controls */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-          <h2 className="text-sm font-extrabold capitalize text-slate-950 dark:text-slate-50 tracking-tight">
+          <h2 className="font-display text-sm font-extrabold capitalize text-slate-950 dark:text-slate-50 tracking-tight">
             {monthName}
           </h2>
           <div className="flex items-center gap-1">
@@ -282,7 +282,7 @@ export function TeacherScheduleWidget({
       {/* ========================================================= */}
       <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs space-y-4">
         <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-          <h3 className="text-sm font-bold text-slate-950 dark:text-slate-50">
+          <h3 className="font-display text-sm font-bold text-slate-950 dark:text-slate-50">
             Sesi Mengajar
           </h3>
           <span className="inline-flex items-center rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
@@ -292,7 +292,7 @@ export function TeacherScheduleWidget({
 
         {/* Sessions list */}
         {activeSessionsForDate.length > 0 ? (
-          <div className="space-y-3">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800">
             {activeSessionsForDate.map((session) => {
               const tema = JENJANG_TEMA[session.jenjang] || JENJANG_TEMA.SD;
               const isPast = selectedDate < todayStr;
@@ -302,7 +302,7 @@ export function TeacherScheduleWidget({
               return (
                 <div
                   key={session.id}
-                  className={`relative rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 p-3 pl-3.5 border-l-4 ${tema.border} transition-all hover:bg-white dark:hover:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700 space-y-2.5`}
+                  className="py-3 first:pt-0 last:pb-0 space-y-2.5"
                 >
                   {/* Time + Jenjang Badge */}
                   <div className="flex items-center justify-between gap-2">
@@ -323,7 +323,7 @@ export function TeacherScheduleWidget({
                       {session.mapel}
                     </h4>
                     <p className="text-[11px] text-slate-600 dark:text-slate-400 line-clamp-1 mt-0.5">
-                      {session.kelasNama} · {session.totalSiswa} Siswa
+                      {session.kelasNama}
                     </p>
                   </div>
 

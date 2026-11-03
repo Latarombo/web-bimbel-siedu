@@ -172,13 +172,13 @@ export function PenilaianForm({
   return (
     <div className="space-y-6">
       {/* Header status bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50/70 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850 p-4">
         <div className="flex items-center gap-2.5">
           <Badge tone={isDraf ? "amber" : "emerald"}>
             {isDraf ? t("draftStatus") : t("publishedStatus")}
           </Badge>
           {!isDraf && publishedAt ? (
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-slate-500 dark:text-slate-400">
               {t("publishedOn", {
                 date: new Date(publishedAt).toLocaleString("id-ID", { timeZone: "Asia/Jakarta" }),
               })}
@@ -194,7 +194,7 @@ export function PenilaianForm({
               size="sm"
               disabled={isPending}
               onClick={handleWithdraw}
-              className="border-amber-300 text-amber-800 hover:bg-amber-50"
+              className="border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40"
             >
               {t("withdrawToDraft")}
             </Button>
@@ -237,7 +237,7 @@ export function PenilaianForm({
       {/* Meta Assessment Form */}
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="sm:col-span-1">
-          <label htmlFor="assessment-name" className="block text-sm font-semibold text-slate-700 mb-1.5">
+          <label htmlFor="assessment-name" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
             {t("assessmentName")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
           </label>
           <input
@@ -247,12 +247,12 @@ export function PenilaianForm({
             value={nama}
             onChange={(e) => setNama(e.target.value)}
             placeholder={t("assessmentNamePlaceholder")}
-            className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white"
+            className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-800"
           />
         </div>
 
         <div>
-          <label htmlFor="assessment-date" className="block text-sm font-semibold text-slate-700 mb-1.5">
+          <label htmlFor="assessment-date" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
             {t("assessmentDate")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
           </label>
           <input
@@ -261,12 +261,12 @@ export function PenilaianForm({
             required
             value={tanggal}
             onChange={(e) => setTanggal(e.target.value)}
-            className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white"
+            className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-800"
           />
         </div>
 
         <div>
-          <label htmlFor="assessment-max" className="block text-sm font-semibold text-slate-700 mb-1.5">
+          <label htmlFor="assessment-max" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
             {t("maxScore")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
           </label>
           <input
@@ -277,16 +277,16 @@ export function PenilaianForm({
             required
             value={nilaiMaksimum}
             onChange={(e) => setNilaiMaksimum(e.target.value)}
-            className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 bg-white"
+            className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-800"
           />
-          <p className="mt-1 text-xs text-slate-500">{t("maxScoreHelp")}</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{t("maxScoreHelp")}</p>
         </div>
       </div>
 
       {/* Student Grading Table */}
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+      <div className="overflow-x-auto -mx-4 sm:-mx-6 border-y border-slate-200 dark:border-slate-800">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
+          <thead className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/70 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
             <tr>
               <th className="px-4 py-3 sm:px-6">{t("student")}</th>
               <th className="px-4 py-3 text-center">{t("status")}</th>
@@ -294,7 +294,7 @@ export function PenilaianForm({
               <th className="px-4 py-3 sm:px-6">{t("notes")}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {initialSiswa.map((s) => {
               const cur = studentRows[s.pendaftaranId] ?? {
                 statusHasil: "belum_dinilai",
@@ -303,8 +303,8 @@ export function PenilaianForm({
               };
 
               return (
-                <tr key={s.pendaftaranId} className="transition-colors hover:bg-slate-50/60">
-                  <td className="px-4 py-3 font-semibold text-slate-900 sm:px-6">
+                <tr key={s.pendaftaranId} className="transition-colors hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+                  <td className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100 sm:px-6">
                     {s.nama}
                   </td>
                   <td className="px-4 py-3 text-center">
@@ -333,9 +333,9 @@ export function PenilaianForm({
                         disabled={cur.statusHasil !== "dinilai"}
                         value={cur.nilai}
                         onChange={(e) => handleNilaiChange(s.pendaftaranId, e.target.value)}
-                        className="w-20 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm tabular-nums text-slate-900 outline-none disabled:bg-slate-100 disabled:text-slate-600 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
+                        className="w-20 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-sm tabular-nums text-slate-900 dark:text-slate-100 outline-none disabled:bg-slate-100 dark:disabled:bg-slate-850 disabled:text-slate-400 dark:disabled:text-slate-500 focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
                       />
-                      <span className="text-xs text-slate-600">/ {nilaiMaksimum}</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">/ {nilaiMaksimum}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3 sm:px-6">
@@ -344,7 +344,7 @@ export function PenilaianForm({
                       value={cur.catatan}
                       onChange={(e) => handleCatatanChange(s.pendaftaranId, e.target.value)}
                       placeholder={t("notesPlaceholder")}
-                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-900 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
+                      className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600/20"
                     />
                   </td>
                 </tr>
@@ -355,8 +355,8 @@ export function PenilaianForm({
       </div>
 
       {/* Bottom Action Bar for Easy Access After Grading All Students */}
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
-        <p className="text-xs text-slate-500">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-850 p-4">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           {initialSiswa.length} {t("activeStudents")}
         </p>
 
@@ -368,7 +368,7 @@ export function PenilaianForm({
               size="sm"
               disabled={isPending}
               onClick={handleWithdraw}
-              className="border-amber-300 text-amber-800 hover:bg-amber-50"
+              className="border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40"
             >
               {t("withdrawToDraft")}
             </Button>

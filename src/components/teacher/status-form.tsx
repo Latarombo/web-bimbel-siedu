@@ -152,19 +152,19 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       {/* Form Buat Status */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">{t('newStatusButton')}</h2>
-        <p className="mt-1 text-sm text-slate-500">{t('statusSubtitle')}</p>
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xs">
+        <h2 className="font-display text-lg font-bold tracking-tight text-slate-950 dark:text-slate-100">{t('newStatusButton')}</h2>
+        <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400">{t('statusSubtitle')}</p>
 
         {errorMsg && (
-          <div className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
             {errorMsg}
           </div>
         )}
         {successMsg && (
-          <div className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
             {successMsg}
           </div>
         )}
@@ -172,7 +172,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
         <form onSubmit={handleSubmit} className="mt-6 space-y-6">
           {/* Pilih Kelas */}
           <div>
-            <label htmlFor="class-select" className="block text-sm font-semibold text-slate-700 mb-1.5">
+            <label htmlFor="class-select" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               {t('classSelect')}
             </label>
             <CardSelect
@@ -190,13 +190,13 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
 
           {/* Pemilih Penerima Murid */}
           {currentClass && (
-            <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-4">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 p-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-800">{t('recipients')}</span>
+                <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">{t('recipients')}</span>
                 <button
                   type="button"
                   onClick={handleSelectAll}
-                  className="text-xs font-medium text-indigo-600 hover:text-indigo-800"
+                  className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700"
                 >
                   {selectedRecipients.length === currentClass.students.length
                     ? t('statusCancelAll')
@@ -205,7 +205,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
               </div>
 
               {currentClass.students.length === 0 ? (
-                <p className="mt-2 text-xs text-slate-500">{t('noRecipientsAvailable')}</p>
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">{t('noRecipientsAvailable')}</p>
               ) : (
                 <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                   {currentClass.students.map((student) => {
@@ -213,10 +213,10 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                     return (
                       <label
                         key={student.pendaftaranId}
-                        className={`flex items-center justify-between rounded-md border p-2.5 text-sm transition-colors ${
+                        className={`flex items-center justify-between rounded-lg border p-2.5 text-sm transition-colors cursor-pointer ${
                           isChecked
-                            ? 'border-indigo-200 bg-indigo-50/50 text-indigo-900'
-                            : 'border-slate-200 bg-white text-slate-700'
+                            ? 'border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200'
+                            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                         }`}
                       >
                         <div className="flex items-center gap-2">
@@ -224,16 +224,16 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleRecipient(student.pendaftaranId)}
-                            className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                           />
                           <span className="font-medium">{student.namaAnak}</span>
                         </div>
                         {student.persetujuanFoto ? (
-                          <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700">
+                          <span className="rounded bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
                             {t('consentBadge')}
                           </span>
                         ) : (
-                          <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
+                          <span className="rounded bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
                             {t('noConsentBadge')}
                           </span>
                         )}
@@ -244,7 +244,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
               )}
 
               {hasRecipientWithoutPhotoConsent && (
-                <div className="mt-3 rounded-md bg-amber-50 p-3 text-xs text-amber-800">
+                <div className="mt-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-3 text-xs text-amber-800 dark:text-amber-300">
                   {t('noConsentWarning')}
                 </div>
               )}
@@ -253,7 +253,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
 
           {/* Konten Teks */}
           <div>
-            <label htmlFor="content-text" className="block text-sm font-semibold text-slate-700 mb-1.5">
+            <label htmlFor="content-text" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               {t('statusContent')}
             </label>
             <textarea
@@ -262,13 +262,13 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
               value={kontenTeks}
               onChange={(e) => setKontenTeks(e.target.value)}
               placeholder={t('statusContentPlaceholder')}
-              className="w-full px-3.5 py-2.5 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 resize-y bg-white"
+              className="w-full px-3.5 py-2.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-y bg-white dark:bg-slate-800"
             />
           </div>
 
           {/* Foto Kegiatan (Maks 5) */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               {t('statusPhotos')} ({photos.length}/5)
             </label>
             <div className="mt-2 flex gap-2">
@@ -278,13 +278,13 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                 onChange={(e) => setPhotoInput(e.target.value)}
                 placeholder={t('photoUrlPlaceholder')}
                 disabled={photos.length >= 5}
-                className="block flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:bg-slate-100"
+                className="block flex-1 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600/20 disabled:bg-slate-100 dark:disabled:bg-slate-850"
               />
               <button
                 type="button"
                 onClick={handleAddPhoto}
                 disabled={!photoInput.trim() || photos.length >= 5}
-                className="rounded-lg bg-slate-800 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-700 disabled:opacity-50"
+                className="rounded-lg bg-slate-800 dark:bg-slate-700 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-700 dark:hover:bg-slate-600 disabled:opacity-50 cursor-pointer"
               >
                 {t('addPhoto')}
               </button>
@@ -295,13 +295,13 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                 {photos.map((url, idx) => (
                   <div
                     key={idx}
-                    className="group relative flex items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs text-slate-700"
+                    className="group relative flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300"
                   >
                     <span className="max-w-[200px] truncate">{url}</span>
                     <button
                       type="button"
                       onClick={() => handleRemovePhoto(idx)}
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 cursor-pointer"
                     >
                       {t('removePhoto')}
                     </button>
@@ -313,21 +313,21 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
 
           {/* Pratinjau Tampilan */}
           {(kontenTeks.trim() || photos.length > 0) && (
-            <div className="rounded-lg border border-dashed border-indigo-200 bg-indigo-50/30 p-4">
-              <span className="text-xs font-medium text-indigo-700">{t('parentPreview')}</span>
-              <div className="mt-2 rounded-lg border border-slate-200 bg-white p-4 shadow-xs">
-                <div className="text-xs text-slate-600">
+            <div className="rounded-xl border border-dashed border-blue-200 dark:border-blue-800 bg-blue-50/30 dark:bg-blue-950/20 p-4">
+              <span className="text-xs font-semibold text-blue-700 dark:text-blue-300">{t('parentPreview')}</span>
+              <div className="mt-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-850 p-4 shadow-xs">
+                <div className="text-xs text-slate-600 dark:text-slate-400">
                   {currentClass?.nama} · Baru saja · Aktif 24 jam
                 </div>
                 {kontenTeks && (
-                  <p className="mt-2 text-sm whitespace-pre-line text-slate-800">{kontenTeks}</p>
+                  <p className="mt-2 text-sm whitespace-pre-line text-slate-800 dark:text-slate-200">{kontenTeks}</p>
                 )}
                 {photos.length > 0 && (
                   <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {photos.map((url, i) => (
                       <div
                         key={i}
-                        className="flex h-20 items-center justify-center rounded bg-slate-100 text-xs text-slate-500 overflow-hidden"
+                        className="flex h-20 items-center justify-center rounded bg-slate-100 dark:bg-slate-800 text-xs text-slate-500 dark:text-slate-400 overflow-hidden"
                       >
                         [Foto {i + 1}: {url}]
                       </div>
@@ -343,7 +343,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
             <button
               type="submit"
               disabled={isPending || (!kontenTeks.trim() && photos.length === 0)}
-              className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50"
+              className="rounded-lg bg-blue-600 dark:bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 dark:hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
             >
               {isPending ? t('sharing') : t('shareNow')}
             </button>
@@ -352,12 +352,12 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
       </div>
 
       {/* Riwayat Status */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">{t('pastStatuses')}</h2>
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-2xs">
+        <h2 className="font-display text-lg font-bold tracking-tight text-slate-950 dark:text-slate-100">{t('pastStatuses')}</h2>
         {pastStatuses.length === 0 ? (
-          <p className="mt-4 text-sm text-slate-500">{t('noStatusesYet')}</p>
+          <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">{t('noStatusesYet')}</p>
         ) : (
-          <div className="mt-4 divide-y divide-slate-100">
+          <div className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
             {pastStatuses.map((item) => {
               const isExpired = item.status === 'diarsipkan';
               const isDeleted = item.status === 'dihapus_guru' || item.status === 'ditarik_admin';
@@ -366,11 +366,11 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                 <div key={item.id} className="py-4 first:pt-0 last:pb-0">
                   <div className="flex items-start justify-between">
                     <div>
-                      <span className="text-xs font-semibold text-indigo-600">
+                      <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
                         {item.kelasNama}
                       </span>
-                      <span className="mx-2 text-slate-300">·</span>
-                      <span className="text-xs text-slate-600">
+                      <span className="mx-2 text-slate-300 dark:text-slate-700">·</span>
+                      <span className="text-xs text-slate-600 dark:text-slate-400">
                         {new Date(item.diterbitkanPada).toLocaleDateString('id-ID', {
                           day: 'numeric',
                           month: 'short',
@@ -379,23 +379,23 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                           minute: '2-digit',
                         })}
                       </span>
-                      <span className="mx-2 text-slate-300">·</span>
-                      <span className="text-xs text-slate-500">
-                        {item.penerimaCount} murid penerima
+                      <span className="mx-2 text-slate-300 dark:text-slate-700">·</span>
+                      <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-700 dark:text-slate-300">
+                        {item.penerimaCount} murid
                       </span>
                     </div>
 
                     <div className="flex items-center gap-2">
                       {isDeleted ? (
-                        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                        <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs text-slate-600 dark:text-slate-400">
                           {item.status}
                         </span>
                       ) : isExpired ? (
-                        <span className="rounded bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        <span className="rounded bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
                           {t('statusExpired')}
                         </span>
                       ) : (
-                        <span className="rounded bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                        <span className="rounded bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300">
                           {t('statusExpiresIn', {
                             date: new Date(item.kadaluarsaPada).toLocaleTimeString('id-ID', {
                               hour: '2-digit',
@@ -410,7 +410,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                           type="button"
                           onClick={() => handleDelete(item.id)}
                           disabled={isPending}
-                          className="rounded border border-red-200 px-2 py-0.5 text-xs text-red-600 hover:bg-red-50"
+                          className="rounded border border-red-200 dark:border-red-900/60 px-2 py-0.5 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 cursor-pointer"
                         >
                           {t('deleteStatus')}
                         </button>
@@ -419,7 +419,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                   </div>
 
                   {item.kontenTeks && (
-                    <p className="mt-2 text-sm text-slate-800 whitespace-pre-line">
+                    <p className="mt-2 text-sm text-slate-800 dark:text-slate-200 whitespace-pre-line">
                       {item.kontenTeks}
                     </p>
                   )}
@@ -429,7 +429,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                       {item.mediaUrls.map((url, i) => (
                         <div
                           key={i}
-                          className="rounded bg-slate-100 px-2 py-1 text-xs text-slate-600"
+                          className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-1 text-xs text-slate-600 dark:text-slate-400"
                         >
                           📷 [Foto {i + 1}]
                         </div>

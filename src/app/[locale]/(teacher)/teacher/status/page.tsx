@@ -3,7 +3,6 @@ import { redirect } from '@/i18n/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/prisma/db';
 import { collect } from '@/lib/collect';
-import { PageShell, PageHeader } from '@/components/admin/ui';
 import StatusForm, {
   ClassOption,
   ExistingStatus,
@@ -96,16 +95,17 @@ export default async function TeacherStatusPage() {
   });
 
   return (
-    <PageShell>
-      <PageHeader
-        title={t('statusTitle')}
-        desc={t('statusSubtitle')}
-        meta={`${classOptions.length} kelas aktif · ${pastStatuses.length} unggahan status`}
-      />
-
-      <div className="mt-8">
-        <StatusForm classes={classOptions} pastStatuses={pastStatuses} />
+    <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
+      <div className="pb-4 border-b border-slate-200 dark:border-slate-800">
+        <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
+          {t('statusTitle')}
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
+          {t('statusSubtitle')}
+        </p>
       </div>
-    </PageShell>
+
+      <StatusForm classes={classOptions} pastStatuses={pastStatuses} />
+    </div>
   );
 }

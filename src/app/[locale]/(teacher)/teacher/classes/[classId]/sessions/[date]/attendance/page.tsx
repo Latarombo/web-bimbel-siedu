@@ -70,20 +70,20 @@ export default async function AttendancePage({
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
         <Link
           href={`/teacher/classes/${kid}`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
         >
           <ArrowLeft className="size-3.5" />
           <span>{t("backToClass")}</span>
         </Link>
-        <div className="rounded-lg border border-slate-200 bg-white p-12 text-center shadow-2xs">
-          <p className="text-base font-bold text-slate-900">{t("notTeachingDate", { date })}</p>
-          <p className="mt-1 text-xs text-slate-500">
+        <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center shadow-2xs">
+          <p className="text-base font-bold text-slate-950 dark:text-slate-50">{t("notTeachingDate", { date })}</p>
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
             {t("classSchedule", { schedule: jadwal.map((j) => t(`day_${j.hari}`)).join(", ") || t("notScheduledAdmin") })}
           </p>
           <div className="mt-6 flex justify-center">
             <Link
               href={`/teacher/classes/${kid}`}
-              className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
               <ArrowLeft className="size-3.5" />
               <span>{t("backToClass")}</span>
@@ -145,7 +145,7 @@ export default async function AttendancePage({
       <div>
         <Link
           href={`/teacher/classes/${kid}`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
         >
           <ArrowLeft className="size-3.5" />
           <span>Kembali ke Detail Kelas</span>
@@ -153,8 +153,8 @@ export default async function AttendancePage({
       </div>
 
       {/* Title & Metadata */}
-      <div className="border-b border-slate-200 pb-5">
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-5">
+        <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
           {t("attendanceTitle", {
             day: t(`day_${hari}`),
             date: new Date(`${date}T00:00:00+07:00`).toLocaleDateString(
@@ -163,14 +163,14 @@ export default async function AttendancePage({
             ),
           })}
         </h1>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
           {kelasLabel} · Pukul {jamMulaiText} - {jamSelesaiText} WIB
         </p>
 
         {/* Multi-session selector (if class has multiple sessions in 1 day) */}
         {sesiHariIni.length > 1 ? (
           <nav aria-label={t("chooseTodaySession")} className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-slate-500 mr-1">Pilih Sesi:</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mr-1">Pilih Sesi:</span>
             {sesiHariIni.map((j) => (
               <Link
                 key={j.id}
@@ -179,7 +179,7 @@ export default async function AttendancePage({
                 className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
                   j.id === item.id
                     ? "bg-blue-600 text-white shadow-xs"
-                    : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
                 }`}
               >
                 <span className="tabular-nums">{j.jamMulai.slice(0, 5)} - {j.jamSelesai.slice(0, 5)}</span>

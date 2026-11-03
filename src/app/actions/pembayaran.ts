@@ -43,9 +43,9 @@ export async function mulaiPembayaran(
   const [p] = await collect(
     db.orm.public.Pendaftaran.where((x) => x.id.eq(b.pendaftaranId)).all(),
   );
-  const [a] = p
-    ? await collect(db.orm.public.Anak.where((x) => x.id.eq(p.anakId)).all())
-    : [];
+  if (!p || p.status.startsWith("dibatalkan"))
+    return { ok: false, error: t("payment.cancelled") };
+  const [a] = await collect(db.orm.public.Anak.where((x) => x.id.eq(p.anakId)).all());
   if (!a || a.orangTuaId !== Number(session.user.id))
     return { ok: false, error: t("payment.ownership") };
 
@@ -115,7 +115,7 @@ export async function konfirmasiManual(formData: FormData): Promise<void> {
   const [p] = await collect(
     db.orm.public.Pendaftaran.where((x) => x.id.eq(pendaftaranId)).all(),
   );
-  if (!p) return;
+  if (!p || p.status.startsWith("dibatalkan")) return;
   const [a] = await collect(
     db.orm.public.Anak.where((x) => x.id.eq(p.anakId)).all(),
   );
@@ -133,12 +133,18 @@ export async function konfirmasiManual(formData: FormData): Promise<void> {
   }
 
   const locale = await getLocaleDariCookie();
+  const defaultTarget = `/enrollments/${pendaftaranId}/payment-result?pembayaran=${pembayaranId}`;
+
   if (redirectTo) {
-    redirect({ href: redirectTo, locale });
+    const safeRedirect =
+      redirectTo.startsWith("/") && !redirectTo.startsWith("//") && !redirectTo.includes("\\")
+        ? redirectTo
+        : defaultTarget;
+    redirect({ href: safeRedirect, locale });
   }
 
   redirect({
-    href: `/enrollments/${pendaftaranId}/payment-result?pembayaran=${pembayaranId}`,
+    href: defaultTarget,
     locale,
   });
 }

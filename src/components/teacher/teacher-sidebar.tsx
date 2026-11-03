@@ -25,7 +25,6 @@ export interface NavItemDef {
   name: string;
   href: string;
   icon: LucideIcon;
-  badge?: number;
 }
 
 interface TeacherSidebarProps {
@@ -33,11 +32,6 @@ interface TeacherSidebarProps {
   userName?: string;
   userEmail?: string | null;
   accountRole?: string;
-  badgeCounts: {
-    kelasAktif: number;
-    siswaBelumNilai: number;
-    presensiTerkunci: number;
-  };
   isCollapsed: boolean;
   onToggleCollapse: () => void;
   isDrawerOpen?: boolean;
@@ -50,7 +44,6 @@ export function TeacherSidebar({
   userName = 'Guru',
   userEmail = 'teacher@siedu.id',
   accountRole,
-  badgeCounts,
   isCollapsed,
   onToggleCollapse,
   isDrawerOpen: isDrawerOpenProp,
@@ -120,7 +113,6 @@ export function TeacherSidebar({
           name: t('navClasses') || 'Kelas',
           href: '/teacher/classes',
           icon: BookOpen,
-          badge: badgeCounts.kelasAktif > 0 ? badgeCounts.kelasAktif : undefined,
         },
         {
           id: 'schedule',
@@ -139,7 +131,6 @@ export function TeacherSidebar({
           name: t('navGrades') || 'Nilai',
           href: '/teacher/grades',
           icon: Ruler,
-          badge: badgeCounts.siswaBelumNilai > 0 ? badgeCounts.siswaBelumNilai : undefined,
         },
         {
           id: 'journal',
@@ -152,7 +143,6 @@ export function TeacherSidebar({
           name: t('navCorrections') || 'Koreksi',
           href: '/teacher/corrections',
           icon: ClipboardCheck,
-          badge: badgeCounts.presensiTerkunci > 0 ? badgeCounts.presensiTerkunci : undefined,
         },
       ],
     },
@@ -316,7 +306,7 @@ export function TeacherSidebar({
 
                           {/* Text label: zero width when collapsed to eliminate horizontal overflow */}
                           <div
-                            className={`flex-1 min-w-0 flex items-center justify-between transition-all duration-200 ${
+                            className={`flex-1 min-w-0 flex items-center transition-all duration-200 ${
                               isCollapsed
                                 ? 'opacity-0 pointer-events-none max-w-0 w-0 overflow-hidden ml-0'
                                 : 'opacity-100 max-w-full ml-3'
@@ -325,29 +315,12 @@ export function TeacherSidebar({
                             <span className="truncate text-sm whitespace-nowrap">
                               {item.name}
                             </span>
-
-                            {item.badge !== undefined && item.badge > 0 && (
-                              <span
-                                className={`inline-flex items-center justify-center rounded px-1.5 py-0.5 text-[10px] font-bold ml-2 shrink-0 ${
-                                  active
-                                    ? 'bg-slate-200/80 text-slate-800 dark:bg-slate-700 dark:text-slate-200'
-                                    : 'bg-slate-100 text-slate-500 border border-slate-200/60 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
-                                }`}
-                              >
-                                {item.badge}
-                              </span>
-                            )}
                           </div>
 
                           {/* Collapsed floating tooltip */}
                           {isCollapsed && (
                             <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-900 dark:text-white opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
                               {item.name}
-                              {item.badge !== undefined && item.badge > 0 && (
-                                <span className="ml-2 rounded bg-slate-100 dark:bg-slate-700 px-1.5 py-0.2 text-[10px] font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600">
-                                  {item.badge}
-                                </span>
-                              )}
                             </div>
                           )}
                         </Link>
@@ -376,7 +349,7 @@ export function TeacherSidebar({
                 className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-85 transition-opacity"
                 title="Lihat Profil Guru"
               >
-                <div className="grid size-9 shrink-0 place-items-center rounded-md bg-amber-400 text-xs font-black text-amber-950 shadow-2xs">
+                <div className="grid size-9 shrink-0 place-items-center rounded-full bg-amber-400 text-xs font-black text-amber-950 shadow-2xs">
                   {initials}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -403,7 +376,7 @@ export function TeacherSidebar({
             <div className="flex flex-col items-center gap-2">
               <Link
                 href="/teacher/profile"
-                className="group relative flex size-10 shrink-0 items-center justify-center rounded-md bg-amber-400 text-xs font-black text-amber-950 shadow-2xs hover:opacity-90 transition-opacity"
+                className="group relative flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-400 text-xs font-black text-amber-950 shadow-2xs hover:opacity-90 transition-opacity"
                 aria-label="Profil Guru"
               >
                 {initials}
@@ -511,17 +484,6 @@ export function TeacherSidebar({
                                 />
                                 <span>{item.name}</span>
                               </div>
-                              {item.badge !== undefined && item.badge > 0 && (
-                                <span
-                                  className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
-                                    active
-                                      ? 'bg-slate-200/80 text-slate-800 dark:bg-slate-700 dark:text-slate-200'
-                                      : 'bg-slate-100 text-slate-500 border border-slate-200/60 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
-                                  }`}
-                                >
-                                  {item.badge}
-                                </span>
-                              )}
                             </Link>
                           </li>
                         );
@@ -542,7 +504,7 @@ export function TeacherSidebar({
                   onClick={handleCloseDrawer}
                   className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-85 transition-opacity"
                 >
-                  <div className="grid size-9 shrink-0 place-items-center rounded-md bg-amber-400 text-xs font-black text-amber-950 shadow-2xs">
+                  <div className="grid size-9 shrink-0 place-items-center rounded-full bg-amber-400 text-xs font-black text-amber-950 shadow-2xs">
                     {initials}
                   </div>
                   <div className="min-w-0 flex-1">

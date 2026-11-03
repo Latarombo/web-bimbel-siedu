@@ -1,4 +1,5 @@
 'use server';
+import { headers } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
 import { getLocaleDariCookie } from '@/i18n/locale';
 
@@ -7,6 +8,7 @@ import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { db } from '@/prisma/db';
 import { signIn } from '@/lib/auth';
+import { checkRateLimit, checkCooldown, getClientIp } from '@/lib/rate-limit';
 
 // Consent (privasi + wali, PRD F1/BR#25) TIDAK ditagih di sini — dipindah
 // seluruhnya ke step 2 (AccountInfoForm) yang menagih berdasar cap DB.
@@ -47,6 +49,18 @@ export async function registerParent(
     for (const issue of parsed.error.issues)
       fieldErrors[String(issue.path[0])] ??= issue.message;
     return { fieldErrors, email: emailKetik };
+  }
+
+  // Proteksi anti-bot registration flood
+  const headerList = await headers();
+  const clientIp = getClientIp(headerList);
+  const cd = checkCooldown(`register_cd:${clientIp}`, 30 * 1000);
+  if (!cd.allowed) {
+    return { error: t('rateLimitRegister'), email: emailKetik };
+  }
+  const ipRate = checkRateLimit(`register_ip:${clientIp}`, 5, 60 * 60 * 1000);
+  if (!ipRate.allowed) {
+    return { error: t('rateLimitRegister'), email: emailKetik };
   }
   const { email, password } = parsed.data;
 
