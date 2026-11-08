@@ -176,7 +176,7 @@ export function TeacherGradesView({
             href="/teacher/grades/new"
             className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-blue-700 active:scale-[0.99] transition-all cursor-pointer"
           >
-            <span>Buat Penilaian Baru</span>
+            <span>Buat Tugas Baru</span>
           </Link>
         </div>
       </div>
@@ -323,14 +323,9 @@ export function TeacherGradesView({
           {/* Table Toolbar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
-                  Daftar Asesmen
-                </h2>
-                <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 tabular-nums">
-                  {filteredAssessments.length}
-                </span>
-              </div>
+              <h2 className="text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
+                Daftar Asesmen
+              </h2>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                 Kuis, tugas, dan ujian yang telah dibuat untuk rombongan belajar.
               </p>
@@ -582,14 +577,9 @@ export function TeacherGradesView({
           {/* Table Toolbar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
-                  Rekap Nilai Siswa
-                </h2>
-                <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 tabular-nums">
-                  {filteredStudents.length}
-                </span>
-              </div>
+              <h2 className="text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
+                Rekap Nilai Siswa
+              </h2>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
                 Ringkasan akumulasi tugas dan nilai rata-rata per murid.
               </p>

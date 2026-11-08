@@ -341,7 +341,7 @@
   "scoreOutOfRange": "Score cannot be less than 0 or exceed {max}.",
   "classAssessmentsTab": "Class Assessments",
   "legacyGradesTab": "Individual Grades (Legacy)",
-  "newAssessmentButton": "Create Class Assessment",
+  "newAssessmentButton": "Create New Assignment",
   "noAssessmentsYet": "No class assessments created yet.",
   "noActiveClasses": "No active classes assigned.",
   "assessmentName": "Assessment / Task Name",

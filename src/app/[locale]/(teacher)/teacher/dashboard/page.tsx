@@ -404,16 +404,11 @@ export default async function TeacherDashboard() {
           {/* Sesi Mengajar Hari Ini */}
           {sesiHariIni.length > 0 ? (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-display text-base font-bold text-slate-950 tracking-tight">
-                    {t("todayFocusTitle")}
-                  </h2>
-                  <p className="text-xs text-slate-600 mt-0.5">{t("todayFocusDesc")}</p>
-                </div>
-                <span className="text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
-                  {sesiHariIni.length} Sesi Terjadwal
-                </span>
+              <div>
+                <h2 className="font-display text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
+                  {t("todayFocusTitle")}
+                </h2>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t("todayFocusDesc")}</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">

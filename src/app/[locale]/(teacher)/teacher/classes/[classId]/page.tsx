@@ -9,6 +9,7 @@ import {
   ClassDetailView,
   type StudentRosterItem,
   type ScheduleSlotItem,
+  type ClassAssessmentItem,
 } from "@/components/teacher/classes/class-detail-view";
 
 export const dynamic = "force-dynamic";
@@ -33,7 +34,7 @@ export default async function TeacherClassDetail({
   );
   if (!kelas) notFound();
 
-  const [mapel, jadwal, pendaftaran, semuaAnak, nilaiByGuru, presensiByGuru] = await Promise.all([
+  const [mapel, jadwal, pendaftaran, semuaAnak, nilaiByGuru, presensiByGuru, penilaianRaw] = await Promise.all([
     collect(db.orm.public.MataPelajaran.all()),
     collect(db.orm.public.JadwalItem.where((j) => j.kelasId.eq(kid)).all()),
     collect(
@@ -44,7 +45,43 @@ export default async function TeacherClassDetail({
     collect(db.orm.public.Anak.all()),
     collect(db.orm.public.NilaiProgres.where((n) => n.dicatatOleh.eq(guruId)).all()),
     collect(db.orm.public.Presensi.where((x) => x.dicatatOleh.eq(guruId)).all()),
+    collect(db.orm.public.Penilaian.where((p) => p.kelasId.eq(kid)).all()),
   ]);
+
+  const penilaianList = [...penilaianRaw].sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+  const penilaianIds = penilaianList.map((p) => p.id);
+  const hasilPenilaianList = penilaianIds.length
+    ? await collect(
+        db.orm.public.HasilPenilaian.where((h) => h.penilaianId.in([...penilaianIds])).all(),
+      )
+    : [];
+
+  const hasilByPenilaian = new Map<number, typeof hasilPenilaianList>();
+  for (const h of hasilPenilaianList) {
+    const arr = hasilByPenilaian.get(h.penilaianId) ?? [];
+    arr.push(h);
+    hasilByPenilaian.set(h.penilaianId, arr);
+  }
+
+  const assessmentItems: ClassAssessmentItem[] = penilaianList.map((p) => {
+    const hList = hasilByPenilaian.get(p.id) ?? [];
+    const countDinilai = hList.filter((x) => x.statusHasil === "dinilai").length;
+    const countTidakIkut = hList.filter((x) => x.statusHasil === "tidak_ikut").length;
+    const countBelum = hList.filter((x) => x.statusHasil === "belum_dinilai").length;
+
+    return {
+      id: p.id,
+      nama: p.nama,
+      tanggal: p.tanggal,
+      nilaiMaksimum: Number(p.nilaiMaksimum),
+      draf: p.draf,
+      diterbitkanPada: p.diterbitkanPada,
+      countDinilai,
+      countTidakIkut,
+      countBelum,
+      totalSiswa: hList.length,
+    };
+  });
 
   const m = mapel.find((x) => x.id === kelas.mataPelajaranId);
   const anakById = new Map(semuaAnak.map((a) => [a.id, a]));
@@ -99,6 +136,36 @@ export default async function TeacherClassDetail({
   const pertamaHariIni = [...berikutBySlot.values()]
     .filter((s) => s.tanggalPertemuan === hariIniStr)
     .sort((a, b) => a.jamMulai.localeCompare(b.jamMulai))[0];
+
+  const sesiTerdekat = [...berikutBySlot.values()].sort(
+    (a, b) =>
+      a.tanggalPertemuan.localeCompare(b.tanggalPertemuan) ||
+      a.jamMulai.localeCompare(b.jamMulai),
+  )[0];
+
+  let targetSesi = pertamaHariIni ?? sesiTerdekat;
+  if (!targetSesi && jadwal.length > 0 && periode) {
+    const semuaRencana = rencanakanSesi(periode.tanggalMulai, periode.tanggalSelesai, jadwal);
+    const sesiTerakhir = semuaRencana[semuaRencana.length - 1];
+    if (sesiTerakhir) {
+      targetSesi = {
+        jadwalItemId: sesiTerakhir.jadwalItemId,
+        tanggalPertemuan: sesiTerakhir.tanggalPertemuan,
+        jamMulai: sesiTerakhir.jamMulai,
+        jamSelesai: sesiTerakhir.jamSelesai,
+      };
+    }
+  }
+
+  const activeAttendanceSession = targetSesi
+    ? {
+        jadwalItemId: targetSesi.jadwalItemId,
+        tanggalPertemuan: targetSesi.tanggalPertemuan,
+        jamMulai: targetSesi.jamMulai,
+        jamSelesai: targetSesi.jamSelesai,
+        isToday: targetSesi.tanggalPertemuan === hariIniStr,
+      }
+    : null;
 
   const nHadir = new Map<number, number>();
   for (const x of presensiByGuru) {
@@ -174,6 +241,7 @@ export default async function TeacherClassDetail({
         periodeNama={periode?.nama}
         students={studentItems}
         schedules={scheduleSlotItems}
+        assessments={assessmentItems}
         firstTodaySession={
           pertamaHariIni
             ? {
@@ -183,6 +251,7 @@ export default async function TeacherClassDetail({
               }
             : null
         }
+        activeAttendanceSession={activeAttendanceSession}
         todayStr={hariIniStr}
         locale={locale}
         stats={{

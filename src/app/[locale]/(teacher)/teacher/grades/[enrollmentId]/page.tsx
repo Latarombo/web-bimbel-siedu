@@ -116,14 +116,9 @@ export default async function GradeInputPage({
       {/* 2. Page Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
-              {nama}
-            </h1>
-            <span className="inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
-              {t("gradeEntriesCount", { count: nilai.length + laporanRows.length })}
-            </span>
-          </div>
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
+            {nama}
+          </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
             {t("gradeStudentDescription", {
               subject: mapel[0]?.nama ?? t("class"),

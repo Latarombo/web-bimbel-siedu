@@ -341,7 +341,7 @@
   "scoreOutOfRange": "Nilai tidak boleh kurang dari 0 atau melebihi {max}.",
   "classAssessmentsTab": "Penilaian Kelas",
   "legacyGradesTab": "Nilai Individu (Legacy)",
-  "newAssessmentButton": "Buat Penilaian Kelas",
+  "newAssessmentButton": "Buat Tugas Baru",
   "noAssessmentsYet": "Belum ada penilaian kelas yang dibuat.",
   "noActiveClasses": "Tidak ada kelas aktif yang diampu.",
   "assessmentName": "Nama Penilaian / Tugas",
