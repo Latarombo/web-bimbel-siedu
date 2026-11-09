@@ -54,7 +54,10 @@ next-env.d.ts
 .cursor/
 .devin/
 dist/
-.agents
+.agents/*
+!.agents/docs/
+!.agents/rules/
+!.agents/specs/
 .graphifyignore
 scripts/
 
