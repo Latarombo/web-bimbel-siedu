@@ -344,7 +344,7 @@
   "activeClasses": "{count, plural, one {# active class} other {# active classes}}",
   "levelClasses": "View {level} classes, {availability}",
   "teacherPhoto": "Photo of {name}",
-  "teacherLevels": "Levels {level} · {count, plural, one {# active class} other {# active classes}}",
+  "teacherLevels": "{level} Level Instructor",
   "sending": "Sending...",
   "contactSubject0": "Enrollment",
   "contactSubject1": "Learning Programs",

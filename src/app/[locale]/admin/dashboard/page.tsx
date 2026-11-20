@@ -28,11 +28,6 @@ const BORDER: Record<Kategori, string> = {
   keuangan: "border-t-emerald-500",
   perhatian: "border-t-amber-500",
 };
-const TILE: Record<Kategori, string> = {
-  akademik: "bg-blue-50 text-blue-600",
-  keuangan: "bg-emerald-50 text-emerald-600",
-  perhatian: "bg-amber-50 text-amber-600",
-};
 
 // Kartu dasar dashboard — div biasa (Card ui/ memo rankainya template literal,
 // override shadow/radius dari luar tidak andal), radius & shadow mengikuti
@@ -352,14 +347,12 @@ export default async function AdminDashboard() {
             <Panel className={`h-full border-t-4 ${BORDER[s.kategori]} transition-shadow hover:shadow-[0_4px_12px_-2px_rgba(15,23,42,0.1)]`}>
               <div className="flex h-full flex-col p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-2">
-                  <span className={`grid h-9 w-9 place-items-center rounded-lg ${TILE[s.kategori]}`}>
-                    <Icon d={s.icon} className="h-[18px] w-[18px]" />
-                  </span>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{s.label}</p>
                   {s.href ? (
                     <Link
                       href={s.href}
                       aria-label={t("openLabel", { label: s.label })}
-                      className="grid h-7 w-7 place-items-center rounded-lg text-slate-300 transition-colors hover:bg-slate-50 hover:text-blue-600"
+                      className="grid h-7 w-7 place-items-center rounded-lg text-slate-400 transition-colors hover:bg-slate-50 hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600"
                     >
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
                         <path d="M7 17L17 7M9 7h8v8" />
@@ -367,18 +360,17 @@ export default async function AdminDashboard() {
                     </Link>
                   ) : null}
                 </div>
-                <p className="mt-3 font-display text-2xl font-extrabold leading-none tracking-tight tabular-nums text-slate-900 sm:text-[26px]">
+                <p className="mt-3 font-display text-2xl font-extrabold leading-none tracking-tight tabular-nums text-slate-900 sm:text-[28px]">
                   {s.value}
                 </p>
-                <p className="mt-1.5 text-[13px] font-semibold text-slate-700">{s.label}</p>
                 {s.bar !== undefined ? (
                   <div className="mt-2" role="progressbar" aria-valuenow={s.bar} aria-valuemin={0} aria-valuemax={100} aria-label={t("text42")}>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-200">
+                    <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
                       <div className="h-full rounded-full bg-blue-600" style={{ width: `${Math.max(0, Math.min(100, s.bar))}%` }} />
                     </div>
                   </div>
                 ) : null}
-                <p className={`text-xs text-slate-500 ${s.bar !== undefined ? "mt-1.5" : "mt-auto pt-1.5"}`}>{s.sub}</p>
+                <p className={`text-xs text-slate-500 ${s.bar !== undefined ? "mt-1.5" : "mt-auto pt-2"}`}>{s.sub}</p>
               </div>
             </Panel>
           </li>

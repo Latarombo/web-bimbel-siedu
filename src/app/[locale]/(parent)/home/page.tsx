@@ -612,8 +612,8 @@ export default async function ParentHome({
           </div>
 
           {/* Blok Utama: Identitas Anak Aktif */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-            {/* Sisi Kiri: Avatar + Nama Anak + Detail Kelas + Status Pendaftaran */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+            {/* Sisi Kiri: Avatar + Nama Anak + Detail Kelas */}
             <div className="flex items-start sm:items-center gap-4 min-w-0">
               <StudentAvatar
                 nama={dipilih.nama}
@@ -622,16 +622,9 @@ export default async function ParentHome({
                 className="ring-2 ring-white/70 shadow-md"
               />
               <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight truncate">
-                    {dipilih.nama}
-                  </h1>
-                  {dipilih.status ? (
-                    <div>
-                      <StatusBadge status={dipilih.status as StatusPendaftaran} />
-                    </div>
-                  ) : null}
-                </div>
+                <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight truncate">
+                  {dipilih.nama}
+                </h1>
 
                 <div className="flex flex-wrap items-center gap-2 mt-1 text-xs sm:text-sm text-blue-100/90 font-medium">
                   {dipilih.kelas ? (
@@ -653,14 +646,19 @@ export default async function ParentHome({
                   {dipilih.kelas?.ruangan && (
                     <>
                       <span>•</span>
-                      <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-0.5 text-xs font-semibold text-white border border-white/20">
-                        🚪 {dipilih.kelas.ruangan}
-                      </span>
+                      <span>Ruangan {dipilih.kelas.ruangan}</span>
                     </>
                   )}
                 </div>
               </div>
             </div>
+
+            {/* Sisi Kanan: Status Pendaftaran (pada panel data terpisah, bukan di samping judul) */}
+            {dipilih.status ? (
+              <div className="sm:self-center shrink-0">
+                <StatusBadge status={dipilih.status as StatusPendaftaran} />
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

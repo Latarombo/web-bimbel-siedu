@@ -344,7 +344,7 @@
   "activeClasses": "{count} kelas aktif",
   "levelClasses": "Lihat kelas jenjang {level}, {availability}",
   "teacherPhoto": "Foto {name}",
-  "teacherLevels": "Jenjang {level} · {count} kelas aktif",
+  "teacherLevels": "Pengajar Jenjang {level}",
   "sending": "Mengirim...",
   "contactSubject0": "Pendaftaran",
   "contactSubject1": "Program Belajar",

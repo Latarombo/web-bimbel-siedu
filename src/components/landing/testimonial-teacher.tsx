@@ -110,7 +110,7 @@ const KUTIPAN = [
           <div className="mt-5 border-t border-dashed border-slate-200 pt-4">
             <p className="text-base font-bold text-slate-900">{guru.nama}</p>
             <p className="mt-0.5 text-sm text-slate-500">
-              {tr("teacherLevels", {level: jenjang, count: guru.jumlahKelas})}</p>
+              {tr("teacherLevels", { level: jenjang })}</p>
           </div>
         </div>
       </div>
