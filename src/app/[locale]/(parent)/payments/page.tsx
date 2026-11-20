@@ -46,31 +46,24 @@ export default async function PaymentsPage({
 
   // 3. Nama mapel per kelas
   const mapelIds = [...new Set(milikSaya.map((p) => p.kelas.mataPelajaranId))];
-  const mapelMap = new Map<number, string>(
-    (
-      await Promise.all(
-        mapelIds.map(async (mid) => {
-          const rows = await collect(
-            db.orm.public.MataPelajaran.where((m) => m.id.eq(mid)).all()
-          );
-          return rows.map((m) => [m.id, m.nama] as const);
-        })
+  const mapelRows = mapelIds.length
+    ? await collect(
+        db.orm.public.MataPelajaran.where((m) => m.id.in(mapelIds)).all(),
       )
-    ).flat()
+    : [];
+  const mapelMap = new Map<number, string>(
+    mapelRows.map((m) => [m.id, m.nama]),
   );
 
   // 4. Semua tagihan pendaftaran milik saya
-  const tagihanRaw = (
-    await Promise.all(
-      milikSaya.map((p) =>
-        collect(
-          db.orm.public.Pembayaran.where((b) => b.pendaftaranId.eq(p.id))
-            .orderBy((b) => b.jatuhTempo.asc())
-            .all()
-        )
+  const pendaftaranIds = milikSaya.map((p) => p.id);
+  const tagihanRaw = pendaftaranIds.length
+    ? await collect(
+        db.orm.public.Pembayaran.where((b) => b.pendaftaranId.in(pendaftaranIds))
+          .orderBy((b) => b.jatuhTempo.asc())
+          .all(),
       )
-    )
-  ).flat();
+    : [];
 
   const now = new Date();
   const nowIso = now.toISOString().slice(0, 10);

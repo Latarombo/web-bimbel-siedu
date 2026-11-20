@@ -31,18 +31,22 @@ export default async function ChildrenPage() {
   const dashMap = new Map(dashboardList.map((d) => [d.id, d]));
 
   // Hitung jumlah pendaftaran aktif per anak untuk status lock
-  const aktifPerAnak = await Promise.all(
-    anakRows.map(async (a) => {
-      const rows = await collect(
-        db.orm.public.Pendaftaran.where((p) => p.anakId.eq(a.id)).all(),
-      );
-      const aktif = rows.filter((p) =>
-        ["menunggu_pembayaran", "terdaftar", "tertunggak"].includes(p.status),
-      );
-      return [a.id, aktif.length] as const;
-    }),
-  );
-  const aktifMap = new Map(aktifPerAnak);
+  const anakIds = anakRows.map((a) => a.id);
+  const semuaPendaftaran = anakIds.length
+    ? await collect(
+        db.orm.public.Pendaftaran.where((p) => p.anakId.in(anakIds)).all(),
+      )
+    : [];
+
+  const aktifMap = new Map<number, number>();
+  for (const a of anakRows) {
+    aktifMap.set(a.id, 0);
+  }
+  for (const p of semuaPendaftaran) {
+    if (["menunggu_pembayaran", "terdaftar", "tertunggak"].includes(p.status)) {
+      aktifMap.set(p.anakId, (aktifMap.get(p.anakId) ?? 0) + 1);
+    }
+  }
 
   // Bentuk array data ChildData untuk Bento Card & Quick View Modal
   const childrenList: ChildData[] = anakRows.map((a) => {

@@ -31,7 +31,6 @@ export function QuickGradeDrawer({
   totalStudents,
   onNextStudent,
   onPrevStudent,
-  classId: _classId,
   onSavedSuccess,
 }: QuickGradeDrawerProps) {
   const [tanggal, setTanggal] = useState("");

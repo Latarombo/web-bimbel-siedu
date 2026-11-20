@@ -76,30 +76,35 @@ export default async function ScheduleAttendancePage({
   const mapelIds = [...new Set(milikSaya.map((p) => p.kelas.mataPelajaranId))];
   const guruIds = [...new Set(milikSaya.map((p) => p.kelas.guruId))];
   const [mapelRows, guruRows] = await Promise.all([
-    Promise.all(
-      mapelIds.map(async (mid) =>
-        collect(db.orm.public.MataPelajaran.where((m) => m.id.eq(mid)).all()),
-      ),
-    ),
-    Promise.all(
-      guruIds.map(async (gid) =>
-        collect(db.orm.public.User.where((u) => u.id.eq(gid)).all()),
-      ),
-    ),
+    mapelIds.length
+      ? collect(db.orm.public.MataPelajaran.where((m) => m.id.in(mapelIds)).all())
+      : Promise.resolve([]),
+    guruIds.length
+      ? collect(db.orm.public.User.where((u) => u.id.in(guruIds)).all())
+      : Promise.resolve([]),
   ]);
-  const mapel = new Map(mapelRows.flat().map((m) => [m.id, m.nama]));
-  const guru = new Map(guruRows.flat().map((g) => [g.id, g.name]));
+  const mapel = new Map(mapelRows.map((m) => [m.id, m.nama]));
+  const guru = new Map(guruRows.map((g) => [g.id, g.name]));
 
   // Jadwal per kelas yang diikuti.
-  const jadwalRowsRaw = (
-    await Promise.all(
-      milikSaya.map((p) =>
-        collect(
-          db.orm.public.JadwalItem.where((j) => j.kelasId.eq(p.kelasId)).all(),
-        ).then((items) => items.map((j) => ({ j, p }))),
-      ),
-    )
-  ).flat();
+  const kelasIds = [
+    ...new Set(
+      milikSaya
+        .map((p) => p.kelasId)
+        .filter((id): id is number => typeof id === "number"),
+    ),
+  ];
+  const jadwalItems = kelasIds.length
+    ? await collect(db.orm.public.JadwalItem.where((j) => j.kelasId.in(kelasIds)).all())
+    : [];
+  const jadwalRowsRaw: { j: (typeof jadwalItems)[0]; p: (typeof milikSaya)[0] }[] = [];
+  for (const p of milikSaya) {
+    for (const j of jadwalItems) {
+      if (j.kelasId === p.kelasId) {
+        jadwalRowsRaw.push({ j, p });
+      }
+    }
+  }
   jadwalRowsRaw.sort(
     (x, y) =>
       URUTAN_HARI.indexOf(x.j.hari as (typeof URUTAN_HARI)[number]) -
@@ -120,17 +125,20 @@ export default async function ScheduleAttendancePage({
   }));
 
   // Presensi pendaftaran milik saya.
-  const presensiRaw = (
-    await Promise.all(
-      milikSaya.map((p) =>
-        collect(
-          db.orm.public.Presensi.where((s) => s.pendaftaranId.eq(p.id))
-            .orderBy((s) => s.tanggalPertemuan.desc())
-            .all(),
-        ).then((rows) => rows.map((s) => ({ s, p }))),
-      ),
-    )
-  ).flat();
+  const pendaftaranIds = milikSaya.map((p) => p.id);
+  const presensiItems = pendaftaranIds.length
+    ? await collect(
+        db.orm.public.Presensi.where((s) => s.pendaftaranId.in(pendaftaranIds))
+          .orderBy((s) => s.tanggalPertemuan.desc())
+          .all(),
+      )
+    : [];
+  const pendaftaranMap = new Map(milikSaya.map((p) => [p.id, p]));
+  const presensiRaw: { s: (typeof presensiItems)[0]; p: (typeof milikSaya)[0] }[] = [];
+  for (const s of presensiItems) {
+    const p = pendaftaranMap.get(s.pendaftaranId);
+    if (p) presensiRaw.push({ s, p });
+  }
   
   // Catatan pertemuan terbit (materi & PR) untuk sesi-sesi presensi
   const sesiIds = [

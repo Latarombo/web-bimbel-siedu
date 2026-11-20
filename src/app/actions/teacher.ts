@@ -956,9 +956,23 @@ export async function updatePersetujuanFoto(
 
 export async function bersihkanRetensiStatus({
   referensiWaktuIso,
+  cronSecret,
 }: {
   referensiWaktuIso?: string;
-} = {}): Promise<{ ok: boolean; countArchived: number; countPurged: number }> {
+  cronSecret?: string;
+} = {}): Promise<{ ok: boolean; error?: string; countArchived?: number; countPurged?: number }> {
+  const user = await guardUser();
+  const isAuthorizedAdmin = user?.role === "admin";
+  const isAuthorizedCron = Boolean(
+    process.env.CRON_SECRET &&
+    cronSecret &&
+    cronSecret === process.env.CRON_SECRET
+  );
+
+  if (!isAuthorizedAdmin && !isAuthorizedCron) {
+    return { ok: false, error: "Akses ditolak: Hanya admin atau cron yang berwenang" };
+  }
+
   const now = referensiWaktuIso ? new Date(referensiWaktuIso) : new Date();
   const nowIso = now.toISOString();
 
