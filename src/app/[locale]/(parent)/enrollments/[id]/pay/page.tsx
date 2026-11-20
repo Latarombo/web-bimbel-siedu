@@ -6,7 +6,7 @@ import { Link, redirect, getPathname } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { rupiah, fmtTanggal } from "@/lib/format";
+import { rupiah, fmtTanggal } from "@/lib/format/format";
 import { tagihanBerikutinya } from "@/lib/services/pembayaran";
 import {
   midtransConfigured,

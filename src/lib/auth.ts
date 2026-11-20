@@ -3,8 +3,8 @@ import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import bcrypt from 'bcryptjs';
 import { db } from '@/prisma/db';
-import { authConfig } from '@/lib/auth.config';
-import { prismaNextAdapter } from '@/lib/auth-adapter';
+import { authConfig } from '@/lib/auth/auth.config';
+import { prismaNextAdapter } from '@/lib/auth/auth-adapter';
 
 // Google hanya aktif kalau kredensial OAuth tersedia — dev tanpa .env Google
 // tetap jalan (tombol Google di UI membaca GOOGLE_ENABLED untuk fallback disabled).

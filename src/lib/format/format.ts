@@ -1,4 +1,4 @@
-import type { DisplayLocale } from "@/lib/label";
+import type { DisplayLocale } from "@/lib/format/label";
 
 export function rupiah(n: number, locale: DisplayLocale = "id") {
   return new Intl.NumberFormat(locale === "en" ? "en-US" : "id-ID", {

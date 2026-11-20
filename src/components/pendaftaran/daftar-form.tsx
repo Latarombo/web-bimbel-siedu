@@ -7,7 +7,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { daftarKelas, type DaftarState } from "@/app/actions/pendaftaran";
-import { rupiah } from "@/lib/format";
+import { rupiah } from "@/lib/format/format";
 import PersetujuanModal from "./persetujuan-modal";
 import { FASILITAS_KELAS } from "@/lib/kelas-konten";
 

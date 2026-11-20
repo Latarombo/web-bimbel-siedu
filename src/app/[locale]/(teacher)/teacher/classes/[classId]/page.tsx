@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { tanggalWIB } from "@/lib/hari";
+import { tanggalWIB } from "@/lib/format/hari";
 import { rencanakanSesi } from "@/lib/rencana-sesi";
 import {
   ClassDetailView,

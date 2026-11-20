@@ -1,4 +1,4 @@
-import type { Hari } from './hari';
+import type { Hari } from '@/lib/format/hari';
 
 type SlotJadwal = {
   id: number;

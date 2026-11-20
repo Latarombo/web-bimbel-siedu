@@ -9,7 +9,7 @@ import { getTranslations } from "next-intl/server";
  * Warna kartu #d7f2fe dipertahankan (bagian dari bahasa visual landing).
  * Data testimoni masih statis (belum ada sumber DB).
  */
-import TestimonialCarousel, { type Testimoni } from "./TestimonialCarousel";
+import TestimonialCarousel, { type Testimoni } from "./testimonial-carousel";
 
 
 

@@ -12,8 +12,8 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
-import { LanguageSwitcher } from '@/components/language-switcher';
-import LogoutDialog from '@/components/LogoutDialog';
+import { LanguageSwitcher } from '@/components/common/language-switcher';
+import LogoutDialog from '@/components/common/logout-dialog';
 
 export interface NavItem {
   name: string;

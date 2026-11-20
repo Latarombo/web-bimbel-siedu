@@ -3,7 +3,7 @@ import { redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { tanggalWIB, hariDariTanggal } from "@/lib/hari";
+import { tanggalWIB, hariDariTanggal } from "@/lib/format/hari";
 import {
   TeacherClassesView,
   type ClassCardItem,

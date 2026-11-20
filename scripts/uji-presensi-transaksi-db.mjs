@@ -59,7 +59,7 @@ vm.runInNewContext(compiled, {
     if (name === '@/i18n/locale') return { getLocaleDariCookie: async () => 'id' };
     if (name === 'next-intl/server') return { getTranslations: async () => key => key };
     if (name === 'next/cache') return { revalidatePath() { invalidations++; } };
-    if (name === '@/lib/hari') return hari;
+    if (name === '@/lib/format/hari') return hari;
     if (name === '@/lib/collect') return { collect };
     return require(name);
   },

@@ -1,7 +1,7 @@
 import { getTranslations, getLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
-import DashboardNavbar from "@/components/DashboardNavbar";
+import DashboardNavbar from "@/components/navbar/dashboard-navbar";
 import { AKUN_INFO_PATH, orangTuaBelumLengkap } from "@/lib/orang-tua-lengkap";
 
 export default async function ParentLayout({ children }: { children: React.ReactNode }) {

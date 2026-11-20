@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { useScrollLock } from "@/lib/use-scroll-lock";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 
 export type FilterKatalogModalProps = {
   isOpen: boolean;

@@ -1,5 +1,5 @@
-import Navbar from "@/components/LandingNavbar";
-import Footer from "@/components/Footer";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/common/footer";
 import { auth } from "@/lib/auth";
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {

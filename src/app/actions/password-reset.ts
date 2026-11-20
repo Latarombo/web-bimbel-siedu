@@ -7,7 +7,7 @@ import { headers } from 'next/headers';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { db } from '@/prisma/db';
-import { generateSecureToken, hashToken } from '@/lib/token';
+import { generateSecureToken, hashToken } from '@/lib/auth/token';
 import { sendPasswordResetEmail } from '@/lib/mail';
 import { checkRateLimit, checkCooldown, getClientIp } from '@/lib/rate-limit';
 

@@ -5,7 +5,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { ButtonLink } from "@/components/ui/button";
-import { StatusBadge } from "@/components/status-badge";
+import { StatusBadge } from "@/components/common/status-badge";
 import { DataTable, type TableColumn, type TableRowData } from "@/components/ui/data-table";
 import { PageShell, PageHeader, Panel, FilterTabs, Notice } from "@/components/admin/ui";
 

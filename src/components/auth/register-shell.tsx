@@ -1,7 +1,7 @@
 import AuthTopBar from '@/components/auth/top-bar';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import WaveAnimation from '@/components/WaveAnimation';
+import WaveAnimation from '@/components/landing/wave-animation';
 import { SITE } from '@/lib/site';
 
 /*

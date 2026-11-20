@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
-import LogoutDialog from '@/components/LogoutDialog';
+import LogoutDialog from '@/components/common/logout-dialog';
 import { TeacherThemeSwitch } from './teacher-theme-switch';
 import {
   LayoutGrid,

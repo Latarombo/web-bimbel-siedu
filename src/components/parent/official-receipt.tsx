@@ -2,8 +2,8 @@
 
 import { useSyncExternalStore } from 'react';
 import { Printer, ArrowLeft, CheckCircle2, ShieldCheck, QrCode, Share2 } from 'lucide-react';
-import { rupiah, fmtTanggal } from '@/lib/format';
-import { terbilangRupiah } from '@/lib/terbilang';
+import { rupiah, fmtTanggal } from '@/lib/format/format';
+import { terbilangRupiah } from '@/lib/format/terbilang';
 import { createReceiptPaidWaLink } from '@/lib/whatsapp';
 
 export interface OfficialReceiptData {

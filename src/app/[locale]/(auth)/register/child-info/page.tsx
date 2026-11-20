@@ -1,11 +1,11 @@
 import { getTranslations, getLocale } from 'next-intl/server';
-import ChildInfoForm from '@/components/ChildInfoForm';
+import ChildInfoForm from '@/components/pendaftaran/child-info-form';
 import RegisterShell from '@/components/auth/register-shell';
 import { auth } from '@/lib/auth';
 import { db } from '@/prisma/db';
 import { collect } from '@/lib/collect';
 import { redirect } from '@/i18n/navigation';
-import { ClearDraft } from '@/components/clear-draft';
+import { ClearDraft } from '@/components/pendaftaran/clear-draft';
 
 export async function generateMetadata() {
     const t = await getTranslations('auth');

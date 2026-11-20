@@ -9,7 +9,7 @@ import { NavbarProps } from './types';
 import { NavLinks } from './nav-links';
 import { NavActions } from './nav-actions';
 import { MobileDrawer } from './mobile-drawer';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { LanguageSwitcher } from '@/components/common/language-switcher';
 
 // Simpan state scroll & drawer di module level client agar saat ganti bahasa (remount client),
 // Navbar tidak pernah kembali ke posisi false atau memantul dari fullwidth, dan drawer tidak tertutup mendadak.

@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { rencanakanSesi } from "@/lib/rencana-sesi";
-import { tanggalWIB } from "@/lib/hari";
+import { tanggalWIB } from "@/lib/format/hari";
 import {
   TeacherCalendarView,
   type TeacherCalendarSessionItem,

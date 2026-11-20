@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { WaveShell } from "@/components/wave-shell";
+import { WaveShell } from "@/components/landing/wave-shell";
 import ForgotForm from "@/components/auth/forgot-form";
 
 export async function generateMetadata() {

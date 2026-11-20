@@ -1,7 +1,7 @@
 import NextAuth from 'next-auth';
 import createMiddleware from 'next-intl/middleware';
 import { NextResponse } from 'next/server';
-import { authConfig } from '@/lib/auth.config';
+import { authConfig } from '@/lib/auth/auth.config';
 import { routing } from '@/i18n/routing';
 
 // Next 16: middleware diganti nama proxy (lihat node_modules/next/dist/docs/.../proxy.md).

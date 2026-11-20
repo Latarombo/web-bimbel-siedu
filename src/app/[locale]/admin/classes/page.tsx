@@ -6,7 +6,7 @@ import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { Badge } from "@/components/ui/badge";
 import { ButtonLink } from "@/components/ui/button";
-import { rupiah } from "@/lib/format";
+import { rupiah } from "@/lib/format/format";
 import { DataTable, type TableColumn, type TableRowData } from "@/components/ui/data-table";
 import { PageShell, PageHeader, Panel, FilterTabs } from "@/components/admin/ui";
 

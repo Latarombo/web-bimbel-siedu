@@ -4,8 +4,8 @@ import { useTranslations } from 'next-intl';
 import { useActionState, useState, useEffect } from 'react';
 import { Link } from '@/i18n/navigation';
 import { login, type LoginState } from '@/app/actions/login';
-import GoogleButton from '@/components/GoogleButton';
-import { useFormDraft } from '@/lib/use-form-draft';
+import GoogleButton from '@/components/auth/google-button';
+import { useFormDraft } from '@/hooks/use-form-draft';
 
 const initial: LoginState = {};
 

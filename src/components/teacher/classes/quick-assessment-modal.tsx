@@ -3,7 +3,7 @@
 import { useState, useEffect, useTransition } from "react";
 import { X, Loader2 } from "lucide-react";
 import { savePenilaianBatch } from "@/app/actions/teacher";
-import { useScrollLock } from "@/lib/use-scroll-lock";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 
 interface QuickAssessmentModalProps {
   isOpen: boolean;

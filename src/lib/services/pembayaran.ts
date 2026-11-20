@@ -15,7 +15,7 @@
 // Impor relatif supaya bisa dijalankan node langsung (konvensi pendaftaran.ts).
 import { db } from "../../prisma/db";
 import type { Hasil } from "./pendaftaran";
-import { dalamJendela7Hari } from "../hari";
+import { dalamJendela7Hari } from "@/lib/format/hari";
 
 async function collect<T>(src: AsyncIterable<T>): Promise<T[]> {
   const out: T[] = [];

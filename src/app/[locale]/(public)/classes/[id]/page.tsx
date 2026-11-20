@@ -7,10 +7,10 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { SITE, MAPS_SEARCH_URL, LOKASI_LAT, LOKASI_LNG } from "@/lib/site";
-import PetaLokasi from "@/components/contact/PetaLokasi";
+import PetaLokasi from "@/components/contact/peta-lokasi";
 import { SkemaPembayaran } from "@/components/kelas/skema-pembayaran";
 import { kelasAktifPublik, toKelasKatalog } from "@/lib/kelas";
-import { labelHari } from "@/lib/label";
+import { labelHari } from "@/lib/format/label";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";

@@ -4,8 +4,8 @@ import { useTranslations } from 'next-intl';
 import { useActionState, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { registerParent, type RegisterState } from '@/app/actions/register';
-import GoogleButton from '@/components/GoogleButton';
-import { useFormDraft } from '@/lib/use-form-draft';
+import GoogleButton from '@/components/auth/google-button';
+import { useFormDraft } from '@/hooks/use-form-draft';
 
 const initial: RegisterState = {};
 

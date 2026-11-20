@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { ButtonLink } from "@/components/ui/button";
 import { redirect } from "@/i18n/navigation";
-import { ClearDraft } from "@/components/clear-draft";
+import { ClearDraft } from "@/components/pendaftaran/clear-draft";
 import { dashboardOrangTua } from "@/lib/orang-tua-dashboard";
 import { collect } from "@/lib/collect";
 import { ChildrenBentoGrid } from "@/components/parent/children/children-bento-grid";

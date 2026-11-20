@@ -1,6 +1,6 @@
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { labelHari, type DisplayLocale } from "@/lib/label";
+import { labelHari, type DisplayLocale } from "@/lib/format/label";
 
 export type JenjangKatalog = "TK" | "SD" | "SMP" | "SMA";
 

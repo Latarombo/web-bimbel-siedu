@@ -9,7 +9,7 @@ import { getTranslations } from "next-intl/server";
  * Angka naik dari 0 saat section terlihat (ala statistik Dicoding).
  * Angka siswa/kelas/guru dari DB; rating 4.8 statis (belum ada sumber data rating).
  */
-import CountUp from "@/components/landing/CountUp";
+import CountUp from "@/components/landing/count-up";
 
 export default async function TrustIndicators({
   siswa,

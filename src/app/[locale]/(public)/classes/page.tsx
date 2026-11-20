@@ -1,7 +1,7 @@
 import { getTranslations, getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { Section } from "@/components/ui/section";
-import { KelasGrid } from "@/components/kelas-card";
+import { KelasGrid } from "@/components/kelas/kelas-card";
 import { toKelasKatalog } from "@/lib/kelas";
 import { filterKatalog, kelasKatalogHalaman, urlKatalog, UKURAN_HALAMAN_KATALOG } from "@/lib/katalog";
 import { KatalogFilterBar } from "@/components/katalog/katalog-filter-bar";

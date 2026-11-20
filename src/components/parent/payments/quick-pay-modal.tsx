@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect, useRef } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { rupiah } from "@/lib/format";
+import { rupiah } from "@/lib/format/format";
 import { SITE } from "@/lib/site";
 import type { PaymentItem } from "./payment-types";
 import { mulaiPembayaran, konfirmasiManual } from "@/app/actions/pembayaran";
@@ -21,7 +21,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { useScrollLock } from "@/lib/use-scroll-lock";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 
 interface Props {
   bill: PaymentItem | null;

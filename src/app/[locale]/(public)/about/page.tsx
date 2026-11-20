@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Section } from "@/components/ui/section";
-import TestimonialSection from "@/components/TestimonialTeacher";
-import FinalCta from "@/components/landing/FinalCta";
+import TestimonialSection from "@/components/landing/testimonial-teacher";
+import FinalCta from "@/components/landing/final-cta";
 import { Link } from "@/i18n/navigation";
 import { kelasAktifPublik, guruDariKelasAktif } from "@/lib/kelas";
 import { ArrowRight } from "lucide-react";

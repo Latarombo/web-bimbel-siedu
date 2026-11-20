@@ -6,7 +6,7 @@ import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { Badge } from "@/components/ui/badge";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { StatusBadge, type StatusPendaftaran } from "@/components/status-badge";
+import { StatusBadge, type StatusPendaftaran } from "@/components/common/status-badge";
 import {
   Clock,
   Share2,
@@ -22,9 +22,9 @@ import {
   Sparkles,
   AlertTriangle,
 } from "lucide-react";
-import { rupiah, fmtTanggal } from "@/lib/format";
-import { getLabelMaps, labelHari } from "@/lib/label";
-import { sisaWaktu24Jam } from "@/lib/hari";
+import { rupiah, fmtTanggal } from "@/lib/format/format";
+import { getLabelMaps, labelHari } from "@/lib/format/label";
+import { sisaWaktu24Jam } from "@/lib/format/hari";
 import { ClassTicket } from "@/components/parent/class-ticket";
 import { createBillingReminderWaLink } from "@/lib/whatsapp";
 import { SITE } from "@/lib/site";

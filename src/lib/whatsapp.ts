@@ -1,4 +1,4 @@
-import { rupiah, fmtTanggal } from "@/lib/format";
+import { rupiah, fmtTanggal } from "@/lib/format/format";
 
 /**
  * Format nomor telepon Indonesia ke format internasional (mis. 0812... -> 62812...)

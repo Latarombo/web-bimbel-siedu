@@ -3,7 +3,7 @@ import { redirect, getPathname } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import AdminSidebar, { type NavSection } from "@/components/admin/AdminSidebar";
+import AdminSidebar, { type NavSection } from "@/components/admin/admin-sidebar";
 
 // Konstanta status antrean — modul polos, bukan 'use server' (pitfall ekspor const).
 // Sama dengan STATUS_MASALAH di halaman flagged (E6).

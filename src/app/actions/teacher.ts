@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache';
 import { db } from '@/prisma/db';
 import { auth } from '@/lib/auth';
 import { collect } from '@/lib/collect';
-import { hariDariTanggal, dalamJendela7Hari, tanggalValid } from '@/lib/hari';
+import { hariDariTanggal, dalamJendela7Hari, tanggalValid } from '@/lib/format/hari';
 
 export type GuruState = { ok?: boolean; error?: string; fieldErrors?: Record<string, string> };
 

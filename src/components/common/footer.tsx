@@ -2,7 +2,7 @@ import { Link } from '@/i18n/navigation';
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { SITE } from '@/lib/site';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { LanguageSwitcher } from '@/components/common/language-switcher';
 
 const Footer = async () => {
   const t = await getTranslations('chrome.footer');

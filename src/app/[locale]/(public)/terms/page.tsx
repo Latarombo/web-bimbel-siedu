@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Section } from "@/components/ui/section";
 import { BlokHukumView } from "@/components/ui/legal-block";
 import { TableOfContents } from "@/components/ui/table-of-contents";
-import { getSyarat } from "@/lib/syarat-ketentuan";
+import { getSyarat } from "@/lib/content/syarat-ketentuan";
 import { LegalHeader } from "@/components/legal/legal-header";
 import { BackToTop } from "@/components/ui/back-to-top";
 import type { Metadata } from "next";

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { hariDariTanggal, dalamJendela7Hari, tanggalValid } from "@/lib/hari";
+import { hariDariTanggal, dalamJendela7Hari, tanggalValid } from "@/lib/format/hari";
 import { ArrowLeft } from "lucide-react";
 import { SessionStatStrip, TeacherAttendanceManager } from "@/components/teacher/attendance";
 

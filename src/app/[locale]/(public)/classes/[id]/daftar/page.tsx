@@ -1,4 +1,4 @@
-import { labelHari } from "@/lib/label";
+import { labelHari } from "@/lib/format/label";
 import { getTranslations, getLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { redirect } from "@/i18n/navigation";

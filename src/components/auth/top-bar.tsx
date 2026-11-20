@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { HelpCircle } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { LanguageSwitcher } from '@/components/common/language-switcher';
 
 /*
  * Bar atas halaman layar penuh bernuansa biru (login, register, forgot,

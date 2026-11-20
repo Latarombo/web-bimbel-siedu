@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { X } from "lucide-react";
-import { useScrollLock } from "@/lib/use-scroll-lock";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 
 export type ExportType = "summary" | "attendance" | "grades";
 

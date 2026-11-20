@@ -3,7 +3,7 @@
  * `**teks**` di dalam string dirender tebal oleh halaman. Sumber fakta:
  * src/prisma/contract.prisma, src/lib/services/*, src/lib/site.ts.
  */
-import { SITE } from "./site";
+import { SITE } from "@/lib/site";
 
 export type BlokPrivasi =
  | { jenis: "p"; teks: string }

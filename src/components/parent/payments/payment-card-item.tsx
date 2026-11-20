@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations, useLocale } from "next-intl";
-import { rupiah } from "@/lib/format";
+import { rupiah } from "@/lib/format/format";
 import type { PaymentItem } from "./payment-types";
 import {
   CreditCard,

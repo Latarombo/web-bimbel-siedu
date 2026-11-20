@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { ChevronRight, Plus, UserPlus, CheckCircle2, AlertTriangle } from "lucide-react";
-import { rupiah } from "@/lib/format";
+import { rupiah } from "@/lib/format/format";
 
 export type PilihanAnak = {
   id: number;

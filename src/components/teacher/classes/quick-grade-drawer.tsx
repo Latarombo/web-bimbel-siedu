@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition } from "react";
 import { Link } from "@/i18n/navigation";
 import { X, ChevronLeft, ChevronRight, Loader2, Check } from "lucide-react";
 import { saveNilai } from "@/app/actions/teacher";
-import { useScrollLock } from "@/lib/use-scroll-lock";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 import type { StudentRosterItem } from "./class-detail-view";
 
 interface QuickGradeDrawerProps {

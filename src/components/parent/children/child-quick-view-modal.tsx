@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { ChildData, JENJANG_STYLES } from './types';
 import { StudentAvatar } from '@/components/parent/student-avatar';
-import { useScrollLock } from '@/lib/use-scroll-lock';
+import { useScrollLock } from '@/hooks/use-scroll-lock';
 
 interface ChildQuickViewModalProps {
   child: ChildData | null;

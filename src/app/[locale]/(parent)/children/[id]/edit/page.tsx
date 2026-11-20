@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Link, redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
-import WaveAnimation from "@/components/WaveAnimation";
+import WaveAnimation from "@/components/landing/wave-animation";
 import AuthTopBar from "@/components/auth/top-bar";
 import { SITE } from "@/lib/site";
 import { ChildEditForm } from "@/components/parent/child-edit-form";

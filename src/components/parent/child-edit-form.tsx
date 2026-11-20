@@ -10,7 +10,7 @@ import { JENJANG_STYLES } from '@/components/parent/children/types';
 import {
   KELAS_OPTIONS,
   inferJenjangDanKelasFromBirthDate,
-} from '@/components/ChildInfoForm';
+} from '@/components/pendaftaran/child-info-form';
 import {
   BookOpen,
   Camera,

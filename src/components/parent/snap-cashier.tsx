@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState, useRef } from "react";
 import Script from "next/script";
 import { Button } from "@/components/ui/button";
 import { mulaiPembayaran, konfirmasiManual, type PayState } from "@/app/actions/pembayaran";
-import { rupiah } from "@/lib/format";
+import { rupiah } from "@/lib/format/format";
 
 declare global {
   interface Window {

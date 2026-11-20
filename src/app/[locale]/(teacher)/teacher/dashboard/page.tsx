@@ -3,7 +3,7 @@ import { Link, redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { tanggalWIB, hariDariTanggal } from "@/lib/hari";
+import { tanggalWIB, hariDariTanggal } from "@/lib/format/hari";
 import { TeacherScheduleWidget, type ScheduleSessionItem } from "@/components/teacher/dashboard/teacher-schedule-widget";
 import { TeacherAnalyticsSection } from "@/components/teacher/dashboard-charts";
 import {

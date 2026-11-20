@@ -3,7 +3,7 @@ import { redirect, getPathname } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { rupiah } from "@/lib/format";
+import { rupiah } from "@/lib/format/format";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, type TableColumn, type TableRowData } from "@/components/ui/data-table";
 import { PageShell, PageHeader, Panel } from "@/components/admin/ui";

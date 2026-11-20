@@ -7,7 +7,7 @@ import {
   type QuickSearchClassItem,
   type QuickSearchStudentItem,
 } from './teacher-quick-search';
-import LogoutDialog from '@/components/LogoutDialog';
+import LogoutDialog from '@/components/common/logout-dialog';
 
 interface TeacherShellProps {
   role: string;

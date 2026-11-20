@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { db } from "@/prisma/db";
 import { auth } from "@/lib/auth";
-import { validateIndonesianPhone, normalizeIndonesianPhone, getPhoneLookupVariants } from "@/lib/phone";
+import { validateIndonesianPhone, normalizeIndonesianPhone, getPhoneLookupVariants } from "@/lib/format/phone";
 
 const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
   nama: z.string({error: t('invalidField')}).trim().min(2, t('childNameMin')),

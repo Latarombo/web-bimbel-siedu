@@ -3,12 +3,12 @@
 import Image from 'next/image';
 import { Link, usePathname } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { LanguageSwitcher } from '@/components/common/language-switcher';
 import { useState, useRef, useEffect } from 'react';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import LogoutDialog from '@/components/LogoutDialog';
-import ProfilePopover from '@/components/ProfilePopover';
+import LogoutDialog from '@/components/common/logout-dialog';
+import ProfilePopover from '@/components/common/profile-popover';
 
 interface NavItem {
   name: string;

@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server';
-import { WaveShell } from "@/components/wave-shell";
+import { WaveShell } from "@/components/landing/wave-shell";
 import ResetForm from "@/components/auth/reset-form";
 import { verifyResetToken } from "@/app/actions/password-reset";
 import { Link } from "@/i18n/navigation";

@@ -5,7 +5,7 @@ import { useActionState, useEffect, useState } from 'react';
 import { Link } from '@/i18n/navigation';
 import { saveAccountInfo, validateStep1, type AccountInfoState } from '@/app/actions/account-info';
 import { CardSelect } from '@/components/ui/card-select';
-import { useFormDraft } from '@/lib/use-form-draft';
+import { useFormDraft } from '@/hooks/use-form-draft';
 
 const initial: AccountInfoState = {};
 

@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { db } from '@/prisma/db';
 import { auth } from '@/lib/auth';
 
-import { validateIndonesianPhone, getPhoneLookupVariants } from '@/lib/phone';
+import { validateIndonesianPhone, getPhoneLookupVariants } from '@/lib/format/phone';
 
 const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
   name: z.string({error: t('invalidField')}).trim().min(2, t('nameMin')),

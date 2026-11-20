@@ -1,6 +1,6 @@
 import { db } from '../prisma/db';
 import { collect } from './collect';
-import { labelHari } from './label';
+import { labelHari } from '@/lib/format/label';
 
 import { UKURAN_HALAMAN_KATALOG, type FilterKatalog } from './katalog-shared';
 

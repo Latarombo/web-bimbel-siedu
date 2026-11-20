@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { rupiah } from "@/lib/format";
+import { rupiah } from "@/lib/format/format";
 import type { EnrollmentBillingGroup, PaymentItem } from "./payment-types";
 import { PaymentCardItem } from "./payment-card-item";
 import { ArrowUpRight, CheckCircle, Clock } from "lucide-react";

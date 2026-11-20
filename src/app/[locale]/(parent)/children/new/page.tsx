@@ -2,8 +2,8 @@ import { getTranslations, getLocale } from "next-intl/server";
 import { Link, redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
-import ChildInfoForm from "@/components/ChildInfoForm";
-import WaveAnimation from "@/components/WaveAnimation";
+import ChildInfoForm from "@/components/pendaftaran/child-info-form";
+import WaveAnimation from "@/components/landing/wave-animation";
 import AuthTopBar from "@/components/auth/top-bar";
 import { SITE } from "@/lib/site";
 

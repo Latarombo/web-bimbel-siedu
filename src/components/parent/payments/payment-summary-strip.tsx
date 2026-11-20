@@ -1,6 +1,6 @@
 "use client";
 
-import { rupiah } from "@/lib/format";
+import { rupiah } from "@/lib/format/format";
 import type { PaymentStats } from "./payment-types";
 import { Wallet, CalendarClock, CheckCircle2, AlertTriangle, Sparkles } from "lucide-react";
 

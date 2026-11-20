@@ -1,11 +1,11 @@
 import AuthTopBar from '@/components/auth/top-bar';
 import { Link, redirect } from '@/i18n/navigation';
 import { getTranslations, getLocale } from 'next-intl/server';
-import LoginForm from '@/components/LoginForm';
-import WaveAnimation from '@/components/WaveAnimation';
+import LoginForm from '@/components/auth/login-form';
+import WaveAnimation from '@/components/landing/wave-animation';
 import { SITE } from '@/lib/site';
 import { auth } from '@/lib/auth';
-import { googleOAuthEnabled } from '@/lib/oauth';
+import { googleOAuthEnabled } from '@/lib/auth/oauth';
 import { homeUntukUser } from '@/lib/orang-tua-lengkap';
 
 export async function generateMetadata() {

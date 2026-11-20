@@ -7,7 +7,7 @@ import { collect } from "@/lib/collect";
 import { Card, CardPad } from "@/components/ui/card";
 import { ButtonLink } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { rupiah, fmtTanggal } from "@/lib/format";
+import { rupiah, fmtTanggal } from "@/lib/format/format";
 import { SITE } from "@/lib/site";
 import { midtransConfigured, snapStatus, isFinalStatus } from "@/lib/midtrans";
 import {

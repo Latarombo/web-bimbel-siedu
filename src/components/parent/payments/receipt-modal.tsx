@@ -2,11 +2,11 @@
 
 import { useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import { rupiah } from "@/lib/format";
+import { rupiah } from "@/lib/format/format";
 import { SITE } from "@/lib/site";
 import type { PaymentItem } from "./payment-types";
 import { X, Printer, CheckCircle2, ShieldCheck, Share2, ExternalLink } from "lucide-react";
-import { useScrollLock } from "@/lib/use-scroll-lock";
+import { useScrollLock } from "@/hooks/use-scroll-lock";
 import { createReceiptPaidWaLink } from "@/lib/whatsapp";
 
 interface Props {

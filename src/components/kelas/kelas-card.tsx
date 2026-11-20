@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { BookOpen, Calculator, Check } from "lucide-react";
-import { rupiah } from "@/lib/format";
+import { rupiah } from "@/lib/format/format";
 import type { JenjangKatalog, KelasKatalog } from "@/lib/kelas";
 
 /**

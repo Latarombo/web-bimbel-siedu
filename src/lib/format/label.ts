@@ -1,7 +1,7 @@
 /* Label manusiawi untuk nilai enum DB — UI admin/orang tua tidak boleh menampilkan
  * 'menunggu_pembayaran' mentah. Sumber kebenaran tetap enum di contract.prisma. */
 
-import type { Hari } from "@/lib/hari";
+import type { Hari } from "@/lib/format/hari";
 
 export const LABEL_PENDAFTARAN: Record<string, string> = {
   menunggu_pembayaran: "Menunggu pembayaran",

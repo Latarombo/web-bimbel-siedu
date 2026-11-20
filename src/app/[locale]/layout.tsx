@@ -9,7 +9,7 @@ import "../globals.css";
 import "lenis/dist/lenis.css";
 import { cn } from "@/lib/utils";
 import { isLocale, routing } from "@/i18n/routing";
-import SmoothScroll from "@/components/SmoothScroll";
+import SmoothScroll from "@/components/common/smooth-scroll";
 import { SITE } from "@/lib/site";
 
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-geist-sans", display: "swap" });
@@ -122,7 +122,10 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-150">
+      <body
+        className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-150"
+        suppressHydrationWarning
+      >
         <SmoothScroll />
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-brand text-white px-4 py-2 rounded-lg text-sm">
           {t("skipToContent")}

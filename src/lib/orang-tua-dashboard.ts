@@ -11,8 +11,8 @@
  */
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import type { DisplayLocale } from "@/lib/label";
-import { hariDariTanggal, type Hari } from "@/lib/hari";
+import type { DisplayLocale } from "@/lib/format/label";
+import { hariDariTanggal, type Hari } from "@/lib/format/hari";
 
 export const STATUS_AKTIF_DB = [
   "menunggu_pembayaran",

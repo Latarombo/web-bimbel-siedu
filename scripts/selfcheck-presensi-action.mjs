@@ -99,7 +99,7 @@ function harness({ status = 'aktif', guruId = 7, weekday = 'Kamis', failInsert =
       if (name === '@/i18n/navigation') return { Link: 'a', redirect() { throw new Error('REDIRECT'); } };
       if (name.startsWith('@/components/')) return new Proxy({}, { get: (_, key) => key === '__esModule' ? true : 'div' });
       if (name === 'next/cache') return { revalidatePath() {} };
-      if (name === '@/lib/hari') return hari;
+      if (name === '@/lib/format/hari') return hari;
       if (name === '@/lib/rencana-sesi') return rencanaSesi;
       if (name === '@/lib/laporan-perkembangan') return { validateLaporanInput: () => null, sanitizeLaporanForParent: (x) => x };
       if (name === '@/lib/collect') return { collect: async iterable => {

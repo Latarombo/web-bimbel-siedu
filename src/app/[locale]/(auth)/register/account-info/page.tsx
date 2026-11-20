@@ -1,5 +1,5 @@
 import { getTranslations, getLocale } from 'next-intl/server';
-import AccountInfoForm from '@/components/AccountInfoForm';
+import AccountInfoForm from '@/components/pendaftaran/account-info-form';
 import RegisterShell from '@/components/auth/register-shell';
 import { auth } from '@/lib/auth';
 import { db } from '@/prisma/db';

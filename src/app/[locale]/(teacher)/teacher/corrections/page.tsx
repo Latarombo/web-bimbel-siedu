@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { Link } from "@/i18n/navigation";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { dalamJendela7Hari } from "@/lib/hari";
+import { dalamJendela7Hari } from "@/lib/format/hari";
 import { Badge } from "@/components/ui/badge";
 import { PengajuanKoreksiForm, type LockedEntryItem } from "@/components/teacher/pengajuan-koreksi-form";
 
