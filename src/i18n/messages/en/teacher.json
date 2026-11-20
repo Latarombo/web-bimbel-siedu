@@ -307,6 +307,7 @@
   "attendanceCompletedCount": "{count} Attendance Complete",
   "dataUsulanRequired": "Proposed correction data is required.",
   "correctionReasonMin": "Correction reason must be at least 5 characters.",
+  "correctionAlreadyPending": "A correction request for this entry is already pending admin review.",
   "attendanceNotFound": "Attendance record not found.",
   "notOwned": "This entry does not belong to you.",
   "myCorrectionsHistory": "Correction Submission History",

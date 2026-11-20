@@ -12,7 +12,17 @@ import { collect } from "@/lib/collect";
 import { snapCreate, midtransConfigured } from "@/lib/midtrans";
 import { ORDER_ID, tandaiBerhasil } from "@/lib/services/pembayaran";
 
-export type PayState = { ok: true; url: string } | { ok: false; error: string };
+export type PayState =
+  | {
+      ok: true;
+      token: string;
+      redirectUrl: string;
+      url: string;
+    }
+  | {
+      ok: false;
+      error: string;
+    };
 
 /**
  * Buat transaksi Midtrans SNAP untuk satu Pembayaran milik orang tua login,
@@ -81,7 +91,12 @@ export async function mulaiPembayaran(
       updatedAt: new Date().toISOString(),
     });
 
-    return { ok: true, url: snap.redirect_url };
+    return {
+      ok: true,
+      token: snap.token,
+      redirectUrl: snap.redirect_url,
+      url: snap.redirect_url,
+    };
   } catch (e) {
     console.error("[mulaiPembayaran] gateway gagal:", e);
     return {
@@ -147,82 +162,4 @@ export async function konfirmasiManual(formData: FormData): Promise<void> {
     href: defaultTarget,
     locale,
   });
-}
-
-// --- Pembatalan (C7) ---
-
-export type BatalState = { ok?: boolean; error?: string };
-
-const batalSchema = (t: Awaited<ReturnType<typeof getTranslations>>) => z.object({
-  pendaftaran_id: z.coerce.number().int().positive(),
-  kategori: z.enum([
-    "kesalahan_sistem",
-    "salah_nominal_transfer",
-    "salah_rekening",
-    "salah_pilih_kelas",
-    "lainnya",
-  ], t("validation.invalid")),
-  alasan: z.string().trim().min(10, t("validation.reasonMin")).max(1000, t("validation.reasonMax")),
-});
-
-/**
- * Ajukan pembatalan → baris PengajuanPembatalan 'menunggu'; eksekusi
- * (status Pendaftaran + lepas kuota) di tangan admin lewat /admin/refunds
- * (prosesPengajuan). Guard: masih aktif, milik orang tua login, belum ada
- * pengajuan menunggu (unique partial DB dicegah lebih awal → pesan ramah).
- */
-export async function ajukanPembatalan(
-  _prev: BatalState,
-  formData: FormData,
-): Promise<BatalState> {
-  const locale = await getLocaleDariCookie();
-  const t = await getTranslations({ locale, namespace: "adminForms" });
-  const session = await auth();
-  if (!session?.user || session.user.role !== "orang_tua")
-    return { error: t("validation.session") };
-
-  const parsed = batalSchema(t).safeParse({
-    pendaftaran_id: formData.get("pendaftaran_id"),
-    kategori: formData.get("kategori"),
-    alasan: formData.get("alasan"),
-  }, { error: () => t("validation.invalid") });
-  if (!parsed.success)
-    return { error: parsed.error.issues[0]?.message ?? t("validation.invalid") };
-  const { pendaftaran_id, kategori, alasan } = parsed.data;
-
-  const [p] = await collect(
-    db.orm.public.Pendaftaran.where((x) => x.id.eq(pendaftaran_id)).all(),
-  );
-  if (!p) return { error: t("payment.enrollmentMissing") };
-  if (!["menunggu_pembayaran", "terdaftar", "tertunggak"].includes(p.status))
-    return { error: t("payment.ended") };
-
-  const [a] = await collect(
-    db.orm.public.Anak.where((x) => x.id.eq(p.anakId)).all(),
-  );
-  if (!a || a.orangTuaId !== Number(session.user.id))
-    return { error: t("payment.enrollmentOwnership") };
-
-  const antrian = await collect(
-    db.orm.public.PengajuanPembatalan.where((x) =>
-      x.pendaftaranId.eq(pendaftaran_id),
-    ).all(),
-  );
-  if (antrian.some((x) => x.status === "menunggu"))
-    return { error: t("payment.awaiting") };
-
-  try {
-    await db.orm.public.PengajuanPembatalan.create({
-      pendaftaranId: pendaftaran_id,
-      diajukanOleh: Number(session.user.id),
-      kategori,
-      alasan,
-    });
-  } catch (e) {
-    if (e instanceof Error && e.message.includes("pengajuan_menunggu_unik"))
-      return { error: t("payment.awaiting") };
-    throw e;
-  }
-  revalidatePath("/admin/refunds");
-  return { ok: true };
 }

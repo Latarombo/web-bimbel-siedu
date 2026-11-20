@@ -310,6 +310,7 @@ export async function updateChild(
     finalTanggalLahir = parsedFull.data.tanggal_lahir;
     finalJenjang = parsedFull.data.jenjang_terakhir;
     finalTingkat = parsedFull.data.tingkat;
+
   }
 
   // Update DB

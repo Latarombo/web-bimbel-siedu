@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'62c70b569a6fc3ef54da90968758496e532cf04fa77ebec2d858866d87149531'>;
+  StorageHashBase<'e27d9310438b489df0f1a415bbf3dd8392b97d54353b6388fd23999ad7de70df'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -401,24 +401,6 @@ export type FieldOutputTypes = {
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
-    readonly PengajuanPembatalan: {
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly pendaftaranId: CodecTypes['pg/int4@1']['output'];
-      readonly diajukanOleh: CodecTypes['pg/int4@1']['output'];
-      readonly alasan: CodecTypes['pg/text@1']['output'];
-      readonly kategori:
-        | 'kesalahan_sistem'
-        | 'salah_nominal_transfer'
-        | 'salah_rekening'
-        | 'salah_pilih_kelas'
-        | 'lainnya';
-      readonly status: 'menunggu' | 'disetujui' | 'ditolak';
-      readonly diprosesOleh: CodecTypes['pg/int4@1']['output'] | null;
-      readonly catatanAdmin: CodecTypes['pg/text@1']['output'] | null;
-      readonly diprosesPada: CodecTypes['pg/timestamptz-string@1']['output'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
-      readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
-    };
     readonly Penilaian: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly kelasId: CodecTypes['pg/int4@1']['output'];
@@ -688,24 +670,6 @@ export type FieldInputTypes = {
       readonly alasan: CodecTypes['pg/text@1']['input'];
       readonly diprosesOleh: CodecTypes['pg/int4@1']['input'] | null;
       readonly catatanAdmin: CodecTypes['pg/text@1']['input'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
-    };
-    readonly PengajuanPembatalan: {
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly pendaftaranId: CodecTypes['pg/int4@1']['input'];
-      readonly diajukanOleh: CodecTypes['pg/int4@1']['input'];
-      readonly alasan: CodecTypes['pg/text@1']['input'];
-      readonly kategori:
-        | 'kesalahan_sistem'
-        | 'salah_nominal_transfer'
-        | 'salah_rekening'
-        | 'salah_pilih_kelas'
-        | 'lainnya';
-      readonly status: 'menunggu' | 'disetujui' | 'ditolak';
-      readonly diprosesOleh: CodecTypes['pg/int4@1']['input'] | null;
-      readonly catatanAdmin: CodecTypes['pg/text@1']['input'] | null;
-      readonly diprosesPada: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
@@ -981,24 +945,6 @@ export type StorageColumnTypes = {
       readonly status: 'menunggu' | 'disetujui' | 'ditolak';
       readonly updated_at: CodecTypes['pg/timestamptz-string@1']['output'];
     };
-    readonly pengajuan_pembatalan: {
-      readonly alasan: CodecTypes['pg/text@1']['output'];
-      readonly catatan_admin: CodecTypes['pg/text@1']['output'] | null;
-      readonly created_at: CodecTypes['pg/timestamptz-string@1']['output'];
-      readonly diajukan_oleh: CodecTypes['pg/int4@1']['output'];
-      readonly diproses_oleh: CodecTypes['pg/int4@1']['output'] | null;
-      readonly diproses_pada: CodecTypes['pg/timestamptz-string@1']['output'] | null;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly kategori:
-        | 'kesalahan_sistem'
-        | 'salah_nominal_transfer'
-        | 'salah_rekening'
-        | 'salah_pilih_kelas'
-        | 'lainnya';
-      readonly pendaftaran_id: CodecTypes['pg/int4@1']['output'];
-      readonly status: 'menunggu' | 'disetujui' | 'ditolak';
-      readonly updated_at: CodecTypes['pg/timestamptz-string@1']['output'];
-    };
     readonly penilaian: {
       readonly created_at: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly dibuat_oleh: CodecTypes['pg/int4@1']['output'];
@@ -1268,24 +1214,6 @@ export type StorageColumnInputTypes = {
       readonly entitas_id: CodecTypes['pg/int4@1']['input'];
       readonly guru_id: CodecTypes['pg/int4@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly status: 'menunggu' | 'disetujui' | 'ditolak';
-      readonly updated_at: CodecTypes['pg/timestamptz-string@1']['input'];
-    };
-    readonly pengajuan_pembatalan: {
-      readonly alasan: CodecTypes['pg/text@1']['input'];
-      readonly catatan_admin: CodecTypes['pg/text@1']['input'] | null;
-      readonly created_at: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly diajukan_oleh: CodecTypes['pg/int4@1']['input'];
-      readonly diproses_oleh: CodecTypes['pg/int4@1']['input'] | null;
-      readonly diproses_pada: CodecTypes['pg/timestamptz-string@1']['input'] | null;
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly kategori:
-        | 'kesalahan_sistem'
-        | 'salah_nominal_transfer'
-        | 'salah_rekening'
-        | 'salah_pilih_kelas'
-        | 'lainnya';
-      readonly pendaftaran_id: CodecTypes['pg/int4@1']['input'];
       readonly status: 'menunggu' | 'disetujui' | 'ditolak';
       readonly updated_at: CodecTypes['pg/timestamptz-string@1']['input'];
     };
@@ -2785,146 +2713,6 @@ type ContractBase = Omit<
                 },
               ];
             };
-            readonly pengajuan_pembatalan: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'function';
-                    readonly expression: 'autoincrement()';
-                  };
-                };
-                readonly pendaftaran_id: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                };
-                readonly diajukan_oleh: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                };
-                readonly alasan: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly kategori: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/text@1', 'lainnya'>;
-                  };
-                };
-                readonly status: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/text@1', 'menunggu'>;
-                  };
-                };
-                readonly diproses_oleh: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                };
-                readonly catatan_admin: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: true;
-                };
-                readonly diproses_pada: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                  readonly nullable: true;
-                };
-                readonly created_at: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-                readonly updated_at: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [];
-              indexes: readonly [
-                {
-                  readonly name: 'pengajuan_pembatalan_diajukan_oleh_idx_bdcdb39f';
-                  readonly prefix: 'pengajuan_pembatalan_diajukan_oleh_idx';
-                  readonly columns: readonly ['diajukan_oleh'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'pengajuan_pembatalan_diproses_oleh_idx_c7a6c546';
-                  readonly prefix: 'pengajuan_pembatalan_diproses_oleh_idx';
-                  readonly columns: readonly ['diproses_oleh'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'pengajuan_pembatalan_status_idx_e98638ab';
-                  readonly prefix: 'pengajuan_pembatalan_status_idx';
-                  readonly columns: readonly ['status'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'pengajuan_menunggu_unik_00d4f7ff';
-                  readonly prefix: 'pengajuan_menunggu_unik';
-                  readonly columns: readonly ['pendaftaran_id'];
-                  readonly where: "(status = 'menunggu')";
-                  readonly unique: true;
-                },
-              ];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'pengajuan_pembatalan';
-                    readonly columns: readonly ['pendaftaran_id'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'pendaftaran';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'pengajuan_pembatalan';
-                    readonly columns: readonly ['diajukan_oleh'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'users';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'pengajuan_pembatalan';
-                    readonly columns: readonly ['diproses_oleh'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'users';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-              ];
-            };
             readonly penilaian: {
               columns: {
                 readonly id: {
@@ -3835,16 +3623,6 @@ type ContractBase = Omit<
               readonly kind: 'valueSet';
               readonly values: readonly ['TK', 'SD', 'SMP', 'SMA'];
             };
-            readonly KategoriRefund: {
-              readonly kind: 'valueSet';
-              readonly values: readonly [
-                'kesalahan_sistem',
-                'salah_nominal_transfer',
-                'salah_rekening',
-                'salah_pilih_kelas',
-                'lainnya',
-              ];
-            };
             readonly MetodeBayar: {
               readonly kind: 'valueSet';
               readonly values: readonly ['lunas', 'dp_cicilan'];
@@ -3947,10 +3725,6 @@ type ContractBase = Omit<
     readonly nilai_progres: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'NilaiProgres';
-    };
-    readonly pengajuan_pembatalan: {
-      readonly namespace: 'public' & NamespaceId;
-      readonly model: 'PengajuanPembatalan';
     };
     readonly sesi_pertemuan: {
       readonly namespace: 'public' & NamespaceId;
@@ -5094,17 +4868,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['pendaftaranId'];
                 };
               };
-              readonly pengajuanPembatalan: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'PengajuanPembatalan';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['pendaftaranId'];
-                };
-              };
               readonly periode: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -5245,109 +5008,6 @@ type ContractBase = Omit<
                 readonly alasan: { readonly column: 'alasan' };
                 readonly diprosesOleh: { readonly column: 'diproses_oleh' };
                 readonly catatanAdmin: { readonly column: 'catatan_admin' };
-                readonly createdAt: { readonly column: 'created_at' };
-                readonly updatedAt: { readonly column: 'updated_at' };
-              };
-            };
-          };
-          readonly PengajuanPembatalan: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly pendaftaranId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly diajukanOleh: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly alasan: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly kategori: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly status: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly diprosesOleh: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly catatanAdmin: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly diprosesPada: {
-                readonly nullable: true;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                };
-              };
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                };
-              };
-              readonly updatedAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                };
-              };
-            };
-            readonly relations: {
-              readonly admin: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['diprosesOleh'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly pendaftaran: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'Pendaftaran';
-                };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['pendaftaranId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-              readonly pengaju: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['diajukanOleh'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'pengajuan_pembatalan';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly pendaftaranId: { readonly column: 'pendaftaran_id' };
-                readonly diajukanOleh: { readonly column: 'diajukan_oleh' };
-                readonly alasan: { readonly column: 'alasan' };
-                readonly kategori: { readonly column: 'kategori' };
-                readonly status: { readonly column: 'status' };
-                readonly diprosesOleh: { readonly column: 'diproses_oleh' };
-                readonly catatanAdmin: { readonly column: 'catatan_admin' };
-                readonly diprosesPada: { readonly column: 'diproses_pada' };
                 readonly createdAt: { readonly column: 'created_at' };
                 readonly updatedAt: { readonly column: 'updated_at' };
               };
@@ -6241,28 +5901,6 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['dicatatOleh'];
                 };
               };
-              readonly pengajuanDiajukan: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'PengajuanPembatalan';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['diajukanOleh'];
-                };
-              };
-              readonly pengajuanDiproses: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'PengajuanPembatalan';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['diprosesOleh'];
-                };
-              };
               readonly penilaianDibuat: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;
@@ -6413,16 +6051,6 @@ type ContractBase = Omit<
               { readonly name: 'menunggu'; readonly value: 'menunggu' },
               { readonly name: 'disetujui'; readonly value: 'disetujui' },
               { readonly name: 'ditolak'; readonly value: 'ditolak' },
-            ];
-          };
-          readonly KategoriRefund: {
-            readonly codecId: 'pg/text@1';
-            readonly members: readonly [
-              { readonly name: 'kesalahan_sistem'; readonly value: 'kesalahan_sistem' },
-              { readonly name: 'salah_nominal_transfer'; readonly value: 'salah_nominal_transfer' },
-              { readonly name: 'salah_rekening'; readonly value: 'salah_rekening' },
-              { readonly name: 'salah_pilih_kelas'; readonly value: 'salah_pilih_kelas' },
-              { readonly name: 'lainnya'; readonly value: 'lainnya' },
             ];
           };
           readonly StatusSesi: {

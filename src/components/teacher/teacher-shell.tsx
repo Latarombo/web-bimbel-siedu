@@ -69,7 +69,7 @@ export function TeacherShell({
   };
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-[#090d16] flex flex-col text-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <div className="min-h-dvh bg-[#FAF9F9] dark:bg-[#090d16] flex flex-col text-slate-900 dark:text-slate-100 transition-colors duration-200">
       <TeacherSidebar
         role={role}
         userName={userName}
@@ -84,7 +84,7 @@ export function TeacherShell({
 
       <div
         className={`flex min-h-dvh flex-col transition-[padding-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-          isCollapsed ? 'lg:pl-[100px]' : 'lg:pl-[288px]'
+          isCollapsed ? 'lg:pl-[72px]' : 'lg:pl-[260px]'
         }`}
       >
         <main id="main" className="flex-1">

@@ -129,6 +129,7 @@ export default async function AttendancePage({
       status: lama?.status,
       catatan: lama?.catatan ?? "",
       terkunci: lama ? !dalamJendela7Hari(lama.createdAt) : false,
+      presensiId: lama?.id,
     };
   });
 

@@ -78,14 +78,6 @@ enum StatusPengajuan {
   ditolak
 }
 
-enum KategoriRefund {
-  kesalahan_sistem
-  salah_nominal_transfer
-  salah_rekening
-  salah_pilih_kelas
-  lainnya
-}
-
 model User {
   id                 Int                @id @default(autoincrement())
   role               Role
@@ -113,8 +105,6 @@ model User {
   laporanPerkembangan LaporanPerkembangan[] @relation("GuruLaporanPerkembangan")
   statusDibuat       StatusPembelajaran[]  @relation("GuruStatusPembelajaran")
   laporanFoto        LaporanFotoStatus[]   @relation("PelaporFotoStatus")
-  pengajuanDiajukan  PengajuanPembatalan[] @relation("PengajuPembatalan")
-  pengajuanDiproses  PengajuanPembatalan[] @relation("AdminPembatalan")
 
   @@index(expression: "lower(email)", unique: true, name: "users_email_lower")
   @@map("users")
@@ -138,7 +128,6 @@ model Anak {
   statusDiterima  StatusPembelajaranPenerima[]
 
   @@index([orangTuaId])
-  // BR#16: deteksi duplikat anak — cari by tanggal_lahir + nama dinormalisasi
   @@index([tanggalLahir])
   @@check(expression: "tanggal_lahir <= CURRENT_DATE", name: "anak_dob_not_future")
   @@map("anak")
@@ -251,7 +240,6 @@ model Pendaftaran {
   pembayaran          Pembayaran[]
   presensi            Presensi[]
   nilaiProgres        NilaiProgres[]
-  pengajuanPembatalan PengajuanPembatalan[]
   hasilPenilaian      HasilPenilaian[]
   laporanPerkembangan LaporanPerkembangan[]
   statusDiterima      StatusPembelajaranPenerima[]
@@ -337,32 +325,6 @@ model NilaiProgres {
   @@check(expression: "nilai_kuantitatif IS NULL OR (nilai_kuantitatif >= 0 AND nilai_kuantitatif <= 100)", name: "nilai_range_0_100")
   @@map("nilai_progres")
 }
-
-model PengajuanPembatalan {
-  id            Int                @id @default(autoincrement())
-  pendaftaranId Int                @map("pendaftaran_id")
-  diajukanOleh  Int                @map("diajukan_oleh")
-  alasan        String
-  kategori      KategoriRefund     @default(lainnya)
-  status        StatusPengajuan    @default(menunggu)
-  diprosesOleh  Int?               @map("diproses_oleh")
-  catatanAdmin  String?            @map("catatan_admin")
-  diprosesPada  TimestamptzString? @map("diproses_pada")
-  createdAt     TimestamptzString  @default(now()) @map("created_at")
-  updatedAt     TimestamptzString  @default(now()) @map("updated_at")
-
-  pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
-  pengaju     User       @relation("PengajuPembatalan", fields: [diajukanOleh], references: [id], onDelete: Restrict)
-  admin       User?      @relation("AdminPembatalan", fields: [diprosesOleh], references: [id], onDelete: SetNull)
-
-  @@index([diajukanOleh])
-  @@index([diprosesOleh])
-  @@index([status])
-  // Satu pengajuan menunggu per pendaftaran; ditolak → boleh ajukan ulang
-  @@index([pendaftaranId], unique: true, where: "(status = 'menunggu')", name: "pengajuan_menunggu_unik")
-  @@map("pengajuan_pembatalan")
-}
-
 
 // ---- Portal guru: sesi pertemuan nyata (M1) ----
 enum StatusSesi {

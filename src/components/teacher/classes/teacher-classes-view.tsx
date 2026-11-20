@@ -5,6 +5,8 @@ import { Link } from "@/i18n/navigation";
 import {
   Search,
   AlertCircle,
+  BookOpen,
+  Calculator,
 } from "lucide-react";
 
 export interface ScheduleItem {
@@ -43,29 +45,64 @@ export interface TeacherClassesViewProps {
   };
 }
 
-const JENJANG_THEMES: Record<string, { plate: string; badge: string }> = {
+interface ThemeJenjang {
+  bgLight: string;
+  darkClass: string;
+  aksenHex: string;
+  aksenTextClass: string;
+}
+
+const JENJANG_THEMES: Record<string, ThemeJenjang> = {
   TK: {
-    plate: "bg-pink-50/70 dark:bg-pink-950/20 border-pink-100 dark:border-pink-900/40",
-    badge: "bg-pink-100/80 text-pink-700 dark:bg-pink-900/60 dark:text-pink-300 border-pink-200/80 dark:border-pink-800",
+    bgLight: "#fde7f0",
+    darkClass: "dark:bg-pink-950/30 dark:border-pink-900/50",
+    aksenHex: "#b82a63",
+    aksenTextClass: "text-[#b82a63] dark:text-pink-300",
   },
   SD: {
-    plate: "bg-blue-50/70 dark:bg-blue-950/20 border-blue-100 dark:border-blue-900/40",
-    badge: "bg-blue-100/80 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 border-blue-200/80 dark:border-blue-800",
+    bgLight: "#e1ecfd",
+    darkClass: "dark:bg-blue-950/30 dark:border-blue-900/50",
+    aksenHex: "#1d4ed8",
+    aksenTextClass: "text-[#1d4ed8] dark:text-blue-300",
   },
   SMP: {
-    plate: "bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/40",
-    badge: "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800",
+    bgLight: "#ddf3e7",
+    darkClass: "dark:bg-emerald-950/30 dark:border-emerald-900/50",
+    aksenHex: "#0f7a48",
+    aksenTextClass: "text-[#0f7a48] dark:text-emerald-300",
   },
   SMA: {
-    plate: "bg-amber-50/70 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/40",
-    badge: "bg-amber-100/80 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300 border-amber-200/80 dark:border-amber-800",
+    bgLight: "#fdf0d4",
+    darkClass: "dark:bg-amber-950/30 dark:border-amber-900/50",
+    aksenHex: "#945700",
+    aksenTextClass: "text-[#945700] dark:text-amber-300",
   },
 };
 
-const DEFAULT_THEME = {
-  plate: "bg-slate-50/80 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800",
-  badge: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700",
+const DEFAULT_THEME: ThemeJenjang = {
+  bgLight: "#f1f5f9",
+  darkClass: "dark:bg-slate-800/40 dark:border-slate-800",
+  aksenHex: "#475569",
+  aksenTextClass: "text-slate-700 dark:text-slate-300",
 };
+
+function formatJadwalRutin(schedules: ScheduleItem[]): string {
+  if (!schedules || schedules.length === 0) return "Jadwal tatap muka belum diatur";
+
+  const firstTime = `${schedules[0].jamMulai.slice(0, 5)} - ${schedules[0].jamSelesai.slice(0, 5)}`;
+  const allSameTime = schedules.every(
+    (s) => `${s.jamMulai.slice(0, 5)} - ${s.jamSelesai.slice(0, 5)}` === firstTime,
+  );
+
+  if (allSameTime) {
+    const hariList = schedules.map((s) => s.hari).join(", ");
+    return `${hariList} · ${firstTime} WIB`;
+  }
+
+  return schedules
+    .map((s) => `${s.hari} (${s.jamMulai.slice(0, 5)} - ${s.jamSelesai.slice(0, 5)})`)
+    .join(", ");
+}
 
 export function TeacherClassesView({
   classes,
@@ -275,117 +312,155 @@ export function TeacherClassesView({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredClasses.map((c) => {
               const pct = Math.min(100, Math.round((c.kuotaTerisi / Math.max(c.kuotaMaksimum, 1)) * 100));
               const theme = JENJANG_THEMES[c.jenjang] || DEFAULT_THEME;
               const todaySchedule = c.schedules.find((s) => s.isToday);
+              const penuh = c.kuotaTerisi >= c.kuotaMaksimum;
+              const hampirPenuh = !penuh && c.kuotaMaksimum > 0 && c.kuotaTerisi / c.kuotaMaksimum >= 0.85;
 
               return (
                 <div
                   key={c.id}
-                  className="relative overflow-hidden rounded-xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs hover:shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between"
+                  className="group relative flex min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:shadow-md transition-shadow"
                 >
-                  {/* 1. Thematic Header Plate */}
-                  <div className={`p-4 sm:p-5 border-b ${theme.plate}`}>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${theme.badge}`}>
-                        {c.jenjang} {c.tingkat ? `· ${c.tingkat}` : ""}
-                      </span>
-                      {c.status === "aktif" ? (
-                        <span className="inline-flex items-center rounded-full bg-emerald-100/80 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 shrink-0">
-                          <span className="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 mr-1.5" />
-                          Aktif
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-amber-100/80 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2.5 py-0.5 text-[11px] font-bold text-amber-800 dark:text-amber-300 shrink-0">
-                          <span className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400 mr-1.5" />
-                          Dibatalkan
-                        </span>
-                      )}
-                    </div>
+                  {/* Blok Atas Berwarna Pastel Sesuai Jenjang */}
+                  <div
+                    className={`relative overflow-hidden p-5 border-b border-slate-200/60 dark:border-slate-800 ${theme.darkClass}`}
+                    style={{ backgroundColor: theme.bgLight }}
+                  >
+                    <BookOpen
+                      aria-hidden
+                      className="pointer-events-none absolute -right-3 -top-3 size-24 opacity-25 dark:opacity-15 transition-transform duration-300 group-hover:scale-105"
+                      style={{ color: theme.aksenHex }}
+                      strokeWidth={1.75}
+                    />
+                    <Calculator
+                      aria-hidden
+                      className="pointer-events-none absolute bottom-1 right-12 size-14 opacity-20 dark:opacity-10 transition-transform duration-300 group-hover:scale-105"
+                      style={{ color: theme.aksenHex }}
+                      strokeWidth={1.75}
+                    />
 
-                    <div className="mt-3">
-                      <h2 className="font-display text-lg font-bold text-slate-950 dark:text-white tracking-tight line-clamp-1">
-                        {c.mapelNama}
-                      </h2>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 text-xs text-slate-600 dark:text-slate-400">
-                        {c.ruangan && <span>Ruang {c.ruangan}</span>}
-                        {c.ruangan && c.periodeNama && <span>·</span>}
-                        {c.periodeNama && <span>{c.periodeNama}</span>}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 2. Middle Body: Clean Unboxed Metrics & Context */}
-                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
-                    {/* Grid 2 Kolom Ringkasan Data */}
-                    <div className="grid grid-cols-2 gap-4 pb-3 border-b border-slate-100 dark:border-slate-800/80">
-                      {/* Kolom 1: Kuota & Keterisian */}
-                      <div>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                          Kapasitas Siswa
-                        </p>
-                        <p className="mt-1 text-base sm:text-lg font-bold text-slate-950 dark:text-white tabular-nums tracking-tight">
-                          {c.kuotaTerisi} <span className="text-xs font-normal text-slate-500 dark:text-slate-400">/ {c.kuotaMaksimum}</span>
-                        </p>
-                        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                          <div
-                            className={`h-full rounded-full transition-all ${pct >= 90 ? "bg-amber-500" : "bg-blue-600"}`}
-                            style={{ width: `${pct}%` }}
-                          />
+                    {/* Judul Mapel + Jenjang (Clean Typography, Tanpa Pill Badge) */}
+                    <div className="relative">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-lg sm:text-[19px] font-extrabold leading-tight text-[#16213a] dark:text-white line-clamp-1">
+                          <Link href={`/teacher/classes/${c.id}`} className="focus:outline-hidden hover:underline">
+                            <span className="absolute inset-0 z-0" aria-hidden="true" />
+                            {c.mapelNama}
+                          </Link>
+                        </h3>
+                        <div className="flex shrink-0 flex-col items-end gap-1 text-right">
+                          <span className="text-xs font-bold text-[#16213a] dark:text-slate-200">
+                            Jenjang {c.jenjang}
+                          </span>
+                          {c.status !== "aktif" ? (
+                            <span className="text-xs font-semibold text-rose-600 dark:text-rose-400">
+                              Dibatalkan
+                            </span>
+                          ) : null}
                         </div>
                       </div>
+                      {c.tingkat ? (
+                        <p className={`mt-1 text-xs font-semibold ${theme.aksenTextClass}`}>{c.tingkat}</p>
+                      ) : null}
+                    </div>
 
-                      {/* Kolom 2: Status Sesi Hari Ini / Jadwal */}
-                      <div>
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                          {c.hasSessionToday ? "Sesi Hari Ini" : "Jadwal Pertemuan"}
-                        </p>
+                    <p className="relative mt-2 text-xs sm:text-[13px] leading-snug text-[#5b6472] dark:text-slate-300">
+                      {c.ruangan ? `Ruang ${c.ruangan}` : "Tanpa Ruangan"} {c.periodeNama ? `· ${c.periodeNama}` : ""}
+                    </p>
+                  </div>
+
+                  {/* Bagian Badan Kartu: Informasi Operasional Rombel (Clean Key-Value, Tanpa Centang) */}
+                  <div className="flex flex-1 flex-col p-5">
+                    <div className="space-y-3 pb-5">
+                      {/* 1. Jadwal Rutin */}
+                      <div className="flex items-start justify-between gap-2 text-xs sm:text-sm">
+                        <span className="text-slate-500 dark:text-slate-400 shrink-0">Jadwal Rutin</span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100 text-right tabular-nums">
+                          {formatJadwalRutin(c.schedules)}
+                        </span>
+                      </div>
+
+                      {/* 2. Sesi Hari Ini */}
+                      <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
+                        <span className="text-slate-500 dark:text-slate-400 shrink-0">Sesi Hari Ini</span>
                         {c.hasSessionToday && todaySchedule ? (
-                          <div>
-                            <p className="mt-1 text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400 tabular-nums tracking-tight">
-                              {todaySchedule.jamMulai.slice(0, 5)} - {todaySchedule.jamSelesai.slice(0, 5)} <span className="text-xs font-normal">WIB</span>
-                            </p>
-                            <span className="inline-flex items-center text-[11px] font-bold text-blue-700 dark:text-blue-300 mt-1">
-                              Perlu Presensi
-                            </span>
-                          </div>
+                          <span className="font-bold text-blue-600 dark:text-blue-400 tabular-nums text-right">
+                            {todaySchedule.jamMulai.slice(0, 5)} - {todaySchedule.jamSelesai.slice(0, 5)} WIB
+                          </span>
                         ) : (
-                          <div>
-                            <p className="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100 line-clamp-1">
-                              {c.schedules.length > 0 ? c.schedules.map((s) => s.hari).join(", ") : "Belum diatur"}
-                            </p>
-                            <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                              {c.schedules.length > 0 ? `${c.schedules.length} sesi per minggu` : "Jadwal tatap muka"}
-                            </p>
-                          </div>
+                          <span className="text-xs text-slate-500 dark:text-slate-400 text-right">
+                            Tidak ada jadwal hari ini
+                          </span>
                         )}
+                      </div>
+
+                      {/* 3. Kapasitas */}
+                      <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
+                        <span className="text-slate-500 dark:text-slate-400 shrink-0">Kapasitas</span>
+                        <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-right">
+                          {c.kuotaTerisi} / {c.kuotaMaksimum} Siswa {penuh ? "(Penuh)" : hampirPenuh ? "(Hampir Penuh)" : ""}
+                        </span>
+                      </div>
+
+                      {/* 4. Ruangan */}
+                      <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
+                        <span className="text-slate-500 dark:text-slate-400 shrink-0">Ruang Kelas</span>
+                        <span className="font-medium text-slate-800 dark:text-slate-200 text-right">
+                          {c.ruangan ? `Ruang ${c.ruangan}` : "Belum ditentukan"}
+                        </span>
+                      </div>
+
+                      {/* 5. Periode */}
+                      <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
+                        <span className="text-slate-500 dark:text-slate-400 shrink-0">Periode</span>
+                        <span className="font-medium text-slate-800 dark:text-slate-200 text-right truncate max-w-[190px]">
+                          {c.periodeNama ?? "Reguler"}
+                        </span>
                       </div>
                     </div>
 
-                    {/* 3. Bottom: Smart Contextual Action Area */}
-                    <div className="space-y-2.5 pt-1">
+                    {/* Footer Kartu: Pemisah Garis Putus-putus & Aksi */}
+                    <div className="mt-auto border-t border-dashed border-slate-200 dark:border-slate-800 pt-4">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-slate-500 dark:text-slate-400">
+                          Kapasitas Rombel
+                        </span>
+                        <span className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+                          {c.kuotaTerisi} / {c.kuotaMaksimum} Siswa ({pct}%)
+                        </span>
+                      </div>
+
+                      {/* Progress Bar Keterisian */}
+                      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                        <div
+                          className={`h-full rounded-full transition-all ${pct >= 90 ? "bg-amber-500" : "bg-blue-600"}`}
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+
+                      {/* Tombol CTA Dinamis */}
                       {c.hasSessionToday && c.status === "aktif" ? (
-                        /* Skenario 1: Ada sesi hari ini -> Primary CTA adalah Catat Presensi */
                         <Link
                           href={`/teacher/classes/${c.id}/sessions/${todayStr}/attendance`}
-                          className="flex w-full items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2.5 text-xs font-bold text-white shadow-xs transition-colors"
+                          className="relative z-10 mt-4 flex min-h-12 w-full items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 py-3 text-sm font-bold text-white shadow-xs transition-colors"
                         >
                           <span>Catat Presensi Hari Ini</span>
                         </Link>
                       ) : (
-                        /* Skenario 2: Tidak ada sesi hari ini -> Primary CTA adalah Buka Detail & Roster */
                         <Link
                           href={`/teacher/classes/${c.id}`}
-                          className="flex w-full items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-slate-200 px-4 py-2.5 text-xs font-bold text-white dark:text-slate-900 shadow-xs transition-colors"
+                          className="relative z-10 mt-4 flex min-h-12 w-full items-center justify-center rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 py-3 text-sm font-bold text-white dark:text-slate-900 shadow-xs transition-colors"
                         >
-                          <span>Buka Roster Kelas</span>
+                          <span>Buka Detail Kelas</span>
                         </Link>
                       )}
 
-                      {/* Secondary Quick Links */}
-                      <div className="flex items-center justify-between text-xs pt-1 px-1">
+                      {/* Tautan Cepat Sekunder */}
+                      <div className="relative z-10 mt-3 flex items-center justify-between text-xs px-1">
                         <Link
                           href={`/teacher/classes/${c.id}`}
                           className="font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors"

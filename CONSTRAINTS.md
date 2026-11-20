@@ -31,6 +31,11 @@ Dokumen ini adalah kontrak kualitas kode (*quality bar*) untuk proyek Siedu yang
 - **Responsive & Accessible:**
   - Seluruh layout wajib responsif hingga layar mobile (< 640px).
   - Elemen interaktif harus mendukung navigasi keyboard (`focus-visible`) dan memiliki kontras warna yang memenuhi standar WCAG AA.
+- **Data Table Alignment & Tabular Nums:**
+  - Angka nominal harga, kuota, persentase, dan tanggal pada tabel wajib rata kanan (`text-right`) dengan font `tabular-nums`. Nama dan deskripsi teks wajib rata kiri.
+- **Empty & Loading States:**
+  - Setiap kontainer daftar/tabel wajib memiliki tampilan saat data kosong (*empty state*) dengan border putus-putus halus dan teks petunjuk solutif.
+  - State memuat (*loading*) wajib menggunakan skeleton shimmer yang memetakan geometri elemen asli, bukan generic fullscreen spinner.
 
 ---
 

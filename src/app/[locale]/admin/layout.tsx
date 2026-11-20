@@ -21,11 +21,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     return redirect({ href: session.user.role === "guru" ? "/teacher/dashboard" : "/home", locale });
   }
 
-  // Badge counter = angka antrean NYATA dari DB (bukan hiasan). Tiga scan ringan;
+  // Badge counter = angka antrean NYATA dari DB (bukan hiasan). Scan ringan;
   // tabel skala lembaga (ratusan baris), bukan jutaan.
-  const [pendaftaran, pengajuanMenunggu, pesanBaru] = await Promise.all([
+  const [pendaftaran, pesanBaru] = await Promise.all([
     collect(db.orm.public.Pendaftaran.all()),
-    collect(db.orm.public.PengajuanPembatalan.where((p) => p.status.eq("menunggu")).all()),
     collect(db.orm.public.PesanKontak.where((p) => p.status.eq("baru")).all()),
   ]);
   const nPendaftaranMasalah = pendaftaran.filter((p) =>
@@ -44,9 +43,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           icon: "clipboard",
           badge: nPendaftaranMasalah,
         },
-        { name: t("text4"), href: "/admin/refunds", icon: "inbox", badge: pengajuanMenunggu.length },
         { name: t("text5"), href: "/admin/corrections", icon: "check" },
-        { name: t("text6"), href: "/admin/duplicate-children", icon: "copy" },
       ],
     },
     {

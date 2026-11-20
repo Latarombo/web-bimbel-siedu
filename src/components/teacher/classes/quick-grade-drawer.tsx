@@ -287,6 +287,14 @@ export function QuickGradeDrawer({
                 {catatan.length}/1000 karakter
               </p>
             </div>
+
+            {/* 7-Day Lock Notice (BR#18) */}
+            <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 border border-slate-200/80 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+              <span className="font-semibold text-slate-800 dark:text-slate-200">
+                Kebijakan Batas Edit 7 Hari (BR#18):
+              </span>{" "}
+              Nilai yang disimpan dapat diubah mandiri dalam jangka waktu 7 hari kalender. Setelah itu, entri terkunci permanen dan perbaikan data diajukan melalui alur koreksi admin.
+            </div>
           </form>
 
           {/* Deep Route Shortcut */}

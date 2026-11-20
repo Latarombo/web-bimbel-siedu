@@ -308,7 +308,7 @@ export function TeacherScheduleWidget({
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
                       <Clock className="size-3.5 text-slate-600 dark:text-slate-400" />
-                      {session.jamMulai} - {session.jamSelesai} WIB
+                      <span className="tabular-nums">{session.jamMulai} - {session.jamSelesai} WIB</span>
                     </span>
                     <span
                       className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-semibold ${tema.badge}`}

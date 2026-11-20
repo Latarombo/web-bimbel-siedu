@@ -93,14 +93,13 @@ export default async function AdminDashboard() {
   const session = await auth();
   if (!session?.user) return redirect({ href: { pathname: "/login", query: { next: getPathname({ href: "/admin/dashboard", locale }) } }, locale });
 
-  const [users, kelas, pendaftaran, pembayaran, periode, pengajuan, pesanBaru, anak, mapel] =
+  const [users, kelas, pendaftaran, pembayaran, periode, pesanBaru, anak, mapel] =
     await Promise.all([
       collect(db.orm.public.User.all()),
       collect(db.orm.public.Kelas.all()),
       collect(db.orm.public.Pendaftaran.all()),
       collect(db.orm.public.Pembayaran.all()),
       collect(db.orm.public.PeriodePendaftaran.where((p) => p.status.eq("dibuka")).all()),
-      collect(db.orm.public.PengajuanPembatalan.where((p) => p.status.eq("menunggu")).all()),
       collect(db.orm.public.PesanKontak.where((p) => p.status.eq("baru")).all()),
       collect(db.orm.public.Anak.all()),
       collect(db.orm.public.MataPelajaran.all()),
@@ -129,7 +128,7 @@ export default async function AdminDashboard() {
   const bayarBerhasil = pembayaran.filter((b) => b.status === "berhasil");
   const nBayarPending = pembayaran.filter((b) => b.status === "pending").length;
   const nBayarGagal = pembayaran.filter((b) => b.status === "gagal").length;
-  const perluTindakan = nTunggakan + pengajuan.length + nMenungguBayar + pesanBaru.length;
+  const perluTindakan = nTunggakan + nMenungguBayar + pesanBaru.length;
 
   const bulanIni = thisMonthCount(pendaftaran);
   const bulanLalu = lastMonthCount(pendaftaran);
@@ -208,7 +207,6 @@ export default async function AdminDashboard() {
   const antrean: { label: string; hint: string; n: number; href: string }[] = [
     { label: t("text22"), hint: t("text23"), n: nTunggakan, href: "/admin/enrollments/flagged?status=tertunggak" },
     { label: t("text24"), hint: t("text25"), n: nMenungguBayar, href: "/admin/enrollments/flagged" },
-    { label: t("text26"), hint: t("text27"), n: pengajuan.length, href: "/admin/refunds" },
     { label: t("text28"), hint: t("text29"), n: pesanBaru.length, href: "/admin/messages?status=baru" },
   ];
 
@@ -330,7 +328,6 @@ export default async function AdminDashboard() {
                   {[
                     nTunggakan > 0 ? t("overdueCount", { count: nTunggakan }) : null,
                     nMenungguBayar > 0 ? t("awaitingPaymentCount", { count: nMenungguBayar }) : null,
-                    pengajuan.length > 0 ? t("cancellationCount", { count: pengajuan.length }) : null,
                     pesanBaru.length > 0 ? t("newMessageCount", { count: pesanBaru.length }) : null,
                   ]
                     .filter(Boolean)
@@ -343,10 +340,6 @@ export default async function AdminDashboard() {
                 href="/admin/enrollments/flagged"
                 className="rounded-lg bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-amber-600"
               >{t("text40")} </Link>
-              <Link
-                href="/admin/refunds"
-                className="rounded-lg border border-amber-300 bg-white px-4 py-2 text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-100"
-              >{t("text41")} </Link>
             </div>
           </div>
         </Panel>

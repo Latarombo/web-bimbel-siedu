@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { ajukanKoreksi } from "@/app/actions/teacher";
 import { Button } from "@/components/ui/button";
@@ -21,20 +21,26 @@ export interface LockedEntryItem {
 
 interface PengajuanKoreksiFormProps {
   lockedEntries: LockedEntryItem[];
+  initialKey?: string;
 }
 
-export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProps) {
+export function PengajuanKoreksiForm({ lockedEntries, initialKey }: PengajuanKoreksiFormProps) {
   const t = useTranslations("teacher");
-  const [selectedKey, setSelectedKey] = useState<string>("");
-  const [proposedStatus, setProposedStatus] = useState<string>("hadir");
-  const [proposedGrade, setProposedGrade] = useState<string>("");
-  const [proposedNotes, setProposedNotes] = useState<string>("");
+  const matchingInitial = initialKey ? lockedEntries.find((e) => `${e.entitas}-${e.id}` === initialKey) : undefined;
+  const [selectedKey, setSelectedKey] = useState<string>(matchingInitial ? initialKey! : "");
+  const [proposedStatus, setProposedStatus] = useState<string>(matchingInitial?.currentValues.status ?? "hadir");
+  const [proposedGrade, setProposedGrade] = useState<string>(matchingInitial ? String(matchingInitial.currentValues.nilaiKuantitatif ?? "") : "");
+  const [proposedNotes, setProposedNotes] = useState<string>(
+    matchingInitial
+      ? (matchingInitial.entitas === "presensi"
+          ? (matchingInitial.currentValues.catatan ?? "")
+          : (matchingInitial.currentValues.catatanKualitatif ?? ""))
+      : ""
+  );
   const [reason, setReason] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-
-  const selectedEntry = lockedEntries.find((e) => `${e.entitas}-${e.id}` === selectedKey);
 
   const handleSelectEntry = (key: string) => {
     setSelectedKey(key);
@@ -51,6 +57,14 @@ export function PengajuanKoreksiForm({ lockedEntries }: PengajuanKoreksiFormProp
       }
     }
   };
+
+  useEffect(() => {
+    if (initialKey && lockedEntries.some((e) => `${e.entitas}-${e.id}` === initialKey)) {
+      handleSelectEntry(initialKey);
+    }
+  }, [initialKey, lockedEntries]);
+
+  const selectedEntry = lockedEntries.find((e) => `${e.entitas}-${e.id}` === selectedKey);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

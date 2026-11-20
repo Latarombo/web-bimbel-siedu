@@ -152,10 +152,10 @@ Centralize child management under one parent account; support multi-child enroll
 - Child with active registration (status: menunggu_pembayaran/terdaftar/tertunggak) cannot be edited (name & jenjang read-only)
 - Child with any registration history cannot be deleted; error message shown
 - Child without registration history can be deleted; confirmation required before delete
-- Multiple children can be created per account
+- Multiple children can be created per account (dengan pencegahan duplikat nama & tanggal lahir di akun yang sama)
 - List of children displays in parent dashboard with action buttons
 
-**Related BR:** Ambiguitas #5 (lock read-only when active registration), BR#16 (duplicate detection admin-side)
+**Related BR:** Ambiguitas #5 (lock read-only when active registration), BR#16 (pencegahan duplikat intra-akun)
 
 ---
 
@@ -194,7 +194,7 @@ Enable parents to enroll children in classes with chosen payment method; lock qu
 > 4. Klik "Daftar" → submit
 > 
 > **Use Case 3.4 — Submit Pendaftaran & Lock Quota:**  
-> 1. Sistem buka DB transaction, lock row kelas dengan `lockForUpdate()`
+> 1. Sistem buka DB transaction, lock row kelas dengan Row-Level Lock (`SELECT ... FOR UPDATE`)
 > 2. Re-check kuota masih cukup (kuota_terisi < kuota_max)
 > 3. Kalau kuota penuh: error "Kuota kelas sudah penuh, pendaftaran gagal"
 > 4. Kalau kuota cukup:
@@ -213,7 +213,7 @@ Enable parents to enroll children in classes with chosen payment method; lock qu
 - Schedule conflict detection works: if child has active registration with conflicting times, prevent enrollment
 - Payment method display: only "DP+Cicilan" if class has `biaya_dp` (not null)
 - Payment method validation: reject DP+Cicilan if `biaya_dp` is null
-- Quota locked immediately using `lockForUpdate()` when enrollment submitted
+- Quota locked immediately using Row-Level Lock (`SELECT FOR UPDATE`) when enrollment submitted
 - Quota_terisi incremented atomically within transaction
 - At least 1 payment record created immediately upon enrollment
 - Enrollment status set to "menunggu_pembayaran"
@@ -298,7 +298,7 @@ Enable online payment processing; automate payment tracking & status updates.
 > 3. Setelah pembayaran berhasil, Midtrans kirim callback/webhook ke sistem
 > 4. Webhook handler proses:
 >    - Validasi signature (Midtrans ServerKey)
->    - Lock payment record with `lockForUpdate()`
+>    - Lock payment record with Row-Level Lock (`SELECT FOR UPDATE`)
 >    - Re-check payment status in database
 >    - Update payment record: status = "success", payment_date = now, reference_gateway = transaction_id (unique)
 >    - Update enrollment status: if all payments lunas → status = "terdaftar"; if dp lunas → generate cicilan bulan berikutnya (BR#14)
@@ -328,7 +328,7 @@ Enable online payment processing; automate payment tracking & status updates.
 - Only 1 active due payment displayed (others hidden until due)
 - After DP success, next installment generated automatically
 - Webhook signature validated (security check Midtrans ServerKey)
-- Payment record uses `lockForUpdate()` to prevent race condition
+- Payment record uses Row-Level Lock (`SELECT FOR UPDATE`) to prevent race condition
 - Failed payment does not immediately cancel enrollment (retry window still open, BR#2)
 - Payment reference_gateway must be unique (prevent duplicate webhook processing)
 - Parent can retry payment if first attempt failed
@@ -534,49 +534,14 @@ Track academic progress; enable parent visibility on learning outcomes.
 
 ---
 
-### F12. Cancellation & Refund Request (Orang Tua)
+### F12. Cancellation & Refund Policy (Peniadaan Refund)
 
-**Priority:** Should Have
+**Priority:** Out of Scope / Dibatalkan
 
 **Description:**  
-Orang Tua can submit cancellation request for an enrollment. Admin reviews & approves/rejects based on BR#19 (refund policy). Refund policy: DP hangus untuk pembatalan inisiatif Orang Tua; refund penuh hanya 4 kasus sistem error.
+Sistem Siedu **tidak menyediakan** fitur pengajuan refund mandiri oleh orang tua maupun modul pemrosesan refund di dalam sistem. Seluruh pembayaran DP dan pelunasan yang telah berhasil bersifat final dan mengikat (*non-refundable*). Orang tua tidak dapat membatalkan pendaftaran secara sepihak setelah status `terdaftar`; pelepasan kuota hanya terjadi otomatis jika pembayaran awal melewati batas 1x24 jam (`dibatalkan_timeout`).
 
-**Goal:**  
-Enable flexible enrollment management; protect both school & parents with clear refund policy.
-
-**Use Case:**
-
-> **Use Case 12.1 — Submit Pembatalan Request:**  
-> 1. Orang Tua di halaman Detail Pendaftaran (status: "terdaftar") → klik "Ajukan Pembatalan"
-> 2. Sistem tampilkan form: Alasan Pembatalan (dropdown: Berubah pikiran / Pindah les / Lainnya), Deskripsi (text area)
-> 3. Orang Tua submit → sistem buat record di `pengajuan_pembatalan` table dengan status "pending_review"
-> 4. Orang Tua lihat notifikasi: "Permintaan pembatalan sedang diproses. Admin akan menghubungi Anda dalam 1x24 jam"
-> 
-> **Use Case 12.2 — Admin Review & Approve:**  
-> 1. Admin → "Manajemen Pendaftaran" → tab "Pembatalan Pending" → lihat list request
-> 2. Klik request → detail: Siswa, Kelas, Alasan, Tanggal Pendaftaran, Total Biaya, Pembayaran Sudah Lunas (amount)
-> 3. Admin review:
->    - Jika alasan "Sistem Error" (memenuhi 4 kasus BR#19): approve → status "approved" + refund type "penuh"
->    - Jika alasan "Inisiatif Orang Tua": approve → status "approved" + refund type "hangus_dp" (DP tidak dikembalikan, cicilan/sisa dikembalikan)
-> 4. Klik "Approve" → sistem:
->    - Ubah enrollment status menjadi "dibatalkan_orang_tua"
->    - Generate refund transaction (via Midtrans reverse atau manual transfer)
->    - Kirim email ke Orang Tua: "Pembatalan disetujui. Refund akan dikirim dalam 3-5 hari kerja ke rekening: [last 4 digits]"
->    - Release kuota: kuota_terisi kelas dikurangi
-
-**Acceptance Criteria:**
-
-- Orang Tua can submit cancellation from enrollment detail page
-- Form includes reason & optional description
-- Cancellation request creates record with "pending_review" status
-- Admin can view pending cancellation requests
-- Admin can approve/reject with notes
-- Approved cancellation updates enrollment status to "dibatalkan_orang_tua"
-- Refund rules follow BR#19 (DP hangus for voluntary, full refund for 4 system error cases)
-- Email notification sent to parent upon approval
-- Quota released upon approval (kuota_terisi decremented)
-
-**Related BR:** BR#19 (refund policy), BR#11 (quota release)
+**Status:** Fitur pengajuan pembatalan & refund ditiadakan dari ruang lingkup pengembangan Siedu sesuai arahan arsitektur sistem.
 
 ---
 
@@ -620,24 +585,24 @@ Provide business insights for decision-making.
 
 | # | Rule | Impact |
 |---|---|---|
-| **1** | Quota locked (kuota_terisi incremented) immediately upon enrollment, using `lockForUpdate()` to prevent race condition | Prevents double-booking |
+| **1** | Quota locked (kuota_terisi incremented) immediately upon enrollment, using Row-Level Lock (`SELECT FOR UPDATE`) to prevent race condition | Prevents double-booking |
 | **2** | Enrollment auto-cancelled if no DP/full payment within 24 hours → status `dibatalkan_timeout` | Ensures timely payment collection |
 | **4** | Late installment gets 7-business-day grace period before escalating to delinquency | Fair collection policy |
 | **6** | One teacher cannot teach 2 classes with overlapping schedule in same period | Prevents teacher scheduling conflict |
 | **7** | Delinquent installment (>7 days late) → enrollment `dibatalkan_tunggakan`; paid installments not refunded | Enforces payment discipline |
 | **9** | One child cannot have 2 active enrollments with overlapping schedule in same period | Prevents schedule conflict |
-| **10** | Period closure triggers minimum quota check; unfulfilled classes cancelled + full refunds issued | Protects school viability & parent confidence |
+| **10** | Period closure triggers minimum quota check; unfulfilled classes cancelled without automatic in-system refund (handled manually by school management) | Protects school viability & operational clarity |
 | **11** | Quota released (kuota_terisi decremented) only for `dibatalkan_timeout`, not after "terdaftar" status | Locks slots after payment confirmed |
 | **12** | "DP+Cicilan" payment rejected if class has no `biaya_dp` defined | Payment method must match class offering |
 | **13** | Child can only enroll in classes matching their jenjang level; jenjang must be completed before enrollment | Ensures age-appropriate placement |
 | **14** | At least 1 payment record created immediately upon enrollment; next installment created when DP paid | Immediate billing upon commitment |
 | **15** | Cancellation status uses term "orang_tua", not "siswa" (e.g., `dibatalkan_orang_tua`) | Reflects actor change from v1 |
 | **16** | Duplicate child detection: exact name match (normalized) + same DOB flagged for admin review (not auto-blocked) | Prevents accidental multi-enrollment, respects admin discretion |
-| **17** | Race condition between webhook & scheduled job: both use `lockForUpdate()`, re-check status after lock, no state reactivation if already cancelled | Ensures idempotent payment processing |
+| **17** | Race condition between webhook & scheduled job: both use Row-Level Lock (`SELECT FOR UPDATE`), re-check status after lock, no state reactivation if already cancelled | Ensures idempotent payment processing |
 | **18** | Attendance & progress editable 7 days from creation; after 7 days, locked (corrections via admin request) | Prevents retroactive tampering, allows correction window |
-| **19** | Refund policy: DP hangus for voluntary cancellation; full refund only for 4 system error cases (error txn, wrong amount, wrong account, wrong class provable by system) | Balances school & parent interests |
+| **19** | Peniadaan refund: seluruh pembayaran DP/cicilan lunas bersifat non-refundable; sistem tidak menyediakan pengajuan refund mandiri oleh orang tua | Aligns with school financial policy & reduces system complexity |
 | **20** | ⚠️ **TIDAK BERLAKU di versi ini** (lihat BR#24) — auto-debit failure handling dicatat sebagai potensi pengembangan lanjutan, bukan diimplementasikan sekarang | Superseded by BR#24 (manual installment model) |
-| **21** | Timeout check job runs every 5 minutes (Laravel Scheduler, `withoutOverlapping()` required) | Balance precision vs. server load |
+| **21** | Timeout check job runs every 5 minutes (Vercel Cron endpoint `/api/cron/check-timeout` with Bearer CRON_SECRET) | Balance precision vs. server load |
 | **22** | Timeout auto-cancellation sends email notification to parent (best-effort, try-catch in job, failure does not rollback business state) | Notifies parent; email failures non-blocking |
 | **23** | Dua istilah dibedakan tegas: **"Metode bayar"** (lunas/dp_cicilan, skema tagihan Siedu) vs **"Kanal pembayaran"** (QRIS/VA/e-wallet/kartu, cara bayar satu tagihan di Midtrans). Kanal kartu kredit cicilan & BNPL pihak ketiga (Kredivo, Akulaku) WAJIB dinonaktifkan di Midtrans Snap | Mencegah tabrakan skema cicilan Siedu vs cicilan pihak ketiga; status "Tertunggak" Siedu tetap bermakna |
 | **24** | Cicilan bulanan Siedu bersifat **manual** — Orang Tua wajib klik "Bayar Sekarang" tiap bulan; sistem TIDAK auto-debit dari kartu/token tersimpan. Tidak ada gating tanggal (pelunasan dipercepat/bayar beberapa cicilan sekaligus diperbolehkan, tanpa penalti). Referensi: kebijakan cicilan Ruangguru menyiratkan aksi manual pembeli, bukan auto-charge | Konsisten dengan preseden publik; menggantikan asumsi auto-debit di BR#20 |
@@ -722,17 +687,17 @@ Login → Dashboard (see children)
 | **Device Types** | Desktop, Tablet, Mobile (responsive design required) |
 | **Mobile Responsiveness** | Full functionality on iPhone 6+ & Android 5.0+ |
 
-### Backend Requirements
+### Backend & Architecture Requirements
 
 | Component | Specification |
 |---|---|
-| **PHP Version** | 8.3+ |
-| **Laravel Version** | 13.x LTS |
-| **Database** | MySQL 8.0+ or MariaDB 10.5+ |
-| **Web Server** | Nginx 1.18+ or Apache 2.4+ |
-| **Message Queue (optional)** | Redis 6.0+ (for job queue if using async processing) |
-| **Email Service** | SMTP (SendGrid, Mailgun, or local MTA) for verification & notification emails |
-| **Payment Gateway** | Midtrans API (sandbox for testing, production for live) |
+| **Runtime & Language** | Node.js 20+ & TypeScript (Strict Mode) |
+| **Framework** | Next.js 15 (App Router, Server Components & Server Actions) |
+| **ORM & Database** | Prisma ORM & PostgreSQL (Supabase) |
+| **Hosting & Serverless** | Vercel Serverless Platform |
+| **Background Scheduler** | Vercel Cron Endpoint (`/api/cron/check-timeout`, every 5 min) |
+| **Email Service** | SMTP / Nodemailer (SendGrid, Mailgun, or Resend) |
+| **Payment Gateway** | Midtrans Snap API & Event-driven Webhooks |
 
 ### Performance Requirements
 
@@ -750,14 +715,14 @@ Login → Dashboard (see children)
 | Requirement | Implementation |
 |---|---|
 | **HTTPS** | All pages served over HTTPS; redirect HTTP → HTTPS |
-| **Authentication** | Laravel Breeze (session-based auth) |
-| **Authorization** | Role-based middleware (EnsureUserHasRole) |
-| **CSRF Protection** | Laravel token validation on all POST/PUT/DELETE requests |
-| **Password Policy** | Minimum 8 characters, 1 uppercase, 1 number; SHA-256 hashing (Laravel Bcrypt) |
+| **Authentication** | Auth.js v5 (NextAuth) stateless JWT session-based auth |
+| **Authorization** | Role-based proxy guard (`admin`, `guru`, `orang_tua`) |
+| **CSRF Protection** | Next.js Server Actions origin validation & header verification |
+| **Password Policy** | Minimum 8 characters, 1 uppercase, 1 number; Bcrypt password hashing |
 | **Rate Limiting** | Login attempts: max 5 per minute per IP; API endpoints: 60 req/min per user |
-| **Data Encryption** | Payment data in transit (TLS 1.2+); sensitive fields in database encrypted at-rest (optional, Midtrans handles PCI) |
-| **Audit Logging** | All user actions (create/update/delete) logged with timestamp & user ID |
-| **Session Timeout** | 2 hours of inactivity; auto-logout |
+| **Data Encryption** | Payment data in transit (TLS 1.2+); sensitive fields encrypted at-rest |
+| **Audit Logging** | All critical actions logged with timestamp & user ID |
+| **Session Timeout** | JWT session expiration handling |
 
 ---
 
@@ -798,10 +763,10 @@ Login → Dashboard (see children)
 | Dependency | Purpose | Owner | Risk |
 |---|---|---|---|
 | **Midtrans API** | Online payment processing | Third-party (Midtrans) | Payment cannot proceed if API down; have fallback manual verification process (out of scope v1) |
-| **Email Service (SMTP)** | User verification, password reset, payment notifications | Third-party (SendGrid/Mailgun) or internal MTA | If email fails, users cannot verify account; implement retry logic & admin alert |
-| **Laravel 13 Framework** | Web framework & ORM | Community-maintained | Version updates may require code changes; stay current with security patches |
-| **MySQL 8.0+** | Primary data store | Third-party (self-hosted or cloud) | Data loss if backup fails; enforce automated daily backups |
-| **Web Hosting** | Server infrastructure | Third-party (self-hosted or cloud provider) | Downtime halts all access; ensure 99.5% SLA |
+| **Email Service (SMTP)** | User verification, password reset, payment notifications | Third-party (SendGrid/Mailgun/Resend) | If email fails, users cannot verify account; implement retry logic & admin alert |
+| **Next.js 15 & Prisma ORM** | Web framework, full-stack runtime & data access | Vercel / Prisma OSS | Version updates may require code changes; follow LTS and official docs |
+| **PostgreSQL (Supabase)** | Primary data store | Third-party (Supabase Cloud) | Managed automated backups & point-in-time recovery |
+| **Vercel Platform** | Serverless hosting & cron infrastructure | Third-party (Vercel) | Downtime halts all access; ensure 99.5% SLA |
 | **Timezone & Locale Data** | Localization (date formats, working days) | System/OS | Must handle Indonesia timezone (UTC+7) correctly for date calculations (grace period, etc.) |
 
 ---

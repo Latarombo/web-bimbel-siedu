@@ -11,6 +11,26 @@ export function midtransServerKey(): string {
   return process.env.MIDTRANS_SERVER_KEY ?? "";
 }
 
+export function midtransClientKey(): string {
+  return (
+    process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ??
+    process.env.MIDTRANS_CLIENT_KEY ??
+    ""
+  );
+}
+
+export function midtransEnv(): "sandbox" | "production" {
+  return (process.env.MIDTRANS_ENV ?? "sandbox") === "production"
+    ? "production"
+    : "sandbox";
+}
+
+export function snapScriptUrl(): string {
+  return midtransEnv() === "production"
+    ? "https://app.midtrans.com/snap/snap.js"
+    : "https://app.sandbox.midtrans.com/snap/snap.js";
+}
+
 export function midtransConfigured(): boolean {
   return midtransServerKey().length > 0;
 }
@@ -56,12 +76,14 @@ export async function snapCreate(params: {
     },
     enabled_payments: [
       "bca_va",
+      "bni_va",
       "bri_va",
       "cimb_va",
       "permata_va",
       "echannel",
       "gopay",
       "shopeepay",
+      "qris",
       "other_cash",
     ],
     item_details: [

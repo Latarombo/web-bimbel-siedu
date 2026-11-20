@@ -60,10 +60,6 @@
       "model": "PengajuanKoreksi",
       "namespace": "public"
     },
-    "pengajuan_pembatalan": {
-      "model": "PengajuanPembatalan",
-      "namespace": "public"
-    },
     "penilaian": {
       "model": "Penilaian",
       "namespace": "public"
@@ -156,31 +152,6 @@
               {
                 "name": "SMA",
                 "value": "SMA"
-              }
-            ]
-          },
-          "KategoriRefund": {
-            "codecId": "pg/text@1",
-            "members": [
-              {
-                "name": "kesalahan_sistem",
-                "value": "kesalahan_sistem"
-              },
-              {
-                "name": "salah_nominal_transfer",
-                "value": "salah_nominal_transfer"
-              },
-              {
-                "name": "salah_rekening",
-                "value": "salah_rekening"
-              },
-              {
-                "name": "salah_pilih_kelas",
-                "value": "salah_pilih_kelas"
-              },
-              {
-                "name": "lainnya",
-                "value": "lainnya"
               }
             ]
           },
@@ -2207,21 +2178,6 @@
                   "namespace": "public"
                 }
               },
-              "pengajuanPembatalan": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "pendaftaranId"
-                  ]
-                },
-                "to": {
-                  "model": "PengajuanPembatalan",
-                  "namespace": "public"
-                }
-              },
               "periode": {
                 "cardinality": "N:1",
                 "on": {
@@ -2471,185 +2427,6 @@
               },
               "namespaceId": "public",
               "table": "pengajuan_koreksi"
-            }
-          },
-          "PengajuanPembatalan": {
-            "fields": {
-              "alasan": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "catatanAdmin": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "createdAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "diajukanOleh": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
-              },
-              "diprosesOleh": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
-              },
-              "diprosesPada": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
-              },
-              "kategori": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                },
-                "valueSet": {
-                  "entityKind": "enum",
-                  "entityName": "KategoriRefund",
-                  "namespaceId": "public",
-                  "plane": "domain"
-                }
-              },
-              "pendaftaranId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
-              },
-              "status": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                },
-                "valueSet": {
-                  "entityKind": "enum",
-                  "entityName": "StatusPengajuan",
-                  "namespaceId": "public",
-                  "plane": "domain"
-                }
-              },
-              "updatedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {
-              "admin": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "diprosesOleh"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "User",
-                  "namespace": "public"
-                }
-              },
-              "pendaftaran": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "pendaftaranId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "Pendaftaran",
-                  "namespace": "public"
-                }
-              },
-              "pengaju": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "diajukanOleh"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "User",
-                  "namespace": "public"
-                }
-              }
-            },
-            "storage": {
-              "fields": {
-                "alasan": {
-                  "column": "alasan"
-                },
-                "catatanAdmin": {
-                  "column": "catatan_admin"
-                },
-                "createdAt": {
-                  "column": "created_at"
-                },
-                "diajukanOleh": {
-                  "column": "diajukan_oleh"
-                },
-                "diprosesOleh": {
-                  "column": "diproses_oleh"
-                },
-                "diprosesPada": {
-                  "column": "diproses_pada"
-                },
-                "id": {
-                  "column": "id"
-                },
-                "kategori": {
-                  "column": "kategori"
-                },
-                "pendaftaranId": {
-                  "column": "pendaftaran_id"
-                },
-                "status": {
-                  "column": "status"
-                },
-                "updatedAt": {
-                  "column": "updated_at"
-                }
-              },
-              "namespaceId": "public",
-              "table": "pengajuan_pembatalan"
             }
           },
           "Penilaian": {
@@ -4042,36 +3819,6 @@
                 },
                 "to": {
                   "model": "NilaiProgres",
-                  "namespace": "public"
-                }
-              },
-              "pengajuanDiajukan": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "diajukanOleh"
-                  ]
-                },
-                "to": {
-                  "model": "PengajuanPembatalan",
-                  "namespace": "public"
-                }
-              },
-              "pengajuanDiproses": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "diprosesOleh"
-                  ]
-                },
-                "to": {
-                  "model": "PengajuanPembatalan",
                   "namespace": "public"
                 }
               },
@@ -6103,203 +5850,6 @@
               },
               "uniques": []
             },
-            "pengajuan_pembatalan": {
-              "checks": [
-                {
-                  "expression": "\"kategori\" IN ('kesalahan_sistem', 'salah_nominal_transfer', 'salah_rekening', 'salah_pilih_kelas', 'lainnya')",
-                  "name": "pengajuan_pembatalan_kategori_check_f1a0d17c",
-                  "prefix": "pengajuan_pembatalan_kategori_check"
-                },
-                {
-                  "expression": "\"status\" IN ('menunggu', 'disetujui', 'ditolak')",
-                  "name": "pengajuan_pembatalan_status_check_64629cf3",
-                  "prefix": "pengajuan_pembatalan_status_check"
-                }
-              ],
-              "columns": {
-                "alasan": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "catatan_admin": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "created_at": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "timestamptz",
-                  "nullable": false
-                },
-                "diajukan_oleh": {
-                  "codecId": "pg/int4@1",
-                  "nativeType": "int4",
-                  "nullable": false
-                },
-                "diproses_oleh": {
-                  "codecId": "pg/int4@1",
-                  "nativeType": "int4",
-                  "nullable": true
-                },
-                "diproses_pada": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "nativeType": "timestamptz",
-                  "nullable": true
-                },
-                "id": {
-                  "codecId": "pg/int4@1",
-                  "default": {
-                    "expression": "autoincrement()",
-                    "kind": "function"
-                  },
-                  "nativeType": "int4",
-                  "nullable": false
-                },
-                "kategori": {
-                  "codecId": "pg/text@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": "lainnya"
-                  },
-                  "nativeType": "text",
-                  "nullable": false,
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "KategoriRefund",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
-                },
-                "pendaftaran_id": {
-                  "codecId": "pg/int4@1",
-                  "nativeType": "int4",
-                  "nullable": false
-                },
-                "status": {
-                  "codecId": "pg/text@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": "menunggu"
-                  },
-                  "nativeType": "text",
-                  "nullable": false,
-                  "valueSet": {
-                    "entityKind": "valueSet",
-                    "entityName": "StatusPengajuan",
-                    "namespaceId": "public",
-                    "plane": "storage"
-                  }
-                },
-                "updated_at": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "timestamptz",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [
-                {
-                  "onDelete": "cascade",
-                  "source": {
-                    "columns": [
-                      "pendaftaran_id"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "pengajuan_pembatalan"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "pendaftaran"
-                  }
-                },
-                {
-                  "onDelete": "restrict",
-                  "source": {
-                    "columns": [
-                      "diajukan_oleh"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "pengajuan_pembatalan"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "users"
-                  }
-                },
-                {
-                  "onDelete": "setNull",
-                  "source": {
-                    "columns": [
-                      "diproses_oleh"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "pengajuan_pembatalan"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "users"
-                  }
-                }
-              ],
-              "indexes": [
-                {
-                  "columns": [
-                    "pendaftaran_id"
-                  ],
-                  "name": "pengajuan_menunggu_unik_00d4f7ff",
-                  "prefix": "pengajuan_menunggu_unik",
-                  "unique": true,
-                  "where": "(status = 'menunggu')"
-                },
-                {
-                  "columns": [
-                    "diajukan_oleh"
-                  ],
-                  "name": "pengajuan_pembatalan_diajukan_oleh_idx_bdcdb39f",
-                  "prefix": "pengajuan_pembatalan_diajukan_oleh_idx",
-                  "unique": false
-                },
-                {
-                  "columns": [
-                    "diproses_oleh"
-                  ],
-                  "name": "pengajuan_pembatalan_diproses_oleh_idx_c7a6c546",
-                  "prefix": "pengajuan_pembatalan_diproses_oleh_idx",
-                  "unique": false
-                },
-                {
-                  "columns": [
-                    "status"
-                  ],
-                  "name": "pengajuan_pembatalan_status_idx_e98638ab",
-                  "prefix": "pengajuan_pembatalan_status_idx",
-                  "unique": false
-                }
-              ],
-              "primaryKey": {
-                "columns": [
-                  "id"
-                ]
-              },
-              "uniques": []
-            },
             "penilaian": {
               "checks": [
                 {
@@ -7569,16 +7119,6 @@
                 "SMA"
               ]
             },
-            "KategoriRefund": {
-              "kind": "valueSet",
-              "values": [
-                "kesalahan_sistem",
-                "salah_nominal_transfer",
-                "salah_rekening",
-                "salah_pilih_kelas",
-                "lainnya"
-              ]
-            },
             "MetodeBayar": {
               "kind": "valueSet",
               "values": [
@@ -7701,7 +7241,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "62c70b569a6fc3ef54da90968758496e532cf04fa77ebec2d858866d87149531"
+    "storageHash": "e27d9310438b489df0f1a415bbf3dd8392b97d54353b6388fd23999ad7de70df"
   },
   "capabilities": {
     "postgres": {

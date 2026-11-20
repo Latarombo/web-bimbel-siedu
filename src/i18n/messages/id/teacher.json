@@ -307,6 +307,7 @@
   "attendanceCompletedCount": "{count} Presensi Lengkap",
   "dataUsulanRequired": "Data usulan koreksi wajib diisi.",
   "correctionReasonMin": "Alasan koreksi minimal 5 karakter.",
+  "correctionAlreadyPending": "Pengajuan koreksi untuk entri ini sedang menunggu persetujuan admin.",
   "attendanceNotFound": "Data presensi tidak ditemukan.",
   "notOwned": "Entri ini bukan milik Anda.",
   "myCorrectionsHistory": "Riwayat Pengajuan Koreksi",

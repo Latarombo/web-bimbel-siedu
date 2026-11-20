@@ -5,13 +5,12 @@ import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { Card, CardPad } from "@/components/ui/card";
-import { sanitizeLaporanForParent } from "@/lib/laporan-perkembangan";
 
 import { ScheduleTab } from "@/components/parent/schedule-attendance/schedule-tab";
 import { AttendanceTab } from "@/components/parent/schedule-attendance/attendance-tab";
 import { JadwalRecord } from "@/components/parent/schedule-attendance/schedule-context";
 import { PresensiRecord } from "@/components/parent/schedule-attendance/attendance-context";
-import { CalendarDays, UserCheck, Award, BookOpen, Users } from "lucide-react";
+import { CalendarDays, UserCheck, Award, Users } from "lucide-react";
 import { StudentAvatar } from "@/components/parent/student-avatar";
 
 export const dynamic = "force-dynamic";
@@ -186,26 +185,6 @@ export default async function ScheduleAttendancePage({
     })
     .sort((a, b) => b.pen.tanggal.localeCompare(a.pen.tanggal));
 
-  // Laporan perkembangan terbit untuk pendaftaran anak milik saya (catatan internal di-strip)
-  const laporanTerbit = milikSayaIds.size > 0
-    ? await collect(
-        db.orm.public.LaporanPerkembangan.where((l) => l.pendaftaranId.in([...milikSayaIds]))
-          .where((l) => l.draf.eq(false))
-          .all(),
-      )
-    : [];
-  const laporanMilikSaya = laporanTerbit.map((raw) => {
-    const safe = sanitizeLaporanForParent(raw);
-    const pend = milikSaya.find((p) => p.id === safe.pendaftaranId)!;
-    return {
-      laporan: safe,
-      pend,
-      anakNama: namaAnak.get(pend.anakId) ?? tr("text162"),
-      mapelNama: mapel.get(pend.kelas.mataPelajaranId) ?? `Kelas #${pend.kelasId}`,
-      guruNama: guru.get(pend.kelas.guruId) ?? "-",
-    };
-  }).sort((a, b) => b.laporan.tanggal.localeCompare(a.laporan.tanggal));
-
   return (
     <div className="min-h-full bg-slate-50/50 pb-16">
       {/* Hero Header Full-Bleed (Konsisten dengan Beranda / Akun Anak / Tagihan) */}
@@ -326,12 +305,11 @@ export default async function ScheduleAttendancePage({
       )}
 
       {/* Modern Card Tabs Switcher */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
         {[
           { key: "jadwal", label: tr("saTabSchedule"), count: jadwalRecords.length, icon: CalendarDays },
           { key: "presensi", label: tr("saTabAttendance"), count: presensiRecords.length, icon: UserCheck },
           { key: "nilai", label: tr("classAssessmentsTitle"), count: hasilMilikSaya.length, icon: Award },
-          { key: "laporan", label: tr("progressTabTitle"), count: laporanMilikSaya.length, icon: BookOpen },
         ].map(({ key, label, count, icon: Icon }) => {
           const isActive = tabAktif === key;
           const queryParams = new URLSearchParams();
@@ -380,55 +358,6 @@ export default async function ScheduleAttendancePage({
         <ScheduleTab records={jadwalRecords} />
       ) : tabAktif === "presensi" ? (
         <AttendanceTab records={presensiRecords} />
-      ) : tabAktif === "laporan" ? (
-        laporanMilikSaya.length === 0 ? (
-          <Card className="mt-4 border-dashed border-slate-200 bg-slate-50/50">
-            <CardPad className="py-14 text-center">
-              <div className="mx-auto size-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
-                <BookOpen className="size-6" />
-              </div>
-              <p className="text-base font-bold text-slate-800">{tr("progressTabTitle")}</p>
-              <p className="mx-auto mt-1 max-w-sm text-xs sm:text-sm text-muted leading-relaxed">
-                {tr("noProgressPublished")}
-              </p>
-            </CardPad>
-          </Card>
-        ) : (
-          <ul className="grid gap-3.5">
-            {laporanMilikSaya.map(({ laporan, anakNama, mapelNama, guruNama }) => (
-              <li key={laporan.id}>
-                <Card className="border-l-4 border-l-blue-600 hover:shadow-xs transition-shadow">
-                  <CardPad className="py-4.5 sm:py-5">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                      <div>
-                        <h3 className="text-sm sm:text-base font-bold text-slate-900">{laporan.judul}</h3>
-                        <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
-                          <span className="font-semibold text-blue-700">{mapelNama}</span>
-                          <span>•</span>
-                          <span className="font-medium text-slate-700">{anakNama}</span>
-                        </p>
-                      </div>
-                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600 tabular-nums">
-                        {new Date(`${laporan.tanggal}T00:00:00+07:00`).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                          timeZone: "Asia/Jakarta",
-                        })}
-                      </span>
-                    </div>
-                    <div className="mt-3.5 whitespace-pre-line text-xs sm:text-sm leading-relaxed text-slate-700 bg-slate-50/60 rounded-xl p-3.5 border border-slate-100">
-                      {laporan.laporanOrtu}
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-[11px] text-slate-600">
-                      <span>{tr("progressReportBy", { teacher: guruNama, date: laporan.tanggal })}</span>
-                    </div>
-                  </CardPad>
-                </Card>
-              </li>
-            ))}
-          </ul>
-        )
       ) : (
         <div className="space-y-4">
           {hasilMilikSaya.length === 0 ? (

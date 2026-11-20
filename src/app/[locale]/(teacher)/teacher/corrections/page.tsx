@@ -10,12 +10,19 @@ import { PengajuanKoreksiForm, type LockedEntryItem } from "@/components/teacher
 
 export const dynamic = "force-dynamic";
 
-export default async function TeacherCorrections() {
+export default async function TeacherCorrections({
+  searchParams,
+}: {
+  searchParams?: Promise<{ entitas?: string; id?: string }>;
+}) {
   const t = await getTranslations("teacher");
   const locale = await getLocale();
   const session = await auth();
   if (!session?.user) return redirect({ href: "/login?next=/teacher/corrections", locale });
   const guruId = Number(session.user.id);
+
+  const sp = searchParams ? await searchParams : undefined;
+  const initialKey = sp?.entitas && sp?.id ? `${sp.entitas}-${sp.id}` : undefined;
 
   // Angka nyata: entri milik guru ini yang sudah lewat jendela 7 hari + riwayat pengajuan koreksi
   const [nilai, presensi, pengajuan, semuaPendaftaran, semuaAnak] = await Promise.all([
@@ -86,7 +93,7 @@ export default async function TeacherCorrections() {
               <p className="text-xs text-slate-500 dark:text-slate-400">{t("correctionStepsHelp")}</p>
             </div>
             <div className="p-4 sm:p-6">
-              <PengajuanKoreksiForm lockedEntries={lockedEntries} />
+              <PengajuanKoreksiForm lockedEntries={lockedEntries} initialKey={initialKey} />
             </div>
           </div>
 

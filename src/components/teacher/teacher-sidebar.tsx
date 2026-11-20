@@ -168,12 +168,12 @@ export function TeacherSidebar({
   return (
     <>
       {/* ========================================================= */}
-      {/* DESKTOP SIDEBAR (MEDTBANK FLOATING ISLAND STYLE)          */}
+      {/* DESKTOP SIDEBAR (CLEAN SAAS ATTACHED STYLE, ROUNDED-TR)  */}
       {/* ========================================================= */}
       <aside
         data-lenis-prevent
         onWheel={(e) => e.stopPropagation()}
-        className={`fixed top-3 bottom-3 left-3 z-40 hidden flex-col rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 shadow-xl shadow-slate-900/5 dark:shadow-black/40 transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:flex ${
+        className={`fixed inset-y-0 left-0 z-40 hidden flex-col rounded-tr-[36px] rounded-tl-none rounded-b-none border-r border-t border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 shadow-md shadow-slate-900/5 dark:shadow-none transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:flex ${
           isCollapsed ? 'w-[72px]' : 'w-[260px]'
         }`}
       >
@@ -183,7 +183,7 @@ export function TeacherSidebar({
           onClick={onToggleCollapse}
           aria-label={isCollapsed ? "Buka sidebar" : t("sidebarClose")}
           title={isCollapsed ? "Buka sidebar" : t("sidebarClose")}
-          className="absolute -right-3 top-6 z-50 grid size-6.5 place-items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-md transition-all duration-200 hover:scale-110 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+          className="absolute -right-3 top-9 z-50 grid size-6.5 place-items-center rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-md transition-all duration-200 hover:scale-110 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
         >
           {isCollapsed ? (
             <ChevronsRight className="size-3.5 stroke-[2.2]" />
@@ -195,7 +195,7 @@ export function TeacherSidebar({
         {/* Top Header / Brand Logo */}
         <div
           onWheel={handleHeaderOrFooterWheel}
-          className="relative flex h-14 sm:h-16 shrink-0 items-center border-b border-slate-200/80 dark:border-slate-800 px-3 rounded-t-2xl"
+          className="relative flex h-20 shrink-0 items-center border-b border-slate-300/80 dark:border-slate-800 px-3 rounded-tr-[36px] rounded-tl-none"
         >
           {/* Collapsed Mode: Centered Official Symbol */}
           <div
@@ -205,15 +205,15 @@ export function TeacherSidebar({
           >
             <Link
               href="/teacher/dashboard"
-              className="flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              className="flex size-11 items-center justify-center rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               title="Siedu Portal Guru"
             >
               <Image
                 src="/svg/symbol_siedu.svg"
                 alt="Siedu"
-                width={32}
-                height={32}
-                className="size-7.5 object-contain"
+                width={36}
+                height={36}
+                className="size-8.5 object-contain"
                 priority
               />
             </Link>
@@ -233,17 +233,17 @@ export function TeacherSidebar({
               <Image
                 src="/images/Logo.png"
                 alt="Siedu"
-                width={116}
-                height={32}
-                className="h-7 w-auto object-contain dark:hidden"
+                width={136}
+                height={38}
+                className="h-8.5 sm:h-9 w-auto object-contain dark:hidden"
                 priority
               />
               <Image
                 src="/images/Logo-white.png"
                 alt="Siedu"
-                width={116}
-                height={32}
-                className="h-7 w-auto object-contain hidden dark:block"
+                width={136}
+                height={38}
+                className="h-8.5 sm:h-9 w-auto object-contain hidden dark:block"
                 priority
               />
             </Link>
@@ -333,10 +333,10 @@ export function TeacherSidebar({
           </nav>
         </div>
 
-        {/* Bottom Section: Theme Switch + User Profile & Direct Logout (Medtbank style) */}
+        {/* Bottom Section: Theme Switch + User Profile & Direct Logout (Clean SaaS style) */}
         <div
           onWheel={handleHeaderOrFooterWheel}
-          className="relative border-t border-slate-200 dark:border-slate-800 p-3 shrink-0 rounded-b-2xl space-y-2.5"
+          className="relative border-t border-slate-300/80 dark:border-slate-800 p-3 shrink-0 rounded-none space-y-2.5"
         >
           {/* Theme Switcher */}
           <TeacherThemeSwitch isCollapsed={isCollapsed} />

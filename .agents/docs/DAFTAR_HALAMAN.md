@@ -1,102 +1,101 @@
-# Daftar Halaman — Siedu (Next.js App Router)
+# Daftar Halaman & Kontainer Interaksi — Siedu (Next.js App Router)
 
-> Referensi: `ATURAN_SISTEM.md`, `PRD.md`, `ROADMAP_SIEDU.md`, `DESIGN.md`. Standar teks & label navigasi antarmuka mengikuti Bahasa Indonesia sesuai `DESIGN.md` (misal: "Katalog Kelas", "Riwayat Pembayaran", "Jadwal & Presensi"). Update file ini kalau ada halaman baru diputuskan atau route berubah.
+> **Referensi Standar:** [`ATURAN_SISTEM.md`](.agents/docs/ATURAN_SISTEM.md), [`PRD.md`](.agents/docs/PRD.md), [`DESIGN.md`](.agents/docs/DESIGN.md).
+> Seluruh antarmuka menggunakan Bahasa Indonesia baku dan pola kontainer (Halaman Penuh / Sheet / Dialog) mengikuti matriks keputusan di [`DESIGN.md`](.agents/docs/DESIGN.md) Bagian 7F.
 
 ---
 
 ## A. Public (Guest) — `app/(public)/`
 
-| # | Halaman | Route |
-|---|---|---|
-| A1 | Landing Page | `/` |
-| A2 | Browse Classes (Katalog) | `/classes` |
-| A3 | Class Detail | `/classes/[id]` |
-| A4 | About | `/about` |
-| A5 | Privacy Policy | `/privacy-policy` |
-| A6 | Terms & Conditions | `/terms` |
-| A7 | Contact (formulir pesan masuk) | `/contact` |
-
-## B. Auth — `app/(auth)/`
-
-| # | Halaman | Route |
-|---|---|---|
-| B1 | Login | `/login` |
-| B2 | Register — Step 1 (email+password) | `/register` |
-| B3 | Register — Step 2 (info akun + consent, BR#25) | `/register/account-info` |
-| B4 | Register — Step 3 (profil Anak) | `/register/child-info` |
-| B5 | Forgot Password | `/forgot-password` |
-| B6 | Reset Password | `/reset-password/[token]` |
-
-## C. Parent — `app/(parent)/`
-
-| # | Halaman | Route | Catatan |
-|---|---|---|---|
-| C1 | Home (Dashboard) | `/home` | Sudah didesain lengkap (lihat riwayat chat) |
-| C2 | Browse Classes (reuse dari A2/A3, form daftar tampil kalau login) | `/classes`, `/classes/[id]` | |
-| C3 | Enrollment Detail | `/enrollments/[id]` | Tombol aksi kondisional per status |
-| C4 | Payment Channel Selection | `/enrollments/[id]/pay` | Redirect ke Midtrans Snap |
-| C5 | Payment Confirmation | `/enrollments/[id]/payment-result` | |
-| C6 | Payment History & Status | `/payments` | Top-level nav |
-| C7 | Schedule & Attendance | `/schedule-attendance` | Top-level nav, tab gabungan |
-| C8 | Manage Children (list) | `/children` | Di dropdown Parent |
-| C9 | Add Child | `/children/new` | |
-| C10 | Edit Child | `/children/[id]/edit` | Read-only kalau ada Pendaftaran aktif (Keputusan #5) |
-| C11 | Cancellation Request | `/enrollments/[id]/cancel` | |
-| C12 | Edit Account Profile | `/profile` | Di dropdown Parent |
-
-## D. Teacher — `app/(teacher)/`
-
-| # | Halaman | Route |
-|---|---|---|
-| D1 | Dashboard | `/teacher/dashboard` |
-| D2 | My Classes (jadwal + entry presensi) | `/teacher/classes` |
-| D3 | Attendance Form | `/teacher/classes/[classId]/sessions/[date]/attendance` |
-| D4 | Grades & Progress | `/teacher/grades` |
-| D5 | Grade Input Form | `/teacher/grades/[enrollmentId]` |
-| D6 | Correction Requests | `/teacher/corrections` |
-| D7 | Edit Profile | `/teacher/profile` |
-
-## E. Admin — `app/(admin)/`
-
-| # | Halaman | Route | Catatan |
-|---|---|---|---|
-| E1 | Dashboard | `/admin/dashboard` | |
-| E2 | Subjects (Mata Pelajaran) | `/admin/subjects` | list+form |
-| E3 | Enrollment Periods | `/admin/periods` | list+form |
-| E4 | Teachers | `/admin/teachers` | list+form |
-| E5 | Classes | `/admin/classes` | list+form, validasi BR#6 |
-| E6 | ⚠️ Problematic Enrollments | `/admin/enrollments/flagged` | BR belum final — wireframe kasar saja |
-| E7 | Refund Verification | `/admin/refunds` | |
-| E8 | Duplicate Children Review | `/admin/duplicate-children` | BR#16 |
-| E9 | Correction Approvals | `/admin/corrections` | BR#18 |
-| E10 | ⚠️ Reports (Enrollment & Finance) | `/admin/reports` | Format belum dibahas — wireframe kasar |
-| E11 | Pesan Masuk (inbox form Kontak) | `/admin/messages` | Tabel + status baru/diproses/selesai |
-
-## F. Sistem (bukan halaman UI)
-
-| # | Fungsi | Route |
-|---|---|---|
-| F1 | Cron check timeout (BR#21) | `/api/cron/check-timeout` |
-| F2 | Webhook Midtrans | `/api/webhooks/midtrans` |
+| # | Halaman / Fitur | Route | Tipe Kontainer | Keterangan |
+|---|---|---|---|---|
+| A1 | Landing Page | `/` | Halaman Penuh | Beranda publik, hero, katalog unggulan |
+| A2 | Katalog Kelas | `/classes` | Halaman Penuh | Filter jenjang (Drawer di mobile) |
+| A3 | Rincian Kelas | `/classes/[id]` | Halaman Penuh | Silabus, jadwal, profil pengajar |
+| A4 | Tentang Kami | `/about` | Halaman Penuh | Profil lembaga & metodologi belajar |
+| A5 | Kebijakan Privasi | `/privacy-policy` | Halaman Penuh | Dokumen hukum & persetujuan data |
+| A6 | Syarat & Ketentuan | `/terms` | Halaman Penuh | Ketentuan layanan & kebijakan refund |
+| A7 | Kontak | `/contact` | Halaman Penuh | Formulir pesan publik |
 
 ---
 
-## Urutan Pengerjaan yang Disarankan
+## B. Autentikasi — `app/(auth)/`
 
-1. **Auth** (B1–B6) — prasyarat semua orang
-2. **Public + Parent inti** (A1–A6, C1, C3) — value tertinggi
-3. **Payment flow** (C4, C5, C6) — paling kompleks, tapi keputusan Midtrans+BR#23 sudah final
-4. **Teacher** (D1–D7) — bisa paralel, tidak bergantung payment
-5. **Admin CRUD dasar** (E1–E5)
-6. **Admin lanjutan** (E7, E8, E9)
-7. **Item ⚠️** (E6, E10) — tunda sampai BR-nya dirumuskan
-
-**Total: 34 halaman UI + 2 route sistem.**
+| # | Halaman / Fitur | Route | Tipe Kontainer | Keterangan |
+|---|---|---|---|---|
+| B1 | Masuk (Login) | `/login` | Halaman Penuh | Email & password (Auth.js v5) |
+| B2 | Daftar — Langkah 1 | `/register` | Halaman Penuh | Registrasi awal (email & password) |
+| B3 | Daftar — Langkah 2 | `/register/account-info` | Halaman Penuh | Info akun wali & persetujuan consent (BR#25) |
+| B4 | Daftar — Langkah 3 | `/register/child-info` | Halaman Penuh | Input profil anak pertama |
+| B5 | Lupa Password | `/forgot-password` | Halaman Penuh | Permintaan reset link email |
+| B6 | Reset Password | `/reset-password/[token]` | Halaman Penuh | Form pembaruan password baru |
 
 ---
 
-## Cara Update File Ini
+## C. Portal Orang Tua — `app/(parent)/`
 
-- Tandai `[x]` di depan nomor kalau halaman sudah selesai dibuat, biar jadi checklist progres.
-- Kalau ada halaman baru yang diputuskan di tengah jalan, tambahkan di grup yang sesuai dengan nomor urut berikutnya (mis. C13), jangan sisipkan di tengah supaya referensi lama tidak berubah.
+| # | Halaman / Fitur | Route | Tipe Kontainer | Keterangan |
+|---|---|---|---|---|
+| C1 | Beranda (Dashboard) | `/home` | Halaman Penuh | Ringkasan anak, jadwal & tagihan |
+| C2 | Pilih & Daftar Kelas | `/classes`, `/classes/[id]` | Halaman Penuh | Tombol daftar memicu alur pendaftaran |
+| C3 | Rincian Pendaftaran | `/enrollments/[id]` | Halaman Penuh | Status enrollment & rincian pembayaran |
+| C4 | Pembayaran Midtrans Snap | `/enrollments/[id]/pay` | Halaman / Embed | Integrasi Snap pembayaran tagihan aktif |
+| C5 | Hasil Pembayaran | `/enrollments/[id]/payment-result`| Halaman Penuh | Status settlement / pending dari Midtrans |
+| C6 | Riwayat Pembayaran | `/payments` | Halaman Penuh | Tab status lunas, aktif, & tertunggak |
+| C7 | Jadwal & Presensi Anak | `/schedule-attendance` | Halaman Penuh | Kalender & rekap absensi anak |
+| C8 | Kelola Data Anak | `/children` | Halaman Penuh | Daftar profil seluruh anak wali |
+| C9 | Tambah Data Anak | `/children` (atau `/children/new`) | **Sheet / Drawer** | Form input profil anak baru |
+| C10 | Ubah Data Anak | `/children` (atau `/children/[id]/edit`) | **Sheet / Drawer** | Terkunci read-only jika ada pendaftaran aktif (BR#29) |
+| C11 | Profil Akun Wali | `/profile` | Halaman Penuh | Edit nama, telepon, alamat rumah |
+
+---
+
+## D. Portal Guru — `app/(teacher)/`
+
+| # | Halaman / Fitur | Route | Tipe Kontainer | Keterangan |
+|---|---|---|---|---|
+| D1 | Dashboard Guru | `/teacher/dashboard` | Halaman Penuh | Jadwal hari ini & metrik kelas aktif |
+| D2 | Kelas yang Diampu | `/teacher/classes` | Halaman Penuh | Daftar kelas, kuota, & jadwal sesi |
+| D3 | Input Presensi Pertemuan | `/teacher/classes/[classId]/sessions/[date]/attendance` | **Sheet / Halaman** | Tandai Hadir, Izin, Sakit, Alpa |
+| D4 | Nilai & Progres Belajar | `/teacher/grades` | Halaman Penuh | Rekap nilai siswa per kelas |
+| D5 | Input Nilai & Catatan | `/teacher/grades` | **Sheet / Drawer** | Nilai angka & catatan naratif siswa |
+| D6 | Pengajuan Koreksi | `/teacher/corrections` | **Dialog (Modal)** | Koreksi presensi/nilai setelah >7 hari (BR#18) |
+| D7 | Profil Guru | `/teacher/profile` | Halaman Penuh | Informasi biodata & kontak pengajar |
+
+---
+
+## E. Portal Admin — `app/(admin)/`
+
+| # | Halaman / Fitur | Route | Tipe Kontainer | Keterangan |
+|---|---|---|---|---|
+| E1 | Dashboard Admin | `/admin/dashboard` | Halaman Penuh | Metrik penerimaan, pendaftar, & pendapatan |
+| E2 | Mata Pelajaran | `/admin/subjects` | **Dialog Form** | CRUD mata pelajaran |
+| E3 | Periode Pendaftaran | `/admin/periods` | **Dialog Form** | CRUD periode pendaftaran & tanggal aktif |
+| E4 | Data Guru | `/admin/teachers` | **Sheet Form** | CRUD data guru & akun pengajar |
+| E5 | Data Kelas | `/admin/classes` | **Sheet Form** | CRUD kelas & validasi bentrok jadwal guru (BR#6) |
+| E6 | Pendaftaran Bermasalah | `/admin/enrollments/flagged` | Halaman Penuh | Monitoring pendaftaran tersendat/tertunggak |
+| E7 | Persetujuan Koreksi Guru| `/admin/corrections` | **Dialog Review** | Review pengajuan koreksi presensi/nilai (BR#18) |
+| E8 | Laporan & Keuangan | `/admin/reports` | Halaman Penuh | Analitik pendaftaran & penerimaan kas |
+| E9 | Pesan Masuk | `/admin/messages` | **Sheet Detail** | Daftar pertanyaan dari form kontak publik |
+
+---
+
+## F. Endpoint Sistem & Background Jobs
+
+| # | Layanan | Route / Handler | Mekanisme | Keterangan |
+|---|---|---|---|---|
+| F1 | Pengecekan Timeout Pendaftaran | `/api/cron/check-timeout` | Vercel Cron / Scheduler (Tiap 5 menit) | Membatalkan pendaftaran timeout 1x24 jam & melepas kuota (BR#2, BR#11) |
+| F2 | Webhook Midtrans | `/api/webhooks/midtrans` | HTTP POST Callback (SHA512 Signature) | Sinkronisasi status pembayaran & penerbitan cicilan (BR#14, BR#17, BR#26) |
+
+---
+
+## G. Fitur Didekomisioning / Dihapus (Out of Scope)
+
+| # | Fitur / Rute Asal | Rute Terkait | Alasan & Status |
+|---|---|---|---|
+| G1 | Rapor Resmi Siswa | `/teacher/classes/[classId]/report/[enrollmentId]`, `/enrollments/[id]/report` | Didekomisioning via SDD (`SPEC-decommission-rapor-sertifikat-dan-laporan.md`). Pelaporan difokuskan pada nilai tugas/asesmen murni. |
+| G2 | Sertifikat Kelulusan | `/teacher/classes/[classId]/certificate/[enrollmentId]`, `/enrollments/[id]/certificate` | Didekomisioning. Pengelolaan sertifikat di luar lingkup utama pendaftaran & bimbingan belajar Siedu. |
+| G3 | Laporan Perkembangan Naratif Guru | `LaporanPerkembanganForm`, tab laporan pada `/schedule-attendance` | Didekomisioning. Evaluasi belajar berfokus pada catatan tugas/nilai asesmen dan status aktivitas belajar harian. |
+| G4 | Deteksi Duplikat Lintas Akun | `/admin/duplicate-children` (BR#16) | Didekomisioning via SDD (`SPEC-decommission-duplicate-child-detection.md`). Proteksi dialihkan ke intra-account guard. |
+| G5 | Sub-sistem Refund Otomatis | `/admin/refunds`, `/enrollments/[id]/cancel` (BR#15, BR#20) | Didekomisioning via SDD (`SPEC-decommission-refund-subsystem.md`). Kebijakan refund manual via kontak admin. |
 

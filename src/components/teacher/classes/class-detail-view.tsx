@@ -4,16 +4,9 @@ import { useState, useMemo } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import {
   Search,
-  MoreVertical,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import { ExportClassModal, type ExportType } from "./export-class-modal";
 import { QuickAssessmentModal } from "./quick-assessment-modal";
 import { QuickGradeDrawer } from "./quick-grade-drawer";
@@ -453,9 +446,9 @@ export function ClassDetailView({
                             {s.nNilai} tugas
                           </td>
 
-                          {/* 6. Aksi: Quick Grade Drawer + Dropdown More */}
+                          {/* 6. Aksi: Quick Grade Drawer */}
                           <td className="py-3 px-4 sm:px-6 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
+                            <div className="flex items-center justify-end">
                               <button
                                 type="button"
                                 onClick={() => setGradingStudentId(s.id)}
@@ -463,36 +456,6 @@ export function ClassDetailView({
                               >
                                 <span>Input Nilai</span>
                               </button>
-
-                              <DropdownMenu>
-                                <DropdownMenuTrigger
-                                  className="grid size-7 place-items-center rounded-md border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100 transition-colors cursor-pointer"
-                                  aria-label={`Menu opsi untuk ${s.nama}`}
-                                >
-                                  <MoreVertical className="size-3.5" />
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                  align="end"
-                                  className="w-44 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md rounded-md p-1"
-                                >
-                                  <DropdownMenuItem asChild>
-                                    <Link
-                                      href={`/teacher/classes/${classId}/report/${s.id}`}
-                                      className="flex w-full items-center px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded cursor-pointer"
-                                    >
-                                      <span>Lihat Rapor Siswa</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem asChild>
-                                    <Link
-                                      href={`/teacher/classes/${classId}/certificate/${s.id}`}
-                                      className="flex w-full items-center px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded cursor-pointer"
-                                    >
-                                      <span>Unduh Sertifikat</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
                             </div>
                           </td>
                         </tr>

@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useState, useMemo } from 'react';
+import { Link } from '@/i18n/navigation';
 import { savePresensi, type GuruState } from '@/app/actions/teacher';
 import { StudentAvatar } from '@/components/parent/student-avatar';
 import {
@@ -29,6 +30,7 @@ export type SiswaPresensi = {
   status?: string;
   catatan?: string;
   terkunci: boolean;
+  presensiId?: number;
 };
 
 interface AttendanceTableProps {
@@ -315,10 +317,20 @@ export function AttendanceTable({
                     {/* 5. Status Icon Indicator */}
                     <td className="px-4 py-3 text-center">
                       {s.terkunci ? (
-                        <span className="inline-flex items-center gap-1 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-1.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
-                          <Lock className="size-3" />
-                          Kunci
-                        </span>
+                        <div className="flex flex-col items-center gap-1">
+                          <span className="inline-flex items-center gap-1 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-1.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                            <Lock className="size-3" />
+                            Kunci
+                          </span>
+                          {s.presensiId ? (
+                            <Link
+                              href={`/teacher/corrections?entitas=presensi&id=${s.presensiId}`}
+                              className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              Ajukan Koreksi
+                            </Link>
+                          ) : null}
+                        </div>
                       ) : currentStatus ? (
                         <span className="inline-flex items-center gap-1.5 text-xs font-semibold capitalize text-slate-800 dark:text-slate-200">
                           <span

@@ -7,9 +7,7 @@ import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { dalamJendela7Hari } from "@/lib/hari";
 import { Badge } from "@/components/ui/badge";
-import { ButtonLink } from "@/components/ui/button";
 import NilaiForm from "@/components/teacher/nilai-form";
-import LaporanPerkembanganForm from "@/components/teacher/laporan-perkembangan-form";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +24,7 @@ export default async function GradeInputPage({
   if (!session?.user) return redirect({ href: "/login?next=/teacher/grades", locale });
   const { enrollmentId } = await params;
   const { tab } = await searchParams;
-  const activeTab = tab ?? "perkembangan"; // 'perkembangan' | 'penilaian' | 'legacy'
+  const activeTab = tab ?? "penilaian"; // 'penilaian' | 'legacy'
 
   const pid = Number(enrollmentId);
   if (!Number.isInteger(pid)) notFound();
@@ -49,7 +47,6 @@ export default async function GradeInputPage({
     anak,
     nilai,
     presensi,
-    laporanRows,
     hasilPenilaianRows,
     semuaPenilaian,
     riwayatPendaftaran,
@@ -64,11 +61,6 @@ export default async function GradeInputPage({
         .all(),
     ),
     collect(db.orm.public.Presensi.where((x) => x.pendaftaranId.eq(pid)).all()),
-    collect(
-      db.orm.public.LaporanPerkembangan.where((l) => l.pendaftaranId.eq(pid))
-        .orderBy((l) => l.tanggal.desc())
-        .all(),
-    ),
     collect(db.orm.public.HasilPenilaian.where((h) => h.pendaftaranId.eq(pid)).all()),
     collect(db.orm.public.Penilaian.where((pen) => pen.kelasId.eq(p.kelasId)).all()),
     collect(db.orm.public.Pendaftaran.where((pnd) => pnd.anakId.eq(p.anakId)).all()),
@@ -127,15 +119,6 @@ export default async function GradeInputPage({
             })}
           </p>
         </div>
-
-        <div>
-          <ButtonLink
-            href={`/teacher/classes/${p.kelasId}/report/${p.id}`}
-            variant="outline"
-          >
-            {t("reportCard")}
-          </ButtonLink>
-        </div>
       </div>
 
       {/* 3. Main Grid */}
@@ -156,7 +139,6 @@ export default async function GradeInputPage({
               {[
                 [t("recordedAttendance"), t("sessionsCount", { count: presensi.length })],
                 [t("present"), t("sessionsCount", { count: nHadir })],
-                [t("progressReportsTab"), `${laporanRows.length}`],
                 [t("classAssessmentsTab"), `${hasilPenilaianRows.length}`],
                 [t("editable"), t("editableCount", { count: editable })],
               ].map(([k, v]) => (
@@ -222,101 +204,7 @@ export default async function GradeInputPage({
             ))}
           </nav>
 
-          {activeTab === "perkembangan" ? (
-            <div className="space-y-4">
-              {/* Form Laporan Perkembangan Baru */}
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
-                <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
-                  <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">
-                    {t("newProgressReport")}
-                  </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Catatan internal guru disimpan terpisah dan aman dari publikasi orang tua.
-                  </p>
-                </div>
-                <div className="p-4 sm:p-6">
-                  <LaporanPerkembanganForm pendaftaranId={pid} />
-                </div>
-              </div>
-
-              {/* Riwayat Laporan Perkembangan */}
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
-                <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
-                  <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">
-                    Riwayat Laporan Perkembangan
-                  </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Daftar laporan perkembangan anak yang telah disimpan atau diterbitkan ke orang tua.
-                  </p>
-                </div>
-                {laporanRows.length === 0 ? (
-                  <div className="px-4 py-12 text-center sm:px-6">
-                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">{t("noProgressReportsYet")}</p>
-                  </div>
-                ) : (
-                  <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {laporanRows.map((l) => (
-                      <li key={l.id} className="p-4 sm:p-6 space-y-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex items-center gap-2.5">
-                            <span className="font-bold text-slate-900 dark:text-slate-100 text-sm">{l.judul}</span>
-                            {l.draf ? (
-                              <Badge tone="slate">{t("draftStatus")}</Badge>
-                            ) : (
-                              <Badge tone="emerald">{t("publishedStatus")}</Badge>
-                            )}
-                          </div>
-                          <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
-                            {new Date(`${l.tanggal}T00:00:00+07:00`).toLocaleDateString(locale === "en" ? "en-GB" : "id-ID", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                              timeZone: "Asia/Jakarta",
-                            })}
-                          </span>
-                        </div>
-
-                        {/* Catatan Internal (jika ada) */}
-                        {l.catatanInternal ? (
-                          <div className="rounded-lg border border-amber-200/80 dark:border-amber-900/60 bg-amber-50/50 dark:bg-amber-950/20 p-3 text-xs">
-                            <span className="font-bold text-amber-900 dark:text-amber-300">{t("internalNoteLabel")}: </span>
-                            <span className="text-amber-950 dark:text-amber-200 whitespace-pre-line">{l.catatanInternal}</span>
-                          </div>
-                        ) : null}
-
-                        {/* Laporan Orang Tua */}
-                        {l.laporanOrtu ? (
-                          <div className="rounded-lg border border-blue-100 dark:border-blue-900/60 bg-blue-50/40 dark:bg-blue-950/20 p-3 text-xs">
-                            <span className="font-bold text-blue-900 dark:text-blue-300">{t("parentReportLabel")}: </span>
-                            <span className="text-slate-800 dark:text-slate-200 whitespace-pre-line">{l.laporanOrtu}</span>
-                          </div>
-                        ) : null}
-
-                        {/* Edit details form */}
-                        <details className="mt-2 group">
-                          <summary className="cursor-pointer list-none text-xs font-semibold text-blue-700 dark:text-blue-400 hover:underline">
-                            {t("editEntry")}
-                          </summary>
-                          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-                            <LaporanPerkembanganForm
-                              pendaftaranId={pid}
-                              laporanId={l.id}
-                              initialTanggal={l.tanggal}
-                              initialJudul={l.judul}
-                              initialCatatanInternal={l.catatanInternal}
-                              initialLaporanOrtu={l.laporanOrtu}
-                              initialDraf={l.draf}
-                              diterbitkanPada={l.diterbitkanPada}
-                            />
-                          </div>
-                        </details>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </div>
-          ) : activeTab === "penilaian" ? (
+          {activeTab === "penilaian" ? (
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
               <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
                 <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">
@@ -445,7 +333,19 @@ export default async function GradeInputPage({
                                 />
                               </div>
                             </details>
-                          ) : null}
+                          ) : (
+                            <div className="mt-3 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/70 pt-2.5">
+                              <span className="text-xs text-slate-500 dark:text-slate-400">
+                                Entri telah terkunci permanen (&gt; 7 hari).
+                              </span>
+                              <Link
+                                href={`/teacher/corrections?entitas=nilai&id=${n.id}`}
+                                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                              >
+                                Ajukan Koreksi Nilai Ini →
+                              </Link>
+                            </div>
+                          )}
                         </li>
                       );
                     })}

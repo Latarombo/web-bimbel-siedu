@@ -28,9 +28,6 @@ import { sisaWaktu24Jam } from "@/lib/hari";
 import { ClassTicket } from "@/components/parent/class-ticket";
 import { createBillingReminderWaLink } from "@/lib/whatsapp";
 import { SITE } from "@/lib/site";
-import { midtransConfigured } from "@/lib/midtrans";
-import MidtransPayButton from "@/components/parent/midtrans-pay-button";
-import { konfirmasiManual } from "@/app/actions/pembayaran";
 
 export const dynamic = "force-dynamic";
 
@@ -65,16 +62,12 @@ export default async function EnrollmentDetailPage({
   );
   if (!p) notFound();
 
-  const [anak, kelas, tagihan, pengajuan, jadwal, ortuUsers] = await Promise.all([
+  const [anak, kelas, tagihan, jadwal, ortuUsers] = await Promise.all([
     COLLECT(db.orm.public.Anak.where((a) => a.id.eq(p.anakId)).all()),
     COLLECT(db.orm.public.Kelas.where((k) => k.id.eq(p.kelasId)).all()),
     COLLECT(
       db.orm.public.Pembayaran.where((b) => b.pendaftaranId.eq(pid))
         .orderBy((b) => b.cicilanKe.asc())
-        .all(),
-    ),
-    COLLECT(
-      db.orm.public.PengajuanPembatalan.where((q) => q.pendaftaranId.eq(pid))
         .all(),
     ),
     COLLECT(
@@ -85,7 +78,6 @@ export default async function EnrollmentDetailPage({
   const a = anak[0];
   const k = kelas[0];
   const ortuUser = ortuUsers[0];
-  const pengajuanMenunggu = pengajuan.find((q) => q.status === "menunggu");
 
   // Pastikan pendaftaran benar milik orang tua yang login.
   if (!a || a.orangTuaId !== ortuId) notFound();
@@ -108,7 +100,6 @@ export default async function EnrollmentDetailPage({
   const aktif = ["menunggu_pembayaran", "terdaftar", "tertunggak"].includes(status);
   const nextBill = tagihan.find((b) => b.status === "pending" || b.status === "gagal");
   const riwayat = tagihan.filter((b) => b.status !== "pending" && b.status !== "gagal");
-  const gateway = midtransConfigured();
 
   // Perhitungan sisa waktu batas bayar 24 jam (server-side)
   const { isExpired, sisaJam, sisaMenit } = sisaWaktu24Jam(p.createdAt);
@@ -147,10 +138,6 @@ export default async function EnrollmentDetailPage({
           : status === "dibatalkan_kelas"
             ? tr("enrollCancelledClass")
             : `${tr("text028")} ${status.replaceAll("_", " ")}.`;
-
-  const kategoriPengajuan =
-    getLabelMaps(locale).LABEL_KATEGORI_BATAL[pengajuanMenunggu?.kategori ?? ""] ??
-    (pengajuanMenunggu?.kategori ?? "").replaceAll("_", " ");
 
   const targetTingkat = k?.tingkat ?? null;
   const namaTingkat = targetTingkat
@@ -441,27 +428,13 @@ export default async function EnrollmentDetailPage({
 
                   {/* Tombol Utama Bayar Sekarang */}
                   <div className="mt-6 space-y-2.5">
-                    {gateway ? (
-                      <MidtransPayButton
-                        pembayaranId={nextBill.id}
-                        label={`Bayar Sekarang • ${rupiah(tagihanAwalNominal)}`}
-                        className="w-full min-h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm sm:text-base shadow-md rounded-xl transition-all active:scale-[0.99] cursor-pointer"
-                      />
-                    ) : (
-                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs space-y-3">
-                        <p className="font-bold text-amber-900">Mode Transfer Manual Lembaga</p>
-                        <p className="text-amber-800 leading-relaxed">
-                          Silakan transfer sejumlah <strong>{rupiah(tagihanAwalNominal)}</strong> ke rekening lembaga Siedu, lalu klik tombol konfirmasi di bawah:
-                        </p>
-                        <form action={konfirmasiManual}>
-                          <input type="hidden" name="pembayaran_id" value={nextBill.id} />
-                          <input type="hidden" name="pendaftaran_id" value={pid} />
-                          <Button type="submit" className="w-full min-h-11 font-bold">
-                            Konfirmasi Pembayaran Manual
-                          </Button>
-                        </form>
-                      </div>
-                    )}
+                    <ButtonLink
+                      href={`/enrollments/${pid}/pay`}
+                      size="lg"
+                      className="w-full min-h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm sm:text-base shadow-md rounded-xl transition-all active:scale-[0.99] cursor-pointer"
+                    >
+                      Bayar Sekarang • {rupiah(tagihanAwalNominal)}
+                    </ButtonLink>
 
                     {/* Tombol Kirim Tagihan ke WhatsApp */}
                     {waBillingLink ? (
@@ -509,15 +482,6 @@ export default async function EnrollmentDetailPage({
                     </p>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <Link
-                    href={`/enrollments/${p.id}/report`}
-                    className="inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-white border border-emerald-300 px-4 py-2 text-xs font-bold text-emerald-900 hover:bg-emerald-100/50 shadow-2xs transition-colors cursor-pointer"
-                  >
-                    <span>Lihat E-Rapor</span>
-                  </Link>
-                </div>
               </div>
             </div>
 
@@ -558,13 +522,14 @@ export default async function EnrollmentDetailPage({
                 </div>
               </div>
 
-              {nextBill && gateway && (
+              {nextBill && (
                 <div className="shrink-0 w-full sm:w-auto">
-                  <MidtransPayButton
-                    pembayaranId={nextBill.id}
-                    label={`Bayar Tunggakan (${rupiah(Number(nextBill.jumlah))})`}
+                  <ButtonLink
+                    href={`/enrollments/${pid}/pay`}
                     className="min-h-11 px-5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs"
-                  />
+                  >
+                    Bayar Tunggakan ({rupiah(Number(nextBill.jumlah))})
+                  </ButtonLink>
                 </div>
               )}
             </div>
@@ -620,17 +585,13 @@ export default async function EnrollmentDetailPage({
                 </div>
 
                 <div className="shrink-0 w-full sm:w-auto">
-                  {gateway ? (
-                    <MidtransPayButton
-                      pembayaranId={nextBill.id}
-                      label={`Bayar Cicilan (${rupiah(Number(nextBill.jumlah))})`}
-                      className="min-h-11 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs"
-                    />
-                  ) : (
-                    <ButtonLink href={`/enrollments/${p.id}/pay`} size="lg" className="min-h-11 px-5">
-                      Bayar Sekarang
-                    </ButtonLink>
-                  )}
+                  <ButtonLink
+                    href={`/enrollments/${p.id}/pay`}
+                    size="lg"
+                    className="min-h-11 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs"
+                  >
+                    Bayar Cicilan ({rupiah(Number(nextBill.jumlah))})
+                  </ButtonLink>
                 </div>
               </div>
             </div>
@@ -685,32 +646,6 @@ export default async function EnrollmentDetailPage({
               </ul>
             </div>
           </section>
-        )}
-
-        {/* ============================================================== */}
-        {/* PENGAJUAN PEMBATALAN / REFUND                                  */}
-        {/* ============================================================== */}
-        {aktif && status === "terdaftar" && !pengajuanMenunggu && (
-          <div className="mt-8 border-t border-slate-200/80 pt-6">
-            <Link
-              href={`/enrollments/${p.id}/cancel`}
-              className="text-xs font-semibold text-slate-500 underline underline-offset-4 hover:text-rose-600 transition-colors"
-            >
-              Ajukan Pembatalan / Pengembalian Dana
-            </Link>
-            <p className="mt-1 text-[11px] text-slate-400">
-              Pengembalian dana diproses sesuai syarat dan ketentuan lembaga.
-            </p>
-          </div>
-        )}
-
-        {pengajuanMenunggu && (
-          <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900">
-            {tr("enrollCancelPending", {
-              kategori: kategoriPengajuan,
-              date: tanggal(pengajuanMenunggu.createdAt),
-            })}
-          </div>
         )}
       </div>
     </div>

@@ -4,6 +4,7 @@ import { redirect, Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
+import { ArrowLeft } from "lucide-react";
 import { PenilaianForm, type StudentAssessmentRow } from "@/components/teacher/penilaian-form";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +39,7 @@ export default async function EditClassAssessment({
   const mapelList = await collect(db.orm.public.MataPelajaran.all());
   const mapelById = new Map(mapelList.map((m) => [m.id, m]));
   const mapelName = kelas ? mapelById.get(kelas.mataPelajaranId)?.nama ?? "Kelas" : "Kelas";
-  const kelasLabel = kelas ? `${mapelName} · ${kelas.jenjang}` : "";
+  const kelasLabel = kelas ? `${mapelName} · ${kelas.jenjang}${kelas.tingkat ? ` (${kelas.tingkat})` : ""}` : "";
 
   const [pendaftaranRows, anakRows, hasilRows] = await Promise.all([
     collect(db.orm.public.Pendaftaran.where({ kelasId: assessment.kelasId }).all()),
@@ -61,46 +62,43 @@ export default async function EditClassAssessment({
       statusHasil: h ? (h.statusHasil as "belum_dinilai" | "dinilai" | "tidak_ikut") : "belum_dinilai",
       nilai: h?.nilai ?? null,
       catatan: h?.catatan ?? null,
+      jenjang: kelas?.jenjang,
     };
   });
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-        <Link href="/teacher/dashboard" className="hover:text-slate-950 dark:hover:text-slate-100 transition-colors">
-          Dashboard
+      {/* Top back navigation */}
+      <div>
+        <Link
+          href="/teacher/grades"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+        >
+          <ArrowLeft className="size-3.5" />
+          <span>Kembali ke Nilai & Penilaian</span>
         </Link>
-        <span>/</span>
-        <Link href="/teacher/grades" className="hover:text-slate-950 dark:hover:text-slate-100 transition-colors">
-          Nilai
-        </Link>
-        <span>/</span>
-        <span className="font-semibold text-slate-900 dark:text-slate-200 truncate">
-          {assessment.nama}
-        </span>
-      </nav>
+      </div>
 
-      <div className="pb-4 border-b border-slate-200 dark:border-slate-800">
-        <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
+      {/* Title & Metadata */}
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-5">
+        <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
           {assessment.nama}
         </h1>
-        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-          {kelasLabel}
+        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
+          {kelasLabel} · {t("assessmentDate")}: {assessment.tanggal} · Batas Maks: {assessment.nilaiMaksimum} Poin
         </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs">
-        <PenilaianForm
-          kelasId={assessment.kelasId}
-          penilaianId={assessment.id}
-          initialNama={assessment.nama}
-          initialTanggal={assessment.tanggal}
-          initialNilaiMaksimum={assessment.nilaiMaksimum}
-          initialDraf={assessment.draf}
-          diterbitkanPada={assessment.diterbitkanPada}
-          siswa={siswa}
-        />
-      </div>
+      <PenilaianForm
+        kelasId={assessment.kelasId}
+        penilaianId={assessment.id}
+        initialNama={assessment.nama}
+        initialTanggal={assessment.tanggal}
+        initialNilaiMaksimum={assessment.nilaiMaksimum}
+        initialDraf={assessment.draf}
+        diterbitkanPada={assessment.diterbitkanPada}
+        siswa={siswa}
+      />
     </div>
   );
 }

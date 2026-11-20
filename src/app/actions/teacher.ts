@@ -8,7 +8,6 @@ import { db } from '@/prisma/db';
 import { auth } from '@/lib/auth';
 import { collect } from '@/lib/collect';
 import { hariDariTanggal, dalamJendela7Hari, tanggalValid } from '@/lib/hari';
-import { validateLaporanInput } from '@/lib/laporan-perkembangan';
 
 export type GuruState = { ok?: boolean; error?: string; fieldErrors?: Record<string, string> };
 
@@ -395,6 +394,17 @@ export async function ajukanKoreksi(
     return { error: t("correctionReasonMin") };
   }
 
+  // Tolak pengajuan jika sudah ada yang sedang berstatus 'menunggu' untuk entitas ini
+  const [existingPending] = await collect(
+    db.orm.public.PengajuanKoreksi.where((p) => p.entitas.eq(entitas))
+      .where((p) => p.entitasId.eq(entitasId))
+      .where((p) => p.status.eq("menunggu"))
+      .all()
+  );
+  if (existingPending) {
+    return { error: t("correctionAlreadyPending") };
+  }
+
   let dataSebelum: string | null = null;
   if (entitas === "presensi") {
     const [p] = await collect(db.orm.public.Presensi.where({ id: entitasId }).all());
@@ -609,199 +619,6 @@ export async function tarikPenilaian(
   await db.orm.public.Penilaian.where({ id: penilaianId }).update({
     draf: true,
     diterbitkanPada: null,
-  });
-
-  revalidatePath("/[locale]/teacher/grades", "page");
-  revalidatePath("/[locale]/teacher/classes/[classId]", "page");
-  revalidatePath("/[locale]/schedule-attendance", "page");
-  return { ok: true };
-}
-
-// --- M5 Perkembangan murid: pemisahan catatan internal vs laporan orang tua ---
-
-export async function saveLaporanPerkembangan(
-  prevOrFormData: GuruState | FormData | Record<string, unknown>,
-  maybeFormData?: FormData,
-): Promise<GuruState> {
-  const isDirectObject = typeof FormData !== "undefined" && !(prevOrFormData instanceof FormData) && !(maybeFormData instanceof FormData);
-  let pendaftaranId: number;
-  let laporanId: number | null = null;
-  let tanggal: string;
-  let judul: string;
-  let catatanInternal: string | null = null;
-  let laporanOrtu: string | null = null;
-  let isDraf = true;
-
-  if (isDirectObject) {
-    const obj = prevOrFormData as Record<string, unknown>;
-    pendaftaranId = Number(obj.pendaftaranId);
-    laporanId = obj.laporanId ? Number(obj.laporanId) : null;
-    tanggal = String(obj.tanggal ?? "").trim();
-    judul = String(obj.judul ?? "Laporan Perkembangan").trim();
-    catatanInternal = obj.catatanInternal ? String(obj.catatanInternal).trim() : null;
-    laporanOrtu = obj.laporanOrtu ? String(obj.laporanOrtu).trim() : null;
-    isDraf = obj.draf !== false;
-  } else {
-    const formData = (typeof FormData !== "undefined" && maybeFormData instanceof FormData)
-      ? maybeFormData
-      : (prevOrFormData as FormData);
-    pendaftaranId = Number(formData.get("pendaftaran_id"));
-    const lidRaw = formData.get("laporan_id");
-    laporanId = lidRaw ? Number(lidRaw) : null;
-    tanggal = String(formData.get("tanggal") ?? "").trim();
-    judul = String(formData.get("judul") ?? "Laporan Perkembangan").trim();
-    const ciRaw = formData.get("catatan_internal");
-    catatanInternal = ciRaw ? String(ciRaw).trim() : null;
-    const loRaw = formData.get("laporan_ortu");
-    laporanOrtu = loRaw ? String(loRaw).trim() : null;
-    const aksi = String(formData.get("aksi") ?? "draf");
-    isDraf = aksi === "draf";
-  }
-
-  const locale = await getLocaleDariCookie();
-  const t = await getTranslations({ locale, namespace: "teacher" });
-  const guruId = await guardGuru();
-  if (!guruId) return { error: t("sessionExpired") };
-
-  if (!Number.isInteger(pendaftaranId) || pendaftaranId <= 0) {
-    return { error: t("invalidParameters") };
-  }
-  if (!tanggalValid(tanggal)) return { error: t("invalidDate") };
-
-  const validationError = validateLaporanInput({
-    tanggal,
-    catatanInternal,
-    laporanOrtu,
-    draf: isDraf,
-  });
-  if (validationError) return { error: validationError };
-
-  // Guard kepemilikan kelas via pendaftaran
-  const [pendaftaran] = await collect(
-    db.orm.public.Pendaftaran.where({ id: pendaftaranId }).all()
-  );
-  if (!pendaftaran) return { error: t("enrollmentNotFound") };
-
-  const [kelas] = await collect(
-    db.orm.public.Kelas.where({ id: pendaftaran.kelasId, guruId }).all()
-  );
-  if (!kelas) return { error: t("notYourClass") };
-  if (kelas.status === "dibatalkan") return { error: t("classCancelled") };
-
-  // Guard periode pendaftaran
-  const [periode] = await collect(
-    db.orm.public.PeriodePendaftaran.where({ id: kelas.periodeId }).all()
-  );
-  if (periode && (tanggal < periode.tanggalMulai || tanggal > periode.tanggalSelesai)) {
-    return { error: t("dateOutsidePeriod") };
-  }
-
-  const nowIso = new Date().toISOString();
-  if (laporanId) {
-    const [existing] = await collect(
-      db.orm.public.LaporanPerkembangan.where({ id: laporanId, dicatatOleh: guruId }).all()
-    );
-    if (!existing) return { error: t("entryNotFound") };
-
-    await db.orm.public.LaporanPerkembangan.where({ id: laporanId }).update({
-      tanggal,
-      judul,
-      catatanInternal,
-      laporanOrtu,
-      draf: isDraf,
-      diterbitkanPada: isDraf ? null : (existing.diterbitkanPada ?? nowIso),
-      updatedAt: nowIso,
-    });
-
-    await db.orm.public.AuditPerubahan.create({
-      entitas: "laporan_perkembangan",
-      entitasId: laporanId,
-      aksi: isDraf ? "update_draf" : "terbitkan",
-      sebelum: JSON.stringify({ draf: existing.draf, tanggal: existing.tanggal }),
-      sesudah: JSON.stringify({ draf: isDraf, tanggal }),
-      alasan: isDraf ? "Pembaruan draf laporan" : "Penerbitan laporan perkembangan",
-      aktorId: guruId,
-      createdAt: nowIso,
-    });
-  } else {
-    const created = await db.orm.public.LaporanPerkembangan.create({
-      pendaftaranId,
-      dicatatOleh: guruId,
-      tanggal,
-      judul,
-      catatanInternal,
-      laporanOrtu,
-      draf: isDraf,
-      diterbitkanPada: isDraf ? null : nowIso,
-      createdAt: nowIso,
-      updatedAt: nowIso,
-    });
-
-    await db.orm.public.AuditPerubahan.create({
-      entitas: "laporan_perkembangan",
-      entitasId: created.id,
-      aksi: isDraf ? "buat_draf" : "terbitkan",
-      sebelum: null,
-      sesudah: JSON.stringify({ draf: isDraf, tanggal }),
-      alasan: isDraf ? "Pembuatan draf laporan" : "Penerbitan laporan perkembangan",
-      aktorId: guruId,
-      createdAt: nowIso,
-    });
-  }
-
-  revalidatePath("/[locale]/teacher/grades", "page");
-  revalidatePath("/[locale]/teacher/classes/[classId]", "page");
-  revalidatePath("/[locale]/schedule-attendance", "page");
-  return { ok: true };
-}
-
-export async function tarikLaporanPerkembangan(
-  prevOrFormData: GuruState | FormData | Record<string, unknown>,
-  maybeFormData?: FormData,
-): Promise<GuruState> {
-  const isDirectObject = typeof FormData !== "undefined" && !(prevOrFormData instanceof FormData) && !(maybeFormData instanceof FormData);
-  let laporanId: number;
-
-  if (isDirectObject) {
-    const obj = prevOrFormData as Record<string, unknown>;
-    laporanId = Number(obj.laporanId);
-  } else {
-    const formData = (typeof FormData !== "undefined" && maybeFormData instanceof FormData)
-      ? maybeFormData
-      : (prevOrFormData as FormData);
-    laporanId = Number(formData.get("laporan_id"));
-  }
-
-  const locale = await getLocaleDariCookie();
-  const t = await getTranslations({ locale, namespace: "teacher" });
-  const guruId = await guardGuru();
-  if (!guruId) return { error: t("sessionExpired") };
-
-  if (!Number.isInteger(laporanId) || laporanId <= 0) {
-    return { error: t("invalidParameters") };
-  }
-
-  const [existing] = await collect(
-    db.orm.public.LaporanPerkembangan.where({ id: laporanId, dicatatOleh: guruId }).all()
-  );
-  if (!existing) return { error: t("entryNotFound") };
-
-  const nowIso = new Date().toISOString();
-  await db.orm.public.LaporanPerkembangan.where({ id: laporanId }).update({
-    draf: true,
-    diterbitkanPada: null,
-    updatedAt: nowIso,
-  });
-
-  await db.orm.public.AuditPerubahan.create({
-    entitas: "laporan_perkembangan",
-    entitasId: laporanId,
-    aksi: "tarik_ke_draf",
-    sebelum: JSON.stringify({ draf: existing.draf }),
-    sesudah: JSON.stringify({ draf: true }),
-    alasan: "Penarikan laporan dari orang tua kembali ke draf",
-    aktorId: guruId,
-    createdAt: nowIso,
   });
 
   revalidatePath("/[locale]/teacher/grades", "page");
