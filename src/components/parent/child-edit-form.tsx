@@ -179,15 +179,18 @@ export function ChildEditForm({
                   id="nama"
                   name="nama"
                   required
+                  autoComplete="name"
+                  autoCapitalize="words"
                   value={nama}
                   onChange={(e) => setNama(e.target.value)}
                   placeholder={t('childFullName')}
                   aria-invalid={errors.nama ? true : undefined}
+                  aria-describedby={errors.nama ? "nama-error" : undefined}
                   className={inputBase}
                 />
               </div>
               {errors.nama && (
-                <p className="mt-1 text-xs text-rose-600">{errors.nama}</p>
+                <p id="nama-error" className="mt-1 text-xs text-rose-600">{errors.nama}</p>
               )}
             </div>
 
@@ -214,9 +217,10 @@ export function ChildEditForm({
                   }
                 }}
                 ariaInvalid={errors.tanggal_lahir ? true : undefined}
+                ariaDescribedby={errors.tanggal_lahir ? "birth-error" : undefined}
               />
               {errors.tanggal_lahir && (
-                <p className="mt-1 text-xs text-rose-600">{errors.tanggal_lahir}</p>
+                <p id="birth-error" className="mt-1 text-xs text-rose-600">{errors.tanggal_lahir}</p>
               )}
             </div>
 
@@ -299,9 +303,13 @@ export function ChildEditForm({
                 id="nomor_telepon"
                 name="nomor_telepon"
                 required
+                inputMode="tel"
+                autoComplete="tel"
                 value={hpValue}
                 onChange={(e) => setHpValue(e.target.value)}
                 placeholder={t('childPhonePlaceholder')}
+                aria-invalid={errors.nomor_telepon ? true : undefined}
+                aria-describedby={errors.nomor_telepon ? "phone-error" : undefined}
                 className={inputBase}
               />
             </div>
@@ -337,7 +345,7 @@ export function ChildEditForm({
               </div>
             )}
             {errors.nomor_telepon && (
-              <p className="mt-1 text-xs text-rose-600">{errors.nomor_telepon}</p>
+              <p id="phone-error" className="mt-1 text-xs text-rose-600">{errors.nomor_telepon}</p>
             )}
           </div>
 
@@ -360,14 +368,21 @@ export function ChildEditForm({
                 type="email"
                 id="email_notifikasi"
                 name="email_notifikasi"
+                inputMode="email"
+                autoComplete="email"
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
                 value={emailValue}
                 onChange={(e) => setEmailValue(e.target.value)}
                 placeholder={t('childEmail')}
+                aria-invalid={errors.email_notifikasi ? true : undefined}
+                aria-describedby={errors.email_notifikasi ? "email-error" : undefined}
                 className={inputBase}
               />
             </div>
             {errors.email_notifikasi && (
-              <p className="mt-1 text-xs text-rose-600">{errors.email_notifikasi}</p>
+              <p id="email-error" className="mt-1 text-xs text-rose-600">{errors.email_notifikasi}</p>
             )}
           </div>
 

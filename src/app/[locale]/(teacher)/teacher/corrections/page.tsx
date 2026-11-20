@@ -44,7 +44,6 @@ export default async function TeacherCorrections({
 
   const nilaiTerkunci = nilai.filter((n) => !dalamJendela7Hari(n.createdAt));
   const presensiTerkunci = presensi.filter((x) => !dalamJendela7Hari(x.createdAt));
-  const total = nilaiTerkunci.length + presensiTerkunci.length;
 
   const lockedEntries: LockedEntryItem[] = [
     ...presensiTerkunci.map((x) => ({

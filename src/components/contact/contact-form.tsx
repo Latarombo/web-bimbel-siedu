@@ -150,11 +150,12 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
        placeholder={tr("text168")}
        autoComplete="name"
        aria-invalid={errors.nama ? true : undefined}
+       aria-describedby={errors.nama ? "nama-error" : undefined}
        value={draft.nama}
        onChange={(e) => setDraftField("nama", e.target.value)}
        className={fieldBase}
       />
-      <FieldError error={errors.nama} />
+      <FieldError error={errors.nama} id="nama-error" />
      </div>
 
      <div>
@@ -164,16 +165,18 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
        id="telepon"
        name="telepon"
        type="tel"
+       inputMode="tel"
        required
        maxLength={30}
        placeholder="08XXXXXXXX"
        autoComplete="tel"
        aria-invalid={errors.telepon ? true : undefined}
+       aria-describedby={errors.telepon ? "telepon-error" : undefined}
        value={draft.telepon}
        onChange={(e) => setDraftField("telepon", e.target.value)}
        className={fieldBase}
       />
-      <FieldError error={errors.telepon} />
+      <FieldError error={errors.telepon} id="telepon-error" />
      </div>
     </div>
 
@@ -184,16 +187,21 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
       id="email"
       name="email"
       type="email"
+      inputMode="email"
+      autoCorrect="off"
+      autoCapitalize="none"
+      spellCheck={false}
       required
       maxLength={255}
       placeholder="contact@gmail.com"
       autoComplete="email"
       aria-invalid={errors.email ? true : undefined}
+      aria-describedby={errors.email ? "email-error" : undefined}
       value={draft.email}
       onChange={(e) => setDraftField("email", e.target.value)}
       className={fieldBase}
      />
-     <FieldError error={errors.email} />
+     <FieldError error={errors.email} id="email-error" />
     </div>
 
      <div className="grid gap-4.5 sm:grid-cols-2">
@@ -222,12 +230,14 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
         type="text"
         maxLength={150}
         placeholder={tr("contactSchoolPlaceholder")}
+        autoComplete="organization"
         aria-invalid={errors.sekolah ? true : undefined}
+        aria-describedby={errors.sekolah ? "sekolah-error" : undefined}
         value={draft.sekolah}
         onChange={(e) => setDraftField("sekolah", e.target.value)}
         className={fieldBase}
        />
-       <FieldError error={errors.sekolah} />
+       <FieldError error={errors.sekolah} id="sekolah-error" />
       </div>
      </div>
 
@@ -261,11 +271,12 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
       maxLength={2000}
       placeholder={tr("text180")}
       aria-invalid={errors.pesan ? true : undefined}
+      aria-describedby={errors.pesan ? "pesan-error" : undefined}
       value={draft.pesan}
       onChange={(e) => setDraftField("pesan", e.target.value)}
       className={textareaBase}
      />
-     <FieldError error={errors.pesan} />
+     <FieldError error={errors.pesan} id="pesan-error" />
     </div>
 
     <button

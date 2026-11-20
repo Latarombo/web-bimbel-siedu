@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { rupiah } from "@/lib/format/format";
 import { SITE } from "@/lib/site";
 import type { PaymentItem } from "./payment-types";
 import { X, Printer, CheckCircle2, ShieldCheck, Share2, ExternalLink } from "lucide-react";
-import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { NativeDialog } from "@/components/common/native-dialog";
 import { createReceiptPaidWaLink } from "@/lib/whatsapp";
 
 interface Props {
@@ -20,21 +19,6 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
   const t = useTranslations("parent");
   const locale = useLocale();
   const dateLocale = locale === "en" ? "en-US" : "id-ID";
-  // Kunci scroll body saat modal terbuka
-  useScrollLock(isOpen);
-
-  // Handle ESC key
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen, onClose]);
-
   if (!isOpen || !bill) return null;
 
   const handlePrint = () => {
@@ -79,19 +63,12 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
   });
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="receipt-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6"
+    <NativeDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabelledBy="receipt-title"
+      className="m-auto"
     >
-      {/* Backdrop — hidden during print */}
-      <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity print:hidden"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
       {/* Modal Container */}
       <div
         data-lenis-prevent
@@ -301,6 +278,6 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
           </button>
         </div>
       </div>
-    </div>
+    </NativeDialog>
   );
 }

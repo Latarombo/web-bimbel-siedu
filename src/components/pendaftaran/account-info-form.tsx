@@ -204,6 +204,7 @@ export default function AccountInfoForm({
                 type="text"
                 required
                 autoComplete="name"
+                autoCapitalize="words"
                 placeholder={t('identityName')}
                 value={draft.name}
                 onChange={(e) => {
@@ -211,6 +212,7 @@ export default function AccountInfoForm({
                   setClientErrors((prev) => ({ ...prev, name: undefined }));
                 }}
                 aria-invalid={errors.name || clientErrors.name ? true : undefined}
+                aria-describedby={errors.name || clientErrors.name ? "name-error" : undefined}
                 className={`w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 ${
                   errors.name || clientErrors.name
                     ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
@@ -218,7 +220,7 @@ export default function AccountInfoForm({
                 }`}
               />
               {errors.name || clientErrors.name ? (
-                <p className="mt-1.5 text-xs text-rose-600 font-medium">
+                <p id="name-error" className="mt-1.5 text-xs text-rose-600 font-medium">
                   {errors.name ?? clientErrors.name}
                 </p>
               ) : null}
@@ -246,6 +248,7 @@ export default function AccountInfoForm({
                   setClientErrors((prev) => ({ ...prev, nomor_telepon: undefined }));
                 }}
                 aria-invalid={errors.nomor_telepon || clientErrors.nomor_telepon ? true : undefined}
+                aria-describedby={errors.nomor_telepon || clientErrors.nomor_telepon ? "phone-error" : "phone-hint"}
                 className={`w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 ${
                   errors.nomor_telepon || clientErrors.nomor_telepon
                     ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
@@ -253,11 +256,11 @@ export default function AccountInfoForm({
                 }`}
               />
               {errors.nomor_telepon || clientErrors.nomor_telepon ? (
-                <p className="mt-1.5 text-xs text-rose-600 font-medium">
+                <p id="phone-error" className="mt-1.5 text-xs text-rose-600 font-medium">
                   {errors.nomor_telepon ?? clientErrors.nomor_telepon}
                 </p>
               ) : (
-                <p className="mt-1.5 text-xs text-slate-500">
+                <p id="phone-hint" className="mt-1.5 text-xs text-slate-500">
                   {t('phoneHint')}
                 </p>
               )}

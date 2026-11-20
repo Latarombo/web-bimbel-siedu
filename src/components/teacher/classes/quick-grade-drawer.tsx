@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Link } from "@/i18n/navigation";
 import { X, ChevronLeft, ChevronRight, Loader2, Check } from "lucide-react";
 import { saveNilai } from "@/app/actions/teacher";
-import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { NativeDialog } from "@/components/common/native-dialog";
 import type { StudentRosterItem } from "./class-detail-view";
 
 interface QuickGradeDrawerProps {
@@ -31,7 +31,7 @@ export function QuickGradeDrawer({
   totalStudents,
   onNextStudent,
   onPrevStudent,
-  classId,
+  classId: _classId,
   onSavedSuccess,
 }: QuickGradeDrawerProps) {
   const [tanggal, setTanggal] = useState("");
@@ -41,10 +41,10 @@ export function QuickGradeDrawer({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  useScrollLock(isOpen);
-
   // Reset form when student changes
-  useEffect(() => {
+  const [prevStudentId, setPrevStudentId] = useState(student?.id);
+  if (student?.id !== prevStudentId) {
+    setPrevStudentId(student?.id);
     if (student) {
       setTanggal(new Date().toISOString().slice(0, 10));
       setNilai("");
@@ -52,19 +52,7 @@ export function QuickGradeDrawer({
       setErrorMsg(null);
       setSuccessMsg(null);
     }
-  }, [student?.id]);
-
-  // Handle ESC key
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !isPending) {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, isPending, onClose]);
+  }
 
   if (!isOpen || !student) return null;
 
@@ -124,14 +112,12 @@ export function QuickGradeDrawer({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="quick-grade-drawer-title"
-      className="fixed inset-0 z-50 flex justify-end bg-slate-950/40 backdrop-blur-xs"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !isPending) onClose();
-      }}
+    <NativeDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabelledBy="quick-grade-drawer-title"
+      preventClose={isPending}
+      className="!m-0 !left-auto !right-0 !top-0 !bottom-0 !h-full !max-h-full !max-w-md w-full"
     >
       <div className="w-full max-w-md h-full bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col justify-between overflow-hidden">
         {/* 1. Header (Student Info + SpeedGrader Nav) */}
@@ -330,6 +316,6 @@ export function QuickGradeDrawer({
           </button>
         </div>
       </div>
-    </div>
+    </NativeDialog>
   );
 }

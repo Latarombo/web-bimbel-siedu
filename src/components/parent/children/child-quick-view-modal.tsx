@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import {
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { ChildData, JENJANG_STYLES } from './types';
 import { StudentAvatar } from '@/components/parent/student-avatar';
-import { useScrollLock } from '@/hooks/use-scroll-lock';
+import { NativeDialog } from '@/components/common/native-dialog';
 
 interface ChildQuickViewModalProps {
   child: ChildData | null;
@@ -81,19 +81,6 @@ export function ChildQuickViewModal({
     }
   }
 
-  // Listener tombol Escape
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
-  // Kunci scroll body saat modal terbuka
-  useScrollLock(isOpen);
-
   if (!isOpen || !child) return null;
 
   const jenjangKey = (child.jenjangTerakhir?.toUpperCase() ?? 'DEFAULT') in JENJANG_STYLES
@@ -103,19 +90,12 @@ export function ChildQuickViewModal({
   const umur = hitungUmur(child.tanggalLahir, t);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-child-name"
+    <NativeDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabelledBy="modal-child-name"
+      className="m-auto"
     >
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
       {/* Modal Card */}
       <div
         ref={modalRef}
@@ -476,6 +456,6 @@ export function ChildQuickViewModal({
           </Link>
         </div>
       </div>
-    </div>
+    </NativeDialog>
   );
 }

@@ -73,6 +73,10 @@ const passwordRules = [
                         type="email"
                         required
                         autoComplete="email"
+                        inputMode="email"
+                        autoCorrect="off"
+                        autoCapitalize="none"
+                        spellCheck={false}
                         placeholder={t('emailPlaceholder')}
                         value={draft.email}
                         onChange={(e) => setDraftField('email', e.target.value)}
@@ -106,7 +110,11 @@ const passwordRules = [
                             name="password"
                             type={showPassword ? 'text' : 'password'}
                             required
+                            minLength={8}
                             autoComplete="new-password"
+                            autoCorrect="off"
+                            autoCapitalize="none"
+                            spellCheck={false}
                             placeholder={t('createPassword')}
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}

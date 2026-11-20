@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect, useRef } from "react";
+import { useState, useTransition, useRef } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { rupiah } from "@/lib/format/format";
 import { SITE } from "@/lib/site";
@@ -21,7 +21,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { NativeDialog } from "@/components/common/native-dialog";
 
 interface Props {
   bill: PaymentItem | null;
@@ -43,20 +43,6 @@ export function QuickPayModal({
   const t = useTranslations("parent");
   const locale = useLocale();
   const dateLocale = locale === "en" ? "en-US" : "id-ID";
-
-  // Kunci scroll body saat modal terbuka
-  useScrollLock(isOpen);
-
-  // Handle ESC key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
 
   if (!isOpen || !bill) return null;
 
@@ -111,19 +97,12 @@ export function QuickPayModal({
   const bankHolder = "Yayasan Siedu Indonesia";
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="quick-pay-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+    <NativeDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabelledBy="quick-pay-title"
+      preventClose={isPending}
     >
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-
       {/* Modal Dialog Card */}
       <div className="relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-200">
         {/* Header */}
@@ -386,6 +365,6 @@ export function QuickPayModal({
           </div>
         </div>
       </div>
-    </div>
+    </NativeDialog>
   );
 }

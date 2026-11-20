@@ -2,7 +2,6 @@
 
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { getTranslations } from "next-intl/server";
 import { getLocaleDariCookie } from "@/i18n/locale";
 import { getPathname, redirect } from "@/i18n/navigation";

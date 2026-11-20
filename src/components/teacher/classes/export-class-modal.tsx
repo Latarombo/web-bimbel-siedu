@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { X } from "lucide-react";
-import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { NativeDialog } from "@/components/common/native-dialog";
 
 export type ExportType = "summary" | "attendance" | "grades";
 
@@ -42,41 +42,22 @@ export function ExportClassModal({
   initialType = "summary",
 }: ExportClassModalProps) {
   const [selectedType, setSelectedType] = useState<ExportType>(initialType);
+  const [prevInitialType, setPrevInitialType] = useState(initialType);
+  if (initialType !== prevInitialType) {
+    setPrevInitialType(initialType);
+    setSelectedType(initialType);
+  }
   const modalRef = useRef<HTMLDivElement>(null);
-
-  useScrollLock(isOpen);
-
-  useEffect(() => {
-    if (isOpen) {
-      setSelectedType(initialType);
-    }
-  }, [isOpen, initialType]);
-
-  // Handle ESC key
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   const downloadUrl = `/api/export/class/${classId}?type=${selectedType}`;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="export-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <NativeDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabelledBy="export-modal-title"
     >
       <div
         ref={modalRef}
@@ -159,6 +140,6 @@ export function ExportClassModal({
           </a>
         </div>
       </div>
-    </div>
+    </NativeDialog>
   );
 }

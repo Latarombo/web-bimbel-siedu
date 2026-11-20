@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
-import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { NativeDialog } from "@/components/common/native-dialog";
 
 export type FilterKatalogModalProps = {
   isOpen: boolean;
@@ -104,22 +104,6 @@ export function FilterKatalogModal({
     }
   }
 
-  // Tutup dengan tombol Escape
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isOpen, onClose]);
-
-  // Kunci scroll body saat modal terbuka
-  useScrollLock(isOpen);
-
-  if (!isOpen) return null;
-
   function handleSelectJenjang(jenjang: JenjangKey) {
     setSelectedJenjang(jenjang);
     setSelectedTingkat("Semua");
@@ -162,14 +146,10 @@ export function FilterKatalogModal({
   const kelasOptions = KELAS_PER_JENJANG[selectedJenjang] ?? KELAS_PER_JENJANG.Semua;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="filter-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+    <NativeDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabelledBy="filter-dialog-title"
     >
       <div
         data-lenis-prevent
@@ -281,6 +261,6 @@ export function FilterKatalogModal({
           </button>
         </div>
       </div>
-    </div>
+    </NativeDialog>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { SlidersHorizontal, X } from "lucide-react";
 import type { KelasKatalog } from "@/lib/kelas";
-import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { NativeDialog } from "@/components/common/native-dialog";
 import { matchesTingkat } from "@/lib/katalog-shared";
 
 type Props = {
@@ -72,9 +72,6 @@ export function ModalPilihKelas({
     resolveInitialTingkat(currentTingkat, currentJenjang)
   );
 
-  // Kunci scroll body saat modal terbuka
-  useScrollLock(isOpen);
-
   // Sinkronisasi jenjang & tingkat saat modal dibuka
   const [prevSync, setPrevSync] = useState({ isOpen, currentJenjang, currentTingkat });
   if (
@@ -89,17 +86,6 @@ export function ModalPilihKelas({
       setSelectedTingkat(resolveInitialTingkat(currentTingkat, validJenjang));
     }
   }
-
-  // Tutup dengan tombol Escape
-  useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && isOpen) {
-        setIsOpen(false);
-      }
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isOpen]);
 
   const normalizedJenjang = selectedJenjang.toUpperCase();
   const kelasOptions = KELAS_PER_JENJANG[normalizedJenjang] || KELAS_PER_JENJANG.SD;
@@ -176,20 +162,15 @@ export function ModalPilihKelas({
       </button>
 
       {/* Modal Dialog Berdesain Mirip Filter Tab Katalog */}
-      {isOpen && (
+      <NativeDialog
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        ariaLabelledBy="filter-detail-dialog-title"
+      >
         <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="filter-detail-dialog-title"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setIsOpen(false);
-          }}
+          data-lenis-prevent
+          className="relative w-full max-w-md rounded-3xl bg-white p-6 sm:p-7 shadow-2xl transition-all border border-slate-100 max-h-[90vh] overflow-y-auto"
         >
-          <div
-            data-lenis-prevent
-            className="relative w-full max-w-md rounded-3xl bg-white p-6 sm:p-7 shadow-2xl transition-all border border-slate-100 max-h-[90vh] overflow-y-auto"
-          >
             {/* Tombol Tutup Silang di pojok kanan atas */}
             <button
               type="button"
@@ -300,8 +281,7 @@ export function ModalPilihKelas({
               </button>
             </div>
           </div>
-        </div>
-      )}
+      </NativeDialog>
     </>
   );
 }

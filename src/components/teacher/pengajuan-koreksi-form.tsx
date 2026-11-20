@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { ajukanKoreksi } from "@/app/actions/teacher";
 import { Button } from "@/components/ui/button";
@@ -58,11 +58,6 @@ export function PengajuanKoreksiForm({ lockedEntries, initialKey }: PengajuanKor
     }
   };
 
-  useEffect(() => {
-    if (initialKey && lockedEntries.some((e) => `${e.entitas}-${e.id}` === initialKey)) {
-      handleSelectEntry(initialKey);
-    }
-  }, [initialKey, lockedEntries]);
 
   const selectedEntry = lockedEntries.find((e) => `${e.entitas}-${e.id}` === selectedKey);
 

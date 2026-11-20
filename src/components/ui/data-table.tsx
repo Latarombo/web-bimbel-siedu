@@ -106,7 +106,12 @@ export function DataTable({
       ) : null}
       {/* max-h-[70dvh] bukan 75vh: di HP bar alamat browser membuat vh lebih
           besar dari viewport nyata sehingga footer tabel terpotong. */}
-      <div className="max-h-[70dvh] overflow-auto overscroll-x-contain rounded-xl border border-slate-200 bg-white">
+      <div
+        tabIndex={0}
+        role="region"
+        aria-label={caption || "Tabel data"}
+        className="max-h-[70dvh] overflow-auto overscroll-x-contain rounded-xl border border-slate-200 bg-white focus:outline-hidden focus:ring-1 focus:ring-blue-600/30"
+      >
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-slate-200 bg-slate-50 text-left">

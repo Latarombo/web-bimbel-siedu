@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { X, Check, Loader2 } from "lucide-react";
-import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { NativeDialog } from "@/components/common/native-dialog";
 
 export type PersetujuanModalProps = {
   isOpen: boolean;
@@ -25,9 +25,6 @@ export default function PersetujuanModal({
   const [checkedPribadi, setCheckedPribadi] = useState(false);
   const [checkedSyarat, setCheckedSyarat] = useState(false);
 
-  // Kunci scroll body saat modal terbuka
-  useScrollLock(isOpen);
-
   // Reset checkboxes when modal opens
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   if (isOpen !== prevIsOpen) {
@@ -38,37 +35,16 @@ export default function PersetujuanModal({
     }
   }
 
-  // Handle escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen && !isSubmitting) {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, isSubmitting, onClose]);
-
-  if (!isOpen) return null;
-
   const canProceed = checkedPribadi && checkedSyarat && !isSubmitting;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-xs transition-opacity duration-200"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="modal-persetujuan-title"
+    <NativeDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabelledBy="modal-persetujuan-title"
+      preventClose={isSubmitting}
+      className="m-auto"
     >
-      {/* Backdrop overlay */}
-      <div
-        className="fixed inset-0"
-        onClick={() => {
-          if (!isSubmitting) onClose();
-        }}
-        aria-hidden="true"
-      />
-
       {/* Modal Dialog Content: Bottom Sheet di HP, Floating Popover di Desktop */}
       <div
         data-lenis-prevent
@@ -189,6 +165,6 @@ export default function PersetujuanModal({
           </button>
         </div>
       </div>
-    </div>
+    </NativeDialog>
   );
 }

@@ -6,7 +6,7 @@ import { Link, redirect, getPathname } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { rupiah, fmtTanggal } from "@/lib/format/format";
+import { rupiah } from "@/lib/format/format";
 import { tagihanBerikutinya } from "@/lib/services/pembayaran";
 import {
   midtransConfigured,
@@ -20,6 +20,10 @@ export const dynamic = "force-dynamic";
 type Props = {
   params: Promise<{ id: string }>;
 };
+
+function getFallbackIso() {
+  return new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+}
 
 export default async function PayPage({ params }: Props) {
   const locale = await getLocale();
@@ -82,7 +86,7 @@ export default async function PayPage({ params }: Props) {
     ? new Date(new Date(pendaftaran.createdAt).getTime() + 24 * 60 * 60 * 1000).toISOString()
     : tagihanAktif.jatuhTempo
       ? `${tagihanAktif.jatuhTempo}T23:59:59+07:00`
-      : new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      : getFallbackIso();
 
   // Kalkulasi sisa tagihan di luar yang sedang dibayar
   const totalBiayaKelas = Number(kelas.biayaPeriode);

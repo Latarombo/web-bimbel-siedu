@@ -351,6 +351,33 @@
  }
 }
 
+/*
+ * Modern Web Guidance: Native Dialog & Overscroll Containment
+ * Stops page scroll chaining and prevents layout shift without dirty overflow:hidden on body.
+ */
+dialog:modal {
+  overscroll-behavior: contain;
+}
+
+dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+/*
+ * Modern Web Guidance: Form Constraints & Validation
+ * Non-intrusive feedback that triggers only after user interaction (:user-invalid).
+ */
+:is(input, select, textarea):user-invalid {
+  border-color: var(--danger, #e11d48) !important;
+}
+
+:is(input, select, textarea):user-valid:not(:placeholder-shown) {
+  border-color: var(--success, #10b981);
+}
+
 @keyframes now-pulse {
   0%, 100% {
     box-shadow: 0 0 0 0 rgba(34, 113, 149, 0.5);

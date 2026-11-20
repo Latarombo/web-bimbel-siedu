@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { X, Loader2 } from "lucide-react";
 import { savePenilaianBatch } from "@/app/actions/teacher";
-import { useScrollLock } from "@/hooks/use-scroll-lock";
+import { NativeDialog } from "@/components/common/native-dialog";
 
 interface QuickAssessmentModalProps {
   isOpen: boolean;
@@ -25,9 +25,9 @@ export function QuickAssessmentModal({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  useScrollLock(isOpen);
-
-  useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
     if (isOpen) {
       setNama("");
       setTanggal(new Date().toISOString().slice(0, 10));
@@ -35,19 +35,7 @@ export function QuickAssessmentModal({
       setIsDraft(false);
       setErrorMsg(null);
     }
-  }, [isOpen]);
-
-  // Handle ESC key
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && !isPending) {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, isPending, onClose]);
+  }
 
   if (!isOpen) return null;
 
@@ -83,14 +71,11 @@ export function QuickAssessmentModal({
   };
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="quick-assessment-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/40 backdrop-blur-xs"
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !isPending) onClose();
-      }}
+    <NativeDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabelledBy="quick-assessment-title"
+      preventClose={isPending}
     >
       <div className="w-full max-w-lg rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
         {/* Header */}
@@ -228,6 +213,6 @@ export function QuickAssessmentModal({
           </div>
         </form>
       </div>
-    </div>
+    </NativeDialog>
   );
 }

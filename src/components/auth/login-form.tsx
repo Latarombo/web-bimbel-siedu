@@ -112,6 +112,11 @@ export default function LoginForm({
                         type="email"
                         required
                         autoComplete="email"
+                        inputMode="email"
+                        autoCorrect="off"
+                        autoCapitalize="none"
+                        spellCheck={false}
+                        aria-invalid={state.error ? true : undefined}
                         value={draft.email}
                         onChange={(e) => setDraftField('email', e.target.value)}
                         placeholder={t('emailPlaceholder')}
@@ -143,6 +148,10 @@ export default function LoginForm({
                             type={showPassword ? 'text' : 'password'}
                             required
                             autoComplete="current-password"
+                            autoCorrect="off"
+                            autoCapitalize="none"
+                            spellCheck={false}
+                            aria-invalid={state.error ? true : undefined}
                             placeholder={t('passwordPlaceholder')}
                             className="w-full h-11 px-3.5 pr-12 text-base sm:text-sm text-slate-800 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400"
                         />
