@@ -5,7 +5,7 @@ import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { tanggalWIB, hariDariTanggal } from "@/lib/format/hari";
 import { TeacherScheduleWidget, type ScheduleSessionItem } from "@/components/teacher/dashboard/teacher-schedule-widget";
-import { TrenKehadiranCard, RekapPresensiCard } from "@/components/teacher/dashboard-charts";
+import { TrenKehadiranCard } from "@/components/teacher/dashboard-charts";
 import {
   ChevronRight,
   CheckCircle2,
@@ -165,52 +165,76 @@ export default async function TeacherDashboard() {
   const totalTerisiHariIni = sesiHariIni.reduce((acc, s) => acc + Math.min(s.terisiCount, s.totalSiswa), 0);
 
   // 7. Overall attendance calculations & 7-day trend
-  const hadirCount = presensiSesi.filter((p) => p.status === "hadir").length;
-  const izinCount = presensiSesi.filter((p) => p.status === "izin").length;
-  const sakitCount = presensiSesi.filter((p) => p.status === "sakit").length;
-  const alpaCount = presensiSesi.filter((p) => p.status === "alpa").length;
-  const totalPresensiAll = hadirCount + izinCount + sakitCount + alpaCount;
-  const overallAttendanceRate = totalPresensiAll > 0 ? Math.round((hadirCount / totalPresensiAll) * 100) : 100;
+  const [wibYear, wibMonth, wibDay] = hariIniStr.split("-").map(Number);
+  const baseWibDate = new Date(Date.UTC(wibYear, wibMonth - 1, wibDay, 12, 0, 0));
 
-  const hariAktivitasData: { label: string; fullLabel: string; hadir: number; fill: string }[] = [];
-  let totalAktivitasHadir = 0;
+  const hariAktivitasData: {
+    label: string;
+    fullLabel: string;
+    hadir: number;
+    izin: number;
+    sakit: number;
+    alpa: number;
+    total: number;
+    rate: number;
+    isToday: boolean;
+    fill: string;
+  }[] = [];
+
+  let total7HariHadir = 0;
+  let total7HariIzin = 0;
+  let total7HariSakit = 0;
+  let total7HariAlpa = 0;
+
   for (let i = 6; i >= 0; i--) {
-    const d = new Date(sekarang);
-    d.setDate(d.getDate() - i);
-    const dStr = tanggalWIB(d);
+    const d = new Date(baseWibDate.getTime() - i * 86_400_000);
+    const dStr = d.toISOString().slice(0, 10);
     const dayName = d.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
       weekday: "short",
-      timeZone: WIB,
+      timeZone: "UTC",
     });
     const fullDayName = d.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
       weekday: "long",
       day: "numeric",
       month: "short",
-      timeZone: WIB,
+      timeZone: "UTC",
     });
-    const hadirDay = presensiSesi.filter(
-      (p) => p.tanggalPertemuan === dStr && p.status === "hadir"
-    ).length;
-    totalAktivitasHadir += hadirDay;
+
+    const records = presensiSesi.filter((p) => p.tanggalPertemuan === dStr);
+    const hadir = records.filter((p) => p.status === "hadir").length;
+    const izin = records.filter((p) => p.status === "izin").length;
+    const sakit = records.filter((p) => p.status === "sakit").length;
+    const alpa = records.filter((p) => p.status === "alpa").length;
+    const total = records.length;
+    const rate = total > 0 ? Math.round((hadir / total) * 100) : 100;
+
+    total7HariHadir += hadir;
+    total7HariIzin += izin;
+    total7HariSakit += sakit;
+    total7HariAlpa += alpa;
+
     const isToday = i === 0;
     const todaySuffix = locale === "en" ? " (Today)" : " (Hari Ini)";
+
     hariAktivitasData.push({
       label: dayName,
       fullLabel: isToday ? `${fullDayName}${todaySuffix}` : fullDayName,
-      hadir: hadirDay,
+      hadir,
+      izin,
+      sakit,
+      alpa,
+      total,
+      rate,
+      isToday,
       fill: isToday ? "#2563eb" : "#94a3b8",
     });
   }
 
-  const rekapPresensiData = [
-    { key: "hadir", label: t("statusHadir") || "Hadir", value: hadirCount, color: "#10b981" },
-    { key: "izin", label: t("statusIzin") || "Izin", value: izinCount, color: "#f59e0b" },
-    { key: "sakit", label: t("statusSakit") || "Sakit", value: sakitCount, color: "#0ea5e9" },
-    { key: "alpa", label: t("statusAlpa") || "Alpa", value: alpaCount, color: "#f43f5e" },
-  ];
+  const total7HariPresensi = total7HariHadir + total7HariIzin + total7HariSakit + total7HariAlpa;
+  const overallAttendanceRate =
+    total7HariPresensi > 0 ? Math.round((total7HariHadir / total7HariPresensi) * 100) : 100;
 
   const firstUnfinishedSession = sesiHariIni.find((s) => s.terisiCount < s.totalSiswa || s.totalSiswa === 0);
-  const kelasAktif = kelas.filter((k) => k.status === "aktif");
   const uniqueStudentsCount = new Set(siswaAktif.map((s) => s.anakId)).size;
 
   const tanggalLengkap = sekarang.toLocaleDateString(locale === "en" ? "en-US" : "id-ID", {
@@ -236,81 +260,54 @@ export default async function TeacherDashboard() {
         </p>
       </div>
 
-      {/* 2. Hero Section: Tren Hadir 7 Hari Terakhir (Kiri) & 4 Kartu Metrik Vertikal (Kanan) */}
+      {/* 2. Hero Section: Tren Hadir 7 Hari Terakhir (Kiri) & 3 Kartu Metrik Vertikal (Kanan) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
         {/* Sisi Kiri: Tren Hadir 7 Hari Terakhir (8 Kolom di Desktop) */}
-        <div className="lg:col-span-8 flex">
+        <div className="lg:col-span-8 flex flex-col">
           <TrenKehadiranCard
             aktivitasData={hariAktivitasData}
             title={t("weeklyAttendanceTrendTitle")}
             subtitle={t("weeklyTrendSubtitle")}
-            totalAktivitasHadir={totalAktivitasHadir}
             overallAttendanceRate={overallAttendanceRate}
+            totalAktivitasHadir={total7HariHadir}
+            totalAktivitasIzinSakit={total7HariIzin + total7HariSakit}
+            totalAktivitasAlpa={total7HariAlpa}
+            totalPresensi7Hari={total7HariPresensi}
+            emptyTitle={t("noAttendanceDataYet")}
+            emptyDesc={t("noAttendanceDataDesc")}
           />
         </div>
 
-        {/* Sisi Kanan: 4 Kartu Metrik Berbaris ke Bawah (4 Kolom di Desktop) */}
-        <div className="lg:col-span-4 grid grid-cols-2 lg:flex lg:flex-col lg:justify-between gap-4">
-          {/* Card 1: Kelas Diampu */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xs lg:flex-1">
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                {t("taughtClasses")}
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                {t("totalClassesCount", { count: kelas.length })}
-              </p>
-            </div>
-            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
-              {kelasAktif.length}
-            </p>
+        {/* Sisi Kanan: 3 Kartu Metrik Berbaris ke Bawah (4 Kolom di Desktop, Sejajar Tinggi) */}
+        <div className="lg:col-span-4 grid grid-cols-2 lg:flex lg:flex-col lg:justify-between gap-4 h-full">
+          {/* Card 1: Sesi Hari Ini (Full width pada mobile 2-cols) */}
+          <div className="col-span-2 lg:col-span-1 flex flex-col justify-center rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs lg:flex-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              {t("todaySessions")}
+            </span>
+            <span className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
+              {sesiHariIni.length}
+            </span>
           </div>
 
           {/* Card 2: Total Murid */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xs lg:flex-1">
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                {t("totalStudents")}
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                {t("enrollmentsCount", { count: siswaAktif.length })}
-              </p>
-            </div>
-            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
+          <div className="col-span-1 flex flex-col justify-center rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs lg:flex-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              {t("totalStudents")}
+            </span>
+            <span className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
               {uniqueStudentsCount}
-            </p>
+            </span>
           </div>
 
           {/* Card 3: Perlu Dinilai */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xs lg:flex-1">
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                {t("needsGrading")}
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                {antreanPenilaian.length > 0 ? "Menunggu penilaian" : t("statusDone")}
-              </p>
-            </div>
-            <p className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${antreanPenilaian.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-950 dark:text-white"}`}>
+          <div className="col-span-1 flex flex-col justify-center rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs lg:flex-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              {t("needsGrading")}
+            </span>
+            <span className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${antreanPenilaian.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-950 dark:text-white"}`}>
               {antreanPenilaian.length}
-            </p>
-          </div>
-
-          {/* Card 4: Sesi Hari Ini */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xs lg:flex-1">
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                {t("todaySessions")}
-              </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                {sesiHariIni.length > 0
-                  ? t("studentsRatio", { filled: totalTerisiHariIni, total: totalSiswaHariIni })
-                  : t("noTeachingToday")}
-              </p>
-            </div>
-            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
-              {sesiHariIni.length}
-            </p>
+            </span>
           </div>
         </div>
       </div>
@@ -318,17 +315,8 @@ export default async function TeacherDashboard() {
       {/* 3. Konten Utama Terbagi dalam Grid 12 Kolom */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Kolom Kiri: Alur Operasional & Distribusi Presensi */}
+        {/* Kolom Kiri: Alur Operasional */}
         <div className="lg:col-span-8 order-1 space-y-6">
-          {/* Distribusi Presensi Siswa */}
-          <RekapPresensiCard
-            rekapData={rekapPresensiData}
-            totalPresensi={totalPresensiAll}
-            title={t("attendanceDistributionTitle")}
-            subtitle="Proporsi status kehadiran siswa semester ini."
-            noAttendanceYet={t("noAttendanceDataYet")}
-            noAttendanceDesc={t("noAttendanceDataDesc")}
-          />
 
           {/* Sesi Mengajar Hari Ini */}
           {sesiHariIni.length > 0 ? (
