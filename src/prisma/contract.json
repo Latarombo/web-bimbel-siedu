@@ -3931,9 +3931,29 @@
                   "prefix": "anak_dob_not_future"
                 },
                 {
+                  "expression": "email_notifikasi IS NULL OR length(email_notifikasi) <= 255",
+                  "name": "anak_email_notif_len_62e5eb95",
+                  "prefix": "anak_email_notif_len"
+                },
+                {
                   "expression": "\"jenjang_terakhir\" IN ('TK', 'SD', 'SMP', 'SMA')",
                   "name": "anak_jenjang_terakhir_check_7895310b",
                   "prefix": "anak_jenjang_terakhir_check"
+                },
+                {
+                  "expression": "length(nama) <= 100",
+                  "name": "anak_nama_len_0ee8313e",
+                  "prefix": "anak_nama_len"
+                },
+                {
+                  "expression": "nomor_telepon IS NULL OR length(nomor_telepon) <= 20",
+                  "name": "anak_phone_len_a4b2d801",
+                  "prefix": "anak_phone_len"
+                },
+                {
+                  "expression": "tingkat IS NULL OR length(tingkat) <= 30",
+                  "name": "anak_tingkat_len_a4c764b9",
+                  "prefix": "anak_tingkat_len"
                 }
               ],
               "columns": {
@@ -4161,6 +4181,18 @@
               "uniques": []
             },
             "catatan_pertemuan": {
+              "checks": [
+                {
+                  "expression": "materi IS NULL OR length(materi) <= 2000",
+                  "name": "catatan_materi_len_31d8be20",
+                  "prefix": "catatan_materi_len"
+                },
+                {
+                  "expression": "pr IS NULL OR length(pr) <= 1000",
+                  "name": "catatan_pr_len_38514541",
+                  "prefix": "catatan_pr_len"
+                }
+              ],
               "columns": {
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
@@ -4285,6 +4317,11 @@
             },
             "hasil_penilaian": {
               "checks": [
+                {
+                  "expression": "catatan IS NULL OR length(catatan) <= 1000",
+                  "name": "hasil_catatan_len_b5e712d8",
+                  "prefix": "hasil_catatan_len"
+                },
                 {
                   "expression": "nilai IS NULL OR nilai >= 0",
                   "name": "hasil_penilaian_non_negatif_4a34f6d6",
@@ -4559,6 +4596,11 @@
                   "prefix": "kelas_kuota_terisi"
                 },
                 {
+                  "expression": "ruangan IS NULL OR length(ruangan) <= 50",
+                  "name": "kelas_ruangan_len_1fcacb5c",
+                  "prefix": "kelas_ruangan_len"
+                },
+                {
                   "expression": "\"status\" IN ('aktif', 'dibatalkan')",
                   "name": "kelas_status_check_744c4bc7",
                   "prefix": "kelas_status_check"
@@ -4572,6 +4614,11 @@
                   "expression": "tenor_maksimum IS NULL OR tenor_maksimum >= 2",
                   "name": "kelas_tenor_min_1d9cd717",
                   "prefix": "kelas_tenor_min"
+                },
+                {
+                  "expression": "tingkat IS NULL OR length(tingkat) <= 30",
+                  "name": "kelas_tingkat_len_a4c764b9",
+                  "prefix": "kelas_tingkat_len"
                 }
               ],
               "columns": {
@@ -4800,6 +4847,18 @@
               "uniques": []
             },
             "laporan_foto_status": {
+              "checks": [
+                {
+                  "expression": "length(alasan) <= 500",
+                  "name": "laporan_foto_alasan_len_68b6dc05",
+                  "prefix": "laporan_foto_alasan_len"
+                },
+                {
+                  "expression": "catatan IS NULL OR length(catatan) <= 1000",
+                  "name": "laporan_foto_catatan_len_b5e712d8",
+                  "prefix": "laporan_foto_catatan_len"
+                }
+              ],
               "columns": {
                 "alasan": {
                   "codecId": "pg/text@1",
@@ -5049,6 +5108,18 @@
               "uniques": []
             },
             "mata_pelajaran": {
+              "checks": [
+                {
+                  "expression": "deskripsi IS NULL OR length(deskripsi) <= 500",
+                  "name": "mapel_deskripsi_len_d8e96230",
+                  "prefix": "mapel_deskripsi_len"
+                },
+                {
+                  "expression": "length(nama) <= 100",
+                  "name": "mapel_nama_len_0ee8313e",
+                  "prefix": "mapel_nama_len"
+                }
+              ],
               "columns": {
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
@@ -5105,6 +5176,11 @@
             },
             "nilai_progres": {
               "checks": [
+                {
+                  "expression": "catatan_kualitatif IS NULL OR length(catatan_kualitatif) <= 1000",
+                  "name": "nilai_catatan_len_54951e72",
+                  "prefix": "nilai_catatan_len"
+                },
                 {
                   "expression": "nilai_kuantitatif IS NULL OR (nilai_kuantitatif >= 0 AND nilai_kuantitatif <= 100)",
                   "name": "nilai_range_0_100_d87bf105",
@@ -5692,6 +5768,21 @@
             "pengajuan_koreksi": {
               "checks": [
                 {
+                  "expression": "length(alasan) <= 1000",
+                  "name": "koreksi_alasan_len_8757e4db",
+                  "prefix": "koreksi_alasan_len"
+                },
+                {
+                  "expression": "catatan_admin IS NULL OR length(catatan_admin) <= 1000",
+                  "name": "koreksi_catatan_admin_len_9365c655",
+                  "prefix": "koreksi_catatan_admin_len"
+                },
+                {
+                  "expression": "length(data_usulan) <= 1000",
+                  "name": "koreksi_data_usulan_len_ed0dcb7f",
+                  "prefix": "koreksi_data_usulan_len"
+                },
+                {
                   "expression": "\"status\" IN ('menunggu', 'disetujui', 'ditolak')",
                   "name": "pengajuan_koreksi_status_check_64629cf3",
                   "prefix": "pengajuan_koreksi_status_check"
@@ -5856,6 +5947,11 @@
                   "expression": "nilai_maksimum > 0",
                   "name": "penilaian_maksimum_positif_fba317bb",
                   "prefix": "penilaian_maksimum_positif"
+                },
+                {
+                  "expression": "length(nama) <= 100",
+                  "name": "penilaian_nama_len_0ee8313e",
+                  "prefix": "penilaian_nama_len"
                 }
               ],
               "columns": {
@@ -6002,6 +6098,11 @@
             "periode_pendaftaran": {
               "checks": [
                 {
+                  "expression": "length(nama) <= 100",
+                  "name": "periode_nama_len_0ee8313e",
+                  "prefix": "periode_nama_len"
+                },
+                {
                   "expression": "\"status\" IN ('dibuka', 'ditutup', 'selesai')",
                   "name": "periode_pendaftaran_status_check_d92f18ce",
                   "prefix": "periode_pendaftaran_status_check"
@@ -6102,14 +6203,39 @@
             "pesan_kontak": {
               "checks": [
                 {
+                  "expression": "length(email) <= 255",
+                  "name": "pesan_kontak_email_len_39c7c506",
+                  "prefix": "pesan_kontak_email_len"
+                },
+                {
                   "expression": "\"jenjang\" IN ('TK', 'SD', 'SMP', 'SMA')",
                   "name": "pesan_kontak_jenjang_check_2be2c303",
                   "prefix": "pesan_kontak_jenjang_check"
                 },
                 {
+                  "expression": "length(nama) <= 100",
+                  "name": "pesan_kontak_nama_len_0ee8313e",
+                  "prefix": "pesan_kontak_nama_len"
+                },
+                {
+                  "expression": "length(pesan) <= 2000",
+                  "name": "pesan_kontak_pesan_len_1792af89",
+                  "prefix": "pesan_kontak_pesan_len"
+                },
+                {
+                  "expression": "sekolah IS NULL OR length(sekolah) <= 150",
+                  "name": "pesan_kontak_sekolah_len_b7fbae64",
+                  "prefix": "pesan_kontak_sekolah_len"
+                },
+                {
                   "expression": "\"status\" IN ('baru', 'diproses', 'selesai')",
                   "name": "pesan_kontak_status_check_7600466d",
                   "prefix": "pesan_kontak_status_check"
+                },
+                {
+                  "expression": "length(telepon) <= 20",
+                  "name": "pesan_kontak_telepon_len_800d816a",
+                  "prefix": "pesan_kontak_telepon_len"
                 }
               ],
               "columns": {
@@ -6342,6 +6468,11 @@
             },
             "presensi": {
               "checks": [
+                {
+                  "expression": "catatan IS NULL OR length(catatan) <= 255",
+                  "name": "presensi_catatan_len_e2069307",
+                  "prefix": "presensi_catatan_len"
+                },
                 {
                   "expression": "\"status\" IN ('hadir', 'izin', 'sakit', 'alpa')",
                   "name": "presensi_status_check_a1129453",
@@ -6682,6 +6813,11 @@
             "status_pembelajaran": {
               "checks": [
                 {
+                  "expression": "length(konten_teks) <= 1000",
+                  "name": "status_konten_len_a07c9d6d",
+                  "prefix": "status_konten_len"
+                },
+                {
                   "expression": "\"status\" IN ('aktif', 'diarsipkan', 'ditarik_admin', 'dihapus_guru')",
                   "name": "status_pembelajaran_status_check_1d7b8e43",
                   "prefix": "status_pembelajaran_status_check"
@@ -6974,6 +7110,26 @@
             "users": {
               "checks": [
                 {
+                  "expression": "alamat IS NULL OR length(alamat) <= 500",
+                  "name": "user_alamat_len_4f61cabf",
+                  "prefix": "user_alamat_len"
+                },
+                {
+                  "expression": "length(email) <= 255",
+                  "name": "user_email_len_39c7c506",
+                  "prefix": "user_email_len"
+                },
+                {
+                  "expression": "length(name) <= 100",
+                  "name": "user_name_len_f9c2ce5f",
+                  "prefix": "user_name_len"
+                },
+                {
+                  "expression": "length(nomor_telepon) <= 20",
+                  "name": "user_phone_len_c479dc80",
+                  "prefix": "user_phone_len"
+                },
+                {
                   "expression": "\"role\" IN ('admin', 'guru', 'orang_tua')",
                   "name": "users_role_check_5bd793df",
                   "prefix": "users_role_check"
@@ -7241,7 +7397,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "e27d9310438b489df0f1a415bbf3dd8392b97d54353b6388fd23999ad7de70df"
+    "storageHash": "c22e258de126a6ca735ce27f26b1b48595ae7949a5005e22e5df1255cef9f819"
   },
   "capabilities": {
     "postgres": {

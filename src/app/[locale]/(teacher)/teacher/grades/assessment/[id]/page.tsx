@@ -72,20 +72,20 @@ export default async function EditClassAssessment({
       <div>
         <Link
           href="/teacher/grades"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
         >
-          <ArrowLeft className="size-3.5" />
+          <ArrowLeft className="size-4" />
           <span>Kembali ke Nilai & Penilaian</span>
         </Link>
       </div>
 
       {/* Title & Metadata */}
-      <div className="border-b border-slate-200 dark:border-slate-800 pb-5">
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-6">
         <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
           {assessment.nama}
         </h1>
         <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-          {kelasLabel} · {t("assessmentDate")}: {assessment.tanggal} · Batas Maks: {assessment.nilaiMaksimum} Poin
+          {kelasLabel} · {t("assessmentDate")}: {assessment.tanggal}
         </p>
       </div>
 

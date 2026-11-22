@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/navigation";
+import { QuickAssessmentModal } from "@/components/teacher/classes/quick-assessment-modal";
+import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import {
   Search,
   MoreVertical,
@@ -16,6 +19,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { UnderlineTabs } from "@/components/ui/underline-tabs";
 
 export interface AssessmentItem {
   id: number;
@@ -79,7 +83,9 @@ export function TeacherGradesView({
   initialTab = "tugas",
   stats,
 }: TeacherGradesViewProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"tugas" | "murid">(initialTab);
+  const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
 
   // Filter states for Tab 1 (Asesmen Kelas)
   const [assessmentSearch, setAssessmentSearch] = useState("");
@@ -92,6 +98,26 @@ export function TeacherGradesView({
   const [studentClassFilter, setStudentClassFilter] = useState<string>("all");
   const [studentGradeStatusFilter, setStudentGradeStatusFilter] = useState<"all" | "sudah" | "belum">("all");
   const [studentPage, setStudentPage] = useState(1);
+
+  const classFilterOptions = useMemo(() => [
+    { value: "all", label: "Semua Kelas" },
+    ...classes.map((c) => ({
+      value: String(c.id),
+      label: `${c.nama} · ${c.jenjang}`,
+    })),
+  ], [classes]);
+
+  const assessmentStatusOptions = useMemo(() => [
+    { value: "all", label: "Semua Status" },
+    { value: "terbit", label: "Diterbitkan" },
+    { value: "draf", label: "Draf" },
+  ], []);
+
+  const studentGradeStatusOptions = useMemo(() => [
+    { value: "all", label: "Semua Siswa" },
+    { value: "sudah", label: "Sudah Dinilai" },
+    { value: "belum", label: "Belum Ada Nilai" },
+  ], []);
 
   // Filtered Assessments
   const filteredAssessments = useMemo(() => {
@@ -172,148 +198,77 @@ export function TeacherGradesView({
         </div>
 
         <div className="flex items-center gap-3">
-          <Link
-            href="/teacher/grades/new"
+          <button
+            type="button"
+            onClick={() => setIsAssessmentModalOpen(true)}
             className="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs hover:bg-blue-700 active:scale-[0.99] transition-all cursor-pointer"
           >
             <span>Buat Tugas Baru</span>
-          </Link>
+          </button>
         </div>
       </div>
 
       {/* 2. Top 3 Metric Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Metric 1: Total Asesmen */}
-        <div className="relative overflow-hidden rounded-lg border border-blue-200/70 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/80 via-blue-50/20 to-white dark:from-blue-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-blue-600 dark:text-blue-400">
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Total Asesmen
-                </p>
-                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-blue-100/80 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800">
-                  Periode Aktif
-                </span>
-              </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
-                {stats.totalAssessments}
-              </p>
-            </div>
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
-              Asesmen kelas periode berjalan
+        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Total Asesmen
+            </p>
+            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
+              {stats.totalAssessments}
             </p>
           </div>
-          <svg
-            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
-            viewBox="0 0 400 280"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
-            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
-            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
-          </svg>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
+            Asesmen kelas periode berjalan
+          </p>
         </div>
 
         {/* Metric 2: Siswa Tuntas Dinilai */}
-        <div className="relative overflow-hidden rounded-lg border border-emerald-200/70 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/80 via-emerald-50/20 to-white dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-emerald-600 dark:text-emerald-400">
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Siswa Sudah Dinilai
-                </p>
-                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800">
-                  Tuntas
-                </span>
-              </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
-                {stats.studentsGraded}
-              </p>
-            </div>
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
-              Memiliki riwayat entri nilai
+        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Siswa Sudah Dinilai
+            </p>
+            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
+              {stats.studentsGraded}
             </p>
           </div>
-          <svg
-            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
-            viewBox="0 0 400 280"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
-            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
-            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
-          </svg>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
+            Memiliki riwayat entri nilai
+          </p>
         </div>
 
         {/* Metric 3: Siswa Belum Dinilai */}
-        <div className="relative overflow-hidden rounded-lg border border-amber-200/70 dark:border-amber-900/40 bg-gradient-to-br from-amber-50/80 via-amber-50/20 to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-amber-600 dark:text-amber-400">
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Perlu Dinilai
-                </p>
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold border ${
-                  stats.studentsUngraded > 0
-                    ? "bg-amber-100/90 text-amber-800 dark:bg-amber-900/70 dark:text-amber-300 border-amber-300/80 dark:border-amber-800"
-                    : "bg-slate-100/90 text-slate-600 dark:bg-slate-800/80 dark:text-slate-400 border-slate-200 dark:border-slate-700"
-                }`}>
-                  {stats.studentsUngraded > 0 ? "Perlu Aksi" : "Lengkap"}
-                </span>
-              </div>
-              <p className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${
-                stats.studentsUngraded > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-950 dark:text-white"
-              }`}>
-                {stats.studentsUngraded}
-              </p>
-            </div>
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
-              {stats.studentsUngraded === 0 ? "Seluruh siswa telah memiliki nilai" : "Menunggu input penilaian pertama"}
+        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Perlu Dinilai
+            </p>
+            <p className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${
+              stats.studentsUngraded > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-950 dark:text-white"
+            }`}>
+              {stats.studentsUngraded}
             </p>
           </div>
-          <svg
-            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
-            viewBox="0 0 400 280"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
-            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
-            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
-          </svg>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
+            {stats.studentsUngraded === 0 ? "Seluruh siswa telah memiliki nilai" : "Menunggu input penilaian pertama"}
+          </p>
         </div>
       </div>
 
-      {/* 3. Propify Underline Tab Switcher */}
-      <div className="border-b border-slate-200 dark:border-slate-800">
-        <nav className="flex space-x-6" aria-label="Tabs Penilaian">
-          <button
-            type="button"
-            onClick={() => setActiveTab("tugas")}
-            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
-              activeTab === "tugas"
-                ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
-                : "border-transparent text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700"
-            }`}
-          >
-            <span>Asesmen Kelas</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("murid")}
-            className={`py-3 text-xs sm:text-sm font-semibold border-b-2 transition-colors cursor-pointer ${
-              activeTab === "murid"
-                ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
-                : "border-transparent text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700"
-            }`}
-          >
-            <span>Rekap Nilai Siswa</span>
-          </button>
-        </nav>
-      </div>
+      {/* 3. Propify Underline Tab Switcher with sliding animation */}
+      <UnderlineTabs
+        tabs={[
+          { id: "tugas", label: "Asesmen Kelas" },
+          { id: "murid", label: "Rekap Nilai Siswa" },
+        ]}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        ariaLabel="Tabs Penilaian"
+        layoutId="teacher-grades-tabs"
+      />
 
       {/* ================================================================= */}
       {/* TAB 1: ASESMEN KELAS (Propify Data Table)                         */}
@@ -331,167 +286,134 @@ export function TeacherGradesView({
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Search input */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" />
+                <label htmlFor="search-assessment" className="sr-only">
+                  Cari nama tugas atau kelas
+                </label>
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" aria-hidden="true" />
                 <input
-                  type="text"
-                  placeholder="Cari nama tugas atau kelas..."
+                  id="search-assessment"
+                  type="search"
+                  autoComplete="off"
+                  placeholder="Cari nama tugas atau kelas…"
                   value={assessmentSearch}
                   onChange={(e) => {
                     setAssessmentSearch(e.target.value);
                     setAssessmentPage(1);
                   }}
-                  className="w-48 sm:w-64 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+                  className="h-10 sm:h-9 w-48 sm:w-64 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 pl-9 pr-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
                 />
               </div>
 
               {/* Class Filter Dropdown */}
-              <select
+              <FilterDropdown
                 value={assessmentClassFilter}
-                onChange={(e) => {
-                  setAssessmentClassFilter(e.target.value);
+                onChange={(val) => {
+                  setAssessmentClassFilter(val);
                   setAssessmentPage(1);
                 }}
-                className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 pl-3 pr-8 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 focus:border-blue-600 focus:outline-hidden cursor-pointer"
-              >
-                <option value="all">Semua Kelas</option>
-                {classes.map((c) => (
-                  <option key={c.id} value={String(c.id)}>
-                    {c.nama} · {c.jenjang}
-                  </option>
-                ))}
-              </select>
+                options={classFilterOptions}
+                ariaLabel="Filter kelas asesmen"
+                size="sm"
+              />
 
               {/* Status Filter Dropdown */}
-              <select
+              <FilterDropdown
                 value={assessmentStatusFilter}
-                onChange={(e) => {
-                  setAssessmentStatusFilter(e.target.value as "all" | "terbit" | "draf");
+                onChange={(val) => {
+                  setAssessmentStatusFilter(val as "all" | "terbit" | "draf");
                   setAssessmentPage(1);
                 }}
-                className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 pl-3 pr-8 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 focus:border-blue-600 focus:outline-hidden cursor-pointer"
-              >
-                <option value="all">Semua Status</option>
-                <option value="terbit">Diterbitkan</option>
-                <option value="draf">Draf</option>
-              </select>
+                options={assessmentStatusOptions}
+                ariaLabel="Filter status publikasi asesmen"
+                size="sm"
+              />
             </div>
           </div>
 
-          {/* Propify Table */}
+          {/* Propify Table & Mobile Cards */}
           <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
+            {/* Desktop Table View (>= md) */}
             <div
               tabIndex={0}
               role="region"
               aria-label="Tabel rekap tugas dan asesmen kelas"
-              className="overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-brand/30"
+              className="hidden md:block overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-brand/30"
             >
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    <th scope="col" className="py-3 px-4 sm:px-6">Nama Asesmen</th>
-                    <th scope="col" className="py-3 px-4">Kelas</th>
-                    <th scope="col" className="py-3 px-4 text-center">Tanggal</th>
-                    <th scope="col" className="py-3 px-4 text-center">Status</th>
-                    <th scope="col" className="py-3 px-4 text-center">Progres Penilaian</th>
-                    <th scope="col" className="py-3 px-4 sm:px-6 text-right">Aksi</th>
+                    <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">No</th>
+                    <th scope="col" className="sticky left-12 z-20 min-w-[160px] max-w-[240px] bg-slate-50 dark:bg-slate-800 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]">Nama Asesmen</th>
+                    <th scope="col" className="py-3 px-4 whitespace-nowrap">Kelas</th>
+                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Tanggal</th>
+                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Siswa Dinilai</th>
+                    <th scope="col" className="py-3 px-4 text-center whitespace-nowrap">Status</th>
+                    <th scope="col" className="sticky right-0 z-20 py-3 px-4 sm:px-6 text-right bg-slate-50 dark:bg-slate-800 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {paginatedAssessments.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-600 dark:text-slate-400 text-sm">
+                      <td colSpan={7} className="py-12 text-center text-slate-600 dark:text-slate-400 text-sm">
                         Tidak ada asesmen yang sesuai dengan filter pencarian.
                       </td>
                     </tr>
                   ) : (
-                    paginatedAssessments.map((a) => {
-                      const pct = a.totalSiswa > 0 ? Math.round((a.countDinilai / a.totalSiswa) * 100) : 0;
-
+                    paginatedAssessments.map((a, idx) => {
                       return (
-                        <tr key={a.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                          {/* 1. Nama Asesmen */}
-                          <td className="py-3.5 px-4 sm:px-6">
-                            <div>
-                              <p className="font-semibold text-slate-950 dark:text-slate-50 line-clamp-1">
-                                {a.nama}
-                              </p>
-                              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                                Skala Maks: {a.nilaiMaksimum} poin
-                              </p>
-                            </div>
+                        <tr key={a.id} className="group/row relative border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                          {/* 1. Nomor Urut (Sticky Left 0) */}
+                          <td className="sticky left-0 z-10 w-12 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 text-center font-medium text-slate-500 dark:text-slate-400 tabular-nums text-xs transition-colors">
+                            {(assessmentPage - 1) * ITEMS_PER_PAGE + idx + 1}
                           </td>
 
-                          {/* 2. Kelas */}
-                          <td className="py-3.5 px-4">
-                            <span className="font-medium text-slate-900 dark:text-slate-100 text-xs sm:text-sm">
+                          {/* 2. Nama Asesmen (Sticky Left 12, Truncate, Title) */}
+                          <td className="sticky left-12 z-10 min-w-[160px] max-w-[240px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                            <p className="font-semibold text-slate-950 dark:text-slate-50 truncate text-sm" title={a.nama}>
+                              {a.nama}
+                            </p>
+                          </td>
+
+                          {/* 3. Kelas (1 Data) */}
+                          <td className="py-3 px-4">
+                            <span className="font-medium text-slate-900 dark:text-slate-100 text-xs sm:text-sm truncate max-w-[160px] block" title={a.kelasNama}>
                               {a.kelasNama}
                             </span>
-                            <span className="block text-xs text-slate-600 dark:text-slate-400">
-                              {a.jenjang} {a.tingkat ? `· ${a.tingkat}` : ""}
-                            </span>
                           </td>
 
-                          {/* 3. Tanggal */}
-                          <td className="py-3.5 px-4 text-center text-xs text-slate-800 dark:text-slate-200 tabular-nums">
+                          {/* 4. Tanggal (1 Data) */}
+                          <td className="py-3 px-4 text-right text-xs text-slate-800 dark:text-slate-200 tabular-nums whitespace-nowrap">
                             {formatDate(a.tanggal)}
                           </td>
 
-                          {/* 4. Status (Draf vs Terbit) */}
-                          <td className="py-3.5 px-4 text-center">
-                            {a.draf ? (
-                              <span className="inline-flex items-center rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
-                                <span className="size-1.5 rounded-full bg-amber-600 dark:bg-amber-400 mr-1.5" />
-                                Draf
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center rounded bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-                                <span className="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 mr-1.5" />
-                                Terbit
-                              </span>
-                            )}
+                          {/* 5. Siswa Dinilai (1 Data) */}
+                          <td className="py-3 px-4 text-right tabular-nums font-medium text-slate-900 dark:text-slate-100 text-xs sm:text-sm whitespace-nowrap">
+                            {a.countDinilai}/{a.totalSiswa}
                           </td>
 
-                          {/* 5. Progres Penilaian */}
-                          <td className="py-3.5 px-4">
-                            <div className="max-w-[160px] mx-auto space-y-1">
-                              <div className="flex items-center justify-between text-xs font-semibold">
-                                <span className="text-slate-900 dark:text-slate-100 tabular-nums">
-                                  {a.countDinilai}/{a.totalSiswa} Siswa
-                                </span>
-                                <span className="text-slate-600 dark:text-slate-400 tabular-nums">{pct}%</span>
-                              </div>
-                              <div className="h-1.5 w-full overflow-hidden rounded bg-slate-100 dark:bg-slate-800">
-                                <div
-                                  className={`h-full rounded ${pct >= 100 ? "bg-emerald-600" : "bg-blue-600"}`}
-                                  style={{ width: `${pct}%` }}
-                                />
-                              </div>
-                              <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400">
-                                {a.countBelum > 0 ? (
-                                  <span className="text-amber-700 dark:text-amber-400 font-medium">
-                                    {a.countBelum} belum
-                                  </span>
-                                ) : (
-                                  <span className="text-emerald-700 dark:text-emerald-400 font-medium">Lengkap</span>
-                                )}
-                                {a.countTidakIkut > 0 && (
-                                  <span className="text-rose-600 dark:text-rose-400">
-                                    {a.countTidakIkut} absen
-                                  </span>
-                                )}
-                              </div>
-                            </div>
+                          {/* 6. Status (1 Data) */}
+                          <td className="py-3 px-4 text-center whitespace-nowrap">
+                            <span className="inline-flex items-center gap-2 text-xs font-medium">
+                              <span
+                                className={`size-1.5 rounded-full ${
+                                  a.draf ? "bg-amber-500" : "bg-emerald-500"
+                                }`}
+                              />
+                              <span className="text-slate-700 dark:text-slate-300">
+                                {a.draf ? "Draf" : "Terbit"}
+                              </span>
+                            </span>
                           </td>
 
-                          {/* 6. Aksi */}
-                          <td className="py-3.5 px-4 sm:px-6 text-right">
-                            <div className="inline-flex items-center gap-1.5">
+                          {/* 7. Aksi (Sticky Right 0) */}
+                          <td className="sticky right-0 z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                            <div className="inline-flex items-center gap-2 opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
                               <Link
                                 href={`/teacher/grades/assessment/${a.id}`}
-                                className="inline-flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                               >
                                 <span>Input Nilai</span>
                               </Link>
@@ -507,7 +429,7 @@ export function TeacherGradesView({
                                       href={`/teacher/grades/assessment/${a.id}`}
                                       className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded cursor-pointer"
                                     >
-                                      <FileEdit className="size-3.5 text-slate-500 dark:text-slate-400" />
+                                      <FileEdit className="size-4 text-slate-500 dark:text-slate-400" />
                                       <span>Edit Nilai Murid</span>
                                     </Link>
                                   </DropdownMenuItem>
@@ -516,7 +438,7 @@ export function TeacherGradesView({
                                       href={`/teacher/classes/${a.kelasId}`}
                                       className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded cursor-pointer"
                                     >
-                                      <BookOpen className="size-3.5 text-slate-500 dark:text-slate-400" />
+                                      <BookOpen className="size-4 text-slate-500 dark:text-slate-400" />
                                       <span>Buka Detail Kelas</span>
                                     </Link>
                                   </DropdownMenuItem>
@@ -530,6 +452,96 @@ export function TeacherGradesView({
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View (< md) */}
+            <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+              {paginatedAssessments.length === 0 ? (
+                <div className="py-12 text-center text-slate-600 dark:text-slate-400 text-sm px-4">
+                  Tidak ada asesmen yang sesuai dengan filter pencarian.
+                </div>
+              ) : (
+                paginatedAssessments.map((a, idx) => {
+                  const pct = a.totalSiswa > 0 ? Math.round((a.countDinilai / a.totalSiswa) * 100) : 0;
+
+                  return (
+                    <div
+                      key={a.id}
+                      className="p-4 space-y-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-2 min-w-0">
+                          <span className="size-6 shrink-0 grid place-items-center rounded bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 tabular-nums mt-0.5">
+                            {(assessmentPage - 1) * ITEMS_PER_PAGE + idx + 1}
+                          </span>
+                          <div className="min-w-0">
+                            <Link
+                              href={`/teacher/grades/assessment/${a.id}`}
+                              className="font-semibold text-slate-950 dark:text-slate-50 hover:text-blue-600 dark:hover:text-blue-400 text-sm line-clamp-1"
+                            >
+                              {a.nama}
+                            </Link>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                              {a.kelasNama} · {a.jenjang} {a.tingkat ? `(${a.tingkat})` : ""}
+                            </p>
+                          </div>
+                        </div>
+
+                        <span className="inline-flex items-center gap-2 text-xs font-medium shrink-0 pt-0.5">
+                          <span
+                            className={`size-2 rounded-full ${
+                              a.draf ? "bg-amber-500" : "bg-emerald-500"
+                            }`}
+                          />
+                          <span className="text-slate-700 dark:text-slate-300">
+                            {a.draf ? "Draf" : "Terbit"}
+                          </span>
+                        </span>
+                      </div>
+
+                      {/* Meta info & Progress Bar */}
+                      <div className="rounded-lg border border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-800/30 p-3 space-y-2">
+                        <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400">
+                          <span>{formatDate(a.tanggal)}</span>
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-xs font-semibold">
+                            <span className="text-slate-900 dark:text-slate-100 tabular-nums">
+                              {a.countDinilai}/{a.totalSiswa} Siswa dinilai
+                            </span>
+                            <span className="text-slate-600 dark:text-slate-400 tabular-nums">{pct}%</span>
+                          </div>
+                          <div className="h-1.5 w-full overflow-hidden rounded bg-slate-200 dark:bg-slate-700">
+                            <div
+                              className={`h-full rounded ${pct >= 100 ? "bg-emerald-600" : "bg-blue-600"}`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={`/teacher/grades/assessment/${a.id}`}
+                          className="flex-1 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                        >
+                          <span>Input Nilai</span>
+                        </Link>
+                        <Link
+                          href={`/teacher/classes/${a.kelasId}`}
+                          className="h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-2xs"
+                          title="Buka Detail Kelas"
+                        >
+                          <BookOpen className="size-4" />
+                          <span className="sr-only">Buka Detail Kelas</span>
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             {/* Table Pagination Footer */}
@@ -546,14 +558,14 @@ export function TeacherGradesView({
                 dari <span className="font-semibold text-slate-950 dark:text-slate-100">{filteredAssessments.length}</span> asesmen
               </div>
 
-              <div className="inline-flex items-center gap-1.5">
+              <div className="inline-flex items-center gap-2">
                 <button
                   type="button"
                   disabled={assessmentPage <= 1}
                   onClick={() => setAssessmentPage((p) => Math.max(p - 1, 1))}
-                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
                 >
-                  <ChevronLeft className="size-3.5" />
+                  <ChevronLeft className="size-4" />
                   <span>Sebelumnya</span>
                 </button>
                 <span className="px-2 font-medium text-slate-800 dark:text-slate-200">
@@ -563,10 +575,10 @@ export function TeacherGradesView({
                   type="button"
                   disabled={assessmentPage >= totalAssessmentPages}
                   onClick={() => setAssessmentPage((p) => Math.min(p + 1, totalAssessmentPages))}
-                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
                 >
                   <span>Berikutnya</span>
-                  <ChevronRight className="size-3.5" />
+                  <ChevronRight className="size-4" />
                 </button>
               </div>
             </div>
@@ -590,157 +602,141 @@ export function TeacherGradesView({
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2">
               {/* Search input */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" />
+                <label htmlFor="search-student-grade" className="sr-only">
+                  Cari nama siswa atau kelas
+                </label>
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" aria-hidden="true" />
                 <input
-                  type="text"
-                  placeholder="Cari nama siswa atau kelas..."
+                  id="search-student-grade"
+                  type="search"
+                  autoComplete="off"
+                  placeholder="Cari nama siswa atau kelas…"
                   value={studentSearch}
                   onChange={(e) => {
                     setStudentSearch(e.target.value);
                     setStudentPage(1);
                   }}
-                  className="w-48 sm:w-64 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 pl-9 pr-3 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+                  className="h-10 sm:h-9 w-48 sm:w-64 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 pl-9 pr-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
                 />
               </div>
 
               {/* Class Filter Dropdown */}
-              <select
+              <FilterDropdown
                 value={studentClassFilter}
-                onChange={(e) => {
-                  setStudentClassFilter(e.target.value);
+                onChange={(val) => {
+                  setStudentClassFilter(val);
                   setStudentPage(1);
                 }}
-                className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 pl-3 pr-8 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 focus:border-blue-600 focus:outline-hidden cursor-pointer"
-              >
-                <option value="all">Semua Kelas</option>
-                {classes.map((c) => (
-                  <option key={c.id} value={String(c.id)}>
-                    {c.nama} · {c.jenjang}
-                  </option>
-                ))}
-              </select>
+                options={classFilterOptions}
+                ariaLabel="Filter kelas siswa"
+                size="sm"
+              />
 
               {/* Grade Status Filter Dropdown */}
-              <select
+              <FilterDropdown
                 value={studentGradeStatusFilter}
-                onChange={(e) => {
-                  setStudentGradeStatusFilter(e.target.value as "all" | "sudah" | "belum");
+                onChange={(val) => {
+                  setStudentGradeStatusFilter(val as "all" | "sudah" | "belum");
                   setStudentPage(1);
                 }}
-                className="rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 pl-3 pr-8 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 focus:border-blue-600 focus:outline-hidden cursor-pointer"
-              >
-                <option value="all">Semua Siswa</option>
-                <option value="sudah">Sudah Dinilai</option>
-                <option value="belum">Belum Ada Nilai</option>
-              </select>
+                options={studentGradeStatusOptions}
+                ariaLabel="Filter status nilai siswa"
+                size="sm"
+              />
             </div>
           </div>
 
-          {/* Propify Table */}
+          {/* Propify Table & Mobile Cards */}
           <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
+            {/* Desktop Table View (>= md) */}
             <div
               tabIndex={0}
               role="region"
-              aria-label="Tabel rekap tugas dan asesmen kelas"
-              className="overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-brand/30"
+              aria-label="Tabel rekap nilai siswa per kelas"
+              className="hidden md:block overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-brand/30"
             >
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    <th scope="col" className="py-3 px-4 sm:px-6">Siswa</th>
-                    <th scope="col" className="py-3 px-4">Kelas</th>
-                    <th scope="col" className="py-3 px-4 text-center">Tugas Dinilai</th>
-                    <th scope="col" className="py-3 px-4 text-center">Rata-rata Nilai</th>
-                    <th scope="col" className="py-3 px-4 text-center">Terakhir Dinilai</th>
-                    <th scope="col" className="py-3 px-4 sm:px-6 text-right">Aksi</th>
+                    <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">No</th>
+                    <th scope="col" className="sticky left-12 z-20 min-w-[150px] max-w-[220px] bg-slate-50 dark:bg-slate-800 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]">Siswa</th>
+                    <th scope="col" className="py-3 px-4 whitespace-nowrap">Kelas</th>
+                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Tugas Dinilai</th>
+                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Rata-rata Nilai</th>
+                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Terakhir Dinilai</th>
+                    <th scope="col" className="sticky right-0 z-20 py-3 px-4 sm:px-6 text-right bg-slate-50 dark:bg-slate-800 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {paginatedStudents.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-600 dark:text-slate-400 text-sm">
+                      <td colSpan={7} className="py-12 text-center text-slate-600 dark:text-slate-400 text-sm">
                         Tidak ada siswa yang sesuai dengan filter pencarian.
                       </td>
                     </tr>
                   ) : (
-                    paginatedStudents.map((s) => {
-                      const initial = (s.nama?.[0] || "S").toUpperCase();
-
+                    paginatedStudents.map((s, idx) => {
                       return (
-                        <tr key={s.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
-                          {/* 1. Siswa (Avatar + Name + ID) */}
-                          <td className="py-3.5 px-4 sm:px-6">
-                            <div className="flex items-center gap-3">
-                              <div className="grid size-9 shrink-0 place-items-center rounded-md bg-blue-100 dark:bg-blue-950/60 text-blue-800 dark:text-blue-300 text-xs font-bold">
-                                {initial}
-                              </div>
-                              <div>
-                                <p className="font-semibold text-slate-950 dark:text-slate-50 line-clamp-1">
-                                  {s.nama}
-                                </p>
-                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                                  ID: {s.id} · Anak #{s.anakId}
-                                </p>
-                              </div>
-                            </div>
+                        <tr key={s.id} className="group/row relative border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                          {/* 1. Nomor Urut (Sticky Left 0) */}
+                          <td className="sticky left-0 z-10 w-12 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 text-center font-medium text-slate-500 dark:text-slate-400 tabular-nums text-xs transition-colors">
+                            {(studentPage - 1) * ITEMS_PER_PAGE + idx + 1}
                           </td>
 
-                          {/* 2. Kelas */}
-                          <td className="py-3.5 px-4">
-                            <span className="font-medium text-slate-900 dark:text-slate-100 text-xs sm:text-sm">
+                          {/* 2. Siswa (Sticky Left 12, Truncate, Title) */}
+                          <td className="sticky left-12 z-10 min-w-[150px] max-w-[220px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                            <span className="font-semibold text-slate-950 dark:text-slate-50 truncate block text-sm" title={s.nama}>
+                              {s.nama}
+                            </span>
+                          </td>
+
+                          {/* 3. Kelas (1 Data) */}
+                          <td className="py-3 px-4 font-medium text-slate-900 dark:text-slate-100 text-xs sm:text-sm">
+                            <span className="truncate max-w-[160px] block" title={s.kelasNama}>
                               {s.kelasNama}
                             </span>
-                            <span className="block text-xs text-slate-600 dark:text-slate-400">
-                              {s.jenjang} {s.tingkat ? `· ${s.tingkat}` : ""}
-                            </span>
                           </td>
 
-                          {/* 3. Tugas Dinilai */}
-                          <td className="py-3.5 px-4 text-center tabular-nums text-slate-900 dark:text-slate-100 font-medium">
+                          {/* 4. Tugas Dinilai */}
+                          <td className="py-3 px-4 text-right tabular-nums text-slate-900 dark:text-slate-100 font-medium whitespace-nowrap">
                             {s.jumlahNilai > 0 ? (
                               <span>{s.jumlahNilai} tugas</span>
                             ) : (
-                              <span className="text-slate-500 dark:text-slate-400">0 tugas</span>
+                              <span className="text-slate-400 dark:text-slate-500">0 tugas</span>
                             )}
                           </td>
 
-                          {/* 4. Rata-rata Nilai */}
-                          <td className="py-3.5 px-4 text-center">
+                          {/* 5. Rata-rata Nilai (Clean typography without badge clutter) */}
+                          <td className="py-3 px-4 text-right whitespace-nowrap">
                             {s.rataRata != null ? (
-                              <span
-                                className={`inline-flex items-center justify-center rounded px-2.5 py-0.5 text-xs font-bold tabular-nums ${
-                                  s.rataRata >= 80
-                                    ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
-                                    : s.rataRata >= 70
-                                    ? "bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800"
-                                    : "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800"
-                                }`}
-                              >
+                              <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-sm">
                                 {s.rataRata}
                               </span>
                             ) : (
-                              <span className="inline-flex items-center rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700">
+                              <span className="text-xs text-slate-400 dark:text-slate-500">
                                 Belum dinilai
                               </span>
                             )}
                           </td>
 
-                          {/* 5. Terakhir Dinilai */}
-                          <td className="py-3.5 px-4 text-center text-xs text-slate-800 dark:text-slate-200 tabular-nums">
+                          {/* 6. Terakhir Dinilai */}
+                          <td className="py-3 px-4 text-right text-xs text-slate-600 dark:text-slate-400 tabular-nums whitespace-nowrap">
                             {formatDate(s.nilaiTerakhir)}
                           </td>
 
-                          {/* 6. Aksi */}
-                          <td className="py-3.5 px-4 sm:px-6 text-right">
-                            <Link
-                              href={`/teacher/grades/${s.id}`}
-                              className="inline-flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                            >
-                              <span>{s.jumlahNilai === 0 ? "Input Nilai" : "Kelola"}</span>
-                            </Link>
+                          {/* 7. Aksi (Sticky Right 0) */}
+                          <td className="sticky right-0 z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                            <div className="flex items-center justify-end opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
+                              <Link
+                                href={`/teacher/grades/${s.id}`}
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors shadow-2xs"
+                              >
+                                <span>{s.jumlahNilai === 0 ? "Input Nilai" : "Kelola"}</span>
+                              </Link>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -748,6 +744,78 @@ export function TeacherGradesView({
                   )}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View (< md) */}
+            <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+              {paginatedStudents.length === 0 ? (
+                <div className="py-12 text-center text-slate-600 dark:text-slate-400 text-sm px-4">
+                  Tidak ada siswa yang sesuai dengan filter pencarian.
+                </div>
+              ) : (
+                paginatedStudents.map((s, idx) => {
+                  const initial = (s.nama?.[0] || "S").toUpperCase();
+
+                  return (
+                    <div
+                      key={s.id}
+                      className="p-4 space-y-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="size-6 shrink-0 grid place-items-center rounded bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 tabular-nums">
+                          {(studentPage - 1) * ITEMS_PER_PAGE + idx + 1}
+                        </span>
+                        <div className="grid size-9 shrink-0 place-items-center rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
+                          {initial}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-semibold text-slate-950 dark:text-slate-50 truncate text-sm">
+                            {s.nama}
+                          </p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                            {s.kelasNama} · {s.jenjang}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* 2-Column Metrics */}
+                      <div className="grid grid-cols-2 gap-2 rounded-lg border border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-800/30 p-3 text-center">
+                        <div className="border-r border-slate-200/60 dark:border-slate-800/80 pr-2">
+                          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
+                            Rata-rata Nilai
+                          </span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-sm">
+                            {s.rataRata != null ? s.rataRata : "—"}
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 block">
+                            {s.rataRata != null ? "Rata-rata kumulatif" : "Belum dinilai"}
+                          </span>
+                        </div>
+
+                        <div className="pl-2">
+                          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
+                            Tugas Dinilai
+                          </span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-sm">
+                            {s.jumlahNilai} tugas
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 block tabular-nums">
+                            {s.nilaiTerakhir ? formatDate(s.nilaiTerakhir) : "—"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Action Button */}
+                      <Link
+                        href={`/teacher/grades/${s.id}`}
+                        className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                      >
+                        <span>{s.jumlahNilai === 0 ? "Input Nilai" : "Kelola"}</span>
+                      </Link>
+                    </div>
+                  );
+                })
+              )}
             </div>
 
             {/* Table Pagination Footer */}
@@ -764,14 +832,14 @@ export function TeacherGradesView({
                 dari <span className="font-semibold text-slate-950 dark:text-slate-100">{filteredStudents.length}</span> siswa
               </div>
 
-              <div className="inline-flex items-center gap-1.5">
+              <div className="inline-flex items-center gap-2">
                 <button
                   type="button"
                   disabled={studentPage <= 1}
                   onClick={() => setStudentPage((p) => Math.max(p - 1, 1))}
-                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
                 >
-                  <ChevronLeft className="size-3.5" />
+                  <ChevronLeft className="size-4" />
                   <span>Sebelumnya</span>
                 </button>
                 <span className="px-2 font-medium text-slate-800 dark:text-slate-200">
@@ -781,16 +849,26 @@ export function TeacherGradesView({
                   type="button"
                   disabled={studentPage >= totalStudentPages}
                   onClick={() => setStudentPage((p) => Math.min(p + 1, totalStudentPages))}
-                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
                 >
                   <span>Berikutnya</span>
-                  <ChevronRight className="size-3.5" />
+                  <ChevronRight className="size-4" />
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* QuickAssessmentModal for Creating New Assessment */}
+      <QuickAssessmentModal
+        isOpen={isAssessmentModalOpen}
+        onClose={() => setIsAssessmentModalOpen(false)}
+        classes={classes}
+        onSuccess={() => {
+          router.refresh();
+        }}
+      />
     </div>
   );
 }

@@ -179,6 +179,7 @@ export function ChildEditForm({
                   id="nama"
                   name="nama"
                   required
+                  maxLength={100}
                   autoComplete="name"
                   autoCapitalize="words"
                   value={nama}
@@ -303,6 +304,7 @@ export function ChildEditForm({
                 id="nomor_telepon"
                 name="nomor_telepon"
                 required
+                maxLength={20}
                 inputMode="tel"
                 autoComplete="tel"
                 value={hpValue}
@@ -368,6 +370,7 @@ export function ChildEditForm({
                 type="email"
                 id="email_notifikasi"
                 name="email_notifikasi"
+                maxLength={255}
                 inputMode="email"
                 autoComplete="email"
                 autoCorrect="off"

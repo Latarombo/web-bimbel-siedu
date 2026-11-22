@@ -98,26 +98,28 @@ export function TeacherQuickSearch({
       >
         {/* Search Input Bar */}
         <div className="flex items-center border-b border-slate-200 dark:border-slate-800 px-4 py-3 bg-white dark:bg-slate-900">
-          <Search className="size-5 text-slate-400 shrink-0 mr-3" />
+          <Search className="size-5 text-slate-400 shrink-0 mr-3" aria-hidden="true" />
           <input
             id="quick-search-title"
-            type="text"
+            type="search"
             autoFocus
-            placeholder="Cari siswa atau kelas..."
+            aria-label="Cari siswa atau rombongan belajar"
+            placeholder="Cari siswa atau kelas…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-transparent text-sm text-slate-950 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:outline-hidden"
+            className="w-full bg-transparent text-base sm:text-sm text-slate-950 dark:text-slate-50 placeholder:text-slate-500 dark:placeholder:text-slate-400 focus-visible:outline-none"
           />
           {query ? (
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded cursor-pointer"
+              aria-label="Hapus kata kunci pencarian"
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-md cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20"
             >
-              <X className="size-4" />
+              <X className="size-4" aria-hidden="true" />
             </button>
           ) : (
-            <kbd className="hidden sm:inline-block rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300">
+            <kbd className="hidden sm:inline-block rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300">
               ESC
             </kbd>
           )}

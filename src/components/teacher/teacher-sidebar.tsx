@@ -183,12 +183,12 @@ export function TeacherSidebar({
           onClick={onToggleCollapse}
           aria-label={isCollapsed ? "Buka sidebar" : t("sidebarClose")}
           title={isCollapsed ? "Buka sidebar" : t("sidebarClose")}
-          className="absolute -right-3 top-9 z-50 grid size-6.5 place-items-center rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-md transition-all duration-200 hover:scale-110 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+          className="absolute -right-3 top-9 z-50 grid size-7 place-items-center rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-md transition-all duration-200 hover:scale-110 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
         >
           {isCollapsed ? (
-            <ChevronsRight className="size-3.5 stroke-[2.2]" />
+            <ChevronsRight className="size-4 stroke-[2.2]" />
           ) : (
-            <ChevronsLeft className="size-3.5 stroke-[2.2]" />
+            <ChevronsLeft className="size-4 stroke-[2.2]" />
           )}
         </button>
 
@@ -319,7 +319,7 @@ export function TeacherSidebar({
 
                           {/* Collapsed floating tooltip */}
                           {isCollapsed && (
-                            <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-900 dark:text-white opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
+                            <div className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-900 dark:text-white opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
                               {item.name}
                             </div>
                           )}
@@ -336,7 +336,7 @@ export function TeacherSidebar({
         {/* Bottom Section: Theme Switch + User Profile & Direct Logout (Clean SaaS style) */}
         <div
           onWheel={handleHeaderOrFooterWheel}
-          className="relative border-t border-slate-300/80 dark:border-slate-800 p-3 shrink-0 rounded-none space-y-2.5"
+          className="relative border-t border-slate-300/80 dark:border-slate-800 p-3 shrink-0 rounded-none space-y-3"
         >
           {/* Theme Switcher */}
           <TeacherThemeSwitch isCollapsed={isCollapsed} />
@@ -346,7 +346,7 @@ export function TeacherSidebar({
             <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/90 p-2 transition-colors">
               <Link
                 href="/teacher/profile"
-                className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-85 transition-opacity"
+                className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-85 transition-opacity"
                 title="Lihat Profil Guru"
               >
                 <div className="grid size-9 shrink-0 place-items-center rounded-full bg-amber-400 text-xs font-black text-amber-950 shadow-2xs">
@@ -380,7 +380,7 @@ export function TeacherSidebar({
                 aria-label="Profil Guru"
               >
                 {initials}
-                <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-900 dark:text-white opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
+                <div className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-900 dark:text-white opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
                   {userName} · Profil
                 </div>
               </Link>
@@ -392,7 +392,7 @@ export function TeacherSidebar({
                 aria-label={tAdmin('logout')}
               >
                 <LogOut className="size-4" />
-                <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-rose-500 dark:text-rose-400 opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
+                <div className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-rose-500 dark:text-rose-400 opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
                   {tAdmin('logout')}
                 </div>
               </button>
@@ -495,14 +495,14 @@ export function TeacherSidebar({
             </div>
 
             {/* Mobile Drawer Bottom Section */}
-            <div className="border-t border-slate-200 dark:border-slate-800 p-3 space-y-2.5">
+            <div className="border-t border-slate-200 dark:border-slate-800 p-3 space-y-3">
               <TeacherThemeSwitch isCollapsed={false} />
 
               <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60 p-2">
                 <Link
                   href="/teacher/profile"
                   onClick={handleCloseDrawer}
-                  className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-85 transition-opacity"
+                  className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-85 transition-opacity"
                 >
                   <div className="grid size-9 shrink-0 place-items-center rounded-full bg-amber-400 text-xs font-black text-amber-950 shadow-2xs">
                     {initials}

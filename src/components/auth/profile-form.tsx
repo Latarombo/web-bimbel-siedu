@@ -97,6 +97,7 @@ export default function ProfileForm({
           value={draft.name}
           onChange={(e) => setDraftField('name', e.target.value)}
           required
+          maxLength={100}
           autoComplete="name"
           placeholder={t('identityName')}
         />
@@ -107,6 +108,7 @@ export default function ProfileForm({
           name="nomor_telepon"
           type="tel"
           required
+          maxLength={20}
           value={draft.nomor_telepon}
           onChange={(e) => setDraftField('nomor_telepon', e.target.value)}
           autoComplete="tel"
@@ -119,6 +121,7 @@ export default function ProfileForm({
           name="alamat"
           rows={3}
           required
+          maxLength={500}
           value={draft.alamat}
           onChange={(e) => setDraftField('alamat', e.target.value)}
           placeholder={t('residentialAddress')}

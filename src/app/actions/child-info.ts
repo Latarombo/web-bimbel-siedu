@@ -10,16 +10,17 @@ import { auth } from "@/lib/auth";
 import { validateIndonesianPhone, normalizeIndonesianPhone, getPhoneLookupVariants } from "@/lib/format/phone";
 
 const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
-  nama: z.string({error: t('invalidField')}).trim().min(2, t('childNameMin')),
+  nama: z.string({error: t('invalidField')}).trim().min(2, t('childNameMin')).max(100, t('nameMax')),
   tanggal_lahir: z
     .string({error: t('invalidField')})
     .regex(/^\d{4}-\d{2}-\d{2}$/, t('birthRequired'))
     .refine((v) => new Date(v) <= new Date(), t('birthFuture')),
   jenjang_terakhir: z.enum(["TK", "SD", "SMP", "SMA"], {error: t('invalidLevel')}),
-  tingkat: z.string({error: t('invalidField')}).trim().min(1, t('invalidField')),
+  tingkat: z.string({error: t('invalidField')}).trim().min(1, t('invalidField')).max(30, t('gradeLevelMax')),
   email_notifikasi: z
     .string({error: t('invalidField')})
     .trim()
+    .max(255, t('emailMax'))
     .email(t('invalidEmailFormat'))
     .optional()
     .or(z.literal("")),
@@ -214,14 +215,15 @@ export async function updateChild(
     email_notifikasi: z
       .string({ error: t('invalidField') })
       .trim()
+      .max(255, t('emailMax'))
       .email(t('invalidEmailFormat'))
       .optional()
       .or(z.literal("")),
     nomor_telepon: z
       .string({ error: t('phoneRequired') })
       .trim()
-      .min(8, t('phoneMin') || "Nomor HP minimal 8 digit")
-      .max(30, t('phoneMax'))
+      .min(10, t('phoneMinDigits') || "Nomor HP minimal 10 digit")
+      .max(20, t('phoneMax'))
       .regex(/^[0-9+\-\s()]*$/, t('phoneCharacters')),
   });
 
@@ -282,13 +284,13 @@ export async function updateChild(
     const tanggalLahirKetik = String(formData.get("tanggal_lahir") ?? "");
 
     const fullSchema = z.object({
-      nama: z.string({ error: t('invalidField') }).trim().min(2, t('childNameMin')),
+      nama: z.string({ error: t('invalidField') }).trim().min(2, t('childNameMin')).max(100, t('nameMax')),
       tanggal_lahir: z
         .string({ error: t('invalidField') })
         .regex(/^\d{4}-\d{2}-\d{2}$/, t('birthRequired'))
         .refine((v) => new Date(v) <= new Date(), t('birthFuture')),
       jenjang_terakhir: z.enum(["TK", "SD", "SMP", "SMA"], { error: t('invalidLevel') }),
-      tingkat: z.string({ error: t('invalidField') }).trim().min(1, t('invalidField')),
+      tingkat: z.string({ error: t('invalidField') }).trim().min(1, t('invalidField')).max(30, t('gradeLevelMax')),
     });
 
     const parsedFull = fullSchema.safeParse({

@@ -25,7 +25,7 @@ export type ResetPasswordState = {
 };
 
 const emailSchema = z.object({
-  email: z.string().trim().toLowerCase().email(),
+  email: z.string().trim().toLowerCase().max(255).email(),
 });
 
 /**
@@ -194,6 +194,8 @@ export async function executePasswordReset(
 
   if (!password || password.length < 8) {
     fieldErrors['password'] = t('passwordMin');
+  } else if (password.length > 72) {
+    fieldErrors['password'] = t('passwordMax');
   }
 
   if (password !== passwordConfirm) {

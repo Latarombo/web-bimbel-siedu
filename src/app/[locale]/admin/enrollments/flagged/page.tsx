@@ -41,10 +41,10 @@ export default async function AdminFlagged({ searchParams }: { searchParams: Pro
 
   const columns: TableColumn[] = [
     { key: "anak", header: t("text117") },
-    { key: "status", header: t("text32") },
-    { key: "metode", header: t("text118") },
-    { key: "updatedAt", header: t("text119") },
-    { key: "createdAt", header: t("text120") },
+    { key: "status", header: t("text32"), align: "center" },
+    { key: "metode", header: t("text118"), align: "center" },
+    { key: "updatedAt", header: t("text119"), align: "right" },
+    { key: "createdAt", header: t("text120"), align: "right" },
   ];
 
   const rows: TableRowData[] = urut.map((p) => {
@@ -63,12 +63,12 @@ export default async function AdminFlagged({ searchParams }: { searchParams: Pro
       },
       cells: {
         anak: (
-          <Link href={`/admin/enrollments/flagged?status=${p.status}`} className="group block">
-            <p className="font-semibold text-slate-900 group-hover:text-blue-700">{nama}</p>
+          <div>
+            <p className="font-semibold text-slate-900">{nama}</p>
             <p className="text-xs text-slate-500">
               {t("enrollmentDetail", { className: kelasLabel, level: k?.jenjang ?? "—", id: p.id })}
             </p>
-          </Link>
+          </div>
         ),
         status: <StatusBadge status={p.status as never} />,
         metode: <span className="text-xs text-slate-600">{labelMetode(p.metodeBayar)}</span>,

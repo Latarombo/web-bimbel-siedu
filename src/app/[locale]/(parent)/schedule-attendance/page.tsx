@@ -385,7 +385,7 @@ export default async function ScheduleAttendancePage({
             {hasilMilikSaya.map(({ h, pen, anakNama, mapelNama }) => {
               const statusLabel =
                 h.statusHasil === "dinilai"
-                  ? `${h.nilai} / ${pen.nilaiMaksimum}`
+                  ? String(h.nilai)
                   : h.statusHasil === "tidak_ikut"
                     ? tr("notParticipated")
                     : tr("notGraded");

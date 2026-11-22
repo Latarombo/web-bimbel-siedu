@@ -72,6 +72,7 @@ const passwordRules = [
                         name="email"
                         type="email"
                         required
+                        maxLength={255}
                         autoComplete="email"
                         inputMode="email"
                         autoCorrect="off"
@@ -111,6 +112,7 @@ const passwordRules = [
                             type={showPassword ? 'text' : 'password'}
                             required
                             minLength={8}
+                            maxLength={72}
                             autoComplete="new-password"
                             autoCorrect="off"
                             autoCapitalize="none"

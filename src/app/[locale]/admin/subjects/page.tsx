@@ -28,8 +28,8 @@ export default async function AdminSubjects({ searchParams }: { searchParams: Pr
 
   const columns: TableColumn[] = [
     { key: "nama", header: t("text78") },
-    { key: "nKelas", header: t("text92"), className: "text-center" },
-    { key: "aksi", header: t("text61"), className: "text-right", sortable: false },
+    { key: "nKelas", header: t("text92"), align: "center" },
+    { key: "aksi", header: t("text61"), align: "right", sortable: false },
   ];
 
   const rows: TableRowData[] = mapel.map((m) => ({

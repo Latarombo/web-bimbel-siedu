@@ -167,7 +167,7 @@ function ContactFormInner({ onReset }: { onReset: () => void }) {
        type="tel"
        inputMode="tel"
        required
-       maxLength={30}
+       maxLength={20}
        placeholder="08XXXXXXXX"
        autoComplete="tel"
        aria-invalid={errors.telepon ? true : undefined}

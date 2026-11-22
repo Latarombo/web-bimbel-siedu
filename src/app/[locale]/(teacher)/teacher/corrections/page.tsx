@@ -24,9 +24,8 @@ export default async function TeacherCorrections({
   const sp = searchParams ? await searchParams : undefined;
   const initialKey = sp?.entitas && sp?.id ? `${sp.entitas}-${sp.id}` : undefined;
 
-  // Angka nyata: entri milik guru ini yang sudah lewat jendela 7 hari + riwayat pengajuan koreksi
-  const [nilai, presensi, pengajuan, semuaPendaftaran, semuaAnak] = await Promise.all([
-    collect(db.orm.public.NilaiProgres.where((n) => n.dicatatOleh.eq(guruId)).all()),
+  // Angka nyata: entri presensi milik guru ini yang sudah lewat jendela 7 hari + riwayat pengajuan koreksi
+  const [presensi, pengajuan, semuaPendaftaran, semuaAnak] = await Promise.all([
     collect(db.orm.public.Presensi.where((x) => x.dicatatOleh.eq(guruId)).all()),
     collect(db.orm.public.PengajuanKoreksi.where((p) => p.guruId.eq(guruId)).all()),
     collect(db.orm.public.Pendaftaran.all()),
@@ -42,31 +41,18 @@ export default async function TeacherCorrections({
     return anakById.get(p.anakId)?.nama ?? t("childFallback", { id: p.anakId });
   };
 
-  const nilaiTerkunci = nilai.filter((n) => !dalamJendela7Hari(n.createdAt));
   const presensiTerkunci = presensi.filter((x) => !dalamJendela7Hari(x.createdAt));
 
-  const lockedEntries: LockedEntryItem[] = [
-    ...presensiTerkunci.map((x) => ({
-      id: x.id,
-      entitas: "presensi" as const,
-      label: `${getAnakNama(x.pendaftaranId)} (${x.tanggalPertemuan})`,
-      ringkasan: `Status: ${x.status}${x.catatan ? ` · "${x.catatan}"` : ""}`,
-      currentValues: {
-        status: x.status,
-        catatan: x.catatan,
-      },
-    })),
-    ...nilaiTerkunci.map((n) => ({
-      id: n.id,
-      entitas: "nilai" as const,
-      label: `${getAnakNama(n.pendaftaranId)} (${n.tanggal})`,
-      ringkasan: `Nilai: ${n.nilaiKuantitatif ?? ""}${n.catatanKualitatif ? ` · "${n.catatanKualitatif}"` : ""}`,
-      currentValues: {
-        nilaiKuantitatif: n.nilaiKuantitatif,
-        catatanKualitatif: n.catatanKualitatif,
-      },
-    })),
-  ];
+  const lockedEntries: LockedEntryItem[] = presensiTerkunci.map((x) => ({
+    id: x.id,
+    entitas: "presensi" as const,
+    label: `${getAnakNama(x.pendaftaranId)} (${x.tanggalPertemuan})`,
+    ringkasan: `Status: ${x.status}${x.catatan ? ` · "${x.catatan}"` : ""}`,
+    currentValues: {
+      status: x.status,
+      catatan: x.catatan,
+    },
+  }));
 
   const riwayatPengajuan = [...pengajuan].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
@@ -161,7 +147,7 @@ export default async function TeacherCorrections({
                         </div>
 
                         {item.catatanAdmin ? (
-                          <div className="mt-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-2.5 text-xs text-slate-700 dark:text-slate-300">
+                          <div className="mt-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3 text-xs text-slate-700 dark:text-slate-300">
                             <span className="font-semibold text-slate-900 dark:text-slate-100">{t("adminNote")}: </span>
                             {item.catatanAdmin}
                           </div>
@@ -180,18 +166,18 @@ export default async function TeacherCorrections({
             <h3 className="text-xs font-bold uppercase tracking-wider text-blue-900 dark:text-blue-300">
               {t("whyLocked")}
             </h3>
-            <p className="mt-1.5 text-xs text-blue-950/80 dark:text-blue-200/80 leading-relaxed">
+            <p className="mt-2 text-xs text-blue-950/80 dark:text-blue-200/80 leading-relaxed">
               {t("whyLockedBody")}
             </p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs">
             <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">{t("yourEntryStatus")}</h2>
-            <dl className="mt-3 space-y-2.5 text-sm">
+            <dl className="mt-3 space-y-3 text-sm">
               {[
-                [t("lockedGrades"), t("entriesCount", { count: nilaiTerkunci.length })],
+                [t("lockedGrades"), "0 (Bebas diedit guru)"],
                 [t("lockedAttendance"), t("entriesCount", { count: presensiTerkunci.length })],
-                [t("editableByYou"), t("entriesCount", { count: nilai.length - nilaiTerkunci.length + (presensi.length - presensiTerkunci.length) })],
+                [t("editableByYou"), t("entriesCount", { count: presensi.length - presensiTerkunci.length })],
               ].map(([k, v]) => (
                 <div key={k} className="flex items-baseline justify-between gap-3">
                   <dt className="text-slate-500 dark:text-slate-400">{k}</dt>

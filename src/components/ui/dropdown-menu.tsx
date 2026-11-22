@@ -4,6 +4,7 @@ import * as React from "react";
 import { DropdownMenu as DropdownMenuPrimitive } from "radix-ui";
 import { Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { NativeDialogContext } from "@/components/common/native-dialog";
 
 const DropdownMenu = DropdownMenuPrimitive.Root;
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
@@ -52,22 +53,43 @@ function DropdownMenuSubContent({
   );
 }
 
+export interface DropdownMenuContentProps
+  extends React.ComponentProps<typeof DropdownMenuPrimitive.Content> {
+  portal?: boolean;
+  container?: Element | DocumentFragment | null;
+}
+
 function DropdownMenuContent({
   className,
   sideOffset = 6,
+  portal,
+  container,
   ...props
-}: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
+}: DropdownMenuContentProps) {
+  // If explicitly specified, use portal prop.
+  // Otherwise default to true unless inside a NativeDialog (which uses HTML5 Top Layer showModal)
+  const isInsideDialog = React.useContext(NativeDialogContext)?.inNativeDialog ?? false;
+  const shouldPortal = portal ?? !isInsideDialog;
+
+  const content = (
+    <DropdownMenuPrimitive.Content
+      data-slot="dropdown-menu-content"
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 min-w-[11rem] overflow-hidden rounded-2xl border border-slate-100 bg-white p-1.5 text-slate-800 shadow-xl ring-1 ring-slate-900/5 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        className
+      )}
+      {...props}
+    />
+  );
+
+  if (!shouldPortal) {
+    return content;
+  }
+
   return (
-    <DropdownMenuPrimitive.Portal>
-      <DropdownMenuPrimitive.Content
-        data-slot="dropdown-menu-content"
-        sideOffset={sideOffset}
-        className={cn(
-          "z-50 min-w-[11rem] overflow-hidden rounded-2xl border border-slate-100 bg-white p-1.5 text-slate-800 shadow-xl ring-1 ring-slate-900/5 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
-          className
-        )}
-        {...props}
-      />
+    <DropdownMenuPrimitive.Portal container={container}>
+      {content}
     </DropdownMenuPrimitive.Portal>
   );
 }
@@ -167,7 +189,7 @@ function DropdownMenuRadioItem({
       )}
       {...props}
     >
-      <span className="truncate">{children}</span>
+      <div className="flex-1 min-w-0 truncate">{children}</div>
       <DropdownMenuPrimitive.ItemIndicator>
         <Check className="size-4 shrink-0 stroke-[2.5] text-blue-600 ml-2" />
       </DropdownMenuPrimitive.ItemIndicator>

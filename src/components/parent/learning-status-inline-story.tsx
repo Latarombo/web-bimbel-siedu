@@ -356,6 +356,7 @@ export function LearningStatusInlineStory({ statuses }: Props) {
                 <input
                   type="text"
                   required
+                  maxLength={500}
                   value={alasan}
                   onChange={(e) => setAlasan(e.target.value)}
                   placeholder={t('reportReasonPlaceholder')}
@@ -368,6 +369,7 @@ export function LearningStatusInlineStory({ statuses }: Props) {
                 </label>
                 <input
                   type="text"
+                  maxLength={1000}
                   value={catatan}
                   onChange={(e) => setCatatan(e.target.value)}
                   className="mt-1 block w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-white placeholder-slate-400 focus:border-indigo-400 focus:outline-none"

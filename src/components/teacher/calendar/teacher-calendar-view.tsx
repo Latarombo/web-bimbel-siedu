@@ -363,7 +363,7 @@ export function TeacherCalendarView({
       {/* ========================================================= */}
       <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-2xs sm:p-4 lg:flex-row lg:items-center lg:justify-between">
         {/* Left: Stepper + Date Range Label */}
-        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <div className="inline-flex items-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/80 p-0.5 shadow-2xs">
             <button
               type="button"
@@ -378,7 +378,7 @@ export function TeacherCalendarView({
             <button
               type="button"
               onClick={handleToday}
-              className="px-2.5 py-1 text-xs font-bold text-blue-600 dark:text-blue-400 transition-colors hover:bg-white dark:hover:bg-slate-700 hover:shadow-2xs rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+              className="px-3 py-1 text-xs font-bold text-blue-600 dark:text-blue-400 transition-colors hover:bg-white dark:hover:bg-slate-700 hover:shadow-2xs rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
             >
               {t('todayLabel') || 'Hari Ini'}
             </button>
@@ -400,7 +400,7 @@ export function TeacherCalendarView({
         </div>
 
         {/* Center / Right: Filter & View Switcher */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {/* Class Filter Dropdown */}
           {classes.length > 1 && (
             <FilterDropdown
@@ -428,13 +428,13 @@ export function TeacherCalendarView({
               }}
               aria-label={t('weeklyGrid') || 'Kisi Mingguan'}
               title={t('weeklyGrid') || 'Kisi Mingguan'}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+              className={`inline-flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
                 viewMode === 'weekly'
                   ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-2xs'
                   : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
               }`}
             >
-              <LayoutGrid className="size-3.5" />
+              <LayoutGrid className="size-4" />
               <span className="hidden md:inline">{t('weeklyGrid') || 'Mingguan'}</span>
             </button>
             <button
@@ -445,13 +445,13 @@ export function TeacherCalendarView({
               }}
               aria-label={t('monthlyGrid') || 'Kisi Bulanan'}
               title={t('monthlyGrid') || 'Kisi Bulanan'}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+              className={`inline-flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
                 viewMode === 'monthly'
                   ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-2xs'
                   : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
               }`}
             >
-              <CalendarDays className="size-3.5" />
+              <CalendarDays className="size-4" />
               <span className="hidden md:inline">{t('monthlyGrid') || 'Bulanan'}</span>
             </button>
             <button
@@ -462,13 +462,13 @@ export function TeacherCalendarView({
               }}
               aria-label={t('agendaView') || 'Agenda Kompak'}
               title={t('agendaView') || 'Agenda Kompak'}
-              className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+              className={`inline-flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
                 viewMode === 'agenda'
                   ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-2xs'
                   : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
               }`}
             >
-              <List className="size-3.5" />
+              <List className="size-4" />
               <span className="hidden md:inline">{t('agendaView') || 'Agenda'}</span>
             </button>
           </div>
@@ -525,7 +525,7 @@ export function TeacherCalendarView({
                 return (
                   <div
                     key={d.dateStr}
-                    className={`p-2 space-y-2.5 transition-colors ${
+                    className={`p-2 space-y-3 transition-colors ${
                       d.isToday ? 'bg-blue-50/20 dark:bg-blue-950/20' : ''
                     }`}
                   >
@@ -572,18 +572,18 @@ export function TeacherCalendarView({
                           <Link
                             key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
                             href={isCancelled ? '#' : attendanceUrl}
-                            className={`group relative flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-2.5 shadow-2xs transition-all duration-150 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xs cursor-pointer ${
+                            className={`group relative flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-3 shadow-2xs transition-all duration-150 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xs cursor-pointer ${
                               session.isToday && !isCancelled ? 'ring-1 ring-blue-500/20 dark:ring-blue-500/30' : ''
                             } ${isCancelled ? 'opacity-70 pointer-events-none' : ''}`}
                           >
                             <div>
                               {/* Top Row: Time Chip & Status Pill */}
                               <div className="flex items-center justify-between gap-1">
-                                <span className="inline-flex items-center rounded-md bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-slate-700 dark:text-slate-300">
+                                <span className="inline-flex items-center rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold tabular-nums text-slate-700 dark:text-slate-300">
                                   {session.jamMulai} - {session.jamSelesai}
                                 </span>
                                 <span
-                                  className={`inline-flex items-center rounded-full border px-1.5 py-0.2 text-[9px] font-bold ${statusConfig.badgeBg}`}
+                                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[9px] font-bold ${statusConfig.badgeBg}`}
                                 >
                                   {statusConfig.badgeText}
                                 </span>
@@ -592,7 +592,7 @@ export function TeacherCalendarView({
                               {/* Jenjang Badge + Subject Title */}
                               <div className="mt-2 space-y-1">
                                 <span
-                                  className={`inline-block rounded-md border px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wider ${theme.badge}`}
+                                  className={`inline-block rounded-md border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${theme.badge}`}
                                 >
                                   {session.jenjang}
                                 </span>
@@ -603,7 +603,7 @@ export function TeacherCalendarView({
                             </div>
 
                             {/* Bottom Hairline Strip: Count & Action */}
-                            <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                            <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
                               <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tabular-nums">
                                 {session.pesertaCount} siswa
                               </span>
@@ -626,7 +626,7 @@ export function TeacherCalendarView({
           {/* Mobile / Tablet Day Carousel (<lg) */}
           <div className="lg:hidden space-y-3">
             {/* Day Selector Tabs */}
-            <div className="flex overflow-x-auto pb-1 gap-1.5 scrollbar-hide">
+            <div className="flex overflow-x-auto pb-1 gap-2 scrollbar-hide">
               {weekDays.map((d) => {
                 const daySessions = sessionsByWeekDay.get(d.dateStr) ?? [];
                 const isSelected = d.dateStr === mobileSelectedDate;
@@ -647,7 +647,7 @@ export function TeacherCalendarView({
                     <span className="text-sm font-extrabold tabular-nums">{d.dayNum}</span>
                     {daySessions.length > 0 && (
                       <span
-                        className={`mt-0.5 rounded-full px-1.5 py-0.2 text-[9px] font-bold ${
+                        className={`mt-0.5 rounded-full px-2 py-0.5 text-[9px] font-bold ${
                           isSelected ? 'bg-white/20 text-white' : 'bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300'
                         }`}
                       >
@@ -660,7 +660,7 @@ export function TeacherCalendarView({
             </div>
 
             {/* Selected Day Sessi Cards on Mobile */}
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {(() => {
                 const activeSessions = sessionsByWeekDay.get(mobileSelectedDate) ?? [];
                 if (activeSessions.length === 0) {
@@ -717,7 +717,7 @@ export function TeacherCalendarView({
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="inline-flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-bold tabular-nums text-slate-800 dark:text-slate-200">
+                            <span className="inline-flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-bold tabular-nums text-slate-800 dark:text-slate-200">
                               {session.jamMulai} - {session.jamSelesai}
                             </span>
                             <span className={`inline-block rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${theme.badge}`}>
@@ -728,12 +728,12 @@ export function TeacherCalendarView({
                             {session.kelasNama}
                           </h4>
                         </div>
-                        <span className={`shrink-0 inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold ${statusConfig.badgeBg}`}>
+                        <span className={`shrink-0 inline-flex items-center rounded-full border px-3 py-0.5 text-xs font-bold ${statusConfig.badgeBg}`}>
                           {statusConfig.badgeText}
                         </span>
                       </div>
 
-                      <div className="mt-3.5 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums font-semibold">
                           {session.pesertaCount} siswa
                         </span>
@@ -758,7 +758,7 @@ export function TeacherCalendarView({
           {/* Day Headers (Mon - Sun) */}
           <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 divide-x divide-slate-100 dark:divide-slate-800/70 bg-slate-50/80 dark:bg-slate-800/50 text-center">
             {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map((day) => (
-              <div key={day} className="py-2.5 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+              <div key={day} className="py-3 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                 <span className="hidden sm:inline">{day}</span>
                 <span className="sm:hidden">{day.slice(0, 3)}</span>
               </div>
@@ -781,7 +781,7 @@ export function TeacherCalendarView({
                       setViewMode('weekly');
                     }
                   }}
-                  className={`min-h-[90px] sm:min-h-[115px] p-1.5 transition-colors flex flex-col justify-between ${
+                  className={`min-h-[90px] sm:min-h-[115px] p-2 transition-colors flex flex-col justify-between ${
                     day.isCurrentMonth ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/60 dark:bg-slate-950/50 text-slate-400 dark:text-slate-600'
                   } ${day.isToday ? 'bg-blue-50/30 dark:bg-blue-950/30' : ''} ${
                     hasSessions ? 'cursor-pointer hover:bg-blue-50/20 dark:hover:bg-blue-950/20' : ''
@@ -801,7 +801,7 @@ export function TeacherCalendarView({
                       {day.dayNum}
                     </span>
                     {hasSessions && (
-                      <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 text-[9px] font-extrabold text-slate-700 dark:text-slate-300 sm:hidden">
+                      <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[9px] font-extrabold text-slate-700 dark:text-slate-300 sm:hidden">
                         {daySessions.length}
                       </span>
                     )}
@@ -817,7 +817,7 @@ export function TeacherCalendarView({
                         <div
                           key={`${s.jadwalItemId}-${s.tanggalPertemuan}`}
                           title={`${s.jamMulai} ${s.kelasNama}`}
-                          className={`hidden sm:flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-semibold truncate border ${
+                          className={`hidden sm:flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold truncate border ${
                             isCancelled
                               ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/60'
                               : isFilled
@@ -887,7 +887,7 @@ export function TeacherCalendarView({
                 >
                   {/* Date Header */}
                   <div
-                    className={`flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-4 py-2.5 ${
+                    className={`flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-4 py-3 ${
                       isDateToday
                         ? 'bg-blue-50/80 dark:bg-blue-950/50 text-blue-900 dark:text-blue-200 font-bold'
                         : 'bg-slate-50/80 dark:bg-slate-800/60 text-slate-900 dark:text-slate-100'
@@ -948,13 +948,13 @@ export function TeacherCalendarView({
                         <Link
                           key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
                           href={isCancelled ? '#' : attendanceUrl}
-                          className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer ${
+                          className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer ${
                             isCancelled ? 'opacity-70 pointer-events-none' : ''
                           }`}
                         >
                           {/* Left: Time + Jenjang + Class Name */}
                           <div className="flex items-center gap-3 min-w-0">
-                            <span className="inline-flex shrink-0 items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-bold tabular-nums text-slate-800 dark:text-slate-200">
+                            <span className="inline-flex shrink-0 items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-bold tabular-nums text-slate-800 dark:text-slate-200">
                               {session.jamMulai} - {session.jamSelesai}
                             </span>
                             <span className={`inline-block shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${theme.badge}`}>
@@ -972,7 +972,7 @@ export function TeacherCalendarView({
                             <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums font-semibold">
                               {session.pesertaCount} siswa
                             </span>
-                            <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold ${statusConfig.badgeBg}`}>
+                            <span className={`inline-flex items-center rounded-full border px-3 py-0.5 text-xs font-bold ${statusConfig.badgeBg}`}>
                               {statusConfig.badgeText}
                             </span>
                             <span className={`text-xs font-bold ${statusConfig.actionStyle}`}>

@@ -11,8 +11,8 @@ import { homeUntukUser } from '@/lib/orang-tua-lengkap';
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit';
 
 const loginSchema = z.object({
-  email: z.string().trim().toLowerCase().email(),
-  password: z.string().min(1),
+  email: z.string().trim().toLowerCase().max(255).email(),
+  password: z.string().min(1).max(72),
 });
 
 export type LoginState = { error?: string; email?: string };

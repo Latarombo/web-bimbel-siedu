@@ -98,29 +98,18 @@ export default async function AdminCorrections({
   const processedPengajuan = pengajuan.filter((p) => p.status !== "menunggu").sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const sortedAudit = [...audit].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
-  // Entri kandidat terkunci (> 7 hari)
-  const kandidat: Kandidat[] = [
-    ...presensi
-      .filter((x) => lewat7Hari(x.createdAt, now))
-      .map((x) => ({
-        id: `p${x.id}`,
-        jenis: "presensi" as const,
-        ...label(x.pendaftaranId),
-        tanggal: x.tanggalPertemuan,
-        ringkas: t("attendanceSummary", { status: labelPresensi(x.status) }),
-        createdAt: x.createdAt,
-      })),
-    ...nilai
-      .filter((x) => lewat7Hari(x.createdAt, now))
-      .map((x) => ({
-        id: `n${x.id}`,
-        jenis: "nilai" as const,
-        ...label(x.pendaftaranId),
-        tanggal: x.tanggal,
-        ringkas: t("gradeSummary", { grade: x.nilaiKuantitatif ?? "—" }),
-        createdAt: x.createdAt,
-      })),
-  ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  // Entri kandidat terkunci (> 7 hari, khusus presensi karena nilai dapat langsung diedit guru)
+  const kandidat: Kandidat[] = presensi
+    .filter((x) => lewat7Hari(x.createdAt, now))
+    .map((x) => ({
+      id: `p${x.id}`,
+      jenis: "presensi" as const,
+      ...label(x.pendaftaranId),
+      tanggal: x.tanggalPertemuan,
+      ringkas: t("attendanceSummary", { status: labelPresensi(x.status) }),
+      createdAt: x.createdAt,
+    }))
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
   const filterKandidat = jenis === "presensi" || jenis === "nilai" ? jenis : "semua";
   const kandidatFiltered = filterKandidat === "semua" ? kandidat : kandidat.filter((k) => k.jenis === filterKandidat);
@@ -357,11 +346,11 @@ export default async function AdminCorrections({
           <Panel className="p-5">
             <DataTable
               columns={[
-                { key: "jenis", header: t("text145") },
+                { key: "jenis", header: t("text145"), align: "center" },
                 { key: "anak", header: t("text30") },
-                { key: "tanggal", header: t("text146") },
+                { key: "tanggal", header: t("text146"), align: "right" },
                 { key: "ringkas", header: t("text147") },
-                { key: "createdAt", header: t("text148") },
+                { key: "createdAt", header: t("text148"), align: "right" },
               ]}
               rows={kandidatFiltered.map((k) => ({
                 id: k.id,

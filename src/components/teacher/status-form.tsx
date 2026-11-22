@@ -172,7 +172,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
         <form onSubmit={handleSubmit} className="mt-6 space-y-6">
           {/* Pilih Kelas */}
           <div>
-            <label htmlFor="class-select" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="class-select" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
               {t('classSelect')}
             </label>
             <CardSelect
@@ -213,7 +213,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                     return (
                       <label
                         key={student.pendaftaranId}
-                        className={`flex items-center justify-between rounded-lg border p-2.5 text-sm transition-colors cursor-pointer ${
+                        className={`flex items-center justify-between rounded-lg border p-3 text-sm transition-colors cursor-pointer ${
                           isChecked
                             ? 'border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200'
                             : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300'
@@ -229,11 +229,11 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                           <span className="font-medium">{student.namaAnak}</span>
                         </div>
                         {student.persetujuanFoto ? (
-                          <span className="rounded bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+                          <span className="rounded bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
                             {t('consentBadge')}
                           </span>
                         ) : (
-                          <span className="rounded bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
+                          <span className="rounded bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
                             {t('noConsentBadge')}
                           </span>
                         )}
@@ -253,32 +253,37 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
 
           {/* Konten Teks */}
           <div>
-            <label htmlFor="content-text" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="content-text" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 cursor-pointer">
               {t('statusContent')}
             </label>
             <textarea
               id="content-text"
               rows={4}
+              maxLength={1000}
               value={kontenTeks}
               onChange={(e) => setKontenTeks(e.target.value)}
               placeholder={t('statusContentPlaceholder')}
-              className="w-full px-3.5 py-2.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-y bg-white dark:bg-slate-800"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/20 focus-visible:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-y bg-white dark:bg-slate-800"
             />
+            <p className="mt-1 text-right text-xs text-slate-400 dark:text-slate-500 font-mono tabular-nums">
+              {kontenTeks.length} / 1000
+            </p>
           </div>
 
           {/* Foto Kegiatan (Maks 5) */}
           <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="photo-url-input" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 cursor-pointer">
               {t('statusPhotos')} ({photos.length}/5)
             </label>
             <div className="mt-2 flex gap-2">
               <input
-                type="text"
+                id="photo-url-input"
+                type="url"
                 value={photoInput}
                 onChange={(e) => setPhotoInput(e.target.value)}
                 placeholder={t('photoUrlPlaceholder')}
                 disabled={photos.length >= 5}
-                className="block flex-1 rounded-lg border border-slate-200 dark:border-slate-700 px-3 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600/20 disabled:bg-slate-100 dark:disabled:bg-slate-850"
+                className="block flex-1 h-11 sm:h-10 rounded-lg border border-slate-300 dark:border-slate-700 px-3 sm:px-4 text-base sm:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus-visible:border-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/20 disabled:bg-slate-100 dark:disabled:bg-slate-850 transition-colors"
               />
               <button
                 type="button"
@@ -295,7 +300,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                 {photos.map((url, idx) => (
                   <div
                     key={idx}
-                    className="group relative flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-1.5 text-xs text-slate-700 dark:text-slate-300"
+                    className="group relative flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs text-slate-700 dark:text-slate-300"
                   >
                     <span className="max-w-[200px] truncate">{url}</span>
                     <button
@@ -343,7 +348,7 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
             <button
               type="submit"
               disabled={isPending || (!kontenTeks.trim() && photos.length === 0)}
-              className="rounded-lg bg-blue-600 dark:bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 dark:hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
+              className="inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 dark:bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 dark:hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
             >
               {isPending ? t('sharing') : t('shareNow')}
             </button>

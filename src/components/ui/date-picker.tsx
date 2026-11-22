@@ -330,14 +330,14 @@ export function DatePicker({
                 aria-invalid={ariaInvalid}
                 aria-describedby={ariaDescribedby}
                 className={cn(
-                    'w-full flex items-center justify-between text-left rounded-xl transition-all duration-200 cursor-pointer select-none bg-white',
-                    size === 'sm' ? 'h-8.5 px-3 text-xs' : 'h-11 px-3.5 text-base sm:text-sm',
-                    'border border-slate-200 hover:border-slate-300',
+                    'w-full flex items-center justify-between text-left rounded-lg transition-colors duration-150 cursor-pointer select-none bg-white dark:bg-slate-900',
+                    size === 'sm' ? 'h-9 px-3 text-xs sm:text-sm' : 'h-11 sm:h-10 px-3.5 text-base sm:text-sm',
+                    'border border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500',
                     isOpen
-                        ? 'border-brand ring-2 ring-brand/15 shadow-xs'
-                        : 'focus:outline-none focus:border-brand focus:ring-2 focus:ring-brand/15',
-                    disabled && 'bg-slate-50 opacity-60 cursor-not-allowed pointer-events-none',
-                    ariaInvalid && 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15',
+                        ? 'border-brand ring-2 ring-brand/20 shadow-xs'
+                        : 'focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20',
+                    disabled && 'bg-slate-50 dark:bg-slate-800 opacity-60 cursor-not-allowed pointer-events-none',
+                    ariaInvalid && 'border-rose-500 focus-visible:border-rose-600 focus-visible:ring-rose-500/20',
                     className
                 )}
             >
@@ -346,7 +346,7 @@ export function DatePicker({
                     <span
                         className={cn(
                             'truncate',
-                            selectedValue ? 'text-slate-800 font-medium' : 'text-slate-400'
+                            selectedValue ? 'text-slate-900 dark:text-slate-100 font-medium' : 'text-slate-400 dark:text-slate-500'
                         )}
                     >
                         {selectedValue
@@ -356,7 +356,7 @@ export function DatePicker({
                 </div>
                 <ChevronDown
                     className={cn(
-                        'w-4 h-4 text-slate-400 shrink-0 ml-2 transition-transform duration-200',
+                        'w-4 h-4 text-slate-400 shrink-0 ml-2 transition-transform duration-150',
                         isOpen && 'rotate-180 text-brand'
                     )}
                     aria-hidden="true"

@@ -148,6 +148,7 @@ export default function ResetForm({
               required
               autoComplete="new-password"
               minLength={8}
+              maxLength={72}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('createPassword')}
@@ -234,6 +235,7 @@ export default function ResetForm({
               required
               autoComplete="new-password"
               minLength={8}
+              maxLength={72}
               value={passwordConfirm}
               onChange={(e) => setPasswordConfirm(e.target.value)}
               placeholder={t('confirmPassword')}

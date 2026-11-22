@@ -33,12 +33,11 @@ export default async function TeacherGrades({
   const kelasById = new Map(kelas.map((k) => [k.id, k]));
 
   // 2. Fetch enrollments, students, and grading records
-  const [semuaPendaftaran, semuaAnak, semuaNilai, semuaPenilaian, semuaHasil] = await Promise.all([
+  const [semuaPendaftaran, semuaAnak, semuaPenilaian, semuaHasil] = await Promise.all([
     kelas.length
       ? collect(db.orm.public.Pendaftaran.where((p) => p.kelasId.in([...kelasIds])).all())
       : Promise.resolve([]),
     collect(db.orm.public.Anak.all()),
-    collect(db.orm.public.NilaiProgres.where((n) => n.dicatatOleh.eq(guruId)).all()),
     collect(db.orm.public.Penilaian.where((p) => p.dibuatOleh.eq(guruId)).all()),
     collect(db.orm.public.HasilPenilaian.all()),
   ]);
@@ -82,12 +81,13 @@ export default async function TeacherGrades({
       };
     });
 
-  // 5. Map student progress grades
-  const nilaiByP = new Map<number, typeof semuaNilai>();
-  for (const n of semuaNilai) {
-    const arr = nilaiByP.get(n.pendaftaranId) ?? [];
-    arr.push(n);
-    nilaiByP.set(n.pendaftaranId, arr);
+  // 5. Map student grades from HasilPenilaian (single source of truth)
+  const penilaianById = new Map(semuaPenilaian.map((pen) => [pen.id, pen]));
+  const hasilByStudent = new Map<number, typeof semuaHasil>();
+  for (const h of semuaHasil) {
+    const arr = hasilByStudent.get(h.pendaftaranId) ?? [];
+    arr.push(h);
+    hasilByStudent.set(h.pendaftaranId, arr);
   }
 
   const activeStudents = semuaPendaftaran.filter((p) =>
@@ -95,16 +95,28 @@ export default async function TeacherGrades({
   );
 
   const studentGradeItems: StudentGradeItem[] = activeStudents.map((p) => {
-    const nilai = (nilaiByP.get(p.id) ?? []).sort((a, b) => b.tanggal.localeCompare(a.tanggal));
+    const hList = hasilByStudent.get(p.id) ?? [];
+    const dinilaiList = hList.filter(
+      (h) => h.statusHasil === "dinilai" && h.nilai != null,
+    );
     const k = kelas.find((x) => x.id === p.kelasId);
     const m = k ? mapelById.get(k.mataPelajaranId) : null;
 
-    const rata = (() => {
-      const num = nilai
-        .filter((n) => n.nilaiKuantitatif != null)
-        .map((n) => Number(n.nilaiKuantitatif));
-      return num.length ? Math.round(num.reduce((s, v) => s + v, 0) / num.length) : null;
-    })();
+    // Normalisasi skala 100 per tugas terbit (status tidak_ikut dikecualikan dari pembagi)
+    const skor100 = dinilaiList.map((h) => {
+      const pen = penilaianById.get(h.penilaianId);
+      const maxScore = pen ? Number(pen.nilaiMaksimum) : 100;
+      return (Number(h.nilai) / (maxScore > 0 ? maxScore : 100)) * 100;
+    });
+
+    const rata = skor100.length
+      ? Math.round(skor100.reduce((s, v) => s + v, 0) / skor100.length)
+      : null;
+
+    const tanggalList = hList
+      .map((h) => penilaianById.get(h.penilaianId)?.tanggal)
+      .filter((t): t is string => typeof t === "string")
+      .sort((a, b) => b.localeCompare(a));
 
     const anak = anakById.get(p.anakId);
 
@@ -116,9 +128,9 @@ export default async function TeacherGrades({
       kelasNama: m?.nama ?? `Kelas #${p.kelasId}`,
       jenjang: k?.jenjang ?? "SD",
       tingkat: k?.tingkat,
-      jumlahNilai: nilai.length,
+      jumlahNilai: dinilaiList.length,
       rataRata: rata,
-      nilaiTerakhir: nilai[0]?.tanggal ?? null,
+      nilaiTerakhir: tanggalList[0] ?? null,
       status: p.status,
     };
   });

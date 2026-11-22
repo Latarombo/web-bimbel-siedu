@@ -38,10 +38,10 @@ export default async function AdminTeachers({ searchParams }: { searchParams: Pr
   const columns: TableColumn[] = [
     { key: "nama", header: t("text78") },
     { key: "email", header: t("text79") },
-    { key: "telepon", header: t("text80") },
-    { key: "nKelas", header: t("text81"), className: "text-center" },
-    { key: "catatan", header: t("text82"), className: "text-center" },
-    { key: "aksi", header: t("text61"), className: "text-right", sortable: false },
+    { key: "telepon", header: t("text80"), align: "right" },
+    { key: "nKelas", header: t("text81"), align: "center" },
+    { key: "catatan", header: t("text82"), align: "center" },
+    { key: "aksi", header: t("text61"), align: "right", sortable: false },
   ];
 
   const rows: TableRowData[] = guru.map((g) => {

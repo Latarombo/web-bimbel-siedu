@@ -8,7 +8,7 @@ import { db } from '@/prisma/db';
 import { validateIndonesianPhone, getPhoneLookupVariants } from '@/lib/format/phone';
 
 const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
-  name: z.string({error: t('invalidField')}).trim().min(2, t('nameMin')),
+  name: z.string({error: t('invalidField')}).trim().min(2, t('nameMin')).max(100, t('nameMax')),
   alamat: z.string({error: t('invalidField')}).trim().min(5, t('streetAddressRequired')).max(500, t('addressMax')),
   nomor_telepon: z
     .string({error: t('invalidField')})

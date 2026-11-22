@@ -120,7 +120,7 @@ export function RekapPresensiDonut({ data, total }: { data: RekapSlice[]; total:
 export function AktivitasMingguanBar({ data, label }: { data: HariAktivitas[]; label: string }) {
   const config = { hadir: { label, color: "#2563eb" } } satisfies ChartConfig;
   return (
-    <ChartContainer config={config} className="h-[226px] w-full">
+    <ChartContainer config={config} className="h-[240px] w-full">
       <BarChart data={data} margin={{ top: 12, right: 12, left: 4, bottom: 24 }}>
         <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
         <XAxis
@@ -174,6 +174,132 @@ export function AktivitasMingguanBar({ data, label }: { data: HariAktivitas[]; l
   );
 }
 
+export interface TrenKehadiranCardProps {
+  aktivitasData: HariAktivitas[];
+  title: string;
+  subtitle: string;
+  totalAktivitasHadir?: number;
+  overallAttendanceRate?: number;
+}
+
+/** Kartu grafik tren kehadiran 7 hari terakhir. */
+export function TrenKehadiranCard({
+  aktivitasData,
+  title,
+  subtitle,
+  totalAktivitasHadir,
+}: TrenKehadiranCardProps) {
+  return (
+    <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs w-full">
+      <div>
+        <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div>
+            <h3 className="font-display text-sm sm:text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
+              {title}
+            </h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              {subtitle}
+            </p>
+          </div>
+          {typeof totalAktivitasHadir === "number" ? (
+            <div className="text-right shrink-0">
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block uppercase tracking-wider">
+                Total Hadir
+              </span>
+              <span className="text-base sm:text-lg font-bold text-slate-950 dark:text-slate-50 tabular-nums">
+                {totalAktivitasHadir} <span className="text-xs font-normal text-slate-500">siswa</span>
+              </span>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="mt-4">
+          <AktivitasMingguanBar data={aktivitasData} label="Siswa Hadir" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export interface RekapPresensiCardProps {
+  rekapData: RekapSlice[];
+  totalPresensi: number;
+  title: string;
+  subtitle?: string;
+  noAttendanceYet: string;
+  noAttendanceDesc: string;
+}
+
+/** Kartu ringkasan distribusi status presensi siswa. */
+export function RekapPresensiCard({
+  rekapData,
+  totalPresensi,
+  title,
+  subtitle,
+  noAttendanceYet,
+  noAttendanceDesc,
+}: RekapPresensiCardProps) {
+  return (
+    <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs">
+      <div>
+        <div className="pb-4 border-b border-slate-100 dark:border-slate-800">
+          <h3 className="font-display text-sm sm:text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
+            {title}
+          </h3>
+          {subtitle ? (
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+              {subtitle}
+            </p>
+          ) : null}
+        </div>
+
+        <div className="mt-4">
+          {totalPresensi > 0 ? (
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-full flex justify-center">
+                <RekapPresensiDonut data={rekapData} total={totalPresensi} />
+              </div>
+
+              {/* Status metrik diletakkan di bawah chart donut (Jumlah Saja) */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full pt-2">
+                {rekapData.map((item) => (
+                  <div
+                    key={item.key}
+                    className="flex flex-col rounded-lg border border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-800/40 p-2 text-center"
+                  >
+                    <div className="flex items-center justify-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                      <span
+                        className="size-2 rounded-full shrink-0"
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span className="font-medium truncate text-[11px]">{item.label}</span>
+                    </div>
+                    <div className="mt-1 flex items-baseline justify-center">
+                      <span className="text-base sm:text-lg font-bold text-slate-950 dark:text-slate-50 tabular-nums">
+                        {item.value}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="py-8 text-center">
+              <div className="grid size-12 place-items-center rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 mx-auto mb-2">
+                <PieChartIcon className="size-6 stroke-[1.5]" />
+              </div>
+              <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{noAttendanceYet}</p>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 max-w-xs mx-auto mt-1">
+                {noAttendanceDesc}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export interface TeacherAnalyticsSectionProps {
   rekapData: RekapSlice[];
   totalPresensi: number;
@@ -195,84 +321,27 @@ export function TeacherAnalyticsSection({
   rekapData,
   totalPresensi,
   aktivitasData,
+  totalAktivitasHadir,
+  overallAttendanceRate,
   labels,
 }: TeacherAnalyticsSectionProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* 1. Donut Distribusi Presensi Siswa */}
-      <div className="flex flex-col justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs">
-        <div>
-          <div className="pb-3 border-b border-slate-100 dark:border-slate-800">
-            <h3 className="font-display text-sm font-bold text-slate-950 dark:text-slate-50 tracking-tight">
-              {labels.distributionTitle}
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-              Proporsi status kehadiran siswa semester ini.
-            </p>
-          </div>
-
-          <div className="mt-4">
-            {totalPresensi > 0 ? (
-              <div className="flex flex-col items-center gap-3">
-                <div className="w-full flex justify-center">
-                  <RekapPresensiDonut data={rekapData} total={totalPresensi} />
-                </div>
-
-                {/* Status metrik diletakkan di bawah chart donut (Jumlah Saja) */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full pt-1">
-                  {rekapData.map((item) => (
-                    <div
-                      key={item.key}
-                      className="flex flex-col rounded-md border border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-800/40 p-2 text-center"
-                    >
-                      <div className="flex items-center justify-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
-                        <span
-                          className="size-2 rounded-full shrink-0"
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span className="font-medium truncate text-[11px]">{item.label}</span>
-                      </div>
-                      <div className="mt-1 flex items-baseline justify-center">
-                        <span className="text-base sm:text-lg font-bold text-slate-950 dark:text-slate-50 tabular-nums">
-                          {item.value}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="py-6 text-center">
-                <div className="grid size-11 place-items-center rounded-lg bg-slate-50 dark:bg-slate-800 text-slate-400 mx-auto mb-2">
-                  <PieChartIcon className="size-5 stroke-[1.5]" />
-                </div>
-                <p className="text-xs font-bold text-slate-900 dark:text-slate-100">{labels.noAttendanceYet}</p>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400 max-w-xs mx-auto mt-1">
-                  {labels.noAttendanceDesc}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Bar Aktivitas 7 Hari Terakhir */}
-      <div className="flex flex-col justify-between rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs">
-        <div>
-          <div className="pb-3 border-b border-slate-100 dark:border-slate-800">
-            <h3 className="font-display text-sm font-bold text-slate-950 dark:text-slate-50 tracking-tight">
-              {labels.weeklyTrendTitle}
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-              {labels.weeklyTrendSubtitle}
-            </p>
-          </div>
-
-          <div className="mt-4">
-            <AktivitasMingguanBar data={aktivitasData} label="Siswa Hadir" />
-          </div>
-        </div>
-      </div>
+      <RekapPresensiCard
+        rekapData={rekapData}
+        totalPresensi={totalPresensi}
+        title={labels.distributionTitle}
+        subtitle="Proporsi status kehadiran siswa semester ini."
+        noAttendanceYet={labels.noAttendanceYet}
+        noAttendanceDesc={labels.noAttendanceDesc}
+      />
+      <TrenKehadiranCard
+        aktivitasData={aktivitasData}
+        title={labels.weeklyTrendTitle}
+        subtitle={labels.weeklyTrendSubtitle}
+        totalAktivitasHadir={totalAktivitasHadir}
+        overallAttendanceRate={overallAttendanceRate}
+      />
     </div>
   );
 }

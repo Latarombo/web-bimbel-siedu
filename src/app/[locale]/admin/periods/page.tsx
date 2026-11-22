@@ -30,10 +30,10 @@ export default async function AdminPeriods({ searchParams }: { searchParams: Pro
 
   const columns: TableColumn[] = [
     { key: "nama", header: t("text9") },
-    { key: "status", header: t("text32") },
+    { key: "status", header: t("text32"), align: "center" },
     { key: "rentang", header: t("text101") },
-    { key: "nKelas", header: t("text11"), className: "text-center" },
-    { key: "aksi", header: t("text61"), className: "text-right", sortable: false },
+    { key: "nKelas", header: t("text11"), align: "center" },
+    { key: "aksi", header: t("text61"), align: "right", sortable: false },
   ];
 
   const rows: TableRowData[] = [...periode]

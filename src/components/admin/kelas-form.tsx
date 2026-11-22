@@ -72,10 +72,10 @@ export default function KelasForm({
           </Select>
         </Field>
         <Field label={t("kelas.grade")} error={err("tingkat")}>
-          <Input name="tingkat" placeholder="cth. Kelas 6" defaultValue={defaults?.tingkat ?? ""} />
+          <Input name="tingkat" maxLength={30} placeholder="cth. Kelas 6" defaultValue={defaults?.tingkat ?? ""} />
         </Field>
         <Field label={t("kelas.room")} error={err("ruangan")}>
-          <Input name="ruangan" placeholder="cth. Ruang Galileo (Lt. 2)" defaultValue={defaults?.ruangan ?? ""} />
+          <Input name="ruangan" maxLength={50} placeholder="cth. Ruang Galileo (Lt. 2)" defaultValue={defaults?.ruangan ?? ""} />
         </Field>
       </div>
       <div className="grid gap-4 sm:grid-cols-3">

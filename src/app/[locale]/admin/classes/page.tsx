@@ -40,10 +40,10 @@ export default async function AdminClasses({ searchParams }: { searchParams: Pro
     { key: "mapel", header: t("text11") },
     { key: "guru", header: t("text10") },
     { key: "jadwal", header: t("text58") },
-    { key: "kuota", header: t("text59") },
-    { key: "biaya", header: t("text60") },
-    { key: "status", header: t("text32") },
-    { key: "aksi", header: t("text61"), className: "text-right", sortable: false },
+    { key: "kuota", header: t("text59"), align: "right" },
+    { key: "biaya", header: t("text60"), align: "right" },
+    { key: "status", header: t("text32"), align: "center" },
+    { key: "aksi", header: t("text61"), align: "right", sortable: false },
   ];
 
   const rows: TableRowData[] = urut.map((k) => {
@@ -96,9 +96,9 @@ export default async function AdminClasses({ searchParams }: { searchParams: Pro
           </div>
         ),
         biaya: (
-          <div>
+          <div className="text-right">
             <p className="tabular-nums font-semibold text-slate-900">{rupiah(Number(k.biayaPeriode))}</p>
-            {k.biayaDp ? <p className="text-xs text-slate-500">{t("depositAmount", { amount: rupiah(Number(k.biayaDp)) })}</p> : null}
+            {k.biayaDp ? <p className="text-xs tabular-nums text-slate-500">{t("depositAmount", { amount: rupiah(Number(k.biayaDp)) })}</p> : null}
           </div>
         ),
         status: <Badge tone={k.status === "aktif" ? "emerald" : "slate"}>{labelKelas(k.status)}</Badge>,

@@ -21,7 +21,7 @@ const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.obj
   .string({error: t('invalidField')})
   .trim()
   .min(8, t('phoneMin'))
-  .max(30, t('phoneMax'))
+  .max(20, t('phoneMax'))
   .regex(/^[0-9+\-\s()]*$/, t('phoneCharacters')),
  email: z.string({error: t('invalidField')}).trim().toLowerCase().max(255, t('emailMax')).email(t('invalidEmail')),
  sekolah: z.string({error: t('invalidField')}).trim().max(150, t('schoolMax')).optional().or(z.literal('')),

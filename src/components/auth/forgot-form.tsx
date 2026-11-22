@@ -183,6 +183,7 @@ export default function ForgotForm() {
             type="email"
             name="email"
             required
+            maxLength={255}
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}

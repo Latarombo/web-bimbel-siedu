@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { AttendanceTable, type SiswaPresensi } from './attendance-table';
 import { SessionJournalForm } from './session-journal-form';
+import { UnderlineTabs } from '@/components/ui/underline-tabs';
 
 interface TeacherAttendanceManagerProps {
   kelasId: number;
@@ -32,34 +33,17 @@ export function TeacherAttendanceManager({
 
   return (
     <div className="space-y-6">
-      {/* Propify Underline Tab Navigation */}
-      <div className="border-b border-slate-200 dark:border-slate-800">
-        <nav className="flex gap-6" aria-label="Tabs Presensi & Jurnal">
-          <button
-            type="button"
-            onClick={() => setActiveTab('attendance')}
-            className={`pb-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
-              activeTab === 'attendance'
-                ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                : 'border-transparent text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-slate-100'
-            }`}
-          >
-            <span>{t('attendanceList')}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('journal')}
-            className={`pb-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
-              activeTab === 'journal'
-                ? 'border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400'
-                : 'border-transparent text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-slate-100'
-            }`}
-          >
-            <span>{t('sessionNotesTitle')}</span>
-          </button>
-        </nav>
-      </div>
+      {/* Propify Underline Tab Navigation with sliding indicator */}
+      <UnderlineTabs
+        tabs={[
+          { id: 'attendance', label: t('attendanceList') },
+          { id: 'journal', label: t('sessionNotesTitle') },
+        ]}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        ariaLabel="Tabs Presensi & Jurnal"
+        layoutId="teacher-attendance-tabs"
+      />
 
       {/* Tab Panels */}
       {activeTab === 'attendance' ? (

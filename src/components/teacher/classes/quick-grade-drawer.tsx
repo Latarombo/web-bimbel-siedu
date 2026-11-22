@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Link } from "@/i18n/navigation";
+import { useState, useTransition, useMemo } from "react";
+import { Link, useRouter } from "@/i18n/navigation";
 import { X, ChevronLeft, ChevronRight, Loader2, Check } from "lucide-react";
-import { saveNilai } from "@/app/actions/teacher";
+import { saveSingleStudentGrade } from "@/app/actions/teacher";
 import { NativeDialog } from "@/components/common/native-dialog";
-import type { StudentRosterItem } from "./class-detail-view";
+import { Select } from "@/components/ui/select";
+import type { StudentRosterItem, ClassAssessmentItem } from "./class-detail-view";
 
 interface QuickGradeDrawerProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface QuickGradeDrawerProps {
   onNextStudent: () => void;
   onPrevStudent: () => void;
   classId: number;
+  assessments?: ClassAssessmentItem[];
   onSavedSuccess?: (
     pendaftaranId: number,
     nilai: number | null,
@@ -31,21 +33,53 @@ export function QuickGradeDrawer({
   totalStudents,
   onNextStudent,
   onPrevStudent,
+  classId,
+  assessments = [],
   onSavedSuccess,
 }: QuickGradeDrawerProps) {
-  const [tanggal, setTanggal] = useState("");
+  const router = useRouter();
+  const [selectedPenilaianId, setSelectedPenilaianId] = useState<string>(() => {
+    return assessments.length > 0 ? String(assessments[0].id) : "new";
+  });
+  const [namaAsesmenBaru, setNamaAsesmenBaru] = useState("");
+  const [statusHasil, setStatusHasil] = useState<"dinilai" | "tidak_ikut">("dinilai");
   const [nilai, setNilai] = useState("");
   const [catatan, setCatatan] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  // Ensure selected assessment is valid and defaults cleanly
+  const isSelectedValid =
+    selectedPenilaianId === "new" ||
+    assessments.some((a) => String(a.id) === selectedPenilaianId);
+
+  const effectivePenilaianId = isSelectedValid
+    ? selectedPenilaianId
+    : assessments.length > 0
+    ? String(assessments[0].id)
+    : "new";
+
+  // Selected assessment object
+  const currentAssessment = assessments.find(
+    (a) => String(a.id) === effectivePenilaianId
+  );
+  const maxScore = currentAssessment ? currentAssessment.nilaiMaksimum : 100;
+
+  const assessmentOptions = useMemo(() => [
+    ...assessments.map((a) => ({
+      value: String(a.id),
+      label: a.nama,
+      description: a.tanggal,
+    })),
+    { value: "new", label: "+ Buat Asesmen Baru" },
+  ], [assessments]);
+
   // Reset form when student changes
   const [prevStudentId, setPrevStudentId] = useState(student?.id);
   if (student?.id !== prevStudentId) {
     setPrevStudentId(student?.id);
     if (student) {
-      setTanggal(new Date().toISOString().slice(0, 10));
       setNilai("");
       setCatatan("");
       setErrorMsg(null);
@@ -63,20 +97,24 @@ export function QuickGradeDrawer({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tanggal) {
-      setErrorMsg("Tanggal penilaian wajib diisi.");
-      return;
-    }
-    if (!nilai.trim() && !catatan.trim()) {
-      setErrorMsg("Masukkan nilai angka atau catatan evaluasi untuk siswa.");
+
+    if (effectivePenilaianId === "new" && !namaAsesmenBaru.trim()) {
+      setErrorMsg("Nama asesmen/tugas baru wajib diisi.");
       return;
     }
 
-    if (nilai.trim()) {
-      const num = Number(nilai);
-      if (isNaN(num) || num < 0 || num > 100) {
-        setErrorMsg("Nilai harus berupa angka antara 0 sampai 100.");
+    if (statusHasil === "dinilai") {
+      if (!nilai.trim() && !catatan.trim()) {
+        setErrorMsg("Masukkan nilai angka atau catatan evaluasi untuk siswa.");
         return;
+      }
+
+      if (nilai.trim()) {
+        const num = Number(nilai);
+        if (isNaN(num) || num < 0 || num > maxScore) {
+          setErrorMsg(`Nilai harus berupa angka antara 0 sampai ${maxScore}.`);
+          return;
+        }
       }
     }
 
@@ -85,24 +123,31 @@ export function QuickGradeDrawer({
 
     startTransition(async () => {
       const formData = new FormData();
+      formData.append("kelas_id", String(classId));
       formData.append("pendaftaran_id", String(student.id));
-      formData.append("tanggal", tanggal);
-      if (nilai.trim()) {
+      if (effectivePenilaianId !== "new") {
+        formData.append("penilaian_id", effectivePenilaianId);
+      } else {
+        formData.append("nama_asesmen_baru", namaAsesmenBaru.trim());
+      }
+      formData.append("status_hasil", statusHasil);
+      if (statusHasil === "dinilai" && nilai.trim()) {
         formData.append("nilai", nilai.trim());
       }
       if (catatan.trim()) {
         formData.append("catatan", catatan.trim());
       }
 
-      const res = await saveNilai({}, formData);
+      const res = await saveSingleStudentGrade({}, formData);
       if (res?.error) {
         setErrorMsg(res.error);
       } else {
         setSuccessMsg("Nilai berhasil disimpan!");
+        router.refresh();
         if (onSavedSuccess) {
           onSavedSuccess(
             student.id,
-            nilai.trim() ? Number(nilai) : null,
+            statusHasil === "dinilai" && nilai.trim() ? Number(nilai) : null,
             catatan.trim() || null
           );
         }
@@ -123,7 +168,7 @@ export function QuickGradeDrawer({
         <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60">
           <div className="flex items-center justify-between gap-2 mb-3">
             {/* SpeedGrader Student Stepper (< X of Y >) */}
-            <div className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 shadow-2xs">
+            <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 shadow-2xs">
               <button
                 type="button"
                 disabled={studentIndex <= 0 || isPending}
@@ -131,7 +176,7 @@ export function QuickGradeDrawer({
                 aria-label="Murid sebelumnya"
                 className="grid size-6 place-items-center rounded text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
               >
-                <ChevronLeft className="size-3.5" />
+                <ChevronLeft className="size-4" />
               </button>
 
               <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 tabular-nums px-1">
@@ -145,7 +190,7 @@ export function QuickGradeDrawer({
                 aria-label="Murid berikutnya"
                 className="grid size-6 place-items-center rounded text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
               >
-                <ChevronRight className="size-3.5" />
+                <ChevronRight className="size-4" />
               </button>
             </div>
 
@@ -163,7 +208,7 @@ export function QuickGradeDrawer({
 
           {/* Student Profile Card */}
           <div className="flex items-center gap-3">
-            <div className="grid size-10 shrink-0 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-semibold">
+            <div className="grid size-10 shrink-0 place-items-center rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 text-sm font-semibold">
               {initial}
             </div>
             <div className="min-w-0 flex-1">
@@ -202,56 +247,112 @@ export function QuickGradeDrawer({
           ) : null}
 
           <form id="quick-grade-form" onSubmit={handleSubmit} className="space-y-4">
-            {/* Tanggal Penilaian */}
-            <div className="space-y-1.5">
+            {/* Pilihan Tugas / Asesmen */}
+            <div className="space-y-2">
               <label
-                htmlFor="grade-tanggal"
+                htmlFor="grade-asesmen"
                 className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
               >
-                Tanggal Penilaian <span className="text-red-500">*</span>
+                Tugas / Asesmen Kelas <span className="text-red-500">*</span>
               </label>
-              <input
-                id="grade-tanggal"
-                type="date"
-                required
-                value={tanggal}
-                onChange={(e) => setTanggal(e.target.value)}
+              <Select
+                id="grade-asesmen"
+                value={effectivePenilaianId}
+                onChange={setSelectedPenilaianId}
+                options={assessmentOptions}
                 disabled={isPending}
-                className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:border-blue-600 focus:outline-hidden"
+                ariaLabel="Pilih tugas atau asesmen kelas"
+                portal={false}
               />
+            </div>
+
+            {/* Nama Asesmen Baru jika dipilih 'new' */}
+            {effectivePenilaianId === "new" ? (
+              <div className="space-y-2 rounded-lg border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 p-3">
+                <label
+                  htmlFor="nama-asesmen-baru"
+                  className="block text-xs font-semibold text-blue-950 dark:text-blue-200"
+                >
+                  Nama Asesmen Baru <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="nama-asesmen-baru"
+                  type="text"
+                  maxLength={100}
+                  placeholder="Contoh: Kuis Bab 3, Tugas Mandiri 1"
+                  value={namaAsesmenBaru}
+                  onChange={(e) => setNamaAsesmenBaru(e.target.value)}
+                  disabled={isPending}
+                  className="w-full h-11 sm:h-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                />
+              </div>
+            ) : null}
+
+            {/* Status Hasil: Dinilai vs Tidak Ikut */}
+            <div className="space-y-2">
+              <span className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                Status Keikutsertaan
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setStatusHasil("dinilai")}
+                  className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                    statusHasil === "dinilai"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-2xs"
+                      : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  Dinilai
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStatusHasil("tidak_ikut")}
+                  className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                    statusHasil === "tidak_ikut"
+                      ? "bg-rose-600 text-white border-rose-600 shadow-2xs"
+                      : "bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-50"
+                  }`}
+                >
+                  Tidak Ikut
+                </button>
+              </div>
             </div>
 
             {/* Nilai Angka */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="grade-nilai"
-                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
-                >
-                  Nilai Angka (0 - 100)
-                </label>
-                {student.rata != null ? (
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Rata-rata saat ini: <strong>{student.rata}</strong>
-                  </span>
-                ) : null}
+            {statusHasil === "dinilai" ? (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="grade-nilai"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
+                  >
+                    Nilai Angka
+                  </label>
+                  {student.rata != null ? (
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Rata-rata saat ini: <strong>{student.rata}</strong>
+                    </span>
+                  ) : null}
+                </div>
+                <input
+                  id="grade-nilai"
+                  type="number"
+                  inputMode="decimal"
+                  min="0"
+                  max={maxScore}
+                  step="0.5"
+                  placeholder="Contoh: 85"
+                  value={nilai}
+                  onChange={(e) => setNilai(e.target.value)}
+                  disabled={isPending}
+                  className="w-full h-11 sm:h-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 text-base sm:text-lg font-bold tabular-nums text-slate-950 dark:text-slate-50 placeholder:font-normal placeholder:text-sm placeholder:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                />
               </div>
-              <input
-                id="grade-nilai"
-                type="number"
-                min="0"
-                max="100"
-                step="1"
-                placeholder="Contoh: 85"
-                value={nilai}
-                onChange={(e) => setNilai(e.target.value)}
-                disabled={isPending}
-                className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-base sm:text-lg font-bold tabular-nums text-slate-950 dark:text-slate-50 placeholder:font-normal placeholder:text-sm placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
-              />
-            </div>
+            ) : null}
 
             {/* Catatan Kualitatif / Feedback */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
                 htmlFor="grade-catatan"
                 className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
@@ -262,23 +363,23 @@ export function QuickGradeDrawer({
                 id="grade-catatan"
                 rows={4}
                 maxLength={1000}
-                placeholder="Tuliskan catatan kemajuan belajar, keaktifan, atau evaluasi untuk siswa ini..."
+                placeholder="Tuliskan catatan kemajuan belajar, keaktifan, atau evaluasi untuk siswa ini…"
                 value={catatan}
                 onChange={(e) => setCatatan(e.target.value)}
                 disabled={isPending}
-                className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden resize-none"
+                className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 resize-none transition-colors"
               />
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 text-right">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 text-right tabular-nums">
                 {catatan.length}/1000 karakter
               </p>
             </div>
 
-            {/* 7-Day Lock Notice (BR#18) */}
+            {/* Petunjuk Penyederhanaan */}
             <div className="rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 border border-slate-200/80 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
               <span className="font-semibold text-slate-800 dark:text-slate-200">
-                Kebijakan Batas Edit 7 Hari (BR#18):
+                Pembaruan Langsung:
               </span>{" "}
-              Nilai yang disimpan dapat diubah mandiri dalam jangka waktu 7 hari kalender. Setelah itu, entri terkunci permanen dan perbaikan data diajukan melalui alur koreksi admin.
+              Nilai yang disimpan dapat Anda perbarui kapan saja secara langsung tanpa memerlukan tiket koreksi admin.
             </div>
           </form>
 
@@ -299,7 +400,7 @@ export function QuickGradeDrawer({
             type="button"
             disabled={isPending}
             onClick={onClose}
-            className="px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 rounded-md transition-colors disabled:opacity-40 cursor-pointer"
+            className="px-4 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors disabled:opacity-40 cursor-pointer"
           >
             <span>Tutup</span>
           </button>
@@ -308,7 +409,7 @@ export function QuickGradeDrawer({
             type="submit"
             form="quick-grade-form"
             disabled={isPending}
-            className="inline-flex items-center justify-center gap-1.5 rounded-md bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isPending ? <Loader2 className="size-4 animate-spin" /> : null}
             <span>{isPending ? "Menyimpan..." : "Simpan Nilai"}</span>

@@ -146,18 +146,19 @@ export async function savePeriode(
 // --- E4 Guru ---
 const guruSchema = (t: Translator) => z.object({
   nama: z.string().trim().min(2, t("validation.nameMin")).max(100, t("validation.nameMax")),
-  email: z.string().trim().toLowerCase().email(t("validation.email")),
+  email: z.string().trim().toLowerCase().max(255).email(t("validation.email")),
   password: z
     .string()
     .min(8, t("validation.passwordMin"))
+    .max(72, t("validation.passwordMax"))
     .optional()
     .or(z.literal("")),
-  alamat: z.string().trim().max(255, t("validation.addressMax")).optional().or(z.literal("")),
+  alamat: z.string().trim().max(500, t("validation.addressMax")).optional().or(z.literal("")),
   nomor_telepon: z
     .string()
     .trim()
-    .min(8, t("validation.phoneMin"))
-    .max(30, t("validation.phoneMax")),
+    .min(10, t("validation.phoneMin"))
+    .max(20, t("validation.phoneMax")),
 });
 
 export async function saveGuru(
@@ -250,8 +251,8 @@ const kelasSchema = (t: Translator) => z
     guru_id: z.coerce.number().int().positive(t("validation.teacher")),
     periode_id: z.coerce.number().int().positive(t("validation.period")),
     jenjang: z.enum(["TK", "SD", "SMP", "SMA"], t("validation.invalid")),
-    tingkat: z.string().trim().max(30).optional().or(z.literal("")),
-    ruangan: z.string().trim().max(100).optional().or(z.literal("")),
+    tingkat: z.string().trim().max(30, t("validation.gradeMax")).optional().or(z.literal("")),
+    ruangan: z.string().trim().max(50, t("validation.roomMax")).optional().or(z.literal("")),
     kuota_maksimum: z.coerce.number().int().min(1, t("validation.minOne")).max(200, t("validation.maxQuota")),
     kuota_minimum: z.coerce.number().int().min(1, t("validation.minOne")).max(200, t("validation.maxQuota")),
     biaya_periode: z.coerce.number().positive(t("validation.positiveFee")),
@@ -426,6 +427,9 @@ export async function prosesKoreksi(
   if (!Number.isInteger(koreksiId) || !["setujui", "tolak"].includes(keputusan)) {
     return { error: "Parameter keputusan tidak valid." };
   }
+  if (catatanAdmin.length > 1000) {
+    return { error: "Catatan admin maksimal 1000 karakter." };
+  }
 
   const [koreksi] = await collect(
     db.orm.public.PengajuanKoreksi.where({ id: koreksiId }).all(),
@@ -449,11 +453,6 @@ export async function prosesKoreksi(
         if (typeof usulan.status === "string") updateData.status = usulan.status;
         if (typeof usulan.catatan === "string") updateData.catatan = usulan.catatan;
         await tx.orm.public.Presensi.where({ id: koreksi.entitasId }).update(updateData);
-      } else if (koreksi.entitas === "nilai") {
-        const updateData: Record<string, unknown> = {};
-        if (usulan.nilaiKuantitatif !== undefined) updateData.nilaiKuantitatif = String(usulan.nilaiKuantitatif);
-        if (usulan.catatanKualitatif !== undefined) updateData.catatanKualitatif = String(usulan.catatanKualitatif);
-        await tx.orm.public.NilaiProgres.where({ id: koreksi.entitasId }).update(updateData);
       }
 
       await tx.orm.public.PengajuanKoreksi.where({ id: koreksiId }).update({

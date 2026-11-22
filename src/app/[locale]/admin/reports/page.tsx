@@ -45,12 +45,12 @@ export default async function AdminReports() {
 
   const columns: TableColumn[] = [
     { key: "nama", header: t("text9") },
-    { key: "status", header: t("text32") },
-    { key: "aktif", header: t("text68"), className: "text-center" },
-    { key: "tertunggak", header: t("text110"), className: "text-center" },
-    { key: "batal", header: t("text113"), className: "text-center" },
-    { key: "terkumpul", header: t("text114"), className: "text-right" },
-    { key: "pending", header: t("text20"), className: "text-right" },
+    { key: "status", header: t("text32"), align: "center" },
+    { key: "aktif", header: t("text68"), align: "right" },
+    { key: "tertunggak", header: t("text110"), align: "right" },
+    { key: "batal", header: t("text113"), align: "right" },
+    { key: "terkumpul", header: t("text114"), align: "right" },
+    { key: "pending", header: t("text20"), align: "right" },
   ];
 
   const rows: TableRowData[] = urut.map((pr) => {

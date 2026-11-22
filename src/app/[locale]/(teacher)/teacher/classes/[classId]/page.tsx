@@ -13,6 +13,7 @@ import {
 } from "@/components/teacher/classes/class-detail-view";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function TeacherClassDetail({
   params,
@@ -178,16 +179,35 @@ export default async function TeacherClassDetail({
     nSesiHadir.set(p.id, presensiByGuru.filter((x) => x.pendaftaranId === p.id).length);
   }
 
+  const penilaianMap = new Map(penilaianList.map((pen) => [pen.id, pen]));
+  const hasilByPendaftaran = new Map<number, typeof hasilPenilaianList>();
+  for (const h of hasilPenilaianList) {
+    const arr = hasilByPendaftaran.get(h.pendaftaranId) ?? [];
+    arr.push(h);
+    hasilByPendaftaran.set(h.pendaftaranId, arr);
+  }
+
   const rows = pendaftaran.map((p) => {
-    const nilai = nilaiByGuru.filter((n) => n.pendaftaranId === p.id);
-    const num = nilai
-      .filter((n) => n.nilaiKuantitatif != null)
-      .map((n) => Number(n.nilaiKuantitatif));
+    const hasilSiswa = hasilByPendaftaran.get(p.id) ?? [];
+    const dinilaiList = hasilSiswa.filter(
+      (h) => h.statusHasil === "dinilai" && h.nilai != null,
+    );
+    // Normalisasi skala 100 per tugas terbit
+    const skor100 = dinilaiList.map((h) => {
+      const pen = penilaianMap.get(h.penilaianId);
+      const maxScore = pen ? Number(pen.nilaiMaksimum) : 100;
+      return (Number(h.nilai) / (maxScore > 0 ? maxScore : 100)) * 100;
+    });
+
+    const rata = skor100.length
+      ? Math.round(skor100.reduce((s, v) => s + v, 0) / skor100.length)
+      : null;
+
     return {
       p,
       anak: anakById.get(p.anakId),
-      nNilai: nilai.length,
-      rata: num.length ? Math.round(num.reduce((s, v) => s + v, 0) / num.length) : null,
+      nNilai: dinilaiList.length,
+      rata,
       hadir: nHadir.get(p.id) ?? 0,
       tercatat: nSesiHadir.get(p.id) ?? 0,
     };

@@ -118,7 +118,7 @@ export function PengajuanKoreksiForm({ lockedEntries, initialKey }: PengajuanKor
       ) : null}
 
       <div>
-        <label htmlFor="select-locked-entry" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+        <label htmlFor="select-locked-entry" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
           {t("selectLockedEntry")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
         </label>
         <CardSelect
@@ -136,7 +136,7 @@ export function PengajuanKoreksiForm({ lockedEntries, initialKey }: PengajuanKor
       </div>
 
       {selectedEntry ? (
-        <div className="space-y-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 p-3.5 sm:p-4">
+        <div className="space-y-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 p-4">
           <div className="text-xs text-slate-500 dark:text-slate-400">
             <span className="font-medium text-slate-700 dark:text-slate-300">{t("currentData")}: </span>
             {selectedEntry.ringkasan}
@@ -145,7 +145,7 @@ export function PengajuanKoreksiForm({ lockedEntries, initialKey }: PengajuanKor
           {selectedEntry.entitas === "presensi" ? (
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                   {t("proposedStatus")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
                 </label>
                 <CardSelect
@@ -162,63 +162,74 @@ export function PengajuanKoreksiForm({ lockedEntries, initialKey }: PengajuanKor
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                <label htmlFor="proposed-notes-status" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 cursor-pointer">
                   {t("additionalNotes")}
                 </label>
                 <input
+                  id="proposed-notes-status"
                   type="text"
+                  maxLength={255}
                   value={proposedNotes}
                   onChange={(e) => setProposedNotes(e.target.value)}
                   placeholder={t("notesPlaceholder")}
-                  className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-800"
+                  className="w-full h-11 px-3 sm:px-4 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/20 focus-visible:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-800"
                 />
               </div>
             </div>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                <label htmlFor="proposed-grade" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 cursor-pointer">
                   {t("proposedGrade")} (0-100) <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
                 </label>
                 <input
+                  id="proposed-grade"
                   type="number"
+                  inputMode="decimal"
                   min="0"
                   max="100"
                   value={proposedGrade}
                   onChange={(e) => setProposedGrade(e.target.value)}
                   required
-                  className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-800"
+                  className="w-full h-11 px-3 sm:px-4 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/20 focus-visible:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-800"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                <label htmlFor="proposed-notes-grade" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 cursor-pointer">
                   {t("additionalNotes")}
                 </label>
                 <input
+                  id="proposed-notes-grade"
                   type="text"
+                  maxLength={1000}
                   value={proposedNotes}
                   onChange={(e) => setProposedNotes(e.target.value)}
                   placeholder={t("notesPlaceholder")}
-                  className="w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-800"
+                  className="w-full h-11 px-3 sm:px-4 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/20 focus-visible:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 bg-white dark:bg-slate-800"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+            <label htmlFor="correction-reason" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 cursor-pointer">
               {t("correctionReason")} <span className="text-danger font-bold ml-0.5" aria-hidden="true">*</span>
             </label>
             <textarea
+              id="correction-reason"
               rows={2}
               required
               minLength={5}
+              maxLength={1000}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder={t("correctionStep2Body")}
-              className="w-full px-3.5 py-2.5 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-y bg-white dark:bg-slate-800"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-base sm:text-sm text-slate-800 dark:text-slate-100 border border-slate-300 dark:border-slate-600 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/20 focus-visible:border-blue-600 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-y bg-white dark:bg-slate-800"
             />
+            <p className="mt-1 text-right text-xs text-slate-400 dark:text-slate-500 font-mono tabular-nums">
+              {reason.length} / 1000
+            </p>
           </div>
 
           <Button type="submit" disabled={isPending} className="w-full">

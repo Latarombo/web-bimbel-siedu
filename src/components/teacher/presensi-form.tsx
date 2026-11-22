@@ -121,24 +121,24 @@ export default function PresensiForm({
 
         {/* Ringkasan status */}
         <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 ring-1 ring-emerald-200">
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 ring-1 ring-emerald-200">
             <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
             {t("summaryPresent")}: {counts.hadir}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 ring-1 ring-amber-200">
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-amber-700 ring-1 ring-amber-200">
             <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
             {t("summaryExcused")}: {counts.izin}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-blue-700 ring-1 ring-blue-200">
+          <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1 text-blue-700 ring-1 ring-blue-200">
             <span className="size-1.5 rounded-full bg-blue-500" aria-hidden="true" />
             {t("summarySick")}: {counts.sakit}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-rose-700 ring-1 ring-rose-200">
+          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-3 py-1 text-rose-700 ring-1 ring-rose-200">
             <span className="size-1.5 rounded-full bg-rose-500" aria-hidden="true" />
             {t("summaryAbsent")}: {counts.alpa}
           </span>
           {counts.belumDiisi > 0 ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-slate-200 px-2.5 py-1 text-slate-700">
+            <span className="inline-flex items-center gap-1 rounded-full bg-slate-200 px-3 py-1 text-slate-700">
               {t("summaryUnfilled")}: {counts.belumDiisi}
             </span>
           ) : null}
@@ -163,7 +163,7 @@ export default function PresensiForm({
                   <legend className="sr-only">{t("attendanceStudentLabel", { name: s.nama })}</legend>
                   <div className="flex flex-wrap gap-4">
                     {STATUS.map((st) => (
-                      <label key={t(`status_${st}`)} className="inline-flex min-h-11 items-center gap-1.5 text-sm cursor-pointer">
+                      <label key={t(`status_${st}`)} className="inline-flex min-h-11 items-center gap-2 text-sm cursor-pointer">
                         <input
                           type="radio"
                           name={`presensi_${s.pendaftaranId}`}
@@ -176,7 +176,7 @@ export default function PresensiForm({
                   </div>
                 </fieldset>
                 <Field label={t("notesOptional")}>
-                  <Input name={`catatan_${s.pendaftaranId}`} defaultValue={s.catatan ?? ""} disabled={s.terkunci} />
+                  <Input name={`catatan_${s.pendaftaranId}`} maxLength={255} defaultValue={s.catatan ?? ""} disabled={s.terkunci} />
                 </Field>
               </div>
             </li>

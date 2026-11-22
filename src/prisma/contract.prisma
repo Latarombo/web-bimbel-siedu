@@ -107,6 +107,10 @@ model User {
   laporanFoto        LaporanFotoStatus[]   @relation("PelaporFotoStatus")
 
   @@index(expression: "lower(email)", unique: true, name: "users_email_lower")
+  @@check(expression: "length(name) <= 100", name: "user_name_len")
+  @@check(expression: "length(email) <= 255", name: "user_email_len")
+  @@check(expression: "alamat IS NULL OR length(alamat) <= 500", name: "user_alamat_len")
+  @@check(expression: "length(nomor_telepon) <= 20", name: "user_phone_len")
   @@map("users")
 }
 
@@ -130,6 +134,10 @@ model Anak {
   @@index([orangTuaId])
   @@index([tanggalLahir])
   @@check(expression: "tanggal_lahir <= CURRENT_DATE", name: "anak_dob_not_future")
+  @@check(expression: "length(nama) <= 100", name: "anak_nama_len")
+  @@check(expression: "tingkat IS NULL OR length(tingkat) <= 30", name: "anak_tingkat_len")
+  @@check(expression: "email_notifikasi IS NULL OR length(email_notifikasi) <= 255", name: "anak_email_notif_len")
+  @@check(expression: "nomor_telepon IS NULL OR length(nomor_telepon) <= 20", name: "anak_phone_len")
   @@map("anak")
 }
 
@@ -143,6 +151,8 @@ model MataPelajaran {
   kelas Kelas[]
 
   @@unique([nama])
+  @@check(expression: "length(nama) <= 100", name: "mapel_nama_len")
+  @@check(expression: "deskripsi IS NULL OR length(deskripsi) <= 500", name: "mapel_deskripsi_len")
   @@map("mata_pelajaran")
 }
 
@@ -162,6 +172,7 @@ model PeriodePendaftaran {
   @@index([status])
   @@check(expression: "tanggal_mulai < tanggal_selesai", name: "periode_range")
   @@check(expression: "tanggal_tutup_pendaftaran <= tanggal_selesai", name: "periode_tutup_dbl_selesai")
+  @@check(expression: "length(nama) <= 100", name: "periode_nama_len")
   @@map("periode_pendaftaran")
 }
 
@@ -202,6 +213,8 @@ model Kelas {
   @@check(expression: "tenor_maksimum IS NULL OR tenor_maksimum >= 2", name: "kelas_tenor_min")
   // BR#12: tenor cuma masuk akal untuk kelas yang menawarkan DP
   @@check(expression: "(biaya_dp IS NULL) = (tenor_maksimum IS NULL)", name: "kelas_tenor_butuh_dp")
+  @@check(expression: "tingkat IS NULL OR length(tingkat) <= 30", name: "kelas_tingkat_len")
+  @@check(expression: "ruangan IS NULL OR length(ruangan) <= 50", name: "kelas_ruangan_len")
   @@map("kelas")
 }
 
@@ -304,6 +317,7 @@ model Presensi {
   @@unique([pendaftaranId, tanggalPertemuan, jadwalItemId])
   @@index([dicatatOleh])
   @@index([jadwalItemId])
+  @@check(expression: "catatan IS NULL OR length(catatan) <= 255", name: "presensi_catatan_len")
   @@map("presensi")
 }
 
@@ -323,6 +337,7 @@ model NilaiProgres {
   @@index([pendaftaranId])
   @@index([dicatatOleh])
   @@check(expression: "nilai_kuantitatif IS NULL OR (nilai_kuantitatif >= 0 AND nilai_kuantitatif <= 100)", name: "nilai_range_0_100")
+  @@check(expression: "catatan_kualitatif IS NULL OR length(catatan_kualitatif) <= 1000", name: "nilai_catatan_len")
   @@map("nilai_progres")
 }
 
@@ -400,6 +415,11 @@ model PesanKontak {
 
  @@index([status])
  @@index([createdAt])
+ @@check(expression: "length(nama) <= 100", name: "pesan_kontak_nama_len")
+ @@check(expression: "length(telepon) <= 20", name: "pesan_kontak_telepon_len")
+ @@check(expression: "length(email) <= 255", name: "pesan_kontak_email_len")
+ @@check(expression: "sekolah IS NULL OR length(sekolah) <= 150", name: "pesan_kontak_sekolah_len")
+ @@check(expression: "length(pesan) <= 2000", name: "pesan_kontak_pesan_len")
  @@map("pesan_kontak")
 }
 
@@ -420,6 +440,8 @@ model CatatanPertemuan {
   guru User          @relation("GuruCatatanPertemuan", fields: [dicatatOleh], references: [id], onDelete: Restrict)
 
   @@index([dicatatOleh])
+  @@check(expression: "materi IS NULL OR length(materi) <= 2000", name: "catatan_materi_len")
+  @@check(expression: "pr IS NULL OR length(pr) <= 1000", name: "catatan_pr_len")
   @@map("catatan_pertemuan")
 }
 
@@ -470,6 +492,9 @@ model PengajuanKoreksi {
 
   @@index([guruId])
   @@index([status])
+  @@check(expression: "length(alasan) <= 1000", name: "koreksi_alasan_len")
+  @@check(expression: "length(data_usulan) <= 1000", name: "koreksi_data_usulan_len")
+  @@check(expression: "catatan_admin IS NULL OR length(catatan_admin) <= 1000", name: "koreksi_catatan_admin_len")
   @@map("pengajuan_koreksi")
 }
 
@@ -502,6 +527,7 @@ model Penilaian {
   @@index([dibuatOleh])
   @@index([tanggal])
   @@check(expression: "nilai_maksimum > 0", name: "penilaian_maksimum_positif")
+  @@check(expression: "length(nama) <= 100", name: "penilaian_nama_len")
   @@map("penilaian")
 }
 
@@ -522,6 +548,7 @@ model HasilPenilaian {
   @@unique([penilaianId, pendaftaranId])
   @@index([pendaftaranId])
   @@check(expression: "nilai IS NULL OR nilai >= 0", name: "hasil_penilaian_non_negatif")
+  @@check(expression: "catatan IS NULL OR length(catatan) <= 1000", name: "hasil_catatan_len")
   @@map("hasil_penilaian")
 }
 
@@ -579,6 +606,7 @@ model StatusPembelajaran {
   @@index([dibuatOleh])
   @@index([status])
   @@index([diterbitkanPada])
+  @@check(expression: "length(konten_teks) <= 1000", name: "status_konten_len")
   @@map("status_pembelajaran")
 }
 
@@ -614,6 +642,8 @@ model LaporanFotoStatus {
 
   @@index([statusId])
   @@index([pelaporId])
+  @@check(expression: "length(alasan) <= 500", name: "laporan_foto_alasan_len")
+  @@check(expression: "catatan IS NULL OR length(catatan) <= 1000", name: "laporan_foto_catatan_len")
   @@map("laporan_foto_status")
 }
 

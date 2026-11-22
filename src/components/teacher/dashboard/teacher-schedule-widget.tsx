@@ -205,7 +205,7 @@ export function TeacherScheduleWidget({
                 setCurrentMonth(now.getMonth());
                 setSelectedDate(todayStr);
               }}
-              className="rounded px-1.5 py-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors cursor-pointer"
+              className="rounded px-2 py-0.5 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors cursor-pointer"
               title="Kembali ke hari ini"
             >
               Hari Ini
@@ -236,7 +236,7 @@ export function TeacherScheduleWidget({
         </div>
 
         {/* Calendar Days Grid */}
-        <div className="grid grid-cols-7 gap-1 pt-1.5">
+        <div className="grid grid-cols-7 gap-1 pt-2">
           {calendarDays.map((item, idx) => {
             const isSelected = item.dateStr === selectedDate;
             const isToday = item.dateStr === todayStr;
@@ -302,12 +302,12 @@ export function TeacherScheduleWidget({
               return (
                 <div
                   key={session.id}
-                  className="py-3 first:pt-0 last:pb-0 space-y-2.5"
+                  className="py-3 first:pt-0 last:pb-0 space-y-3"
                 >
                   {/* Time + Jenjang Badge */}
                   <div className="flex items-center justify-between gap-2">
-                    <span className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-slate-200">
-                      <Clock className="size-3.5 text-slate-600 dark:text-slate-400" />
+                    <span className="flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-slate-200">
+                      <Clock className="size-4 text-slate-600 dark:text-slate-400" />
                       <span className="tabular-nums">{session.jamMulai} - {session.jamSelesai} WIB</span>
                     </span>
                     <span
@@ -331,28 +331,28 @@ export function TeacherScheduleWidget({
                   <div className="pt-1 flex items-center justify-between gap-2">
                     {isToday ? (
                       isAttendanceDone ? (
-                        <span className="inline-flex items-center gap-1.5 rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-800">
-                          <Check className="size-3.5 stroke-[2.5]" />
+                        <span className="inline-flex items-center gap-2 rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-800">
+                          <Check className="size-4 stroke-[2.5]" />
                           <span>Presensi Selesai ({session.terisiCount}/{session.totalSiswa})</span>
                         </span>
                       ) : (
                         <Link
                           href={`/teacher/classes/${session.kelasId}/sessions/${selectedDate}/attendance`}
-                          className="inline-flex w-full items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-3 py-2 text-xs font-semibold text-white transition-colors cursor-pointer min-h-[38px]"
+                          className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-3 py-2 text-xs font-semibold text-white transition-colors cursor-pointer h-10"
                         >
                           <span>Catat Presensi</span>
                         </Link>
                       )
                     ) : isPast ? (
                       isAttendanceDone ? (
-                        <span className="inline-flex items-center gap-1.5 rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-800">
-                          <Check className="size-3.5 stroke-[2.5]" />
+                        <span className="inline-flex items-center gap-2 rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-800">
+                          <Check className="size-4 stroke-[2.5]" />
                           <span>Selesai ({session.terisiCount}/{session.totalSiswa})</span>
                         </span>
                       ) : (
                         <Link
                           href={`/teacher/classes/${session.kelasId}/sessions/${selectedDate}/attendance`}
-                          className="inline-flex items-center justify-center rounded-md border border-amber-200 bg-amber-50/80 px-2.5 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition-colors cursor-pointer min-h-[36px]"
+                          className="inline-flex items-center justify-center rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-1 text-xs font-semibold text-amber-800 hover:bg-amber-100 transition-colors cursor-pointer h-9"
                         >
                           <span>Belum Presensi</span>
                         </Link>

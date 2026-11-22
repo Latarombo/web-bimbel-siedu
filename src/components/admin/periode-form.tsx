@@ -21,7 +21,7 @@ export default function PeriodeForm({
     <form action={formAction} className="space-y-4" noValidate>
       {periodeId ? <input type="hidden" name="periode_id" value={periodeId} /> : null}
       <Field label={t("periode.name")} required error={err("nama")}>
-        <Input name="nama" required defaultValue={defaults?.nama ?? ""} placeholder={t("periode.example")} />
+        <Input name="nama" required maxLength={100} defaultValue={defaults?.nama ?? ""} placeholder={t("periode.example")} />
       </Field>
       <div className="grid gap-4 sm:grid-cols-3">
         <Field label={t("periode.start")} required error={err("tanggal_mulai")}>

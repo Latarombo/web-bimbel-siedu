@@ -18,13 +18,13 @@ export default function GuruProfilForm({
   return (
     <form action={formAction} className="space-y-4" noValidate>
       <Field label={t("name")} required error={err("nama")}>
-        <Input name="nama" required defaultValue={defaults.nama} />
+        <Input name="nama" autoComplete="name" required maxLength={100} defaultValue={defaults.nama} />
       </Field>
       <Field label={t("addressOptional")} error={err("alamat")}>
-        <Textarea name="alamat" rows={2} defaultValue={defaults.alamat} />
+        <Textarea name="alamat" autoComplete="street-address" rows={2} maxLength={500} defaultValue={defaults.alamat} />
       </Field>
       <Field label={t("phone")} required error={err("nomor_telepon")}>
-        <Input name="nomor_telepon" required inputMode="tel" defaultValue={defaults.nomorTelepon} />
+        <Input name="nomor_telepon" autoComplete="tel" required maxLength={20} inputMode="tel" defaultValue={defaults.nomorTelepon} />
       </Field>
       {state.error ? (
         <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">{state.error}</p>

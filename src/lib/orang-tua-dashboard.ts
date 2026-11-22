@@ -130,11 +130,12 @@ export async function dashboardOrangTua(
   // ORM rc.8 di repo ini belum terbukti mendukung `.inArray`, dan pola yang sudah
   // jalan di halaman ini/lain adalah "ambil tabel kecil, saring di JS"
   // (lihat Pendaftaran.all() di atas & lib/kelas.ts). Skala lembaga aman.
-  const [pembayaran, presensi, nilai, mapelRows, guruRows, jadwalRows] =
+  const [pembayaran, presensi, penilaian, hasilPenilaian, mapelRows, guruRows, jadwalRows] =
     await Promise.all([
       collect(db.orm.public.Pembayaran.all()),
       collect(db.orm.public.Presensi.all()),
-      collect(db.orm.public.NilaiProgres.all()),
+      collect(db.orm.public.Penilaian.where((pen) => pen.draf.eq(false)).all()),
+      collect(db.orm.public.HasilPenilaian.where((h) => h.statusHasil.eq("dinilai")).all()),
       collect(db.orm.public.MataPelajaran.all()),
       collect(db.orm.public.User.where((u) => u.role.eq("guru")).all()),
       collect(db.orm.public.JadwalItem.all()),
@@ -143,7 +144,8 @@ export async function dashboardOrangTua(
   const kelasIdSet = new Set(milikSaya.map((p) => p.kelasId));
   const tagihanSemua = pembayaran.filter((b) => pidSet.has(b.pendaftaranId));
   const presensiSemua = presensi.filter((s) => pidSet.has(s.pendaftaranId));
-  const nilaiSemua = nilai.filter((n) => pidSet.has(n.pendaftaranId));
+  const penilaianById = new Map(penilaian.map((pen) => [pen.id, pen]));
+  const hasilSemua = hasilPenilaian.filter((h) => pidSet.has(h.pendaftaranId) && penilaianById.has(h.penilaianId));
   const jadwalSemua = jadwalRows.filter((j) => kelasIdSet.has(j.kelasId));
 
   const mapel = new Map(mapelRows.map((m) => [m.id, m.nama]));
@@ -159,7 +161,7 @@ export async function dashboardOrangTua(
   };
   const tagihanByP = byPendaftaran(tagihanSemua);
   const presensiByP = byPendaftaran(presensiSemua);
-  const nilaiByP = byPendaftaran(nilaiSemua);
+  const hasilByP = byPendaftaran(hasilSemua);
   const jadwalByKelas = new Map<number, typeof jadwalSemua>();
   for (const j of jadwalSemua) {
     const list = jadwalByKelas.get(j.kelasId);
@@ -277,20 +279,36 @@ export async function dashboardOrangTua(
         }
       : null;
 
-    // --- Nilai + catatan guru terakhir
-    const nilaiRows = (nilaiByP.get(p.id) ?? [])
-      .slice()
-      .sort((x, y) => x.tanggal.localeCompare(y.tanggal));
-    const nilai = nilaiRows
-      .filter((n) => n.nilaiKuantitatif != null)
-      .map((n) => ({ tanggal: n.tanggal, nilai: Number(n.nilaiKuantitatif) }));
-    const kualitatif = nilaiRows.filter((n) => n.catatanKualitatif);
+    // --- Nilai + catatan guru terakhir (dari HasilPenilaian yang diterbitkan)
+    const hasilRows = (hasilByP.get(p.id) ?? [])
+      .filter((h) => h.nilai != null && penilaianById.has(h.penilaianId));
+
+    // Urutkan berdasarkan tanggal asesmen kelas
+    const sortedHasil = hasilRows.sort((x, y) => {
+      const tglX = penilaianById.get(x.penilaianId)?.tanggal ?? "";
+      const tglY = penilaianById.get(y.penilaianId)?.tanggal ?? "";
+      return tglX.localeCompare(tglY);
+    });
+
+    // Normalisasi skala 100
+    const nilai = sortedHasil.map((h) => {
+      const pen = penilaianById.get(h.penilaianId)!;
+      const maxScore = Number(pen.nilaiMaksimum) || 100;
+      const skala100 = Math.round((Number(h.nilai) / (maxScore > 0 ? maxScore : 100)) * 100);
+      return {
+        tanggal: pen.tanggal,
+        nilai: skala100,
+      };
+    });
+
+    const kualitatif = sortedHasil.filter((h) => h.catatan);
     const terakhirKual = kualitatif[kualitatif.length - 1];
-    const catatanGuru = terakhirKual
+    const penKual = terakhirKual ? penilaianById.get(terakhirKual.penilaianId) : null;
+    const catatanGuru = terakhirKual && penKual
       ? {
-          teks: terakhirKual.catatanKualitatif as string,
+          teks: terakhirKual.catatan as string,
           guru: guru.get(p.kelas.guruId) ?? (locale === "en" ? "Teacher" : "Guru"),
-          tanggal: terakhirKual.tanggal,
+          tanggal: penKual.tanggal,
         }
       : pres.find((x) => x.catatan)
         ? {

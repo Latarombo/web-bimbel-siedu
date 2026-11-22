@@ -187,11 +187,12 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
           {/* Rincian Transaksi Table */}
           <div className="overflow-hidden rounded-xl border border-slate-200">
             <table className="w-full text-left border-collapse text-xs">
+              <caption className="sr-only">{t("receiptTitle")}</caption>
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-100/70 text-[11px] font-bold text-slate-600">
-                  <th className="py-2.5 px-4">{t("receiptDescription")}</th>
-                  <th className="py-2.5 px-4 text-center">{t("receiptMethod")}</th>
-                  <th className="py-2.5 px-4 text-right">{t("receiptAmount")}</th>
+                  <th scope="col" className="py-2.5 px-4">{t("receiptDescription")}</th>
+                  <th scope="col" className="py-2.5 px-4 text-center">{t("receiptMethod")}</th>
+                  <th scope="col" className="py-2.5 px-4 text-right">{t("receiptAmount")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-800 font-medium">
@@ -219,9 +220,9 @@ export function ReceiptModal({ bill, parentName, isOpen, onClose }: Props) {
               </tbody>
               <tfoot>
                 <tr className="border-t-2 border-slate-200 bg-slate-50 font-bold text-slate-900">
-                  <td colSpan={2} className="py-3 px-4 text-right text-xs">
+                  <th scope="row" colSpan={2} className="py-3 px-4 text-right text-xs font-bold text-slate-900">
                     {t("receiptTotalPaid")}
-                  </td>
+                  </th>
                   <td className="py-3 px-4 text-right text-base text-emerald-700 tabular-nums">
                     {rupiah(bill.jumlah)}
                   </td>

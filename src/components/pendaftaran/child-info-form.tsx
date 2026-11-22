@@ -293,6 +293,7 @@ export default function ChildInfoForm({
                             name="nama"
                             type="text"
                             required
+                            maxLength={100}
                             autoComplete="off"
                             placeholder={t('childFullName')}
                             value={nama}
@@ -450,6 +451,7 @@ export default function ChildInfoForm({
                             type="tel"
                             inputMode="tel"
                             required
+                            maxLength={20}
                             autoComplete="off"
                             placeholder={t('childPhonePlaceholder')}
                             value={hpTerkunci ? parentPhone : hpValue}
@@ -529,6 +531,7 @@ export default function ChildInfoForm({
                             id="email_notifikasi"
                             name="email_notifikasi"
                             type="email"
+                            maxLength={255}
                             autoComplete="off"
                             placeholder={t('childEmail')}
                             value={emailNotifikasi}

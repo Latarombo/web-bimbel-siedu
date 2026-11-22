@@ -111,6 +111,7 @@ export default function LoginForm({
                         name="email"
                         type="email"
                         required
+                        maxLength={255}
                         autoComplete="email"
                         inputMode="email"
                         autoCorrect="off"
@@ -147,6 +148,7 @@ export default function LoginForm({
                             name="password"
                             type={showPassword ? 'text' : 'password'}
                             required
+                            maxLength={72}
                             autoComplete="current-password"
                             autoCorrect="off"
                             autoCapitalize="none"

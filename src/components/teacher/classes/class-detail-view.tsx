@@ -10,6 +10,7 @@ import {
 import { ExportClassModal, type ExportType } from "./export-class-modal";
 import { QuickAssessmentModal } from "./quick-assessment-modal";
 import { QuickGradeDrawer } from "./quick-grade-drawer";
+import { UnderlineTabs } from "@/components/ui/underline-tabs";
 
 export interface StudentRosterItem {
   id: number; // pendaftaranId
@@ -116,8 +117,14 @@ export function ClassDetailView({
     "roster" | "schedule" | "assessments" | "summary"
   >("roster");
 
-  // Local student state for immediate in-place feedback
+  // Local student state synced with incoming server props on router.refresh()
   const [students, setStudents] = useState<StudentRosterItem[]>(initialStudents);
+  const [prevInitialStudents, setPrevInitialStudents] = useState(initialStudents);
+
+  if (initialStudents !== prevInitialStudents) {
+    setPrevInitialStudents(initialStudents);
+    setStudents(initialStudents);
+  }
 
   // Modals & Drawers state
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
@@ -170,9 +177,6 @@ export function ClassDetailView({
   };
 
   const handleGradeSavedSuccess = (pendaftaranId: number) => {
-    setStudents((prev) =>
-      prev.map((s) => (s.id === pendaftaranId ? { ...s, nNilai: s.nNilai + 1 } : s))
-    );
     router.refresh();
   };
 
@@ -181,7 +185,7 @@ export function ClassDetailView({
       {/* 1. Minimal Breadcrumb Navigation */}
       <nav
         aria-label="Breadcrumb"
-        className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400"
+        className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400"
       >
         <Link
           href="/teacher/dashboard"
@@ -219,7 +223,7 @@ export function ClassDetailView({
           {attendanceTarget ? (
             <Link
               href={`/teacher/classes/${classId}/sessions/${attendanceTarget.tanggalPertemuan}/attendance?sesi=${attendanceTarget.jadwalItemId}`}
-              className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-3.5 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors"
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors"
             >
               <span>
                 {attendanceTarget.isToday
@@ -232,7 +236,7 @@ export function ClassDetailView({
           <button
             type="button"
             onClick={() => setIsAssessmentModalOpen(true)}
-            className="inline-flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 shadow-2xs transition-colors cursor-pointer"
           >
             <span>Buat Tugas</span>
           </button>
@@ -251,72 +255,25 @@ export function ClassDetailView({
         </div>
       </div>
 
-      {/* 3. Sleek Horizontal Underline Tabs Bar (Linear Style) */}
-      <div className="border-b border-slate-200 dark:border-slate-800">
-        <nav className="flex space-x-6 sm:space-x-8" role="tablist">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "roster"}
-            onClick={() => setActiveTab("roster")}
-            className={`pb-3 text-sm font-medium transition-colors cursor-pointer border-b-2 -mb-px whitespace-nowrap ${
-              activeTab === "roster"
-                ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-semibold"
-                : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-slate-100 hover:border-slate-300 dark:hover:border-slate-700"
-            }`}
-          >
-            <span>Roster Siswa</span>
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "schedule"}
-            onClick={() => setActiveTab("schedule")}
-            className={`pb-3 text-sm font-medium transition-colors cursor-pointer border-b-2 -mb-px whitespace-nowrap ${
-              activeTab === "schedule"
-                ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-semibold"
-                : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-slate-100 hover:border-slate-300 dark:hover:border-slate-700"
-            }`}
-          >
-            <span>Jadwal & Sesi</span>
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "assessments"}
-            onClick={() => setActiveTab("assessments")}
-            className={`pb-3 text-sm font-medium transition-colors cursor-pointer border-b-2 -mb-px whitespace-nowrap ${
-              activeTab === "assessments"
-                ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-semibold"
-                : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-slate-100 hover:border-slate-300 dark:hover:border-slate-700"
-            }`}
-          >
-            <span>Tugas & Asesmen</span>
-          </button>
-
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeTab === "summary"}
-            onClick={() => setActiveTab("summary")}
-            className={`pb-3 text-sm font-medium transition-colors cursor-pointer border-b-2 -mb-px whitespace-nowrap ${
-              activeTab === "summary"
-                ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400 font-semibold"
-                : "border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-slate-100 hover:border-slate-300 dark:hover:border-slate-700"
-            }`}
-          >
-            <span>Ringkasan & Aksi</span>
-          </button>
-        </nav>
-      </div>
+      {/* 3. Sleek Horizontal Underline Tabs Bar with sliding indicator */}
+      <UnderlineTabs
+        tabs={[
+          { id: "roster", label: "Roster Siswa" },
+          { id: "schedule", label: "Jadwal & Sesi" },
+          { id: "assessments", label: "Tugas & Asesmen" },
+          { id: "summary", label: "Ringkasan & Aksi" },
+        ]}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        ariaLabel="Tabs Detail Kelas"
+        layoutId="teacher-class-detail-tabs"
+      />
 
       {/* 4. Tab Panels */}
 
       {/* TAB 1: ROSTER SISWA */}
       {activeTab === "roster" && (
-        <div className="space-y-3.5">
+        <div className="space-y-4">
           {/* Section Toolbar: Header left, Search right */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -328,53 +285,59 @@ export function ClassDetailView({
               </p>
             </div>
 
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" />
+            <div className="relative w-full sm:w-64">
+              <label htmlFor="search-student-roster" className="sr-only">
+                Cari nama siswa
+              </label>
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" aria-hidden="true" />
               <input
-                type="text"
-                placeholder="Cari nama siswa..."
+                id="search-student-roster"
+                type="search"
+                autoComplete="off"
+                placeholder="Cari nama siswa…"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full sm:w-64 rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-1.5 pl-8 pr-3 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+                className="h-10 sm:h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-8 pr-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
               />
             </div>
           </div>
 
-          {/* Table Container */}
+          {/* Table & Mobile Card Container */}
           <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
+            {/* Desktop Table View (>= md) */}
             <div
               tabIndex={0}
               role="region"
               aria-label="Tabel daftar rombel siswa"
-              className="overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-brand/30"
+              className="hidden md:block overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-brand/30"
             >
               <table className="w-full text-left text-sm border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                    <th scope="col" className="py-3 px-4 sm:px-6">Siswa</th>
-                    <th scope="col" className="py-3 px-4">Status</th>
-                    <th scope="col" className="py-3 px-4 text-center">Kehadiran</th>
-                    <th scope="col" className="py-3 px-4 text-center">Nilai Rata-rata</th>
-                    <th scope="col" className="py-3 px-4 text-center">Entri Tugas</th>
-                    <th scope="col" className="py-3 px-4 sm:px-6 text-right">Aksi</th>
+                    <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">No</th>
+                    <th scope="col" className="sticky left-12 z-20 min-w-[150px] max-w-[220px] bg-slate-50 dark:bg-slate-800 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]">Siswa</th>
+                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Sesi Hadir</th>
+                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Kehadiran (%)</th>
+                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Tugas Dinilai</th>
+                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Nilai Rata-rata</th>
+                    <th scope="col" className="sticky right-0 z-20 py-3 px-4 sm:px-6 text-right bg-slate-50 dark:bg-slate-800 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {paginatedStudents.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={7}
                         className="py-12 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400"
                       >
                         Tidak ada siswa yang sesuai dengan filter pencarian.
                       </td>
                     </tr>
                   ) : (
-                    paginatedStudents.map((s) => {
-                      const initial = (s.nama?.[0] || "S").toUpperCase();
+                    paginatedStudents.map((s, idx) => {
                       const attendancePct =
                         s.tercatat > 0
                           ? Math.round((s.hadir / s.tercatat) * 100)
@@ -383,81 +346,53 @@ export function ClassDetailView({
                       return (
                         <tr
                           key={s.id}
-                          className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors"
+                          className="group/row relative border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                         >
-                          {/* 1. Siswa (Avatar + Nama + ID) */}
-                          <td className="py-3 px-4 sm:px-6">
-                            <div className="flex items-center gap-3">
-                              <div className="grid size-8 shrink-0 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold">
-                                {initial}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-medium text-slate-950 dark:text-slate-50 truncate text-sm">
-                                  {s.nama}
-                                </p>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                  ID: {s.id} · Anak #{s.anakId}
-                                </p>
-                              </div>
-                            </div>
+                          {/* 1. Nomor Urut (Sticky Left 0) */}
+                          <td className="sticky left-0 z-10 w-12 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 text-center font-medium text-slate-500 dark:text-slate-400 tabular-nums text-xs transition-colors">
+                            {(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
                           </td>
 
-                          {/* 2. Status Registrasi */}
-                          <td className="py-3 px-4">
-                            {s.status === "terdaftar" ? (
-                              <span className="inline-flex items-center rounded bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/80 px-2 py-0.5 text-xs font-medium text-emerald-800 dark:text-emerald-300">
-                                Terdaftar
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/80 px-2 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300">
-                                Tertunggak
-                              </span>
-                            )}
+                          {/* 2. Siswa (Sticky Left 12, Truncate, Title) */}
+                          <td className="sticky left-12 z-10 min-w-[150px] max-w-[220px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                            <span className="font-semibold text-slate-950 dark:text-slate-50 truncate block text-sm" title={s.nama}>
+                              {s.nama}
+                            </span>
                           </td>
 
-                          {/* 3. Kehadiran */}
-                          <td className="py-3 px-4 text-center">
-                            {s.tercatat > 0 ? (
-                              <div>
-                                <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-xs sm:text-sm">
-                                  {s.hadir}/{s.tercatat} Sesi
-                                </span>
-                                <span className="block text-[11px] text-slate-500 dark:text-slate-400">
-                                  {attendancePct}%
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-xs text-slate-400 dark:text-slate-500">
-                                Belum ada sesi
-                              </span>
-                            )}
+                          {/* 3. Sesi Hadir (1 Data) */}
+                          <td className="py-3 px-4 text-right font-medium text-slate-900 dark:text-slate-100 tabular-nums text-sm whitespace-nowrap">
+                            {s.tercatat > 0 ? `${s.hadir}/${s.tercatat}` : "—"}
                           </td>
 
-                          {/* 4. Nilai Rata-rata */}
-                          <td className="py-3 px-4 text-center">
-                            {s.rata != null ? (
-                              <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-sm">
-                                {s.rata}
-                              </span>
-                            ) : (
-                              <span className="text-xs text-slate-400 dark:text-slate-500">
-                                Belum dinilai
-                              </span>
-                            )}
+                          {/* 4. Kehadiran (%) (1 Data) */}
+                          <td className="py-3 px-4 text-right font-medium text-slate-900 dark:text-slate-100 tabular-nums text-sm whitespace-nowrap">
+                            {s.tercatat > 0 ? `${attendancePct}%` : "—"}
                           </td>
 
-                          {/* 5. Entri Tugas */}
-                          <td className="py-3 px-4 text-center tabular-nums text-xs text-slate-700 dark:text-slate-300">
-                            {s.nNilai} tugas
+                          {/* 5. Tugas Dinilai (1 Data) */}
+                          <td className="py-3 px-4 text-right font-medium text-slate-900 dark:text-slate-100 tabular-nums text-sm whitespace-nowrap">
+                            {s.nNilai > 0 ? `${s.nNilai} tugas` : "0 tugas"}
                           </td>
 
-                          {/* 6. Aksi: Quick Grade Drawer */}
-                          <td className="py-3 px-4 sm:px-6 text-right">
-                            <div className="flex items-center justify-end">
+                          {/* 6. Nilai Rata-rata (1 Data) */}
+                          <td className="py-3 px-4 text-right font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-sm whitespace-nowrap">
+                            {s.rata != null ? s.rata : "—"}
+                          </td>
+
+                          {/* 7. Aksi: Rincian Siswa & Quick Grade Drawer (Sticky Right 0) */}
+                          <td className="sticky right-0 z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                            <div className="flex items-center justify-end gap-2 opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
+                              <Link
+                                href={`/teacher/grades/${s.id}`}
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs hover:border-slate-400 dark:hover:border-slate-600 transition-colors"
+                              >
+                                <span>Rincian Siswa</span>
+                              </Link>
                               <button
                                 type="button"
                                 onClick={() => setGradingStudentId(s.id)}
-                                className="inline-flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 px-2.5 py-1 text-xs font-medium text-slate-800 dark:text-slate-200 shadow-2xs transition-colors cursor-pointer"
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-400 dark:hover:border-slate-600 transition-colors cursor-pointer"
                               >
                                 <span>Input Nilai</span>
                               </button>
@@ -471,9 +406,90 @@ export function ClassDetailView({
               </table>
             </div>
 
+            {/* Mobile Card View (< md) */}
+            <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+              {paginatedStudents.length === 0 ? (
+                <div className="py-12 text-center text-xs text-slate-500 dark:text-slate-400 px-4">
+                  Tidak ada siswa yang sesuai dengan filter pencarian.
+                </div>
+              ) : (
+                paginatedStudents.map((s, idx) => {
+                  const initial = (s.nama?.[0] || "S").toUpperCase();
+                  const attendancePct =
+                    s.tercatat > 0
+                      ? Math.round((s.hadir / s.tercatat) * 100)
+                      : 0;
+
+                  return (
+                    <div
+                      key={s.id}
+                      className="p-4 space-y-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                    >
+                      {/* Top: Student Header with Number + Avatar + Pure Name */}
+                      <div className="flex items-center gap-3">
+                        <span className="size-6 shrink-0 grid place-items-center rounded bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 tabular-nums">
+                          {(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
+                        </span>
+                        <div className="grid size-9 shrink-0 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
+                          {initial}
+                        </div>
+                        <p className="font-semibold text-slate-950 dark:text-slate-50 truncate text-sm">
+                          {s.nama}
+                        </p>
+                      </div>
+
+                      {/* Middle: 2-Column Metrics */}
+                      <div className="grid grid-cols-2 gap-2 rounded-lg border border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-800/30 p-3 text-center">
+                        <div className="border-r border-slate-200/60 dark:border-slate-800/80 pr-2">
+                          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
+                            Kehadiran
+                          </span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-sm">
+                            {s.tercatat > 0 ? `${s.hadir}/${s.tercatat}` : "—"}
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 block tabular-nums">
+                            {s.tercatat > 0 ? `${attendancePct}%` : "Belum ada sesi"}
+                          </span>
+                        </div>
+
+                        <div className="pl-2">
+                          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
+                            Nilai Rata-rata
+                          </span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-sm">
+                            {s.rata != null ? s.rata : "—"}
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 block tabular-nums">
+                            {s.nNilai} tugas
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Bottom Action: Ergonomic Dual Buttons */}
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <Link
+                          href={`/teacher/grades/${s.id}`}
+                          className="h-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 flex items-center justify-center text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs hover:border-slate-400 dark:hover:border-slate-600 transition-colors"
+                        >
+                          <span>Rincian Siswa</span>
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => setGradingStudentId(s.id)}
+                          className="h-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-400 dark:hover:border-slate-600 transition-colors cursor-pointer"
+                        >
+                          <span>Input Nilai</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
             {/* Pagination Bar */}
             {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 dark:border-slate-800 px-4 py-2.5 bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50">
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} -{" "}
                   {Math.min(currentPage * ITEMS_PER_PAGE, filteredStudents.length)}{" "}
@@ -487,7 +503,7 @@ export function ClassDetailView({
                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                     className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
                   >
-                    <ChevronLeft className="size-3.5" />
+                    <ChevronLeft className="size-4" />
                     <span>Sebelumnya</span>
                   </button>
 
@@ -504,7 +520,7 @@ export function ClassDetailView({
                     className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
                   >
                     <span>Berikutnya</span>
-                    <ChevronRight className="size-3.5" />
+                    <ChevronRight className="size-4" />
                   </button>
                 </div>
               </div>
@@ -515,7 +531,7 @@ export function ClassDetailView({
 
       {/* TAB 2: JADWAL & SESI PERTEMUAN */}
       {activeTab === "schedule" && (
-        <div className="space-y-3.5">
+        <div className="space-y-4">
           <div>
             <h2 className="text-sm sm:text-base font-semibold text-slate-950 dark:text-slate-50">
               Jadwal Sesi Mingguan
@@ -563,7 +579,7 @@ export function ClassDetailView({
                       {j.nextSessionDate ? (
                         <Link
                           href={`/teacher/classes/${classId}/sessions/${j.nextSessionDate}/attendance?sesi=${j.id}`}
-                          className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-3 py-1.5 text-xs font-medium text-white transition-colors cursor-pointer"
+                          className="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-3 py-2 text-xs font-medium text-white transition-colors cursor-pointer"
                         >
                           <span>Presensi</span>
                         </Link>
@@ -579,7 +595,7 @@ export function ClassDetailView({
 
       {/* TAB 3: TUGAS & ASESMEN */}
       {activeTab === "assessments" && (
-        <div className="space-y-3.5">
+        <div className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-sm sm:text-base font-semibold text-slate-950 dark:text-slate-50">
@@ -594,7 +610,7 @@ export function ClassDetailView({
               <button
                 type="button"
                 onClick={() => setIsAssessmentModalOpen(true)}
-                className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-3.5 py-1.5 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors cursor-pointer"
               >
                 <span>Buat Tugas</span>
               </button>
@@ -613,7 +629,7 @@ export function ClassDetailView({
                 <button
                   type="button"
                   onClick={() => setIsAssessmentModalOpen(true)}
-                  className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-3.5 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors cursor-pointer"
                 >
                   <span>Buat Tugas Pertama</span>
                 </button>
@@ -621,77 +637,140 @@ export function ClassDetailView({
             </div>
           ) : (
             <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+              {/* Desktop Table View (>= md) */}
               <div
                 tabIndex={0}
                 role="region"
                 aria-label="Tabel daftar tugas dan asesmen"
-                className="overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-brand/30"
+                className="hidden md:block overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-brand/30"
               >
                 <table className="w-full text-left text-sm border-collapse">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                      <th className="py-3 px-4 sm:px-6">Nama Tugas & Tanggal</th>
-                      <th className="py-3 px-4 text-center">Nilai Maks.</th>
-                      <th className="py-3 px-4 text-center">Status Siswa</th>
-                      <th className="py-3 px-4 text-center">Publikasi</th>
-                      <th className="py-3 px-4 sm:px-6 text-right">Aksi</th>
+                      <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">No</th>
+                      <th scope="col" className="sticky left-12 z-20 min-w-[160px] max-w-[240px] bg-slate-50 dark:bg-slate-800 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]">Nama Tugas</th>
+                      <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Tanggal</th>
+                      <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Siswa Dinilai</th>
+                      <th scope="col" className="py-3 px-4 text-center whitespace-nowrap">Status</th>
+                      <th scope="col" className="sticky right-0 z-20 py-3 px-4 sm:px-6 text-right bg-slate-50 dark:bg-slate-800 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {assessments.map((a) => (
+                    {assessments.map((a, idx) => (
                       <tr
                         key={a.id}
-                        className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors"
+                        className="group/row relative border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                       >
-                        <td className="py-3 px-4 sm:px-6">
+                        {/* 1. Nomor Urut (Sticky Left 0) */}
+                        <td className="sticky left-0 z-10 w-12 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 text-center font-medium text-slate-500 dark:text-slate-400 tabular-nums text-xs transition-colors">
+                          {idx + 1}
+                        </td>
+
+                        {/* 2. Nama Tugas (Sticky Left 12, Truncate, Title) */}
+                        <td className="sticky left-12 z-10 min-w-[160px] max-w-[240px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
                           <Link
                             href={`/teacher/grades/assessment/${a.id}`}
-                            className="font-medium text-slate-900 dark:text-slate-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm"
+                            className="font-medium text-slate-950 dark:text-slate-50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm truncate block"
+                            title={a.nama}
                           >
                             {a.nama}
                           </Link>
-                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 tabular-nums">
-                            {a.tanggal}
-                          </p>
                         </td>
-                        <td className="py-3 px-4 text-center tabular-nums font-medium text-slate-800 dark:text-slate-200 text-xs sm:text-sm">
-                          {a.nilaiMaksimum}
+
+                        {/* 3. Tanggal (1 Data) */}
+                        <td className="py-3 px-4 text-right tabular-nums text-slate-600 dark:text-slate-400 text-xs sm:text-sm whitespace-nowrap">
+                          {a.tanggal}
                         </td>
-                        <td className="py-3 px-4 text-center">
-                          <div className="inline-flex flex-col items-center gap-0.5">
-                            <span className="text-xs font-medium text-slate-900 dark:text-slate-100 tabular-nums">
-                              {a.countDinilai}/{a.totalSiswa} Dinilai
+
+                        {/* 4. Siswa Dinilai (1 Data) */}
+                        <td className="py-3 px-4 text-right tabular-nums font-medium text-slate-900 dark:text-slate-100 text-xs sm:text-sm whitespace-nowrap">
+                          {a.countDinilai}/{a.totalSiswa}
+                        </td>
+
+                        {/* 5. Status (1 Data) */}
+                        <td className="py-3 px-4 text-center whitespace-nowrap">
+                          <span className="inline-flex items-center gap-2 text-xs font-medium">
+                            <span
+                              className={`size-1.5 rounded-full ${
+                                a.draf ? "bg-amber-500" : "bg-emerald-500"
+                              }`}
+                            />
+                            <span className="text-slate-700 dark:text-slate-300">
+                              {a.draf ? "Draf" : "Terbit"}
                             </span>
-                            {a.countBelum > 0 ? (
-                              <span className="text-[11px] text-amber-600 dark:text-amber-400 tabular-nums">
-                                {a.countBelum} belum
-                              </span>
-                            ) : null}
+                          </span>
+                        </td>
+
+                        {/* 6. Aksi (Sticky Right 0) */}
+                        <td className="sticky right-0 z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                          <div className="flex items-center justify-end opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
+                            <Link
+                              href={`/teacher/grades/assessment/${a.id}`}
+                              className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors cursor-pointer"
+                            >
+                              <span>Nilai Siswa</span>
+                            </Link>
                           </div>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {a.draf ? (
-                            <span className="inline-flex items-center rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700">
-                              Draf
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center rounded bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800">
-                              Terbit
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 sm:px-6 text-right">
-                          <Link
-                            href={`/teacher/grades/assessment/${a.id}`}
-                            className="inline-flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 px-2.5 py-1 text-xs font-medium text-slate-800 dark:text-slate-200 shadow-2xs transition-colors cursor-pointer"
-                          >
-                            <span>Nilai Siswa</span>
-                          </Link>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Card View (< md) */}
+              <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                {assessments.map((a, idx) => (
+                  <div
+                    key={a.id}
+                    className="p-4 space-y-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-2 min-w-0">
+                        <span className="size-6 shrink-0 grid place-items-center rounded bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 tabular-nums mt-0.5">
+                          {idx + 1}
+                        </span>
+                        <div>
+                          <Link
+                            href={`/teacher/grades/assessment/${a.id}`}
+                            className="font-semibold text-slate-950 dark:text-slate-50 hover:text-blue-600 dark:hover:text-blue-400 text-sm line-clamp-1"
+                          >
+                            {a.nama}
+                          </Link>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 tabular-nums">
+                            {a.tanggal}
+                          </p>
+                        </div>
+                      </div>
+
+                      <span className="inline-flex items-center gap-2 text-xs font-medium shrink-0 pt-0.5">
+                        <span
+                          className={`size-2 rounded-full ${
+                            a.draf ? "bg-amber-500" : "bg-emerald-500"
+                          }`}
+                        />
+                        <span className="text-slate-700 dark:text-slate-300">
+                          {a.draf ? "Draf" : "Terbit"}
+                        </span>
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs rounded-md bg-slate-50 dark:bg-slate-800/40 px-3 py-2 border border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-600 dark:text-slate-400">Progres Penilaian:</span>
+                      <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+                        {a.countDinilai}/{a.totalSiswa} Siswa
+                        {a.countBelum > 0 ? ` (${a.countBelum} belum)` : ""}
+                      </span>
+                    </div>
+
+                    <Link
+                      href={`/teacher/grades/assessment/${a.id}`}
+                      className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                    >
+                      <span>Nilai Siswa</span>
+                    </Link>
+                  </div>
+                ))}
               </div>
             </div>
           )}
@@ -868,6 +947,7 @@ export function ClassDetailView({
         onNextStudent={handleNextStudent}
         onPrevStudent={handlePrevStudent}
         classId={classId}
+        assessments={assessments}
         onSavedSuccess={handleGradeSavedSuccess}
       />
     </div>

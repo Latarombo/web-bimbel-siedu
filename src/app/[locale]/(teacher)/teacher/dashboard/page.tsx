@@ -5,7 +5,7 @@ import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
 import { tanggalWIB, hariDariTanggal } from "@/lib/format/hari";
 import { TeacherScheduleWidget, type ScheduleSessionItem } from "@/components/teacher/dashboard/teacher-schedule-widget";
-import { TeacherAnalyticsSection } from "@/components/teacher/dashboard-charts";
+import { TrenKehadiranCard, RekapPresensiCard } from "@/components/teacher/dashboard-charts";
 import {
   ChevronRight,
   CheckCircle2,
@@ -224,182 +224,111 @@ export default async function TeacherDashboard() {
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
       
-      {/* 1. Header Bersih Tanpa Gradient */}
+      {/* 1. Header Bersih Tanpa Gradient & Basa-basi Sapaan */}
       <div className="pb-4 border-b border-slate-200 dark:border-slate-800">
         <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
-          {t("welcomeTeacher", { name: teacherName })}
+          {sesiHariIni.length > 0
+            ? t("sessionsTodayHeading", { count: sesiHariIni.length })
+            : t("teachingAgenda")}
         </h1>
         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
-          {tanggalLengkap} · Waktu Indonesia Barat
+          {tanggalLengkap}
         </p>
       </div>
 
-      {/* 2. Ringkasan 4 Kartu Metrik Utama */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
-        {/* Card 1: Kelas Diampu */}
-        <div className="relative overflow-hidden rounded-lg border border-blue-200/70 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/80 via-blue-50/20 to-white dark:from-blue-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-blue-600 dark:text-blue-400">
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t("taughtClasses")}
-                </p>
-                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-blue-100/80 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800">
-                  Aktif
-                </span>
-              </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
-                {kelasAktif.length}
-              </p>
-            </div>
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
-              {t("totalClassesCount", { count: kelas.length })}
-            </p>
-          </div>
-          <svg
-            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
-            viewBox="0 0 400 280"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
-            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
-            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
-          </svg>
+      {/* 2. Hero Section: Tren Hadir 7 Hari Terakhir (Kiri) & 4 Kartu Metrik Vertikal (Kanan) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Sisi Kiri: Tren Hadir 7 Hari Terakhir (8 Kolom di Desktop) */}
+        <div className="lg:col-span-8 flex">
+          <TrenKehadiranCard
+            aktivitasData={hariAktivitasData}
+            title={t("weeklyAttendanceTrendTitle")}
+            subtitle={t("weeklyTrendSubtitle")}
+            totalAktivitasHadir={totalAktivitasHadir}
+            overallAttendanceRate={overallAttendanceRate}
+          />
         </div>
 
-        {/* Card 2: Total Murid */}
-        <div className="relative overflow-hidden rounded-lg border border-emerald-200/70 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/80 via-emerald-50/20 to-white dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-emerald-600 dark:text-emerald-400">
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t("totalStudents")}
-                </p>
-                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800">
-                  Terdaftar
-                </span>
-              </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
-                {uniqueStudentsCount}
+        {/* Sisi Kanan: 4 Kartu Metrik Berbaris ke Bawah (4 Kolom di Desktop) */}
+        <div className="lg:col-span-4 grid grid-cols-2 lg:flex lg:flex-col lg:justify-between gap-4">
+          {/* Card 1: Kelas Diampu */}
+          <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xs lg:flex-1">
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                {t("taughtClasses")}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {t("totalClassesCount", { count: kelas.length })}
               </p>
             </div>
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
-              {t("enrollmentsCount", { count: siswaAktif.length })}
+            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
+              {kelasAktif.length}
             </p>
           </div>
-          <svg
-            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
-            viewBox="0 0 400 280"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
-            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
-            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
-          </svg>
-        </div>
 
-        {/* Card 3: Perlu Dinilai */}
-        <div className="relative overflow-hidden rounded-lg border border-amber-200/70 dark:border-amber-900/40 bg-gradient-to-br from-amber-50/80 via-amber-50/20 to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-amber-600 dark:text-amber-400">
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t("needsGrading")}
-                </p>
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold border ${antreanPenilaian.length > 0 ? "bg-amber-100/90 text-amber-800 dark:bg-amber-900/70 dark:text-amber-300 border-amber-300/80 dark:border-amber-800" : "bg-slate-100/90 text-slate-600 dark:bg-slate-800/80 dark:text-slate-400 border-slate-200 dark:border-slate-700"}`}>
-                  {antreanPenilaian.length > 0 ? "Perlu Aksi" : "Lengkap"}
-                </span>
-              </div>
-              <p className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${antreanPenilaian.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-950 dark:text-white"}`}>
-                {antreanPenilaian.length}
+          {/* Card 2: Total Murid */}
+          <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xs lg:flex-1">
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                {t("totalStudents")}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {t("enrollmentsCount", { count: siswaAktif.length })}
               </p>
             </div>
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
-              {antreanPenilaian.length > 0 ? "Menunggu penilaian" : t("statusDone")}
+            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
+              {uniqueStudentsCount}
             </p>
           </div>
-          <svg
-            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
-            viewBox="0 0 400 280"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
-            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
-            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
-          </svg>
-        </div>
 
-        {/* Card 4: Sesi Hari Ini */}
-        <div className="relative overflow-hidden rounded-lg border border-indigo-200/70 dark:border-indigo-900/40 bg-gradient-to-br from-indigo-50/80 via-indigo-50/20 to-white dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-indigo-600 dark:text-indigo-400">
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t("todaySessions")}
-                </p>
-                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold border ${sesiHariIni.length > 0 ? "bg-indigo-100/90 text-indigo-800 dark:bg-indigo-900/70 dark:text-indigo-300 border-indigo-300/80 dark:border-indigo-800" : "bg-slate-100/90 text-slate-600 dark:bg-slate-800/80 dark:text-slate-400 border-slate-200 dark:border-slate-700"}`}>
-                  {sesiHariIni.length > 0 ? "Hari Ini" : "Jadwal"}
-                </span>
-              </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
-                {sesiHariIni.length}
+          {/* Card 3: Perlu Dinilai */}
+          <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xs lg:flex-1">
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                {t("needsGrading")}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {antreanPenilaian.length > 0 ? "Menunggu penilaian" : t("statusDone")}
               </p>
             </div>
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
-              {sesiHariIni.length > 0
-                ? t("studentsRatio", { filled: totalTerisiHariIni, total: totalSiswaHariIni })
-                : t("noTeachingToday")}
+            <p className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${antreanPenilaian.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-950 dark:text-white"}`}>
+              {antreanPenilaian.length}
             </p>
           </div>
-          <svg
-            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
-            viewBox="0 0 400 280"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
-            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
-            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
-          </svg>
+
+          {/* Card 4: Sesi Hari Ini */}
+          <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xs lg:flex-1">
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                {t("todaySessions")}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {sesiHariIni.length > 0
+                  ? t("studentsRatio", { filled: totalTerisiHariIni, total: totalSiswaHariIni })
+                  : t("noTeachingToday")}
+              </p>
+            </div>
+            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
+              {sesiHariIni.length}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* 4. Konten Utama Terbagi dalam Grid 12 Kolom */}
+      {/* 3. Konten Utama Terbagi dalam Grid 12 Kolom */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* Kolom Kiri: Alur Operasional & Analitik */}
+        {/* Kolom Kiri: Alur Operasional & Distribusi Presensi */}
         <div className="lg:col-span-8 order-1 space-y-6">
-          {/* Analitik Kehadiran */}
-          <div className="space-y-4">
-            <div className="pb-2 border-b border-slate-200 dark:border-slate-800">
-              <h2 className="font-display text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
-                {t("analyticsSectionTitle")}
-              </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                Ringkasan data kehadiran siswa pada seluruh kelas yang Anda ampu.
-              </p>
-            </div>
-
-            <TeacherAnalyticsSection
-              rekapData={rekapPresensiData}
-              totalPresensi={totalPresensiAll}
-              aktivitasData={hariAktivitasData}
-              totalAktivitasHadir={totalAktivitasHadir}
-              overallAttendanceRate={overallAttendanceRate}
-              labels={{
-                distributionTitle: t("attendanceDistributionTitle"),
-                weeklyTrendTitle: t("weeklyAttendanceTrendTitle"),
-                weeklyTrendSubtitle: t("weeklyTrendSubtitle"),
-                totalAttendance: t("attendanceTotalRecorded"),
-                noAttendanceYet: t("noAttendanceDataYet"),
-                noAttendanceDesc: t("noAttendanceDataDesc"),
-                overallAttendanceRate: t("overallAttendanceRate"),
-              }}
-            />
-          </div>
+          {/* Distribusi Presensi Siswa */}
+          <RekapPresensiCard
+            rekapData={rekapPresensiData}
+            totalPresensi={totalPresensiAll}
+            title={t("attendanceDistributionTitle")}
+            subtitle="Proporsi status kehadiran siswa semester ini."
+            noAttendanceYet={t("noAttendanceDataYet")}
+            noAttendanceDesc={t("noAttendanceDataDesc")}
+          />
 
           {/* Sesi Mengajar Hari Ini */}
           {sesiHariIni.length > 0 ? (
@@ -411,7 +340,7 @@ export default async function TeacherDashboard() {
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{t("todayFocusDesc")}</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {sesiHariIni.map((session) => {
                   const tema = JENJANG_BADGE[session.jenjang] || JENJANG_BADGE.SD;
                   const isDone = session.totalSiswa > 0 && session.terisiCount >= session.totalSiswa;
@@ -419,7 +348,7 @@ export default async function TeacherDashboard() {
                   return (
                     <div
                       key={session.id}
-                      className="flex flex-col justify-between rounded-lg border border-slate-200 bg-white p-4 hover:border-slate-300 shadow-2xs transition-all space-y-3"
+                      className="flex flex-col justify-between rounded-xl border border-slate-200 bg-white p-4 hover:border-slate-300 shadow-2xs transition-all space-y-4"
                     >
                       <div className="space-y-2">
                         <div className="flex items-center justify-between gap-2">
@@ -435,28 +364,28 @@ export default async function TeacherDashboard() {
                           <h3 className="text-sm font-bold text-slate-950 line-clamp-1">
                             {session.mapel}
                           </h3>
-                          <p className="text-xs text-slate-600 line-clamp-1 mt-0.5">
+                          <p className="text-xs text-slate-600 line-clamp-1 mt-1">
                             {session.kelasNama}
                           </p>
                         </div>
                       </div>
 
-                      <div className="pt-2.5 border-t border-slate-200/80 flex items-center justify-between gap-2">
+                      <div className="pt-4 border-t border-slate-200/80 flex items-center justify-between gap-2">
                         {isDone ? (
-                          <span className="inline-flex items-center gap-1.5 rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-800">
-                            <Check className="size-3.5 stroke-[2.5]" />
+                          <span className="inline-flex items-center gap-2 rounded bg-emerald-50 border border-emerald-200 px-2 py-0.5 text-xs font-semibold text-emerald-800">
+                            <Check className="size-4 stroke-[2.5]" />
                             <span>{t("attendanceRecordedBadge", { filled: session.terisiCount, total: session.totalSiswa })}</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 rounded bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-800">
-                            <AlertCircle className="size-3.5" />
+                          <span className="inline-flex items-center gap-2 rounded bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                            <AlertCircle className="size-4" />
                             <span>{t("attendancePendingBadge")}</span>
                           </span>
                         )}
 
                         <Link
                           href={`/teacher/classes/${session.kelasId}/sessions/${hariIniStr}/attendance`}
-                          className={`inline-flex items-center justify-center rounded-md px-3.5 py-2 text-xs font-semibold min-h-[38px] transition-colors cursor-pointer ${
+                          className={`inline-flex items-center justify-center rounded-lg px-4 py-2 text-xs font-semibold h-10 transition-colors cursor-pointer ${
                             isDone
                               ? "border border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
                               : "bg-blue-600 text-white hover:bg-blue-700"
@@ -473,13 +402,13 @@ export default async function TeacherDashboard() {
           ) : null}
 
           {/* Antrean Penilaian Siswa */}
-          <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5 space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-6 space-y-4">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div>
                 <h2 className="font-display text-base font-bold text-slate-950 tracking-tight">
                   {t("gradingQueue")}
                 </h2>
-                <p className="text-xs text-slate-600 mt-0.5">
+                <p className="text-xs text-slate-600 mt-1">
                   {antreanPenilaian.length > 0
                     ? t("pendingAssessmentsCount", { count: antreanPenilaian.length })
                     : t("allTasksGraded")}
@@ -490,7 +419,7 @@ export default async function TeacherDashboard() {
                 className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700"
               >
                 <span>{t("gradesPage")}</span>
-                <ChevronRight className="size-3.5" />
+                <ChevronRight className="size-4" />
               </Link>
             </div>
 
@@ -503,7 +432,7 @@ export default async function TeacherDashboard() {
                   return (
                     <div
                       key={item.key}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 hover:bg-slate-50/80 px-2 rounded-md transition-colors"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-3 hover:bg-slate-50/80 px-2 rounded-lg transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <div className={`grid size-8 shrink-0 place-items-center rounded-full text-xs font-bold ${colorClass}`}>
@@ -513,12 +442,12 @@ export default async function TeacherDashboard() {
                           <p className="text-sm font-semibold text-slate-950">
                             {item.anakNama}
                           </p>
-                          <div className="flex flex-wrap items-center gap-1.5 mt-0.5 text-xs text-slate-600">
+                          <div className="flex flex-wrap items-center gap-2 mt-0.5 text-xs text-slate-600">
                             <span className="font-medium text-slate-800">{item.penilaianJudul}</span>
                             <span>·</span>
                             <span>{item.kelasNama}</span>
                             <span>·</span>
-                            <span className="font-medium text-amber-700 bg-amber-50 rounded px-1.5 py-0.5 border border-amber-200">
+                            <span className="font-medium text-amber-700 bg-amber-50 rounded px-2 py-0.5 border border-amber-200">
                               {t("notYetGraded")}
                             </span>
                           </div>
@@ -527,7 +456,7 @@ export default async function TeacherDashboard() {
 
                       <Link
                         href={`/teacher/grades/${item.pendaftaranId}`}
-                        className="inline-flex items-center justify-center rounded-md border border-slate-300 bg-white hover:bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-800 transition-colors cursor-pointer min-h-[38px] shrink-0"
+                        className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white hover:bg-slate-50 px-4 py-2 text-xs font-semibold text-slate-800 transition-colors cursor-pointer h-10 shrink-0"
                       >
                         <span>{t("giveGrade")}</span>
                       </Link>
@@ -536,7 +465,7 @@ export default async function TeacherDashboard() {
                 })}
 
                 {antreanPenilaian.length > 6 && (
-                  <div className="pt-3 text-center">
+                  <div className="pt-4 text-center">
                     <Link
                       href="/teacher/grades"
                       className="text-xs font-semibold text-blue-600 hover:underline"
@@ -556,33 +485,33 @@ export default async function TeacherDashboard() {
           </div>
 
           {/* Pintasan Aksi Cepat */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3.5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {/* 1. Catat Presensi */}
             <Link
               href={firstUnfinishedSession ? `/teacher/classes/${firstUnfinishedSession.kelasId}/sessions/${hariIniStr}/attendance` : "/teacher/classes"}
-              className="group relative flex flex-col items-center justify-center text-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 hover:border-blue-300 dark:hover:border-blue-800 hover:bg-blue-50/30 dark:hover:bg-blue-950/20 transition-all shadow-2xs min-h-[104px]"
+              className="group relative flex flex-col items-center justify-center text-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 hover:border-blue-300 dark:hover:border-blue-800 hover:bg-blue-50/30 dark:hover:bg-blue-950/20 transition-all shadow-2xs min-h-24 sm:min-h-28"
             >
-              <ArrowUpRight className="absolute top-2.5 right-2.5 size-3.5 text-slate-300 dark:text-slate-600 group-hover:text-blue-500 transition-colors" />
-              <ClipboardCheck className="size-7 sm:size-8 text-blue-600 dark:text-blue-400 stroke-[1.75] transition-transform duration-200 group-hover:scale-110" />
+              <ArrowUpRight className="absolute top-4 right-4 size-4 text-slate-300 dark:text-slate-600 group-hover:text-blue-500 transition-colors" />
+              <ClipboardCheck className="size-8 text-blue-600 dark:text-blue-400 stroke-[1.75] transition-transform duration-200 group-hover:scale-110" />
               <p className="mt-2 text-xs font-bold text-slate-950 dark:text-slate-50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {t("quickAttendance")}
               </p>
-              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
                 {sesiHariIni.length > 0 ? `${sesiHariIni.length} sesi hari ini` : "Presensi kelas"}
               </p>
             </Link>
 
             {/* 2. Buat Penilaian */}
             <Link
-              href="/teacher/grades/new"
-              className="group relative flex flex-col items-center justify-center text-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 hover:border-amber-300 dark:hover:border-amber-800 hover:bg-amber-50/30 dark:hover:bg-amber-950/20 transition-all shadow-2xs min-h-[104px]"
+              href="/teacher/grades"
+              className="group relative flex flex-col items-center justify-center text-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 hover:border-amber-300 dark:hover:border-amber-800 hover:bg-amber-50/30 dark:hover:bg-amber-950/20 transition-all shadow-2xs min-h-24 sm:min-h-28"
             >
-              <ArrowUpRight className="absolute top-2.5 right-2.5 size-3.5 text-slate-300 dark:text-slate-600 group-hover:text-amber-500 transition-colors" />
-              <FileCheck className="size-7 sm:size-8 text-amber-600 dark:text-amber-400 stroke-[1.75] transition-transform duration-200 group-hover:scale-110" />
+              <ArrowUpRight className="absolute top-4 right-4 size-4 text-slate-300 dark:text-slate-600 group-hover:text-amber-500 transition-colors" />
+              <FileCheck className="size-8 text-amber-600 dark:text-amber-400 stroke-[1.75] transition-transform duration-200 group-hover:scale-110" />
               <p className="mt-2 text-xs font-bold text-slate-950 dark:text-slate-50 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
                 {t("quickNewAssessment")}
               </p>
-              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
                 Input nilai tugas
               </p>
             </Link>
@@ -590,14 +519,14 @@ export default async function TeacherDashboard() {
             {/* 3. Jurnal Pembelajaran */}
             <Link
               href="/teacher/status"
-              className="group relative flex flex-col items-center justify-center text-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 hover:border-emerald-300 dark:hover:border-emerald-800 hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 transition-all shadow-2xs min-h-[104px]"
+              className="group relative flex flex-col items-center justify-center text-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 hover:border-emerald-300 dark:hover:border-emerald-800 hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 transition-all shadow-2xs min-h-24 sm:min-h-28"
             >
-              <ArrowUpRight className="absolute top-2.5 right-2.5 size-3.5 text-slate-300 dark:text-slate-600 group-hover:text-emerald-500 transition-colors" />
-              <BookOpen className="size-7 sm:size-8 text-emerald-600 dark:text-emerald-400 stroke-[1.75] transition-transform duration-200 group-hover:scale-110" />
+              <ArrowUpRight className="absolute top-4 right-4 size-4 text-slate-300 dark:text-slate-600 group-hover:text-emerald-500 transition-colors" />
+              <BookOpen className="size-8 text-emerald-600 dark:text-emerald-400 stroke-[1.75] transition-transform duration-200 group-hover:scale-110" />
               <p className="mt-2 text-xs font-bold text-slate-950 dark:text-slate-50 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                 {t("quickLearningJournal")}
               </p>
-              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
                 Catatan belajar
               </p>
             </Link>
@@ -605,14 +534,14 @@ export default async function TeacherDashboard() {
             {/* 4. Kalender Jadwal */}
             <Link
               href="/teacher/calendar"
-              className="group relative flex flex-col items-center justify-center text-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 hover:border-indigo-300 dark:hover:border-indigo-800 hover:bg-indigo-50/30 dark:hover:bg-indigo-950/20 transition-all shadow-2xs min-h-[104px]"
+              className="group relative flex flex-col items-center justify-center text-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 hover:border-indigo-300 dark:hover:border-indigo-800 hover:bg-indigo-50/30 dark:hover:bg-indigo-950/20 transition-all shadow-2xs min-h-24 sm:min-h-28"
             >
-              <ArrowUpRight className="absolute top-2.5 right-2.5 size-3.5 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
-              <CalendarDays className="size-7 sm:size-8 text-indigo-600 dark:text-indigo-400 stroke-[1.75] transition-transform duration-200 group-hover:scale-110" />
+              <ArrowUpRight className="absolute top-4 right-4 size-4 text-slate-300 dark:text-slate-600 group-hover:text-indigo-500 transition-colors" />
+              <CalendarDays className="size-8 text-indigo-600 dark:text-indigo-400 stroke-[1.75] transition-transform duration-200 group-hover:scale-110" />
               <p className="mt-2 text-xs font-bold text-slate-950 dark:text-slate-50 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                 {t("quickFullCalendar")}
               </p>
-              <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
+              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">
                 Jadwal tatap muka
               </p>
             </Link>

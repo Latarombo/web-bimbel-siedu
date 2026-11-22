@@ -2,7 +2,7 @@ export default function TeacherLoading() {
   return (
     <div className="w-full space-y-6 p-4 sm:p-6 lg:p-8 animate-pulse">
       {/* Header Skeleton */}
-      <div className="border-b border-slate-200 dark:border-slate-800 pb-5 space-y-2">
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-6 space-y-2">
         <div className="h-8 w-56 rounded-xl bg-slate-200 dark:bg-slate-800" />
         <div className="h-4 w-80 rounded-lg bg-slate-100 dark:bg-slate-850" />
       </div>
@@ -14,10 +14,7 @@ export default function TeacherLoading() {
             key={i}
             className="flex flex-col gap-3 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xs"
           >
-            <div className="flex items-center justify-between">
-              <div className="h-4 w-24 rounded-md bg-slate-100 dark:bg-slate-800" />
-              <div className="size-8 rounded-xl bg-slate-100 dark:bg-slate-800" />
-            </div>
+            <div className="h-4 w-24 rounded-md bg-slate-100 dark:bg-slate-800" />
             <div className="h-7 w-16 rounded-lg bg-slate-200 dark:bg-slate-700" />
             <div className="h-3 w-32 rounded-md bg-slate-100 dark:bg-slate-800" />
           </div>
@@ -38,7 +35,7 @@ export default function TeacherLoading() {
             >
               <div className="flex items-center gap-3">
                 <div className="size-10 rounded-xl bg-slate-100 dark:bg-slate-800" />
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <div className="h-4 w-44 rounded-md bg-slate-200 dark:bg-slate-700" />
                   <div className="h-3 w-28 rounded-md bg-slate-100 dark:bg-slate-800" />
                 </div>

@@ -4,11 +4,13 @@ import { useState, useTransition } from "react";
 import { X, Loader2 } from "lucide-react";
 import { savePenilaianBatch } from "@/app/actions/teacher";
 import { NativeDialog } from "@/components/common/native-dialog";
+import { DatePicker } from "@/components/ui/date-picker";
 
 interface QuickAssessmentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  classId: number;
+  classId?: number;
+  classes?: { id: number; nama: string; jenjang: string }[];
   onSuccess: () => void;
 }
 
@@ -16,8 +18,12 @@ export function QuickAssessmentModal({
   isOpen,
   onClose,
   classId,
+  classes,
   onSuccess,
 }: QuickAssessmentModalProps) {
+  const [selectedClassId, setSelectedClassId] = useState<number>(() => {
+    return classId ?? (classes?.[0]?.id ?? 0);
+  });
   const [nama, setNama] = useState("");
   const [tanggal, setTanggal] = useState("");
   const [nilaiMaksimum, setNilaiMaksimum] = useState("100");
@@ -34,6 +40,11 @@ export function QuickAssessmentModal({
       setNilaiMaksimum("100");
       setIsDraft(false);
       setErrorMsg(null);
+      if (classId) {
+        setSelectedClassId(classId);
+      } else if (classes?.[0]?.id) {
+        setSelectedClassId(classes[0].id);
+      }
     }
   }
 
@@ -41,6 +52,11 @@ export function QuickAssessmentModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const effectiveClassId = classId ?? selectedClassId;
+    if (!effectiveClassId) {
+      setErrorMsg("Pilih kelas terlebih dahulu.");
+      return;
+    }
     if (!nama.trim()) {
       setErrorMsg("Nama tugas wajib diisi.");
       return;
@@ -54,7 +70,7 @@ export function QuickAssessmentModal({
     setErrorMsg(null);
     startTransition(async () => {
       const formData = new FormData();
-      formData.append("kelas_id", String(classId));
+      formData.append("kelas_id", String(effectiveClassId));
       formData.append("nama", nama.trim());
       formData.append("tanggal", tanggal);
       formData.append("nilai_maksimum", String(maxScore));
@@ -114,8 +130,33 @@ export function QuickAssessmentModal({
               </div>
             ) : null}
 
+            {/* Pilihan Kelas (Jika classId tidak dipatok) */}
+            {!classId && classes && classes.length > 0 ? (
+              <div className="space-y-2">
+                <label
+                  htmlFor="assessment-class-select"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
+                >
+                  Kelas / Rombongan Belajar <span className="text-red-500">*</span>
+                </label>
+                <select
+                  id="assessment-class-select"
+                  value={selectedClassId}
+                  onChange={(e) => setSelectedClassId(Number(e.target.value))}
+                  disabled={isPending}
+                  className="w-full h-11 sm:h-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 hover:border-slate-400 dark:hover:border-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                >
+                  {classes.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nama} · {c.jenjang}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+
             {/* Nama Tugas */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
                 htmlFor="assessment-nama"
                 className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
@@ -126,57 +167,35 @@ export function QuickAssessmentModal({
                 id="assessment-nama"
                 type="text"
                 required
-                placeholder="Contoh: Kuis Aljabar Bab 2, Tugas Proyek..."
+                maxLength={100}
+                placeholder="Contoh: Kuis Aljabar Bab 2, Tugas Proyek…"
                 value={nama}
                 onChange={(e) => setNama(e.target.value)}
                 disabled={isPending}
-                className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:border-blue-600 focus:outline-hidden"
+                className="w-full h-11 sm:h-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
               />
             </div>
 
-            {/* Tanggal & Nilai Maksimum */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="assessment-tanggal"
-                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
-                >
-                  Tanggal Pelaksanaan <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="assessment-tanggal"
-                  type="date"
-                  required
-                  value={tanggal}
-                  onChange={(e) => setTanggal(e.target.value)}
-                  disabled={isPending}
-                  className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 focus:border-blue-600 focus:outline-hidden"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label
-                  htmlFor="assessment-max"
-                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
-                >
-                  Nilai Maksimum
-                </label>
-                <input
-                  id="assessment-max"
-                  type="number"
-                  min="1"
-                  max="1000"
-                  value={nilaiMaksimum}
-                  onChange={(e) => setNilaiMaksimum(e.target.value)}
-                  disabled={isPending}
-                  className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 tabular-nums focus:border-blue-600 focus:outline-hidden"
-                />
-              </div>
+            {/* Tanggal Pelaksanaan */}
+            <div className="space-y-2">
+              <label
+                htmlFor="assessment-tanggal"
+                className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
+              >
+                Tanggal Pelaksanaan <span className="text-red-500">*</span>
+              </label>
+              <DatePicker
+                id="assessment-tanggal"
+                value={tanggal}
+                onChange={setTanggal}
+                disabled={isPending}
+                required
+              />
             </div>
 
             {/* Status Publikasi */}
             <div className="pt-1">
-              <label className="flex items-center gap-2.5 cursor-pointer">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={isDraft}
@@ -192,12 +211,12 @@ export function QuickAssessmentModal({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-2.5 px-5 py-3.5 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               disabled={isPending}
               onClick={onClose}
-              className="px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 rounded-md transition-colors disabled:opacity-40 cursor-pointer"
+              className="px-4 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors disabled:opacity-40 cursor-pointer"
             >
               <span>Batal</span>
             </button>
@@ -205,7 +224,7 @@ export function QuickAssessmentModal({
             <button
               type="submit"
               disabled={isPending}
-              className="inline-flex items-center justify-center gap-1.5 rounded-md bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors disabled:opacity-50 cursor-pointer"
             >
               {isPending ? <Loader2 className="size-4 animate-spin" /> : null}
               <span>{isPending ? "Menyimpan..." : "Buat Tugas"}</span>

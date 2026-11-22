@@ -203,6 +203,7 @@ export default function AccountInfoForm({
                 name="name"
                 type="text"
                 required
+                maxLength={100}
                 autoComplete="name"
                 autoCapitalize="words"
                 placeholder={t('identityName')}
@@ -239,6 +240,7 @@ export default function AccountInfoForm({
                 name="nomor_telepon"
                 type="tel"
                 required
+                maxLength={20}
                 inputMode="tel"
                 autoComplete="tel"
                 placeholder="08xxxxxxxxxx"
@@ -328,6 +330,7 @@ export default function AccountInfoForm({
                 name="detail_alamat"
                 rows={2}
                 required
+                maxLength={500}
                 placeholder={t('streetAddressPlaceholder')}
                 value={draft.detail_alamat}
                 onChange={(e) => setDraftField('detail_alamat', e.target.value)}

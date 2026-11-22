@@ -220,8 +220,8 @@ export default async function AdminDashboard() {
   const columns: TableColumn[] = [
     { key: "anak", header: t("text30") },
     { key: "kelas", header: t("text11") },
-    { key: "createdAt", header: t("text31") },
-    { key: "status", header: t("text32") },
+    { key: "createdAt", header: t("text31"), align: "right" },
+    { key: "status", header: t("text32"), align: "center" },
   ];
   const rows: TableRowData[] = terbaru.map((p) => {
     const a = anakById.get(p.anakId);

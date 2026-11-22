@@ -28,13 +28,13 @@ export async function updateGuruProfile(
   if (!guruId) return { error: t("sessionExpired") };
 
   const profilSchema = z.object({
-    nama: z.string({ error: t("invalidField") }).trim().min(2, t("nameMin")),
-    alamat: z.string({ error: t("invalidField") }).trim().max(255, t("addressMax")).optional().or(z.literal('')),
+    nama: z.string({ error: t("invalidField") }).trim().min(2, t("nameMin")).max(100, t("nameMax")),
+    alamat: z.string({ error: t("invalidField") }).trim().max(500, t("addressMax")).optional().or(z.literal('')),
     nomor_telepon: z
       .string({ error: t("invalidField") })
       .trim()
-      .min(8, t("phoneRequired"))
-      .max(30, t("phoneMax")),
+      .min(10, t("phoneRequired"))
+      .max(20, t("phoneMax")),
   });
 
   const parsed = profilSchema.safeParse({
@@ -135,6 +135,9 @@ export async function savePresensi(
       if (typeof status !== 'string' || !STATUS_PRESENSI.includes(status as never)) continue;
 
       const catatan = String(formData.get(`catatan_${s.id}`) ?? '').trim() || null;
+      if (catatan && catatan.length > 255) {
+        return { error: t("attendanceNotesMax") };
+      }
       const lama = existingMap.get(s.id);
 
       if (lama && !dalamJendela7Hari(lama.createdAt)) {
@@ -179,6 +182,9 @@ export async function savePresensi(
 
   revalidatePath('/[locale]/teacher/classes/[classId]/sessions/[date]/attendance', 'page');
   revalidatePath('/[locale]/teacher/dashboard', 'page');
+  revalidatePath(`/teacher/classes/${kelasId}`);
+  revalidatePath(`/teacher/classes/${kelasId}`, 'page');
+  revalidatePath('/teacher/classes', 'layout');
   if (result.error) return result;
   return { ok: true };
 }
@@ -233,11 +239,7 @@ export async function saveNilai(_prev: GuruState, formData: FormData): Promise<G
     );
     if (!lama || lama.pendaftaranId !== d.pendaftaran_id)
       return { error: t("gradeNotFound") };
-    if (!dalamJendela7Hari(lama.createdAt))
-      return {
-        error:
-          t("lockedGradeError"),
-      };
+    // Kuncian 7 hari dihapus untuk nilai sesuai spec penyederhanaan alur nilai
     await db.orm.public.NilaiProgres.where({ id: nilaiId }).update({
       tanggal: d.tanggal,
       nilaiKuantitatif: d.nilai == null ? null : String(d.nilai),
@@ -253,7 +255,169 @@ export async function saveNilai(_prev: GuruState, formData: FormData): Promise<G
       catatanKualitatif: d.catatan || null,
     });
   }
+
+  // Sinkronkan ke Penilaian & HasilPenilaian (single source of truth)
+  const existingPenilaian = await collect(
+    db.orm.public.Penilaian.where({
+      kelasId: p.kelasId,
+      tanggal: d.tanggal,
+    }).all()
+  );
+  let targetPenilaian = existingPenilaian[0];
+  if (!targetPenilaian) {
+    targetPenilaian = await db.orm.public.Penilaian.create({
+      kelasId: p.kelasId,
+      nama: `Evaluasi Belajar · ${d.tanggal}`,
+      tanggal: d.tanggal,
+      nilaiMaksimum: "100",
+      draf: false,
+      diterbitkanPada: new Date().toISOString(),
+      dibuatOleh: guruId,
+    });
+  }
+  const [existingHasil] = await collect(
+    db.orm.public.HasilPenilaian.where({
+      penilaianId: targetPenilaian.id,
+      pendaftaranId: d.pendaftaran_id,
+    }).all()
+  );
+  if (existingHasil) {
+    await db.orm.public.HasilPenilaian.where({ id: existingHasil.id }).update({
+      statusHasil: d.nilai != null ? "dinilai" : "belum_dinilai",
+      nilai: d.nilai != null ? String(d.nilai) : null,
+      catatan: d.catatan || null,
+    });
+  } else {
+    await db.orm.public.HasilPenilaian.create({
+      penilaianId: targetPenilaian.id,
+      pendaftaranId: d.pendaftaran_id,
+      statusHasil: d.nilai != null ? "dinilai" : "belum_dinilai",
+      nilai: d.nilai != null ? String(d.nilai) : null,
+      catatan: d.catatan || null,
+    });
+  }
+
   revalidatePath('/[locale]/teacher/grades/[enrollmentId]', 'page');
+  revalidatePath('/[locale]/teacher/classes/[classId]', 'page');
+  revalidatePath(`/teacher/classes/${p.kelasId}`);
+  revalidatePath(`/teacher/classes/${p.kelasId}`, 'page');
+  revalidatePath('/teacher/classes', 'layout');
+  revalidatePath('/[locale]/teacher/grades', 'page');
+  revalidatePath('/[locale]/schedule-attendance', 'page');
+  revalidatePath('/[locale]/home', 'page');
+  return { ok: true };
+}
+
+// --- D5.1 Penilaian tunggal per siswa (Quick Grade Drawer & Inline Editing) ---
+export async function saveSingleStudentGrade(
+  _prev: GuruState,
+  formData: FormData,
+): Promise<GuruState> {
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({ locale, namespace: "teacher" });
+  const guruId = await guardGuru();
+  if (!guruId) return { error: t("sessionExpired") };
+
+  const kelasId = Number(formData.get("kelas_id"));
+  const pendaftaranId = Number(formData.get("pendaftaran_id"));
+  const penilaianIdRaw = formData.get("penilaian_id");
+  let penilaianId = penilaianIdRaw ? Number(penilaianIdRaw) : null;
+  const statusRaw = String(formData.get("status_hasil") ?? "dinilai");
+  const nilaiRaw = formData.get("nilai");
+  const catatan = String(formData.get("catatan") ?? "").trim();
+  const namaAsesmenBaru = String(formData.get("nama_asesmen_baru") ?? "").trim();
+
+  if (!Number.isInteger(kelasId) || !Number.isInteger(pendaftaranId)) {
+    return { error: t("invalidParameters") };
+  }
+  if (namaAsesmenBaru.length > 100) {
+    return { error: t("assessmentNameMax") };
+  }
+  if (catatan.length > 1000) {
+    return { error: t("notesMax") };
+  }
+
+  const [kelas] = await collect(
+    db.orm.public.Kelas.where({ id: kelasId, guruId }).all()
+  );
+  if (!kelas) return { error: t("classNotOwned") };
+
+  const [pendaftaran] = await collect(
+    db.orm.public.Pendaftaran.where({ id: pendaftaranId, kelasId }).all()
+  );
+  if (!pendaftaran) return { error: t("enrollmentNotFound") };
+
+  const statusHasil: "belum_dinilai" | "dinilai" | "tidak_ikut" =
+    ["belum_dinilai", "dinilai", "tidak_ikut"].includes(statusRaw)
+      ? (statusRaw as "belum_dinilai" | "dinilai" | "tidak_ikut")
+      : "dinilai";
+
+  let targetPenilaianId = penilaianId;
+  let nilaiMaksimum = 100;
+
+  if (!targetPenilaianId || targetPenilaianId <= 0) {
+    const tanggalHariIni = new Date().toISOString().slice(0, 10);
+    const namaAsesmen = namaAsesmenBaru || `Penilaian · ${tanggalHariIni}`;
+    const created = await db.orm.public.Penilaian.create({
+      kelasId,
+      nama: namaAsesmen,
+      tanggal: tanggalHariIni,
+      nilaiMaksimum: "100",
+      draf: false,
+      diterbitkanPada: new Date().toISOString(),
+      dibuatOleh: guruId,
+    });
+    targetPenilaianId = created.id;
+  } else {
+    const [pen] = await collect(
+      db.orm.public.Penilaian.where({ id: targetPenilaianId, kelasId }).all()
+    );
+    if (!pen) return { error: t("assessmentNotFound") };
+    nilaiMaksimum = Number(pen.nilaiMaksimum) || 100;
+  }
+
+  let nilaiNum: number | null = null;
+  if (statusHasil === "dinilai") {
+    if (nilaiRaw !== null && nilaiRaw !== undefined && String(nilaiRaw).trim() !== "") {
+      nilaiNum = Number(nilaiRaw);
+      if (isNaN(nilaiNum) || nilaiNum < 0 || nilaiNum > nilaiMaksimum) {
+        return { error: t("scoreOutOfRange", { max: nilaiMaksimum }) };
+      }
+    }
+  }
+
+  const [existingHasil] = await collect(
+    db.orm.public.HasilPenilaian.where({
+      penilaianId: targetPenilaianId,
+      pendaftaranId,
+    }).all()
+  );
+
+  if (existingHasil) {
+    await db.orm.public.HasilPenilaian.where({ id: existingHasil.id }).update({
+      statusHasil,
+      nilai: statusHasil === "dinilai" && nilaiNum !== null ? String(nilaiNum) : null,
+      catatan: catatan || null,
+    });
+  } else {
+    await db.orm.public.HasilPenilaian.create({
+      penilaianId: targetPenilaianId,
+      pendaftaranId,
+      statusHasil,
+      nilai: statusHasil === "dinilai" && nilaiNum !== null ? String(nilaiNum) : null,
+      catatan: catatan || null,
+    });
+  }
+
+  revalidatePath(`/teacher/classes/${kelasId}`);
+  revalidatePath(`/teacher/classes/${kelasId}`, "page");
+  revalidatePath("/teacher/classes", "layout");
+  revalidatePath("/[locale]/teacher/classes/[classId]", "page");
+  revalidatePath("/[locale]/teacher/grades", "page");
+  revalidatePath("/[locale]/teacher/grades/[enrollmentId]", "page");
+  revalidatePath("/[locale]/schedule-attendance", "page");
+  revalidatePath("/[locale]/home", "page");
+
   return { ok: true };
 }
 
@@ -277,6 +441,13 @@ export async function saveCatatanPertemuan(
   if (!Number.isInteger(kelasId) || !Number.isInteger(jadwalItemId))
     return { error: t("invalidParameters") };
   if (!tanggalValid(tanggal)) return { error: t("invalidDate") };
+
+  if (materi.length > 2000) {
+    return { error: t("materiMax") };
+  }
+  if (pr.length > 1000) {
+    return { error: t("prMax") };
+  }
 
   if (aksi === 'terbitkan' && !materi) {
     return { error: t("materiRequiredToPublish") };
@@ -360,6 +531,9 @@ export async function saveCatatanPertemuan(
   if (result.error) return result;
 
   revalidatePath('/[locale]/teacher/classes/[classId]/sessions/[date]/attendance', 'page');
+  revalidatePath(`/teacher/classes/${kelasId}`);
+  revalidatePath(`/teacher/classes/${kelasId}`, 'page');
+  revalidatePath('/teacher/classes', 'layout');
   revalidatePath('/[locale]/schedule-attendance', 'page');
   return { ok: true };
 }
@@ -384,14 +558,24 @@ export async function ajukanKoreksi(
   const dataUsulan = String(formData.get("data_usulan") ?? "").trim();
   const alasan = String(formData.get("alasan") ?? "").trim();
 
-  if (!["presensi", "nilai"].includes(entitas) || !Number.isInteger(entitasId) || entitasId <= 0) {
+  if (entitas === "nilai") {
+    return { error: t("gradesDirectlyEditable") };
+  }
+
+  if (entitas !== "presensi" || !Number.isInteger(entitasId) || entitasId <= 0) {
     return { error: t("invalidParameters") };
   }
   if (!dataUsulan) {
     return { error: t("dataUsulanRequired") };
   }
+  if (dataUsulan.length > 1000) {
+    return { error: t("proposedDataMax") };
+  }
   if (!alasan || alasan.length < 5) {
     return { error: t("correctionReasonMin") };
+  }
+  if (alasan.length > 1000) {
+    return { error: t("correctionReasonMax") };
   }
 
   // Tolak pengajuan jika sudah ada yang sedang berstatus 'menunggu' untuk entitas ini
@@ -411,11 +595,6 @@ export async function ajukanKoreksi(
     if (!p) return { error: t("attendanceNotFound") };
     if (p.dicatatOleh !== guruId) return { error: t("notOwned") };
     dataSebelum = JSON.stringify({ status: p.status, catatan: p.catatan });
-  } else if (entitas === "nilai") {
-    const [n] = await collect(db.orm.public.NilaiProgres.where({ id: entitasId }).all());
-    if (!n) return { error: t("gradeNotFound") };
-    if (n.dicatatOleh !== guruId) return { error: t("notOwned") };
-    dataSebelum = JSON.stringify({ nilaiKuantitatif: n.nilaiKuantitatif, catatanKualitatif: n.catatanKualitatif });
   }
 
   await db.transaction(async (tx) => {
@@ -470,7 +649,8 @@ export async function savePenilaianBatch(
   const aksi = String(formData.get("aksi") ?? "simpan_draf"); // 'simpan_draf' | 'terbitkan'
 
   if (!Number.isInteger(kelasId) || kelasId <= 0) return { error: t("invalidParameters") };
-  if (!nama) return { error: t("assessmentNameRequired") };
+  if (!nama || nama.length < 2) return { error: t("assessmentNameMin") };
+  if (nama.length > 100) return { error: t("assessmentNameMax") };
   if (!tanggalValid(tanggal)) return { error: t("invalidDate") };
   if (isNaN(nilaiMaksimum) || nilaiMaksimum <= 0) return { error: t("invalidMaxScore") };
 
@@ -478,7 +658,7 @@ export async function savePenilaianBatch(
   const [kelas] = await collect(
     db.orm.public.Kelas.where({ id: kelasId, guruId }).all()
   );
-  if (!kelas) return { error: t("notYourClass") };
+  if (!kelas) return { error: t("classNotOwned") };
   if (kelas.status === "dibatalkan") return { error: t("classCancelled") };
 
   // Validasi periode ajar kelas
@@ -513,6 +693,9 @@ export async function savePenilaianBatch(
     const catatanStr = String(formData.get(`catatan_${p.id}`) ?? "").trim();
 
     let nilaiNum: number | null = null;
+    if (catatanStr.length > 1000) {
+      return { error: t("notesMax") };
+    }
     if (statusHasil === "dinilai") {
       if (nilaiStr === null || nilaiStr === undefined || String(nilaiStr).trim() === "") {
         statusHasil = "belum_dinilai";
@@ -588,6 +771,9 @@ export async function savePenilaianBatch(
     }
   });
 
+  revalidatePath(`/teacher/classes/${kelasId}`);
+  revalidatePath(`/teacher/classes/${kelasId}`, "page");
+  revalidatePath("/teacher/classes", "layout");
   revalidatePath("/[locale]/teacher/grades", "page");
   revalidatePath("/[locale]/teacher/classes/[classId]", "page");
   revalidatePath("/[locale]/schedule-attendance", "page");
@@ -621,6 +807,9 @@ export async function tarikPenilaian(
     diterbitkanPada: null,
   });
 
+  revalidatePath(`/teacher/classes/${p.kelasId}`);
+  revalidatePath(`/teacher/classes/${p.kelasId}`, "page");
+  revalidatePath("/teacher/classes", "layout");
   revalidatePath("/[locale]/teacher/grades", "page");
   revalidatePath("/[locale]/teacher/classes/[classId]", "page");
   revalidatePath("/[locale]/schedule-attendance", "page");
@@ -685,6 +874,10 @@ export async function bagikanStatusPembelajaran(
     return { error: "Konten teks status tidak boleh kosong jika tidak ada foto" };
   }
 
+  if (kontenTeks.length > 1000) {
+    return { error: t("statusContentMax") };
+  }
+
   if (mediaUrls.length > 5) {
     return { error: "Maksimal 5 foto per unggahan status pembelajaran" };
   }
@@ -696,7 +889,7 @@ export async function bagikanStatusPembelajaran(
   const [kelas] = await collect(
     db.orm.public.Kelas.where({ id: kelasId, guruId }).all()
   );
-  if (!kelas) return { error: t("notYourClass") };
+  if (!kelas) return { error: t("classNotOwned") };
   if (kelas.status === "dibatalkan") return { error: t("classCancelled") };
 
   const roster = await collect(
@@ -851,8 +1044,14 @@ export async function laporkanFotoStatus(
   if (!Number.isInteger(statusId) || statusId <= 0) {
     return { error: "ID status tidak valid" };
   }
-  if (!alasan) {
-    return { error: "Alasan pelaporan foto wajib diisi" };
+  if (!alasan || alasan.length < 5) {
+    return { error: "Alasan pelaporan foto minimal 5 karakter" };
+  }
+  if (alasan.length > 500) {
+    return { error: "Alasan pelaporan foto maksimal 500 karakter" };
+  }
+  if (catatan.length > 1000) {
+    return { error: "Catatan pelaporan maksimal 1000 karakter" };
   }
 
   if (user.role === "orang_tua") {

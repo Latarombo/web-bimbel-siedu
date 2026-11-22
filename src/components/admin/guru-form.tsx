@@ -21,20 +21,20 @@ export default function GuruForm({
     <form action={formAction} className="space-y-4" noValidate>
       {guruId ? <input type="hidden" name="guru_id" value={guruId} /> : null}
       <Field label={t("guru.name")} required error={err("nama")}>
-        <Input name="nama" required defaultValue={defaults?.nama ?? ""} />
+        <Input name="nama" required maxLength={100} defaultValue={defaults?.nama ?? ""} />
       </Field>
       <Field label={t("guru.email")} required error={err("email")}>
-        <Input type="email" name="email" required defaultValue={defaults?.email ?? ""} />
+        <Input type="email" name="email" required maxLength={255} defaultValue={defaults?.email ?? ""} />
       </Field>
       <Field label={guruId ? t("guru.passwordNew") : t("guru.password")} required={!guruId} error={err("password")}>
-        <Input type="password" name="password" minLength={8} required={!guruId} placeholder={t("guru.passwordHint")} />
+        <Input type="password" name="password" minLength={8} maxLength={72} required={!guruId} placeholder={t("guru.passwordHint")} />
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t("guru.address")} error={err("alamat")}>
-          <Input name="alamat" defaultValue={defaults?.alamat ?? ""} />
+          <Input name="alamat" maxLength={500} defaultValue={defaults?.alamat ?? ""} />
         </Field>
         <Field label={t("guru.phone")} required error={err("nomor_telepon")}>
-          <Input name="nomor_telepon" required defaultValue={defaults?.nomorTelepon ?? ""} />
+          <Input name="nomor_telepon" required maxLength={20} defaultValue={defaults?.nomorTelepon ?? ""} />
         </Field>
       </div>
       {state.error ? <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">{state.error}</p> : null}

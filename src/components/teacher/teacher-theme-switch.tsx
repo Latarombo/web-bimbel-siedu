@@ -74,7 +74,7 @@ export function TeacherThemeSwitch({
           )}
 
           {/* Floating Tooltip */}
-          <div className="pointer-events-none absolute left-full top-1/2 ml-3.5 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-900 dark:text-white opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
+          <div className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-900 dark:text-white opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
             {isDarkActive ? `Mode: ${darkLabel}` : `Mode: ${lightLabel}`}
           </div>
         </button>
@@ -92,26 +92,26 @@ export function TeacherThemeSwitch({
       <button
         type="button"
         onClick={() => setAppTheme('light')}
-        className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 px-2 transition-all cursor-pointer ${
+        className={`flex flex-1 items-center justify-center gap-2 rounded-md py-1 px-2 transition-all cursor-pointer ${
           isLightActive
             ? 'bg-white text-slate-900 shadow-2xs font-bold'
             : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
         }`}
       >
-        <Sun className={`size-3.5 ${isLightActive ? 'text-amber-500' : 'text-slate-400'}`} />
+        <Sun className={`size-4 ${isLightActive ? 'text-amber-500' : 'text-slate-400'}`} />
         <span>{lightLabel}</span>
       </button>
 
       <button
         type="button"
         onClick={() => setAppTheme('dark')}
-        className={`flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 px-2 transition-all cursor-pointer ${
+        className={`flex flex-1 items-center justify-center gap-2 rounded-md py-1 px-2 transition-all cursor-pointer ${
           isDarkActive
             ? 'bg-slate-700 text-white shadow-2xs font-bold'
             : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200'
         }`}
       >
-        <Moon className={`size-3.5 ${isDarkActive ? 'text-blue-400' : 'text-slate-400'}`} />
+        <Moon className={`size-4 ${isDarkActive ? 'text-blue-400' : 'text-slate-400'}`} />
         <span>{darkLabel}</span>
       </button>
     </div>

@@ -5,26 +5,21 @@ import { redirect } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { dalamJendela7Hari } from "@/lib/format/hari";
 import { Badge } from "@/components/ui/badge";
-import NilaiForm from "@/components/teacher/nilai-form";
+import { StudentGradeItemEditor } from "@/components/teacher/grades/student-grade-item-editor";
 
 export const dynamic = "force-dynamic";
 
 export default async function GradeInputPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ enrollmentId: string }>;
-  searchParams: Promise<{ tab?: string }>;
 }) {
   const t = await getTranslations("teacher");
   const locale = await getLocale();
   const session = await auth();
   if (!session?.user) return redirect({ href: "/login?next=/teacher/grades", locale });
   const { enrollmentId } = await params;
-  const { tab } = await searchParams;
-  const activeTab = tab ?? "penilaian"; // 'penilaian' | 'legacy'
 
   const pid = Number(enrollmentId);
   if (!Number.isInteger(pid)) notFound();
@@ -45,7 +40,6 @@ export default async function GradeInputPage({
   const [
     mapel,
     anak,
-    nilai,
     presensi,
     hasilPenilaianRows,
     semuaPenilaian,
@@ -55,14 +49,13 @@ export default async function GradeInputPage({
   ] = await Promise.all([
     collect(db.orm.public.MataPelajaran.where((m) => m.id.eq(kelas.mataPelajaranId)).all()),
     collect(db.orm.public.Anak.where((a) => a.id.eq(p.anakId)).all()),
-    collect(
-      db.orm.public.NilaiProgres.where((n) => n.pendaftaranId.eq(pid))
-        .orderBy((n) => n.tanggal.desc())
-        .all(),
-    ),
     collect(db.orm.public.Presensi.where((x) => x.pendaftaranId.eq(pid)).all()),
     collect(db.orm.public.HasilPenilaian.where((h) => h.pendaftaranId.eq(pid)).all()),
-    collect(db.orm.public.Penilaian.where((pen) => pen.kelasId.eq(p.kelasId)).all()),
+    collect(
+      db.orm.public.Penilaian.where((pen) => pen.kelasId.eq(p.kelasId))
+        .orderBy((pen) => pen.tanggal.desc())
+        .all(),
+    ),
     collect(db.orm.public.Pendaftaran.where((pnd) => pnd.anakId.eq(p.anakId)).all()),
     collect(db.orm.public.Kelas.all()),
     collect(db.orm.public.MataPelajaran.all()),
@@ -70,11 +63,24 @@ export default async function GradeInputPage({
 
   const nama = anak[0]?.nama ?? t("childFallback", { id: p.anakId });
   const nHadir = presensi.filter((x) => x.status === "hadir").length;
-  const editable = nilai.filter((n) => dalamJendela7Hari(n.createdAt)).length;
 
   const kelasMap = new Map(semuaKelas.map((k) => [k.id, k]));
   const mapelMap = new Map(semuaMapel.map((m) => [m.id, m]));
+  const hasilByPenilaianId = new Map(hasilPenilaianRows.map((h) => [h.penilaianId, h]));
+
+  // Kalkulasi rata-rata (hanya yang berstatus dinilai, dinormalisasi ke skala 100)
+  const dinilaiRows = hasilPenilaianRows.filter(
+    (h) => h.statusHasil === "dinilai" && h.nilai != null,
+  );
   const penilaianMap = new Map(semuaPenilaian.map((pen) => [pen.id, pen]));
+  const skor100List = dinilaiRows.map((h) => {
+    const pen = penilaianMap.get(h.penilaianId);
+    const maxScore = pen ? Number(pen.nilaiMaksimum) : 100;
+    return (Number(h.nilai) / (maxScore > 0 ? maxScore : 100)) * 100;
+  });
+  const rataRata = skor100List.length
+    ? Math.round(skor100List.reduce((s, v) => s + v, 0) / skor100List.length)
+    : null;
 
   // Histori kelas terkait anak ini
   const kelasTerkait = riwayatPendaftaran.map((rp) => {
@@ -135,18 +141,31 @@ export default async function GradeInputPage({
                 <p className="text-xs text-slate-500 dark:text-slate-400">{t("enrollmentId", { id: p.id })}</p>
               </div>
             </div>
-            <dl className="mt-4 space-y-2.5 border-t border-slate-100 dark:border-slate-800 pt-4 text-sm">
-              {[
-                [t("recordedAttendance"), t("sessionsCount", { count: presensi.length })],
-                [t("present"), t("sessionsCount", { count: nHadir })],
-                [t("classAssessmentsTab"), `${hasilPenilaianRows.length}`],
-                [t("editable"), t("editableCount", { count: editable })],
-              ].map(([k, v]) => (
-                <div key={k} className="flex items-baseline justify-between gap-3">
-                  <dt className="text-slate-500 dark:text-slate-400">{k}</dt>
-                  <dd className="font-bold tabular-nums text-slate-900 dark:text-slate-100">{v}</dd>
-                </div>
-              ))}
+            <dl className="mt-4 space-y-3 border-t border-slate-100 dark:border-slate-800 pt-4 text-sm">
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-slate-500 dark:text-slate-400">{t("recordedAttendance")}</dt>
+                <dd className="font-bold tabular-nums text-slate-900 dark:text-slate-100">
+                  {t("sessionsCount", { count: presensi.length })}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-slate-500 dark:text-slate-400">{t("present")}</dt>
+                <dd className="font-bold tabular-nums text-slate-900 dark:text-slate-100">
+                  {t("sessionsCount", { count: nHadir })}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-slate-500 dark:text-slate-400">Total Tugas Dinilai</dt>
+                <dd className="font-bold tabular-nums text-slate-900 dark:text-slate-100">
+                  {dinilaiRows.length} dari {semuaPenilaian.length}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-3">
+                <dt className="text-slate-500 dark:text-slate-400">Rata-rata Nilai</dt>
+                <dd className="font-bold tabular-nums text-blue-600 dark:text-blue-400">
+                  {rataRata != null ? rataRata : "-"}
+                </dd>
+              </div>
             </dl>
           </div>
 
@@ -163,7 +182,7 @@ export default async function GradeInputPage({
                   {kelasTerkait.map((kt) => (
                     <li
                       key={kt.pendaftaranId}
-                      className={`flex items-center justify-between rounded-lg px-2.5 py-1.5 ${
+                      className={`flex items-center justify-between rounded-lg px-3 py-2 ${
                         kt.isCurrent
                           ? "bg-blue-50 dark:bg-blue-950/40 font-semibold text-blue-900 dark:text-blue-300"
                           : "text-slate-600 dark:text-slate-400"
@@ -181,186 +200,116 @@ export default async function GradeInputPage({
           </div>
         </div>
 
-        {/* KANAN: Tabbed Main Content */}
+        {/* KANAN: Daftar Tugas & Penilaian Terpadu */}
         <div className="space-y-4">
-          {/* Tabs switch */}
-          <nav className="inline-flex flex-wrap gap-1 rounded-full bg-slate-100 dark:bg-slate-800 p-1 text-xs">
-            {[
-              ["perkembangan", t("progressReportsTab")],
-              ["penilaian", t("classAssessmentsTab")],
-              ["legacy", t("legacyGradesTab")],
-            ].map(([tabKey, tabLabel]) => (
-              <Link
-                key={tabKey}
-                href={`/teacher/grades/${pid}?tab=${tabKey}`}
-                className={`rounded-full px-4 py-2 font-semibold transition-colors ${
-                  activeTab === tabKey
-                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 shadow-2xs"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
-                }`}
-              >
-                {tabLabel}
-              </Link>
-            ))}
-          </nav>
-
-          {activeTab === "penilaian" ? (
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
-              <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+            <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6 flex items-center justify-between gap-3">
+              <div>
                 <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">
-                  {t("classAssessmentsTab")}
+                  Riwayat Tugas & Penilaian Kelas
                 </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Hasil tugas dan penilaian kelas yang diikuti oleh siswa ini.
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Seluruh asesmen kelas yang diikuti siswa ini. Guru dapat langsung memperbarui nilai dan catatan kapan saja.
                 </p>
               </div>
-              {hasilPenilaianRows.length === 0 ? (
-                <div className="px-4 py-12 text-center sm:px-6">
-                  <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">{t("noAssessmentsYet")}</p>
+              <Link
+                href={`/teacher/classes/${kelas.id}?tab=asesmen`}
+                className="shrink-0 inline-flex items-center rounded-lg bg-blue-600 hover:bg-blue-700 px-3 py-2 text-xs font-semibold text-white transition-colors"
+              >
+                + Buat Tugas Baru
+              </Link>
+            </div>
+
+            {semuaPenilaian.length === 0 ? (
+              <div className="px-4 py-14 text-center sm:px-6">
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                  Belum ada tugas atau penilaian yang dibuat di kelas ini.
+                </p>
+                <div className="mt-3">
+                  <Link
+                    href={`/teacher/classes/${kelas.id}?tab=asesmen`}
+                    className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Mulai Buat Tugas Pertama →
+                  </Link>
                 </div>
-              ) : (
-                <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {hasilPenilaianRows.map((h) => {
-                    const pen = penilaianMap.get(h.penilaianId);
-                    return (
-                      <li key={h.id} className="p-4 sm:p-6 flex flex-wrap items-center justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{pen?.nama ?? `Penilaian #${h.penilaianId}`}</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">
-                            Tanggal: {pen?.tanggal} {pen?.draf ? `· (${t("draftStatus")})` : `· (${t("publishedStatus")})`}
+              </div>
+            ) : (
+              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                {semuaPenilaian.map((pen) => {
+                  const h = hasilByPenilaianId.get(pen.id);
+                  const statusHasil = h?.statusHasil ?? "belum_dinilai";
+                  const nilaiVal = h?.nilai != null ? String(h.nilai) : "";
+                  const catatanVal = h?.catatan ?? "";
+                  const maxScore = Number(pen.nilaiMaksimum) || 100;
+
+                  return (
+                    <li key={pen.id} className="p-4 sm:p-6 space-y-3">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                            {pen.nama}
                           </p>
-                          {h.catatan ? (
-                            <p className="mt-1.5 text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 rounded px-2 py-1">
-                              {h.catatan}
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-2">
+                            <span>
+                              {new Date(`${pen.tanggal}T00:00:00+07:00`).toLocaleDateString(
+                                locale === "en" ? "en-GB" : "id-ID",
+                                { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" },
+                              )}
+                            </span>
+                            {pen.draf ? (
+                              <>
+                                <span>•</span>
+                                <span className="font-semibold text-amber-600 dark:text-amber-400">Draf</span>
+                              </>
+                            ) : null}
+                          </p>
+                          {catatanVal ? (
+                            <p className="mt-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 p-3 text-xs text-slate-700 dark:text-slate-300 leading-relaxed border border-slate-100 dark:border-slate-800">
+                              <span className="font-semibold text-slate-600 dark:text-slate-400 mr-1">Catatan:</span>
+                              {catatanVal}
                             </p>
                           ) : null}
                         </div>
-                        <div className="text-right">
+
+                        <div className="text-right shrink-0 flex flex-col items-end gap-1">
                           <span
-                            className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold ${
-                              h.statusHasil === "dinilai"
-                                ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300"
-                                : h.statusHasil === "tidak_ikut"
-                                  ? "bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300"
-                                  : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                            className={`inline-flex rounded-full px-3 py-1 text-xs font-bold tabular-nums ${
+                              statusHasil === "dinilai"
+                                ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                                : statusHasil === "tidak_ikut"
+                                  ? "bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800"
+                                  : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
                             }`}
                           >
-                            {h.statusHasil === "dinilai"
-                              ? `${h.nilai} / ${pen?.nilaiMaksimum ?? 100}`
-                              : t(`status${h.statusHasil.charAt(0).toUpperCase() + h.statusHasil.slice(1)}` as Parameters<typeof t>[0]) ?? h.statusHasil}
+                            {statusHasil === "dinilai"
+                              ? nilaiVal
+                              : statusHasil === "tidak_ikut"
+                                ? "Tidak Ikut"
+                                : "Belum Dinilai"}
                           </span>
                         </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          ) : (
-            /* Tab: Nilai Individu (Legacy) */
-            <div className="space-y-4">
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
-                <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
-                  <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">{t("newGradeEntry")}</h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{t("gradeInputHelp")}</p>
-                </div>
-                <div className="p-4 sm:p-6">
-                  <NilaiForm pendaftaranId={pid} />
-                </div>
-              </div>
+                      </div>
 
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
-                <div className="border-b border-slate-100 dark:border-slate-800 px-4 py-4 sm:px-6">
-                  <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-950 dark:text-slate-100">{t("gradeHistory")}</h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{t("historyHelp")}</p>
-                </div>
-                {nilai.length === 0 ? (
-                  <div className="px-4 py-14 text-center sm:px-6">
-                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{t("noStudentEntries")}</p>
-                    <p className="mt-1 text-[13px] text-slate-500 dark:text-slate-400">{t("firstProgressHelp")}</p>
-                  </div>
-                ) : (
-                  <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {nilai.map((n) => {
-                      const terkunci = !dalamJendela7Hari(n.createdAt);
-                      const v = n.nilaiKuantitatif == null ? null : Number(n.nilaiKuantitatif);
-                      return (
-                        <li key={n.id} className="px-4 py-5 sm:px-6">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="flex items-center gap-3">
-                              <span className="font-display text-lg font-extrabold tabular-nums tracking-tight text-slate-900 dark:text-slate-100">
-                                {v != null ? v : ""}
-                              </span>
-                              <div>
-                                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                                  {new Date(`${n.tanggal}T00:00:00+07:00`).toLocaleDateString(
-                                    locale === "en" ? "en-GB" : "id-ID",
-                                    { timeZone: "Asia/Jakarta" },
-                                  )}
-                                </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                  {terkunci ? t("lockedAdmin") : t("editableWindow")}
-                                </p>
-                              </div>
-                            </div>
-                            {v != null ? (
-                              <Badge tone={v >= 75 ? "emerald" : "brand"}>
-                                {v >= 75 ? t("good") : t("needsSupport")}
-                              </Badge>
-                            ) : (
-                              <Badge tone="slate">{t("notesOnly")}</Badge>
-                            )}
-                          </div>
-                          {n.catatanKualitatif ? (
-                            <p className="mt-2.5 whitespace-pre-line break-words rounded-xl bg-slate-50 dark:bg-slate-800/60 px-4 py-3 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                              {n.catatanKualitatif}
-                            </p>
-                          ) : null}
-                          {!terkunci ? (
-                            <details className="mt-3 group">
-                              <summary className="cursor-pointer list-none text-sm font-semibold text-blue-700 dark:text-blue-400 hover:underline">
-                                {t("editEntry")}
-                              </summary>
-                              <div className="mt-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 p-4">
-                                <NilaiForm
-                                  pendaftaranId={pid}
-                                  nilaiId={n.id}
-                                  defaults={{
-                                    tanggal: n.tanggal,
-                                    nilai: v == null ? "" : String(v),
-                                    catatan: n.catatanKualitatif ?? "",
-                                  }}
-                                />
-                              </div>
-                            </details>
-                          ) : (
-                            <div className="mt-3 flex items-center justify-between border-t border-slate-100 dark:border-slate-800/70 pt-2.5">
-                              <span className="text-xs text-slate-500 dark:text-slate-400">
-                                Entri telah terkunci permanen (&gt; 7 hari).
-                              </span>
-                              <Link
-                                href={`/teacher/corrections?entitas=nilai&id=${n.id}`}
-                                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                              >
-                                Ajukan Koreksi Nilai Ini →
-                              </Link>
-                            </div>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-                <p className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 text-xs leading-relaxed text-slate-500 dark:text-slate-400 sm:px-6">
-                  {t("needLockedCorrection")}{" "}
-                  <Link href="/teacher/corrections" className="font-semibold text-blue-700 dark:text-blue-400 hover:underline">
-                    {t("viewAdminCorrection")}
-                  </Link>
-                  .
-                </p>
-              </div>
-            </div>
-          )}
+                      {/* Inline Quick Editor */}
+                      <div className="pt-1">
+                        <StudentGradeItemEditor
+                          kelasId={kelas.id}
+                          pendaftaranId={pid}
+                          penilaianId={pen.id}
+                          penilaianNama={pen.nama}
+                          nilaiMaksimum={maxScore}
+                          initialStatus={statusHasil}
+                          initialNilai={nilaiVal}
+                          initialCatatan={catatanVal}
+                        />
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -155,11 +155,12 @@ export function OfficialReceipt({ data }: { data: OfficialReceiptData }) {
         {/* Transaction Table */}
         <div className="mt-6 overflow-hidden rounded-xl border border-slate-200">
           <table className="w-full text-left text-xs">
+            <caption className="sr-only">Rincian pembayaran kwitansi resmi</caption>
             <thead className="border-b border-slate-200 bg-slate-100/80 font-bold uppercase tracking-wider text-slate-600">
               <tr>
-                <th className="px-4 py-3">Uraian Pembayaran</th>
-                <th className="px-4 py-3 text-center">Metode</th>
-                <th className="px-4 py-3 text-right">Jumlah</th>
+                <th scope="col" className="px-4 py-3">Uraian Pembayaran</th>
+                <th scope="col" className="px-4 py-3 text-center">Metode</th>
+                <th scope="col" className="px-4 py-3 text-right">Jumlah</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -176,19 +177,19 @@ export function OfficialReceipt({ data }: { data: OfficialReceiptData }) {
                 <td className="px-4 py-3.5 text-center text-slate-600 font-medium">
                   {data.metodeBayar === 'dp_cicilan' ? 'DP / Cicilan' : 'Pembayaran Lunas'}
                 </td>
-                <td className="px-4 py-3.5 text-right font-mono font-bold text-slate-900 text-sm">
+                <td className="px-4 py-3.5 text-right font-mono font-bold text-slate-900 text-sm tabular-nums">
                   {rupiah(data.jumlah)}
                 </td>
               </tr>
             </tbody>
             <tfoot className="border-t-2 border-slate-200 bg-slate-50/80">
               <tr>
-                <th colSpan={2} className="px-4 py-3 text-right font-bold text-slate-700">
+                <th scope="row" colSpan={2} className="px-4 py-3 text-right font-bold text-slate-700">
                   Total Dibayar:
                 </th>
-                <th className="px-4 py-3 text-right font-mono text-base font-black text-blue-700">
+                <td className="px-4 py-3 text-right font-mono text-base font-black text-blue-700 tabular-nums">
                   {rupiah(data.jumlah)}
-                </th>
+                </td>
               </tr>
             </tfoot>
           </table>

@@ -87,7 +87,7 @@ export function ExportClassModal({
         </div>
 
         {/* Body: Radio options */}
-        <div className="p-5 space-y-2.5">
+        <div className="p-6 space-y-3">
           {EXPORT_OPTIONS.map((opt) => {
             const isSelected = selectedType === opt.id;
             return (
@@ -121,11 +121,11 @@ export function ExportClassModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-2.5 px-5 py-3.5 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800">
           <button
             type="button"
             onClick={onClose}
-            className="px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 rounded-md transition-colors cursor-pointer"
+            className="px-4 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors cursor-pointer"
           >
             <span>Batal</span>
           </button>
@@ -134,7 +134,7 @@ export function ExportClassModal({
             href={downloadUrl}
             download
             onClick={onClose}
-            className="inline-flex items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors cursor-pointer"
           >
             <span>Unduh Berkas (.csv)</span>
           </a>

@@ -70,9 +70,9 @@ export default async function AttendancePage({
       <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
         <Link
           href={`/teacher/classes/${kid}`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
         >
-          <ArrowLeft className="size-3.5" />
+          <ArrowLeft className="size-4" />
           <span>{t("backToClass")}</span>
         </Link>
         <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center shadow-2xs">
@@ -83,9 +83,9 @@ export default async function AttendancePage({
           <div className="mt-6 flex justify-center">
             <Link
               href={`/teacher/classes/${kid}`}
-              className="inline-flex items-center gap-2 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
-              <ArrowLeft className="size-3.5" />
+              <ArrowLeft className="size-4" />
               <span>{t("backToClass")}</span>
             </Link>
           </div>
@@ -146,15 +146,15 @@ export default async function AttendancePage({
       <div>
         <Link
           href={`/teacher/classes/${kid}`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
         >
-          <ArrowLeft className="size-3.5" />
+          <ArrowLeft className="size-4" />
           <span>Kembali ke Detail Kelas</span>
         </Link>
       </div>
 
       {/* Title & Metadata */}
-      <div className="border-b border-slate-200 dark:border-slate-800 pb-5">
+      <div className="border-b border-slate-200 dark:border-slate-800 pb-6">
         <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
           {t("attendanceTitle", {
             day: t(`day_${hari}`),
@@ -177,7 +177,7 @@ export default async function AttendancePage({
                 key={j.id}
                 href={`/teacher/classes/${kid}/sessions/${date}/attendance?sesi=${j.id}`}
                 aria-current={j.id === item.id ? "page" : undefined}
-                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
                   j.id === item.id
                     ? "bg-blue-600 text-white shadow-xs"
                     : "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"

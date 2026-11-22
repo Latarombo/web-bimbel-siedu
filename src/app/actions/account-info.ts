@@ -10,8 +10,8 @@ import { auth } from '@/lib/auth';
 import { validateIndonesianPhone, getPhoneLookupVariants } from '@/lib/format/phone';
 
 const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
-  name: z.string({error: t('invalidField')}).trim().min(2, t('nameMin')),
-  wilayah: z.string({error: t('invalidField')}).trim().min(1, t('districtRequired')),
+  name: z.string({error: t('invalidField')}).trim().min(2, t('nameMin')).max(100, t('nameMax')),
+  wilayah: z.string({error: t('invalidField')}).trim().min(1, t('districtRequired')).max(100, t('districtMax')),
   detail_alamat: z.string({error: t('invalidField')}).trim().min(5, t('streetAddressRequired')).max(500, t('addressMax')),
   nomor_telepon: z
     .string({error: t('invalidField')})
@@ -42,6 +42,8 @@ export async function validateStep1(
 
   if (!name.trim() || name.trim().length < 2) {
     fieldErrors.name = t('nameMin');
+  } else if (name.trim().length > 100) {
+    fieldErrors.name = t('nameMax');
   }
 
   const phoneRes = validateIndonesianPhone(nomorTelepon);

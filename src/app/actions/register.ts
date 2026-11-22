@@ -16,8 +16,8 @@ import { checkRateLimit, checkCooldown, getClientIp } from '@/lib/rate-limit';
 // Kebijakan kata sandi — hanya panjang minimal; UI (checklist RegisterForm)
 // dan server harus menuntut hal yang sama.
 const registerSchema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
-  email: z.string({error: t('invalidField')}).trim().toLowerCase().email(t('invalidEmail')),
-  password: z.string({error: t('invalidField')}).min(8, t('passwordMin')),
+  email: z.string({error: t('invalidField')}).trim().toLowerCase().max(255, t('emailMax')).email(t('invalidEmail')),
+  password: z.string({error: t('invalidField')}).min(8, t('passwordMin')).max(72, t('passwordMax')),
 });
 
 export type RegisterState = {

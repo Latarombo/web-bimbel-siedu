@@ -3,8 +3,9 @@
 import { useState, useMemo, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { savePenilaianBatch, tarikPenilaian } from "@/app/actions/teacher";
-import { StudentAvatar } from "@/components/parent/student-avatar";
 import { Search, X, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { DatePicker } from "@/components/ui/date-picker";
+import { UnderlineTabs } from "@/components/ui/underline-tabs";
 
 export interface StudentAssessmentRow {
   pendaftaranId: number;
@@ -285,163 +286,77 @@ export function PenilaianForm({
     <div className="space-y-6">
       {/* 1. Canonical 4-Stat Strip (Matching SessionStatStrip) */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-        {/* Card 1: Total Siswa (Blue) */}
-        <div className="relative overflow-hidden rounded-lg border border-blue-200/70 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/80 via-blue-50/20 to-white dark:from-blue-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-blue-600 dark:text-blue-400">
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t("students")}
-                </p>
-                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-blue-100/80 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800">
-                  Rombel
-                </span>
-              </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
-                {counts.total}
-              </p>
-            </div>
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
-              Total murid terdaftar di kelas
+        {/* Card 1: Total Siswa */}
+        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              {t("students")}
+            </p>
+            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
+              {counts.total}
             </p>
           </div>
-          <svg
-            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
-            viewBox="0 0 400 280"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
-            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
-            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
-          </svg>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
+            Total murid terdaftar di kelas
+          </p>
         </div>
 
-        {/* Card 2: Sudah Dinilai (Emerald) */}
-        <div className="relative overflow-hidden rounded-lg border border-emerald-200/70 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/80 via-emerald-50/20 to-white dark:from-emerald-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-emerald-600 dark:text-emerald-400">
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Sudah Dinilai
-                </p>
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold border tabular-nums ${
-                    isComplete
-                      ? "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800"
-                      : "bg-emerald-100/90 text-emerald-800 dark:bg-emerald-900/70 dark:text-emerald-300 border-emerald-300/80 dark:border-emerald-800"
-                  }`}
-                >
-                  {persenDinilai}%
-                </span>
-              </div>
-              <div className="mt-2 flex items-baseline gap-1.5">
-                <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white tabular-nums tracking-tight">
-                  {counts.dinilai}
-                </span>
-                <span className="text-xs font-medium text-slate-500 dark:text-slate-400 tabular-nums">
-                  / {counts.total}
-                </span>
-              </div>
-            </div>
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
-              {isComplete ? "Penilaian telah lengkap" : "Entri nilai sedang berjalan"}
+        {/* Card 2: Sudah Dinilai */}
+        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Sudah Dinilai
             </p>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white tabular-nums tracking-tight">
+                {counts.dinilai}
+              </span>
+              <span className="text-xs font-medium text-slate-400 dark:text-slate-500 tabular-nums">
+                / {counts.total}
+              </span>
+            </div>
           </div>
-          <svg
-            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
-            viewBox="0 0 400 280"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
-            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
-            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
-          </svg>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
+            {isComplete ? "Penilaian telah lengkap" : "Entri nilai sedang berjalan"}
+          </p>
         </div>
 
-        {/* Card 3: Belum Dinilai (Amber) */}
-        <div className="relative overflow-hidden rounded-lg border border-amber-200/70 dark:border-amber-900/40 bg-gradient-to-br from-amber-50/80 via-amber-50/20 to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-amber-600 dark:text-amber-400">
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Belum Dinilai
-                </p>
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold border ${
-                    counts.belumDinilai > 0
-                      ? "bg-amber-100/90 text-amber-800 dark:bg-amber-900/70 dark:text-amber-300 border-amber-300/80 dark:border-amber-800"
-                      : "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800"
-                  }`}
-                >
-                  {counts.belumDinilai > 0 ? "Perlu Aksi" : "Lengkap"}
-                </span>
-              </div>
-              <p
-                className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${
-                  counts.belumDinilai > 0
-                    ? "text-amber-600 dark:text-amber-400"
-                    : "text-slate-950 dark:text-white"
-                }`}
-              >
-                {counts.belumDinilai}
-              </p>
-            </div>
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
-              {counts.belumDinilai > 0
-                ? `${counts.belumDinilai} murid menunggu penilaian`
-                : "Semua murid telah dinilai"}
+        {/* Card 3: Belum Dinilai */}
+        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Belum Dinilai
+            </p>
+            <p
+              className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${
+                counts.belumDinilai > 0
+                  ? "text-amber-600 dark:text-amber-400"
+                  : "text-slate-950 dark:text-white"
+              }`}
+            >
+              {counts.belumDinilai}
             </p>
           </div>
-          <svg
-            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
-            viewBox="0 0 400 280"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
-            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
-            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
-          </svg>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
+            {counts.belumDinilai > 0
+              ? `${counts.belumDinilai} murid menunggu penilaian`
+              : "Semua murid telah dinilai"}
+          </p>
         </div>
 
-        {/* Card 4: Rata-rata Skor (Indigo) */}
-        <div className="relative overflow-hidden rounded-lg border border-indigo-200/70 dark:border-indigo-900/40 bg-gradient-to-br from-indigo-50/80 via-indigo-50/20 to-white dark:from-indigo-950/30 dark:via-slate-900 dark:to-slate-900 p-4 shadow-xs text-indigo-600 dark:text-indigo-400">
-          <div className="relative z-10 flex flex-col justify-between h-full">
-            <div>
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Rata-rata Skor
-                </p>
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold border ${
-                    isDraf
-                      ? "bg-amber-100/90 text-amber-800 dark:bg-amber-900/70 dark:text-amber-300 border-amber-300/80 dark:border-amber-800"
-                      : "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800"
-                  }`}
-                >
-                  {isDraf ? "Draf" : "Terbit"}
-                </span>
-              </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-slate-950 dark:text-white">
-                {counts.averageScore !== null ? counts.averageScore : "—"}
-              </p>
-            </div>
-            <p className="mt-2 text-xs text-slate-600 dark:text-slate-400 truncate">
-              Batas Maksimum: {nilaiMaksimum} poin
+        {/* Card 4: Rata-rata Skor */}
+        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Rata-rata Skor
+            </p>
+            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-slate-950 dark:text-white">
+              {counts.averageScore !== null ? counts.averageScore : "—"}
             </p>
           </div>
-          <svg
-            className="pointer-events-none absolute -right-4 -top-4 w-32 sm:w-36 opacity-[0.16] dark:opacity-[0.22]"
-            viewBox="0 0 400 280"
-            fill="none"
-            aria-hidden="true"
-          >
-            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="currentColor" fillOpacity="0.4" />
-            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="currentColor" fillOpacity="0.6" />
-            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="currentColor" fillOpacity="0.8" />
-          </svg>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
+            Rata-rata capaian kelas
+          </p>
         </div>
       </div>
 
@@ -449,7 +364,7 @@ export function PenilaianForm({
       {errorMsg ? (
         <div
           role="alert"
-          className="flex items-center justify-between gap-2.5 rounded-md border border-rose-200 dark:border-rose-900/70 bg-rose-50 dark:bg-rose-950/30 px-4 py-3 text-xs font-medium text-rose-800 dark:text-rose-200"
+          className="flex items-center justify-between gap-2 rounded-lg border border-rose-200 dark:border-rose-900/70 bg-rose-50 dark:bg-rose-950/30 px-4 py-3 text-xs font-medium text-rose-800 dark:text-rose-200"
         >
           <div className="flex items-center gap-2">
             <AlertCircle className="size-4 shrink-0 text-rose-600 dark:text-rose-400" />
@@ -468,7 +383,7 @@ export function PenilaianForm({
       {successMsg ? (
         <div
           role="status"
-          className="flex items-center justify-between gap-2.5 rounded-md border border-emerald-200 dark:border-emerald-900/70 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3 text-xs font-medium text-emerald-800 dark:text-emerald-200"
+          className="flex items-center justify-between gap-2 rounded-lg border border-emerald-200 dark:border-emerald-900/70 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3 text-xs font-medium text-emerald-800 dark:text-emerald-200"
         >
           <div className="flex items-center gap-2">
             <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
@@ -484,34 +399,17 @@ export function PenilaianForm({
         </div>
       ) : null}
 
-      {/* 2. Canonical Underline Tab Navigation (Matching TeacherAttendanceManager) */}
-      <div className="border-b border-slate-200 dark:border-slate-800">
-        <nav className="flex gap-6" aria-label="Tabs Penilaian & Pengaturan">
-          <button
-            type="button"
-            onClick={() => setActiveTab("grading")}
-            className={`pb-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
-              activeTab === "grading"
-                ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
-                : "border-transparent text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-slate-100"
-            }`}
-          >
-            <span>Daftar Nilai Siswa</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("settings")}
-            className={`pb-3 text-sm font-semibold transition-colors cursor-pointer border-b-2 -mb-px ${
-              activeTab === "settings"
-                ? "border-blue-600 text-blue-600 dark:border-blue-400 dark:text-blue-400"
-                : "border-transparent text-slate-700 dark:text-slate-400 hover:text-slate-950 dark:hover:text-slate-100"
-            }`}
-          >
-            <span>Pengaturan Asesmen</span>
-          </button>
-        </nav>
-      </div>
+      {/* 2. Canonical Underline Tab Navigation with sliding indicator */}
+      <UnderlineTabs
+        tabs={[
+          { id: "grading", label: "Daftar Nilai Siswa" },
+          { id: "settings", label: "Pengaturan Asesmen" },
+        ]}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        ariaLabel="Tabs Penilaian & Pengaturan"
+        layoutId="teacher-penilaian-tabs"
+      />
 
       {/* 3. Tab Panels */}
       {activeTab === "grading" ? (
@@ -524,24 +422,24 @@ export function PenilaianForm({
                 <button
                   type="button"
                   onClick={handleMarkAllRated}
-                  className="inline-flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white cursor-pointer"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white cursor-pointer"
                 >
                   <span>Beri Nilai Maks Semua</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleClearAllScores}
-                  className="inline-flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white cursor-pointer"
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white cursor-pointer"
                 >
                   <span>Reset Nilai</span>
                 </button>
 
                 {/* Filter Status Pills */}
-                <div className="inline-flex rounded-md bg-slate-100 dark:bg-slate-800 p-0.5 text-xs font-medium sm:ml-2">
+                <div className="inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 text-xs font-medium sm:ml-2">
                   <button
                     type="button"
                     onClick={() => setFilterStatus("all")}
-                    className={`rounded px-2.5 py-1 text-xs transition-colors cursor-pointer ${
+                    className={`rounded-md px-3 py-1 text-xs transition-colors cursor-pointer ${
                       filterStatus === "all"
                         ? "bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-2xs font-bold"
                         : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
@@ -552,7 +450,7 @@ export function PenilaianForm({
                   <button
                     type="button"
                     onClick={() => setFilterStatus("belum")}
-                    className={`rounded px-2.5 py-1 text-xs transition-colors cursor-pointer ${
+                    className={`rounded-md px-3 py-1 text-xs transition-colors cursor-pointer ${
                       filterStatus === "belum"
                         ? "bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-2xs font-bold"
                         : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
@@ -563,7 +461,7 @@ export function PenilaianForm({
                   <button
                     type="button"
                     onClick={() => setFilterStatus("dinilai")}
-                    className={`rounded px-2.5 py-1 text-xs transition-colors cursor-pointer ${
+                    className={`rounded-md px-3 py-1 text-xs transition-colors cursor-pointer ${
                       filterStatus === "dinilai"
                         ? "bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-2xs font-bold"
                         : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
@@ -579,22 +477,25 @@ export function PenilaianForm({
                 <label htmlFor="search-student" className="sr-only">
                   Cari siswa
                 </label>
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
                 <input
                   id="search-student"
-                  type="text"
+                  type="search"
+                  maxLength={100}
+                  autoComplete="off"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Cari nama siswa..."
-                  className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1.5 pl-9 pr-8 text-xs text-slate-900 dark:text-slate-100 transition-colors placeholder:text-slate-500 dark:placeholder:text-slate-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                  placeholder="Cari nama siswa…"
+                  className="h-10 sm:h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-8 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
                 />
                 {searchQuery && (
                   <button
                     type="button"
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                    aria-label="Hapus kata kunci pencarian"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20"
                   >
-                    <X className="size-3.5" />
+                    <X className="size-4" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -610,17 +511,17 @@ export function PenilaianForm({
               <table className="w-full min-w-[700px] border-collapse text-left">
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                    <th scope="col" className="w-12 px-4 py-3 text-center">
+                    <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">
                       No
                     </th>
-                    <th scope="col" className="px-4 py-3">
+                    <th scope="col" className="sticky left-12 z-20 min-w-[150px] max-w-[220px] bg-slate-50 dark:bg-slate-800 px-4 py-3 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]">
                       Siswa
                     </th>
                     <th scope="col" className="w-56 px-4 py-3 text-center">
                       Status Penilaian
                     </th>
-                    <th scope="col" className="w-40 px-4 py-3 text-center">
-                      Nilai (Maks {nilaiMaksimum})
+                    <th scope="col" className="w-28 px-4 py-3 text-right">
+                      Nilai
                     </th>
                     <th scope="col" className="px-4 py-3">
                       Catatan & Umpan Balik Guru
@@ -645,30 +546,18 @@ export function PenilaianForm({
                       return (
                         <tr
                           key={s.pendaftaranId}
-                          className="transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/40"
+                          className="group/row relative border-b border-slate-100 dark:border-slate-800/60 transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/40"
                         >
-                          {/* 1. Nomor */}
-                          <td className="px-4 py-3 text-center font-medium text-slate-600 dark:text-slate-400 tabular-nums">
+                          {/* 1. Nomor (Sticky Left 0) */}
+                          <td className="sticky left-0 z-10 w-12 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 text-center font-medium text-slate-600 dark:text-slate-400 tabular-nums transition-colors">
                             {idx + 1}
                           </td>
 
-                          {/* 2. Nama Siswa */}
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <StudentAvatar
-                                nama={s.nama}
-                                jenjang={s.jenjang}
-                                size="xs"
-                              />
-                              <div className="min-w-0">
-                                <p className="font-semibold text-slate-950 dark:text-slate-50 truncate">
-                                  {s.nama}
-                                </p>
-                                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                                  ID Pendaftaran: {s.pendaftaranId}
-                                </p>
-                              </div>
-                            </div>
+                          {/* 2. Nama Siswa (Sticky Left 12) */}
+                          <td className="sticky left-12 z-10 min-w-[150px] max-w-[220px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                            <p className="font-semibold text-slate-950 dark:text-slate-50 truncate block" title={s.nama}>
+                              {s.nama}
+                            </p>
                           </td>
 
                           {/* 3. Segmented Status Button Toggles (Dinilai, Belum, Absen) */}
@@ -678,7 +567,7 @@ export function PenilaianForm({
                                 <button
                                   type="button"
                                   onClick={() => handleStatusChange(s.pendaftaranId, "dinilai")}
-                                  className={`rounded px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                                  className={`rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer ${
                                     cur.statusHasil === "dinilai"
                                       ? "bg-emerald-600 text-white shadow-xs"
                                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
@@ -689,45 +578,44 @@ export function PenilaianForm({
                                 <button
                                   type="button"
                                   onClick={() => handleStatusChange(s.pendaftaranId, "belum_dinilai")}
-                                  className={`rounded px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                                  className={`rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer ${
                                     cur.statusHasil === "belum_dinilai"
                                       ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-bold"
                                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
                                   }`}
                                 >
-                                  Belum
+                                  {t("statusBelumShort")}
                                 </button>
                                 <button
                                   type="button"
                                   onClick={() => handleStatusChange(s.pendaftaranId, "tidak_ikut")}
-                                  className={`rounded px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                                  className={`rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer ${
                                     cur.statusHasil === "tidak_ikut"
                                       ? "bg-rose-600 text-white shadow-xs"
                                       : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
                                   }`}
                                 >
-                                  Absen
+                                  {t("statusTidakIkutShort")}
                                 </button>
                               </div>
                             </div>
                           </td>
 
                           {/* 4. Nilai (Skor) */}
-                          <td className="px-4 py-3">
-                            <div className="flex items-center justify-center gap-1.5">
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex items-center justify-end gap-2">
                               <input
                                 type="number"
+                                inputMode="decimal"
                                 min="0"
                                 max={nilaiMaksimum || 100}
                                 disabled={cur.statusHasil !== "dinilai"}
                                 value={cur.nilai}
                                 onChange={(e) => handleNilaiChange(s.pendaftaranId, e.target.value)}
+                                aria-label={`Nilai untuk ${s.nama}`}
                                 placeholder="0"
-                                className="w-16 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-1 text-center text-xs sm:text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100 outline-none disabled:bg-slate-100 dark:disabled:bg-slate-800/60 disabled:text-slate-400 dark:disabled:text-slate-500 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
+                                className="w-16 h-9 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-right text-base sm:text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100 disabled:bg-slate-100 dark:disabled:bg-slate-800/60 disabled:text-slate-400 dark:disabled:text-slate-500 hover:border-slate-400 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
                               />
-                              <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
-                                / {nilaiMaksimum}
-                              </span>
                             </div>
                           </td>
 
@@ -735,10 +623,12 @@ export function PenilaianForm({
                           <td className="px-4 py-3">
                             <input
                               type="text"
+                              maxLength={1000}
                               value={cur.catatan}
                               onChange={(e) => handleCatatanChange(s.pendaftaranId, e.target.value)}
+                              aria-label={`Catatan untuk ${s.nama}`}
                               placeholder={t("notesPlaceholder")}
-                              className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-100 transition-colors placeholder:text-slate-500 dark:placeholder:text-slate-400 hover:border-slate-300 dark:hover:border-slate-600 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
+                              className="w-full h-9 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-base sm:text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
                             />
                           </td>
                         </tr>
@@ -750,20 +640,20 @@ export function PenilaianForm({
             </div>
 
             {/* Integrated Form Footer (Matching attendance-table.tsx) */}
-            <div className="flex flex-col gap-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-3.5 sm:p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
                 {counts.belumDinilai > 0 ? (
                   <span className="text-amber-600 dark:text-amber-400 font-semibold">
-                    {counts.belumDinilai} dari {initialSiswa.length} siswa belum dinilai
+                    {t("studentsUngradedCount", { count: counts.belumDinilai, total: initialSiswa.length })}
                   </span>
                 ) : (
                   <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
-                    Semua siswa ({initialSiswa.length}) telah dinilai
+                    {t("allStudentsGraded", { total: initialSiswa.length })}
                   </span>
                 )}
                 <span className="mx-2 text-slate-300 dark:text-slate-600 hidden sm:inline">·</span>
                 <span className="text-slate-500 dark:text-slate-400 block sm:inline mt-0.5 sm:mt-0">
-                  Dinilai: {counts.dinilai} · Rata-rata:{" "}
+                  {t("gradedSummary", { count: counts.dinilai })}
                   {counts.averageScore !== null ? counts.averageScore : "—"} · Absen:{" "}
                   {counts.tidakIkut}
                 </span>
@@ -774,11 +664,11 @@ export function PenilaianForm({
                   type="button"
                   disabled={isPending}
                   onClick={() => handleSubmit("simpan_draf")}
-                  className="inline-flex min-h-10 w-full sm:w-auto items-center justify-center rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer disabled:opacity-50"
+                  className="inline-flex min-h-10 w-full sm:w-auto items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer disabled:opacity-50"
                 >
                   {isPending ? (
-                    <span className="inline-flex items-center gap-1.5">
-                      <Loader2 className="size-3.5 animate-spin" />
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="size-4 animate-spin" />
                       <span>Menyimpan...</span>
                     </span>
                   ) : (
@@ -790,11 +680,11 @@ export function PenilaianForm({
                   type="button"
                   disabled={isPending}
                   onClick={() => handleSubmit("terbitkan")}
-                  className="inline-flex min-h-10 w-full sm:w-auto items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="inline-flex min-h-10 w-full sm:w-auto items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {isPending ? (
-                    <span className="inline-flex items-center gap-1.5">
-                      <Loader2 className="size-3.5 animate-spin" />
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="size-4 animate-spin" />
                       <span>Menyimpan...</span>
                     </span>
                   ) : (
@@ -807,21 +697,21 @@ export function PenilaianForm({
 
           {/* Sticky Floating Action Bar (Matching AttendanceStickyBar) */}
           <div className="sticky bottom-4 z-30 mt-6 transition-all">
-            <div className="mx-auto rounded-lg border border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-3.5 shadow-lg backdrop-blur-md sm:p-4">
+            <div className="mx-auto rounded-lg border border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-4 shadow-lg backdrop-blur-md">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 {/* Real-time Status Counts */}
                 <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2.5 py-1 text-emerald-700 dark:text-emerald-300">
+                  <span className="inline-flex items-center gap-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-3 py-1 text-emerald-700 dark:text-emerald-300">
                     <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
                     Dinilai: <span className="font-bold tabular-nums">{counts.dinilai}</span>
                   </span>
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-2.5 py-1 text-amber-700 dark:text-amber-300">
+                  <span className="inline-flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-1 text-amber-700 dark:text-amber-300">
                     <span className="size-2 rounded-full bg-amber-500" aria-hidden="true" />
                     Belum Dinilai:{" "}
                     <span className="font-bold tabular-nums">{counts.belumDinilai}</span>
                   </span>
                   {counts.tidakIkut > 0 && (
-                    <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 px-2.5 py-1 text-rose-700 dark:text-rose-300">
+                    <span className="inline-flex items-center gap-2 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 px-3 py-1 text-rose-700 dark:text-rose-300">
                       <span className="size-2 rounded-full bg-rose-500" aria-hidden="true" />
                       Absen: <span className="font-bold tabular-nums">{counts.tidakIkut}</span>
                     </span>
@@ -832,13 +722,13 @@ export function PenilaianForm({
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap items-center justify-end gap-2.5">
+                <div className="flex flex-wrap items-center justify-end gap-3">
                   {!isDraf && penilaianId ? (
                     <button
                       type="button"
                       disabled={isPending}
                       onClick={handleWithdraw}
-                      className="inline-flex min-h-10 items-center justify-center rounded-md border border-amber-300 dark:border-amber-800 px-4 py-2 text-xs sm:text-sm font-semibold text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors disabled:opacity-50 cursor-pointer"
+                      className="inline-flex min-h-10 items-center justify-center rounded-lg border border-amber-300 dark:border-amber-800 px-4 py-2 text-xs sm:text-sm font-semibold text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors disabled:opacity-50 cursor-pointer"
                     >
                       {t("withdrawToDraft")}
                     </button>
@@ -848,11 +738,11 @@ export function PenilaianForm({
                     type="button"
                     disabled={isPending}
                     onClick={() => handleSubmit("simpan_draf")}
-                    className="inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer disabled:opacity-50"
+                    className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer disabled:opacity-50"
                   >
                     {isPending ? (
-                      <span className="inline-flex items-center gap-1.5">
-                        <Loader2 className="size-3.5 animate-spin" />
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="size-4 animate-spin" />
                         <span>Menyimpan...</span>
                       </span>
                     ) : (
@@ -864,11 +754,11 @@ export function PenilaianForm({
                     type="button"
                     disabled={isPending}
                     onClick={() => handleSubmit("terbitkan")}
-                    className="inline-flex min-h-10 items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                    className="inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                   >
                     {isPending ? (
-                      <span className="inline-flex items-center gap-1.5">
-                        <Loader2 className="size-3.5 animate-spin" />
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="size-4 animate-spin" />
                         <span>Menyimpan...</span>
                       </span>
                     ) : (
@@ -895,7 +785,7 @@ export function PenilaianForm({
               </div>
               <div className="flex items-center gap-2">
                 <span
-                  className={`inline-flex items-center rounded-md px-2.5 py-1 text-xs font-bold border ${
+                  className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-bold border ${
                     isDraf
                       ? "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800"
                       : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
@@ -922,7 +812,7 @@ export function PenilaianForm({
                 <div>
                   <label
                     htmlFor="assessment-name"
-                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2"
                   >
                     {t("assessmentName")} <span className="text-rose-500 font-bold ml-0.5">*</span>
                   </label>
@@ -930,46 +820,46 @@ export function PenilaianForm({
                     id="assessment-name"
                     type="text"
                     required
+                    maxLength={100}
                     value={nama}
                     onChange={(e) => setNama(e.target.value)}
                     placeholder={t("assessmentNamePlaceholder")}
-                    className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
+                    className="w-full h-11 sm:h-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 sm:px-4 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="assessment-date"
-                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2"
                   >
                     {t("assessmentDate")} <span className="text-rose-500 font-bold ml-0.5">*</span>
                   </label>
-                  <input
+                  <DatePicker
                     id="assessment-date"
-                    type="date"
-                    required
                     value={tanggal}
-                    onChange={(e) => setTanggal(e.target.value)}
-                    className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
+                    onChange={setTanggal}
+                    required
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="assessment-max"
-                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"
+                    className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2"
                   >
                     {t("maxScore")} <span className="text-rose-500 font-bold ml-0.5">*</span>
                   </label>
                   <input
                     id="assessment-max"
                     type="number"
+                    inputMode="numeric"
                     min="1"
                     max="1000"
                     required
                     value={nilaiMaksimum}
                     onChange={(e) => setNilaiMaksimum(e.target.value)}
-                    className="w-full rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400 outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
+                    className="w-full h-11 sm:h-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 sm:px-4 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 tabular-nums hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
                   />
                   <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                     {t("maxScoreHelp")}
@@ -982,11 +872,11 @@ export function PenilaianForm({
                   type="button"
                   disabled={isPending}
                   onClick={() => handleSubmit("simpan_draf")}
-                  className="inline-flex min-h-10 items-center justify-center rounded-md bg-blue-600 hover:bg-blue-700 px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                  className="inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {isPending ? (
-                    <span className="inline-flex items-center gap-1.5">
-                      <Loader2 className="size-3.5 animate-spin" />
+                    <span className="inline-flex items-center gap-2">
+                      <Loader2 className="size-4 animate-spin" />
                       <span>Menyimpan...</span>
                     </span>
                   ) : (
