@@ -21,16 +21,16 @@ export default async function AdminTeachers({ searchParams }: { searchParams: Pr
   const editId = Number(edit ?? 0);
 
   const guru = await collect(db.orm.public.User.where((u) => u.role.eq("guru")).all());
-  const [kelas, presensi, nilai] = await Promise.all([
+  const [kelas, presensi, penilaian] = await Promise.all([
     collect(db.orm.public.Kelas.all()),
     collect(db.orm.public.Presensi.all()),
-    collect(db.orm.public.NilaiProgres.all()),
+    collect(db.orm.public.Penilaian.all()),
   ]);
   const nKelas = new Map<number, number>();
   for (const k of kelas) nKelas.set(k.guruId, (nKelas.get(k.guruId) ?? 0) + 1);
   const catat = new Map<number, number>();
   for (const x of presensi) catat.set(x.dicatatOleh, (catat.get(x.dicatatOleh) ?? 0) + 1);
-  for (const n of nilai) catat.set(n.dicatatOleh, (catat.get(n.dicatatOleh) ?? 0) + 1);
+  for (const n of penilaian) catat.set(n.dibuatOleh, (catat.get(n.dibuatOleh) ?? 0) + 1);
 
   const editing = editId > 0 ? guru.find((g) => g.id === editId) : undefined;
   const mengampu = guru.filter((g) => (nKelas.get(g.id) ?? 0) > 0).length;

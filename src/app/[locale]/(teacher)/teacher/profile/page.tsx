@@ -18,9 +18,9 @@ export default async function TeacherProfile() {
   if (!guru) return redirect({ href: "/login", locale });
 
   const kelas = await collect(db.orm.public.Kelas.where((k) => k.guruId.eq(guruId)).all());
-  const [mapel, nilai, presensi] = await Promise.all([
+  const [mapel, penilaianList, presensi] = await Promise.all([
     collect(db.orm.public.MataPelajaran.all()),
-    collect(db.orm.public.NilaiProgres.where((n) => n.dicatatOleh.eq(guruId)).all()),
+    collect(db.orm.public.Penilaian.where((p) => p.dibuatOleh.eq(guruId)).all()),
     collect(db.orm.public.Presensi.where((x) => x.dicatatOleh.eq(guruId)).all()),
   ]);
   const mapelNama = new Set(
@@ -69,7 +69,7 @@ export default async function TeacherProfile() {
               {[
                 [t("assignedClasses"), `${kelas.length}`],
                 [t("teachingSubjects"), mapelNama.size ? [...mapelNama].join(", ") : ""],
-                [t("gradeEntries"), `${nilai.length}`],
+                [t("gradeEntries"), `${penilaianList.length}`],
                 [t("attendanceEntries"), `${presensi.length}`],
               ].map(([k, v]) => (
                 <div key={k} className="flex items-baseline justify-between gap-3 px-4 py-3 sm:px-6">

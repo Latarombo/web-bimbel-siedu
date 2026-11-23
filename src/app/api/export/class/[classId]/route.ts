@@ -83,7 +83,6 @@ export async function GET(
       "Nama Siswa",
       "Tanggal Pertemuan",
       "Status Presensi",
-      "Terlambat",
       "Catatan",
     ]);
 
@@ -99,18 +98,14 @@ export async function GET(
         anak?.nama ?? `Siswa #${p?.anakId ?? ""}`,
         pr.tanggalPertemuan,
         pr.status.toUpperCase(),
-        pr.terlambat ? "Ya" : "Tidak",
         pr.catatan ?? "",
       ]);
     }
   } else if (exportType === "grades") {
-    const [penilaianList, hasilList, nilaiProgresList] = await Promise.all([
+    const [penilaianList, hasilList] = await Promise.all([
       collect(db.orm.public.Penilaian.where((pn) => pn.kelasId.eq(kid)).all()),
       pendaftaranIds.length > 0
         ? collect(db.orm.public.HasilPenilaian.where((h) => h.pendaftaranId.in(pendaftaranIds)).all())
-        : [],
-      pendaftaranIds.length > 0
-        ? collect(db.orm.public.NilaiProgres.where((np) => np.pendaftaranId.in(pendaftaranIds)).all())
         : [],
     ]);
 
@@ -145,33 +140,14 @@ export async function GET(
         hp.catatan ?? "",
       ]);
     }
-
-    for (const np of nilaiProgresList) {
-      const p = pendaftaranList.find((item) => item.id === np.pendaftaranId);
-      const anak = p ? anakMap.get(p.anakId) : null;
-      csvRows.push([
-        String(no++),
-        String(np.pendaftaranId),
-        anak?.nama ?? `Siswa #${p?.anakId ?? ""}`,
-        "Evaluasi Mingguan / Progres",
-        np.tanggal,
-        np.nilaiKuantitatif != null ? String(np.nilaiKuantitatif) : "",
-        "100",
-        np.nilaiKuantitatif != null ? "dinilai" : "belum_dinilai",
-        np.catatanKualitatif ?? "",
-      ]);
-    }
   } else {
     // Summary
-    const [presensiList, hasilList, nilaiProgresList, penilaianList] = await Promise.all([
+    const [presensiList, hasilList, penilaianList] = await Promise.all([
       pendaftaranIds.length > 0
         ? collect(db.orm.public.Presensi.where((pr) => pr.pendaftaranId.in(pendaftaranIds)).all())
         : [],
       pendaftaranIds.length > 0
         ? collect(db.orm.public.HasilPenilaian.where((h) => h.pendaftaranId.in(pendaftaranIds)).all())
-        : [],
-      pendaftaranIds.length > 0
-        ? collect(db.orm.public.NilaiProgres.where((np) => np.pendaftaranId.in(pendaftaranIds)).all())
         : [],
       collect(db.orm.public.Penilaian.where((pn) => pn.kelasId.eq(kid)).all()),
     ]);
@@ -208,7 +184,6 @@ export async function GET(
       const persen = totalSesi > 0 ? Math.round((hadir / totalSesi) * 100) : 100;
 
       const hps = hasilList.filter((h) => h.pendaftaranId === p.id && h.nilai != null);
-      const nps = nilaiProgresList.filter((np) => np.pendaftaranId === p.id && np.nilaiKuantitatif != null);
 
       const scores: number[] = [];
       for (const h of hps) {
@@ -216,9 +191,6 @@ export async function GET(
         const max = pn ? Number(pn.nilaiMaksimum) : 100;
         const score = Number(h.nilai);
         scores.push(max > 0 ? (score / max) * 100 : score);
-      }
-      for (const np of nps) {
-        scores.push(Number(np.nilaiKuantitatif));
       }
 
       const rataRata = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : "";

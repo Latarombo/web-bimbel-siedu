@@ -148,28 +148,29 @@ export default async function ScheduleAttendancePage({
         .filter((id): id is number => typeof id === "number"),
     ),
   ];
-  const catatanPertemuanList =
+  const sesiPertemuanList =
     sesiIds.length > 0
       ? await collect(
-          db.orm.public.CatatanPertemuan.where((c) => c.sesiId.in(sesiIds))
-            .where((c) => c.draf.eq(false))
-            .all(),
+          db.orm.public.SesiPertemuan.where((s) => s.id.in(sesiIds)).all(),
         )
       : [];
-  const catatanBySesi = new Map(
-    catatanPertemuanList.map((c) => [c.sesiId, c]),
+  const sesiById = new Map(
+    sesiPertemuanList.map((s) => [s.id, s]),
   );
 
-  const presensiRecords: PresensiRecord[] = presensiRaw.map(({ s, p }) => ({
-    id: `${p.id}-${s.id}`,
-    tanggal: s.tanggalPertemuan,
-    status: s.status as "hadir" | "izin" | "sakit" | "alpa",
-    mapel: mapel.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`,
-    anak: namaAnak.get(p.anakId) ?? tr("text162"),
-    catatan: s.catatan,
-    materi: s.sesiPertemuanId && catatanBySesi.has(s.sesiPertemuanId) ? catatanBySesi.get(s.sesiPertemuanId)?.materi : null,
-    pr: s.sesiPertemuanId && catatanBySesi.has(s.sesiPertemuanId) ? catatanBySesi.get(s.sesiPertemuanId)?.pr : null,
-  }));
+  const presensiRecords: PresensiRecord[] = presensiRaw.map(({ s, p }) => {
+    const sesi = s.sesiPertemuanId ? sesiById.get(s.sesiPertemuanId) : null;
+    return {
+      id: `${p.id}-${s.id}`,
+      tanggal: s.tanggalPertemuan,
+      status: s.status as "hadir" | "izin" | "sakit" | "alpa",
+      mapel: mapel.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`,
+      anak: namaAnak.get(p.anakId) ?? tr("text162"),
+      catatan: s.catatan,
+      materi: sesi && !sesi.catatanDraf ? sesi.catatanMateri : null,
+      pr: sesi && !sesi.catatanDraf ? sesi.catatanPr : null,
+    };
+  });
 
   // Penilaian terbit untuk pendaftaran anak milik saya
   const milikSayaIds = new Set(milikSaya.map((p) => p.id));

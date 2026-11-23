@@ -35,7 +35,7 @@ export default async function TeacherClassDetail({
   );
   if (!kelas) notFound();
 
-  const [mapel, jadwal, pendaftaran, semuaAnak, nilaiByGuru, presensiByGuru, penilaianRaw] = await Promise.all([
+  const [mapel, jadwal, pendaftaran, semuaAnak, presensiByGuru, penilaianRaw] = await Promise.all([
     collect(db.orm.public.MataPelajaran.all()),
     collect(db.orm.public.JadwalItem.where((j) => j.kelasId.eq(kid)).all()),
     collect(
@@ -44,7 +44,6 @@ export default async function TeacherClassDetail({
         .all(),
     ),
     collect(db.orm.public.Anak.all()),
-    collect(db.orm.public.NilaiProgres.where((n) => n.dicatatOleh.eq(guruId)).all()),
     collect(db.orm.public.Presensi.where((x) => x.dicatatOleh.eq(guruId)).all()),
     collect(db.orm.public.Penilaian.where((p) => p.kelasId.eq(kid)).all()),
   ]);
@@ -276,9 +275,7 @@ export default async function TeacherClassDetail({
         locale={locale}
         stats={{
           activeStudents: rows.length,
-          totalGradeEntries: nilaiByGuru.filter((n) =>
-            pendaftaran.some((p) => p.id === n.pendaftaranId),
-          ).length,
+          totalGradeEntries: hasilPenilaianList.filter((h) => h.statusHasil === "dinilai").length,
           totalRecordedAttendance: presensiByGuru.filter((x) =>
             sesiIds.has(x.jadwalItemId),
           ).length,

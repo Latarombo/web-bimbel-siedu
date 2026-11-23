@@ -52,9 +52,8 @@ export default async function AdminCorrections({
   const { tab = "pengajuan", tinjau, jenis } = await searchParams;
 
   const now = new Date();
-  const [presensi, nilai, pendaftaran, anak, kelas, mapel, users, pengajuan, audit] = await Promise.all([
+  const [presensi, pendaftaran, anak, kelas, mapel, users, pengajuan, audit] = await Promise.all([
     collect(db.orm.public.Presensi.all()),
-    collect(db.orm.public.NilaiProgres.all()),
     collect(db.orm.public.Pendaftaran.all()),
     collect(db.orm.public.Anak.all()),
     collect(db.orm.public.Kelas.all()),
@@ -88,10 +87,7 @@ export default async function AdminCorrections({
       const l = label(p.pendaftaranId);
       return { target: `${l.anak} (${l.mapel})`, tanggal: p.tanggalPertemuan };
     }
-    const n = nilai.find((x) => x.id === entitasId);
-    if (!n) return { target: `Nilai #${entitasId}`, tanggal: "—" };
-    const l = label(n.pendaftaranId);
-    return { target: `${l.anak} (${l.mapel})`, tanggal: n.tanggal };
+    return { target: `${entitas} #${entitasId}`, tanggal: "—" };
   };
 
   const pendingPengajuan = pengajuan.filter((p) => p.status === "menunggu");

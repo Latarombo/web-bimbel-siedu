@@ -222,7 +222,7 @@ export async function hapusGuru(formData: FormData): Promise<void> {
   const [kelasDipakai, presensiDipakai, nilaiDipakai] = await Promise.all([
     collect(db.orm.public.Kelas.where((k) => k.guruId.eq(guruId)).all()),
     collect(db.orm.public.Presensi.where((x) => x.dicatatOleh.eq(guruId)).all()),
-    collect(db.orm.public.NilaiProgres.where((n) => n.dicatatOleh.eq(guruId)).all()),
+    collect(db.orm.public.Penilaian.where((p) => p.dibuatOleh.eq(guruId)).all()),
   ]);
   if (kelasDipakai.length > 0 || presensiDipakai.length > 0 || nilaiDipakai.length > 0) return;
 

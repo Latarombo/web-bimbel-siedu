@@ -91,9 +91,9 @@ export async function requestPasswordReset(
 
     if (user) {
       // 4. Cooldown persisten via database (bila server restart / multiple cluster)
-      const existingToken = await db.orm.public.PasswordResetToken.where((t) => t.email.eq(normalizedEmail)).first();
-      if (existingToken) {
-        const elapsed = Date.now() - new Date(existingToken.createdAt).getTime();
+      if (user.resetTokenExpiresAt) {
+        const createdAtTime = new Date(user.resetTokenExpiresAt).getTime() - 60 * 60 * 1000;
+        const elapsed = Date.now() - createdAtTime;
         const cooldownMs = 60 * 1000;
         if (elapsed < cooldownMs) {
           const remainingSeconds = Math.max(1, Math.ceil((cooldownMs - elapsed) / 1000));
@@ -108,16 +108,12 @@ export async function requestPasswordReset(
       const rawToken = generateSecureToken();
       const tokenHash = hashToken(rawToken);
 
-      // Bersihkan token lama untuk email yang sama sebelum membuat yang baru
-      await db.orm.public.PasswordResetToken.where((t) => t.email.eq(normalizedEmail)).delete();
-
       // Masa berlaku token: 1 jam dari sekarang
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
 
-      await db.orm.public.PasswordResetToken.create({
-        email: normalizedEmail,
-        tokenHash,
-        expiresAt,
+      await db.orm.public.User.where({ id: user.id }).update({
+        resetTokenHash: tokenHash,
+        resetTokenExpiresAt: expiresAt,
       });
 
       // Tentukan base origin secara dinamis
@@ -160,20 +156,23 @@ export async function verifyResetToken(
   }
 
   const tokenHash = hashToken(rawToken);
-  const record = await db.orm.public.PasswordResetToken.where({ tokenHash }).first();
+  const user = await db.orm.public.User.where({ resetTokenHash: tokenHash }).first();
 
-  if (!record) {
+  if (!user || !user.resetTokenExpiresAt) {
     return { valid: false, reason: 'not_found' };
   }
 
-  const expiresTime = new Date(record.expiresAt).getTime();
+  const expiresTime = new Date(user.resetTokenExpiresAt).getTime();
   if (expiresTime < Date.now()) {
     // Hapus token yang sudah hangus
-    await db.orm.public.PasswordResetToken.where({ tokenHash }).delete();
+    await db.orm.public.User.where({ id: user.id }).update({
+      resetTokenHash: null,
+      resetTokenExpiresAt: null,
+    });
     return { valid: false, reason: 'expired' };
   }
 
-  return { valid: true, email: record.email };
+  return { valid: true, email: user.email };
 }
 
 /**
@@ -211,30 +210,27 @@ export async function executePasswordReset(
   }
 
   const tokenHash = hashToken(rawToken);
-  const record = await db.orm.public.PasswordResetToken.where({ tokenHash }).first();
+  const user = await db.orm.public.User.where({ resetTokenHash: tokenHash }).first();
 
-  if (!record || new Date(record.expiresAt).getTime() < Date.now()) {
-    if (record) {
-      await db.orm.public.PasswordResetToken.where({ tokenHash }).delete();
+  if (!user || !user.resetTokenExpiresAt || new Date(user.resetTokenExpiresAt).getTime() < Date.now()) {
+    if (user) {
+      await db.orm.public.User.where({ id: user.id }).update({
+        resetTokenHash: null,
+        resetTokenExpiresAt: null,
+      });
     }
-    return { error: t('invalidOrExpiredToken') };
-  }
-
-  const user = await db.orm.public.User.where((u) => u.email.eq(record.email)).first();
-  if (!user) {
     return { error: t('invalidOrExpiredToken') };
   }
 
   // Hash password baru dengan bcrypt salt 10
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Update password user
+  // Update password user dan bersihkan token reset (single-use)
   await db.orm.public.User.where({ id: user.id }).update({
     password: hashedPassword,
+    resetTokenHash: null,
+    resetTokenExpiresAt: null,
   });
-
-  // Hapus seluruh token reset untuk email ini (single-use)
-  await db.orm.public.PasswordResetToken.where((t) => t.email.eq(record.email)).delete();
 
   // Kembalikan state sukses agar antarmuka bertransisi langsung ke Kartu Sukses Mandiri (Opsi A)
   return { success: true };

@@ -53,17 +53,16 @@ export default async function TeacherStatusPage() {
   });
 
   // 2. Fetch past statuses posted by this teacher
-  const [statusList, allRecipients] = await Promise.all([
-    collect(db.orm.public.StatusPembelajaran.where((s) => s.dibuatOleh.eq(guruId)).all()),
-    collect(db.orm.public.StatusPembelajaranPenerima.all()),
-  ]);
+  const statusList = await collect(
+    db.orm.public.StatusPembelajaran.where((s) => s.dibuatOleh.eq(guruId)).all()
+  );
 
   const kelasMap = new Map(kelas.map((k) => [k.id, mapelMap.get(k.mataPelajaranId) ?? `Kelas #${k.id}`]));
 
-  // Count recipients per status
+  // Count recipients per status based on class roster
   const recipientCountMap = new Map<number, number>();
-  for (const r of allRecipients) {
-    recipientCountMap.set(r.statusId, (recipientCountMap.get(r.statusId) ?? 0) + 1);
+  for (const c of classOptions) {
+    recipientCountMap.set(c.id, c.students.length);
   }
 
   // Sort statuses by createdAt descending

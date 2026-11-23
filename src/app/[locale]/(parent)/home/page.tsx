@@ -490,10 +490,9 @@ export default async function ParentHome({
       : null;
 
   // Kabar & Status Pembelajaran untuk anak terpilih
-  const [allStatusList, allReceipts, allClasses, allMapel, allUsers, allPendaftaran] =
+  const [allStatusList, allClasses, allMapel, allUsers, allPendaftaran] =
     await Promise.all([
       collect(db.orm.public.StatusPembelajaran.where((s) => s.status.eq("aktif")).all()),
-      collect(db.orm.public.StatusPembelajaranPenerima.all()),
       collect(db.orm.public.Kelas.all()),
       collect(db.orm.public.MataPelajaran.all()),
       collect(db.orm.public.User.all()),
@@ -507,9 +506,7 @@ export default async function ParentHome({
 
   const visibleStatuses = filterStatusForParent({
     statusList: allStatusList,
-    receipts: allReceipts,
-    parentChildIds: [dipilih.id],
-    activeEnrollmentIds: activeEnrollments.map((p) => p.id),
+    activeClassIds: activeEnrollments.map((p) => p.kelasId),
     nowIso,
   });
 

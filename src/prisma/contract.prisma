@@ -90,21 +90,19 @@ model User {
   googleSub          String?            @unique @map("google_sub")
   privasiDisetujuiAt TimestamptzString? @map("privasi_disetujui_at")
   waliDisetujuiAt    TimestamptzString? @map("wali_disetujui_at")
+  resetTokenHash      String?               @unique @map("reset_token_hash")
+  resetTokenExpiresAt TimestamptzString?    @map("reset_token_expires_at")
   createdAt          TimestamptzString  @default(now()) @map("created_at")
   updatedAt          TimestamptzString  @default(now()) @map("updated_at")
 
   anak               Anak[]                @relation("OrangTuaAnak")
   kelasDiampu        Kelas[]               @relation("GuruKelas")
   presensiDicatat    Presensi[]            @relation("GuruPresensi")
-  nilaiDiinput       NilaiProgres[]        @relation("GuruNilai")
-  catatanPertemuan   CatatanPertemuan[]    @relation("GuruCatatanPertemuan")
   auditAktor         AuditPerubahan[]      @relation("AktorAudit")
   koreksiDiajukan    PengajuanKoreksi[]    @relation("GuruPengajuanKoreksi")
   koreksiDiproses    PengajuanKoreksi[]    @relation("AdminPengajuanKoreksi")
   penilaianDibuat    Penilaian[]           @relation("GuruPenilaian")
-  laporanPerkembangan LaporanPerkembangan[] @relation("GuruLaporanPerkembangan")
   statusDibuat       StatusPembelajaran[]  @relation("GuruStatusPembelajaran")
-  laporanFoto        LaporanFotoStatus[]   @relation("PelaporFotoStatus")
 
   @@index(expression: "lower(email)", unique: true, name: "users_email_lower")
   @@check(expression: "length(name) <= 100", name: "user_name_len")
@@ -129,7 +127,6 @@ model Anak {
   orangTua        User                         @relation("OrangTuaAnak", fields: [orangTuaId], references: [id], onDelete: Cascade)
   pendaftaran     Pendaftaran[]
   persetujuanFoto Boolean                      @default(false) @map("persetujuan_foto")
-  statusDiterima  StatusPembelajaranPenerima[]
 
   @@index([orangTuaId])
   @@index([tanggalLahir])
@@ -252,10 +249,7 @@ model Pendaftaran {
   periode             PeriodePendaftaran    @relation(fields: [periodeId], references: [id], onDelete: Restrict)
   pembayaran          Pembayaran[]
   presensi            Presensi[]
-  nilaiProgres        NilaiProgres[]
   hasilPenilaian      HasilPenilaian[]
-  laporanPerkembangan LaporanPerkembangan[]
-  statusDiterima      StatusPembelajaranPenerima[]
 
   @@index([anakId])
   @@index([kelasId])
@@ -301,7 +295,6 @@ model Presensi {
   pendaftaranId    Int               @map("pendaftaran_id")
   jadwalItemId     Int               @map("jadwal_item_id")
   sesiPertemuanId  Int?              @map("sesi_pertemuan_id")
-  terlambat        Boolean           @default(false) @map("terlambat")
   dicatatOleh      Int               @map("dicatat_oleh")
   tanggalPertemuan DateString        @map("tanggal_pertemuan")
   status           StatusPresensi
@@ -321,26 +314,6 @@ model Presensi {
   @@map("presensi")
 }
 
-model NilaiProgres {
-  id                Int       @id @default(autoincrement())
-  pendaftaranId     Int       @map("pendaftaran_id")
-  dicatatOleh       Int       @map("dicatat_oleh")
-  tanggal           DateString
-  catatanKualitatif String?   @map("catatan_kualitatif")
-  nilaiKuantitatif  Decimal?  @map("nilai_kuantitatif")
-  createdAt         TimestamptzString @default(now()) @map("created_at")
-  updatedAt         TimestamptzString @default(now()) @map("updated_at")
-
-  pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
-  guru        User       @relation("GuruNilai", fields: [dicatatOleh], references: [id], onDelete: Restrict)
-
-  @@index([pendaftaranId])
-  @@index([dicatatOleh])
-  @@check(expression: "nilai_kuantitatif IS NULL OR (nilai_kuantitatif >= 0 AND nilai_kuantitatif <= 100)", name: "nilai_range_0_100")
-  @@check(expression: "catatan_kualitatif IS NULL OR length(catatan_kualitatif) <= 1000", name: "nilai_catatan_len")
-  @@map("nilai_progres")
-}
-
 // ---- Portal guru: sesi pertemuan nyata (M1) ----
 enum StatusSesi {
   terjadwal
@@ -353,42 +326,29 @@ enum StatusSesi {
 // Pertemuan konkret: dibentuk dari JadwalItem per tanggal dalam periode kelas.
 // Snapshot jam saat dibuat supaya edit jadwal rutin tidak merusak histori.
 model SesiPertemuan {
-  id               Int        @id @default(autoincrement())
-  jadwalItemId     Int        @map("jadwal_item_id")
-  tanggalPertemuan DateString @map("tanggal_pertemuan")
-  statusSesi       StatusSesi @default(terjadwal) @map("status_sesi")
-  jamMulai         TimeString @map("jam_mulai")
-  jamSelesai       TimeString @map("jam_selesai")
-  dibatalkanAlasan String?    @map("dibatalkan_alasan")
-  createdAt        TimestamptzString @default(now()) @map("created_at")
-  updatedAt        TimestamptzString @default(now()) @map("updated_at")
+  id                     Int                @id @default(autoincrement())
+  jadwalItemId           Int                @map("jadwal_item_id")
+  tanggalPertemuan       DateString         @map("tanggal_pertemuan")
+  statusSesi             StatusSesi         @default(terjadwal) @map("status_sesi")
+  jamMulai               TimeString         @map("jam_mulai")
+  jamSelesai             TimeString         @map("jam_selesai")
+  dibatalkanAlasan       String?            @map("dibatalkan_alasan")
+  catatanMateri          String?            @map("catatan_materi")
+  catatanPr              String?            @map("catatan_pr")
+  catatanDraf            Boolean            @default(true) @map("catatan_draf")
+  catatanDiterbitkanPada TimestamptzString? @map("catatan_diterbitkan_pada")
+  createdAt              TimestamptzString  @default(now()) @map("created_at")
+  updatedAt              TimestamptzString  @default(now()) @map("updated_at")
 
-  jadwalItem JadwalItem @relation(fields: [jadwalItemId], references: [id], onDelete: Restrict)
+  jadwalItem JadwalItem    @relation(fields: [jadwalItemId], references: [id], onDelete: Restrict)
   presensi   Presensi[]
-  peserta    PesertaSesi[]
-  catatan    CatatanPertemuan?
 
   @@unique([jadwalItemId, tanggalPertemuan])
   @@index([tanggalPertemuan])
   @@check(expression: "jam_mulai < jam_selesai", name: "sesi_jam_range")
+  @@check(expression: "catatan_materi IS NULL OR length(catatan_materi) <= 2000", name: "sesi_materi_len")
+  @@check(expression: "catatan_pr IS NULL OR length(catatan_pr) <= 1000", name: "sesi_pr_len")
   @@map("sesi_pertemuan")
-}
-
-// Snapshot peserta per sesi: sumber daftar presensi, menggantikan filter
-// status pendaftaran saat ini. Diisi saat sesi dibuka/digenerate.
-model PesertaSesi {
-  id            Int          @id @default(autoincrement())
-  sesiId        Int          @map("sesi_id")
-  pendaftaranId Int          @map("pendaftaran_id")
-  statusDaftar  StatusPendaftaran @map("status_daftar")
-  createdAt     TimestamptzString @default(now()) @map("created_at")
-
-  sesi        SesiPertemuan @relation(fields: [sesiId], references: [id], onDelete: Cascade)
-  pendaftaran Pendaftaran   @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
-
-  @@unique([sesiId, pendaftaranId])
-  @@index([pendaftaranId])
-  @@map("peserta_sesi")
 }
 
 enum StatusPesan {
@@ -421,28 +381,6 @@ model PesanKontak {
  @@check(expression: "sekolah IS NULL OR length(sekolah) <= 150", name: "pesan_kontak_sekolah_len")
  @@check(expression: "length(pesan) <= 2000", name: "pesan_kontak_pesan_len")
  @@map("pesan_kontak")
-}
-
-// M2 Catatan pertemuan: materi dan PR untuk sesi tertentu.
-// Draf server terisolasi dari orang tua sampai diterbitkan oleh guru.
-model CatatanPertemuan {
-  id              Int               @id @default(autoincrement())
-  sesiId          Int               @unique @map("sesi_id")
-  materi          String?
-  pr              String?
-  draf            Boolean           @default(true)
-  diterbitkanPada TimestamptzString? @map("diterbitkan_pada")
-  dicatatOleh     Int               @map("dicatat_oleh")
-  createdAt       TimestamptzString @default(now()) @map("created_at")
-  updatedAt       TimestamptzString @default(now()) @map("updated_at")
-
-  sesi SesiPertemuan @relation(fields: [sesiId], references: [id], onDelete: Cascade)
-  guru User          @relation("GuruCatatanPertemuan", fields: [dicatatOleh], references: [id], onDelete: Restrict)
-
-  @@index([dicatatOleh])
-  @@check(expression: "materi IS NULL OR length(materi) <= 2000", name: "catatan_materi_len")
-  @@check(expression: "pr IS NULL OR length(pr) <= 1000", name: "catatan_pr_len")
-  @@map("catatan_pertemuan")
 }
 
 // M2 Audit perubahan: mencatat setiap koreksi/penarikan/perubahan data.
@@ -552,29 +490,6 @@ model HasilPenilaian {
   @@map("hasil_penilaian")
 }
 
-// M5 Laporan perkembangan murid (pemisahan catatan internal dan laporan publik)
-model LaporanPerkembangan {
-  id              Int                @id @default(autoincrement())
-  pendaftaranId   Int                @map("pendaftaran_id")
-  dicatatOleh     Int                @map("dicatat_oleh")
-  tanggal         DateString
-  judul           String             @default("Laporan Perkembangan")
-  catatanInternal String?            @map("catatan_internal")
-  laporanOrtu     String?            @map("laporan_ortu")
-  draf            Boolean            @default(true)
-  diterbitkanPada TimestamptzString? @map("diterbitkan_pada")
-  createdAt       TimestamptzString  @default(now()) @map("created_at")
-  updatedAt       TimestamptzString  @default(now()) @map("updated_at")
-
-  pendaftaran Pendaftaran @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
-  guru        User        @relation("GuruLaporanPerkembangan", fields: [dicatatOleh], references: [id], onDelete: Restrict)
-
-  @@index([pendaftaranId])
-  @@index([dicatatOleh])
-  @@index([tanggal])
-  @@map("laporan_perkembangan")
-}
-
 enum StatusUnggahan {
   aktif
   diarsipkan
@@ -597,10 +512,8 @@ model StatusPembelajaran {
   createdAt       TimestamptzString @default(now()) @map("created_at")
   updatedAt       TimestamptzString @default(now()) @map("updated_at")
 
-  kelas       Kelas                        @relation(fields: [kelasId], references: [id], onDelete: Cascade)
-  guru        User                         @relation("GuruStatusPembelajaran", fields: [dibuatOleh], references: [id], onDelete: Restrict)
-  penerima    StatusPembelajaranPenerima[]
-  laporanFoto LaporanFotoStatus[]
+  kelas       Kelas  @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  guru        User   @relation("GuruStatusPembelajaran", fields: [dibuatOleh], references: [id], onDelete: Restrict)
 
   @@index([kelasId])
   @@index([dibuatOleh])
@@ -608,55 +521,5 @@ model StatusPembelajaran {
   @@index([diterbitkanPada])
   @@check(expression: "length(konten_teks) <= 1000", name: "status_konten_len")
   @@map("status_pembelajaran")
-}
-
-// Penerima dibekukan saat unggahan diterbitkan
-model StatusPembelajaranPenerima {
-  id            Int               @id @default(autoincrement())
-  statusId      Int               @map("status_id")
-  pendaftaranId Int               @map("pendaftaran_id")
-  anakId        Int               @map("anak_id")
-  createdAt     TimestamptzString @default(now()) @map("created_at")
-
-  statusPembelajaran StatusPembelajaran @relation(fields: [statusId], references: [id], onDelete: Cascade)
-  pendaftaran        Pendaftaran        @relation(fields: [pendaftaranId], references: [id], onDelete: Cascade)
-  anak               Anak               @relation(fields: [anakId], references: [id], onDelete: Cascade)
-
-  @@unique([statusId, pendaftaranId])
-  @@index([pendaftaranId])
-  @@index([anakId])
-  @@map("status_pembelajaran_penerima")
-}
-
-// M7 Laporan orang tua terhadap foto privat
-model LaporanFotoStatus {
-  id        Int               @id @default(autoincrement())
-  statusId  Int               @map("status_id")
-  pelaporId Int               @map("pelapor_id")
-  alasan    String
-  catatan   String?
-  createdAt TimestamptzString @default(now()) @map("created_at")
-
-  statusPembelajaran StatusPembelajaran @relation(fields: [statusId], references: [id], onDelete: Cascade)
-  pelapor            User               @relation("PelaporFotoStatus", fields: [pelaporId], references: [id], onDelete: Restrict)
-
-  @@index([statusId])
-  @@index([pelaporId])
-  @@check(expression: "length(alasan) <= 500", name: "laporan_foto_alasan_len")
-  @@check(expression: "catatan IS NULL OR length(catatan) <= 1000", name: "laporan_foto_catatan_len")
-  @@map("laporan_foto_status")
-}
-
-// Token Reset Password — berlaku 1 jam (PRD F1)
-model PasswordResetToken {
-  id        Int               @id @default(autoincrement())
-  email     String
-  tokenHash String            @unique @map("token_hash")
-  expiresAt TimestamptzString @map("expires_at")
-  createdAt TimestamptzString @default(now()) @map("created_at")
-
-  @@index([email])
-  @@index([expiresAt])
-  @@map("password_reset_tokens")
 }
 

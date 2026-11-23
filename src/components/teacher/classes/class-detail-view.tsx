@@ -6,7 +6,20 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Eye,
+  Pencil,
+  MoreVertical,
+  Clock,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 import { ExportClassModal, type ExportType } from "./export-class-modal";
 import { QuickAssessmentModal } from "./quick-assessment-modal";
 import { QuickGradeDrawer } from "./quick-grade-drawer";
@@ -132,16 +145,51 @@ export function ClassDetailView({
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [gradingStudentId, setGradingStudentId] = useState<number | null>(null);
 
-  // Search & pagination state for roster
+  // Search, sort & pagination state for roster
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortState, setSortState] = useState<{
+    key: "nama" | "kehadiran" | "tugas" | "nilai";
+    dir: "asc" | "desc";
+  } | null>(null);
 
-  // Filtered students
+  const toggleSort = (key: "nama" | "kehadiran" | "tugas" | "nilai") => {
+    setSortState((prev) => {
+      if (prev?.key === key) {
+        return prev.dir === "asc" ? { key, dir: "desc" } : null;
+      }
+      return { key, dir: "asc" };
+    });
+  };
+
+  // Filtered & sorted students
   const filteredStudents = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
-    if (!q) return students;
-    return students.filter((s) => s.nama.toLowerCase().includes(q));
-  }, [students, searchQuery]);
+    let res = q ? students.filter((s) => s.nama.toLowerCase().includes(q)) : [...students];
+
+    if (sortState) {
+      const { key, dir } = sortState;
+      res.sort((a, b) => {
+        let cmp = 0;
+        if (key === "nama") {
+          cmp = a.nama.localeCompare(b.nama, "id");
+        } else if (key === "kehadiran") {
+          const pctA = a.tercatat > 0 ? a.hadir / a.tercatat : 0;
+          const pctB = b.tercatat > 0 ? b.hadir / b.tercatat : 0;
+          cmp = pctA - pctB || a.hadir - b.hadir;
+        } else if (key === "tugas") {
+          cmp = a.nNilai - b.nNilai;
+        } else if (key === "nilai") {
+          const valA = a.rata ?? -1;
+          const valB = b.rata ?? -1;
+          cmp = valA - valB;
+        }
+        return dir === "asc" ? cmp : -cmp;
+      });
+    }
+
+    return res;
+  }, [students, searchQuery, sortState]);
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE) || 1;
@@ -318,11 +366,94 @@ export function ClassDetailView({
                 <thead>
                   <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs font-semibold text-slate-600 dark:text-slate-300">
                     <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">No</th>
-                    <th scope="col" className="sticky left-12 z-20 min-w-[150px] max-w-[220px] bg-slate-50 dark:bg-slate-800 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]">Siswa</th>
-                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Sesi Hadir</th>
-                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Kehadiran (%)</th>
-                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Tugas Dinilai</th>
-                    <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Nilai Rata-rata</th>
+                    <th
+                      scope="col"
+                      aria-sort={sortState?.key === "nama" ? (sortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                      className="sticky left-12 z-20 min-w-[170px] max-w-[240px] bg-slate-50 dark:bg-slate-800 p-0 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleSort("nama")}
+                        className="flex w-full items-center justify-between gap-1.5 py-3 px-4 sm:px-6 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                      >
+                        <span>Siswa</span>
+                        {sortState?.key === "nama" ? (
+                          sortState.dir === "asc" ? (
+                            <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                          ) : (
+                            <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                          )
+                        ) : (
+                          <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                        )}
+                      </button>
+                    </th>
+                    <th
+                      scope="col"
+                      aria-sort={sortState?.key === "kehadiran" ? (sortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                      className="p-0 text-right whitespace-nowrap"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleSort("kehadiran")}
+                        className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                      >
+                        <span>Kehadiran</span>
+                        {sortState?.key === "kehadiran" ? (
+                          sortState.dir === "asc" ? (
+                            <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                          ) : (
+                            <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                          )
+                        ) : (
+                          <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                        )}
+                      </button>
+                    </th>
+                    <th
+                      scope="col"
+                      aria-sort={sortState?.key === "tugas" ? (sortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                      className="p-0 text-right whitespace-nowrap"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleSort("tugas")}
+                        className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                      >
+                        <span>Tugas Dinilai</span>
+                        {sortState?.key === "tugas" ? (
+                          sortState.dir === "asc" ? (
+                            <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                          ) : (
+                            <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                          )
+                        ) : (
+                          <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                        )}
+                      </button>
+                    </th>
+                    <th
+                      scope="col"
+                      aria-sort={sortState?.key === "nilai" ? (sortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                      className="p-0 text-right whitespace-nowrap"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleSort("nilai")}
+                        className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                      >
+                        <span>Nilai Rata-rata</span>
+                        {sortState?.key === "nilai" ? (
+                          sortState.dir === "asc" ? (
+                            <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                          ) : (
+                            <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                          )
+                        ) : (
+                          <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                        )}
+                      </button>
+                    </th>
                     <th scope="col" className="sticky right-0 z-20 py-3 px-4 sm:px-6 text-right bg-slate-50 dark:bg-slate-800 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]">Aksi</th>
                   </tr>
                 </thead>
@@ -330,7 +461,7 @@ export function ClassDetailView({
                   {paginatedStudents.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={7}
+                        colSpan={6}
                         className="py-12 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400"
                       >
                         Tidak ada siswa yang sesuai dengan filter pencarian.
@@ -338,6 +469,7 @@ export function ClassDetailView({
                     </tr>
                   ) : (
                     paginatedStudents.map((s, idx) => {
+                      const initial = (s.nama?.[0] || "S").toUpperCase();
                       const attendancePct =
                         s.tercatat > 0
                           ? Math.round((s.hadir / s.tercatat) * 100)
@@ -353,49 +485,94 @@ export function ClassDetailView({
                             {(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
                           </td>
 
-                          {/* 2. Siswa (Sticky Left 12, Truncate, Title) */}
-                          <td className="sticky left-12 z-10 min-w-[150px] max-w-[220px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
-                            <span className="font-semibold text-slate-950 dark:text-slate-50 truncate block text-sm" title={s.nama}>
-                              {s.nama}
+                          {/* 2. Siswa (Sticky Left 12, Initial Avatar, Truncate, Title) */}
+                          <td className="sticky left-12 z-10 min-w-[170px] max-w-[240px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="grid size-7 shrink-0 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
+                                {initial}
+                              </div>
+                              <span className="font-semibold text-slate-950 dark:text-slate-50 truncate block text-sm" title={s.nama}>
+                                {s.nama}
+                              </span>
+                            </div>
+                          </td>
+
+                          {/* 3. Kehadiran Terpadu (1 Data) */}
+                          <td className="py-3 px-4 text-right whitespace-nowrap">
+                            <span className="font-medium text-slate-900 dark:text-slate-100 tabular-nums text-sm">
+                              {s.tercatat > 0 ? `${s.hadir}/${s.tercatat}` : "—"}
                             </span>
+                            {s.tercatat > 0 ? (
+                              <span className="text-xs text-slate-500 dark:text-slate-400 ml-1.5 tabular-nums">
+                                ({attendancePct}%)
+                              </span>
+                            ) : null}
                           </td>
 
-                          {/* 3. Sesi Hadir (1 Data) */}
-                          <td className="py-3 px-4 text-right font-medium text-slate-900 dark:text-slate-100 tabular-nums text-sm whitespace-nowrap">
-                            {s.tercatat > 0 ? `${s.hadir}/${s.tercatat}` : "—"}
-                          </td>
-
-                          {/* 4. Kehadiran (%) (1 Data) */}
-                          <td className="py-3 px-4 text-right font-medium text-slate-900 dark:text-slate-100 tabular-nums text-sm whitespace-nowrap">
-                            {s.tercatat > 0 ? `${attendancePct}%` : "—"}
-                          </td>
-
-                          {/* 5. Tugas Dinilai (1 Data) */}
+                          {/* 4. Tugas Dinilai (1 Data) */}
                           <td className="py-3 px-4 text-right font-medium text-slate-900 dark:text-slate-100 tabular-nums text-sm whitespace-nowrap">
                             {s.nNilai > 0 ? `${s.nNilai} tugas` : "0 tugas"}
                           </td>
 
-                          {/* 6. Nilai Rata-rata (1 Data) */}
+                          {/* 5. Nilai Rata-rata (1 Data) */}
                           <td className="py-3 px-4 text-right font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-sm whitespace-nowrap">
                             {s.rata != null ? s.rata : "—"}
                           </td>
 
-                          {/* 7. Aksi: Rincian Siswa & Quick Grade Drawer (Sticky Right 0) */}
+                          {/* 6. Aksi: [Eye] + [Pencil] + [MoreVertical] (Sticky Right 0) */}
                           <td className="sticky right-0 z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
-                            <div className="flex items-center justify-end gap-2 opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
+                            <div className="flex items-center justify-end gap-1 opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
+                              {/* Ikon Rincian Siswa */}
                               <Link
                                 href={`/teacher/grades/${s.id}`}
-                                className="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs hover:border-slate-400 dark:hover:border-slate-600 transition-colors"
+                                aria-label={`Rincian capaian belajar ${s.nama}`}
+                                title="Rincian Siswa"
+                                className="grid size-8 place-items-center rounded-lg border border-transparent text-slate-500 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors"
                               >
-                                <span>Rincian Siswa</span>
+                                <Eye className="size-4" aria-hidden="true" />
                               </Link>
+
+                              {/* Ikon Input Nilai Cepat */}
                               <button
                                 type="button"
                                 onClick={() => setGradingStudentId(s.id)}
-                                className="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-400 dark:hover:border-slate-600 transition-colors cursor-pointer"
+                                aria-label={`Input nilai cepat untuk ${s.nama}`}
+                                title="Input Nilai Cepat"
+                                className="grid size-8 place-items-center rounded-lg border border-transparent text-slate-500 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:text-slate-400 dark:hover:border-blue-900 dark:hover:bg-blue-950/40 dark:hover:text-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors cursor-pointer"
                               >
-                                <span>Input Nilai</span>
+                                <Pencil className="size-4" aria-hidden="true" />
                               </button>
+
+                              {/* Dropdown Menu Aksi Lainnya */}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger
+                                  aria-label={`Menu aksi lainnya untuk ${s.nama}`}
+                                  title="Aksi Lainnya"
+                                  className="grid size-8 place-items-center rounded-lg border border-transparent text-slate-500 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors cursor-pointer"
+                                >
+                                  <MoreVertical className="size-4" aria-hidden="true" />
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md rounded-lg p-1 text-xs">
+                                  <DropdownMenuItem asChild>
+                                    <Link
+                                      href={`/teacher/grades/${s.id}`}
+                                      className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
+                                    >
+                                      <Eye className="size-3.5 text-slate-400" aria-hidden="true" />
+                                      <span>Rincian Siswa</span>
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem asChild>
+                                    <Link
+                                      href={`/teacher/corrections?entitas=siswa&id=${s.id}`}
+                                      className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
+                                    >
+                                      <Clock className="size-3.5 text-slate-400" aria-hidden="true" />
+                                      <span>Riwayat Presensi</span>
+                                    </Link>
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                           </td>
                         </tr>
@@ -425,17 +602,50 @@ export function ClassDetailView({
                       key={s.id}
                       className="p-4 space-y-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
                     >
-                      {/* Top: Student Header with Number + Avatar + Pure Name */}
-                      <div className="flex items-center gap-3">
-                        <span className="size-6 shrink-0 grid place-items-center rounded bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 tabular-nums">
-                          {(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
-                        </span>
-                        <div className="grid size-9 shrink-0 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
-                          {initial}
+                      {/* Top: Student Header with Number + Avatar + Pure Name + Menu Dropdown */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="size-6 shrink-0 grid place-items-center rounded bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 tabular-nums">
+                            {(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
+                          </span>
+                          <div className="grid size-9 shrink-0 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
+                            {initial}
+                          </div>
+                          <p className="font-semibold text-slate-950 dark:text-slate-50 truncate text-sm">
+                            {s.nama}
+                          </p>
                         </div>
-                        <p className="font-semibold text-slate-950 dark:text-slate-50 truncate text-sm">
-                          {s.nama}
-                        </p>
+
+                        {/* Menu Dropdown di Sudut Kanan Atas Kartu */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            aria-label={`Menu aksi lainnya untuk ${s.nama}`}
+                            title="Aksi Lainnya"
+                            className="grid size-8 shrink-0 place-items-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors cursor-pointer"
+                          >
+                            <MoreVertical className="size-4" aria-hidden="true" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md rounded-lg p-1 text-xs">
+                            <DropdownMenuItem asChild>
+                              <Link
+                                href={`/teacher/grades/${s.id}`}
+                                className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
+                              >
+                                <Eye className="size-3.5 text-slate-400" aria-hidden="true" />
+                                <span>Rincian Siswa</span>
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link
+                                href={`/teacher/corrections?entitas=siswa&id=${s.id}`}
+                                className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
+                              >
+                                <Clock className="size-3.5 text-slate-400" aria-hidden="true" />
+                                <span>Riwayat Presensi</span>
+                              </Link>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
 
                       {/* Middle: 2-Column Metrics */}

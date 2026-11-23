@@ -232,30 +232,6 @@ export async function saveNilai(_prev: GuruState, formData: FormData): Promise<G
   );
   if (!k) return { error: t("studentNotOwned") };
 
-  const nilaiId = Number(formData.get('nilai_id') ?? 0);
-  if (Number.isInteger(nilaiId) && nilaiId > 0) {
-    const [lama] = await collect(
-      db.orm.public.NilaiProgres.where((x) => x.id.eq(nilaiId)).all(),
-    );
-    if (!lama || lama.pendaftaranId !== d.pendaftaran_id)
-      return { error: t("gradeNotFound") };
-    // Kuncian 7 hari dihapus untuk nilai sesuai spec penyederhanaan alur nilai
-    await db.orm.public.NilaiProgres.where({ id: nilaiId }).update({
-      tanggal: d.tanggal,
-      nilaiKuantitatif: d.nilai == null ? null : String(d.nilai),
-      catatanKualitatif: d.catatan || null,
-      dicatatOleh: guruId,
-    });
-  } else {
-    await db.orm.public.NilaiProgres.create({
-      pendaftaranId: d.pendaftaran_id,
-      dicatatOleh: guruId,
-      tanggal: d.tanggal,
-      nilaiKuantitatif: d.nilai == null ? null : String(d.nilai),
-      catatanKualitatif: d.catatan || null,
-    });
-  }
-
   // Sinkronkan ke Penilaian & HasilPenilaian (single source of truth)
   const existingPenilaian = await collect(
     db.orm.public.Penilaian.where({
@@ -475,9 +451,9 @@ export async function saveCatatanPertemuan(
     if (!item) return { error: t("invalidSession") };
 
     const [savedSession] = await collect(tx.query(
-      db.raw.sql`select id, status_sesi as "statusSesi" from public.sesi_pertemuan
+      db.raw.sql`select id, status_sesi as "statusSesi", catatan_diterbitkan_pada as "catatanDiterbitkanPada" from public.sesi_pertemuan
         where jadwal_item_id = ${jadwalItemId} and tanggal_pertemuan = ${tanggal} for update`
-        .returnsRow({ id: 'pg/int4@1', statusSesi: 'pg/text@1' }).build(),
+        .returnsRow({ id: 'pg/int4@1', statusSesi: 'pg/text@1', catatanDiterbitkanPada: 'pg/timestamptz-string@1' }).build(),
     ));
     if (!savedSession && hariDariTanggal(tanggal) !== item.hari)
       return { error: t("wrongWeekday", { day: t(`day_${item.hari}`) }) };
@@ -495,35 +471,19 @@ export async function saveCatatanPertemuan(
       sesiPertemuanId = sesi.id;
     }
 
-    const [existingCatatan] = await collect(
-      tx.orm.public.CatatanPertemuan.where((c) => c.sesiId.eq(sesiPertemuanId)).all(),
-    );
-
     const isDraf = aksi !== 'terbitkan';
     const diterbitkanPada = aksi === 'terbitkan'
       ? new Date().toISOString()
       : aksi === 'tarik'
         ? null
-        : (existingCatatan?.diterbitkanPada ?? null);
+        : (savedSession?.catatanDiterbitkanPada ?? null);
 
-    if (existingCatatan) {
-      await tx.orm.public.CatatanPertemuan.where({ id: existingCatatan.id }).update({
-        materi: materi || null,
-        pr: pr || null,
-        draf: isDraf,
-        diterbitkanPada,
-        dicatatOleh: guruId,
-      });
-    } else {
-      await tx.orm.public.CatatanPertemuan.create({
-        sesiId: sesiPertemuanId,
-        materi: materi || null,
-        pr: pr || null,
-        draf: isDraf,
-        diterbitkanPada,
-        dicatatOleh: guruId,
-      });
-    }
+    await tx.orm.public.SesiPertemuan.where({ id: sesiPertemuanId }).update({
+      catatanMateri: materi || null,
+      catatanPr: pr || null,
+      catatanDraf: isDraf,
+      catatanDiterbitkanPada: diterbitkanPada,
+    });
 
     return { ok: true };
   });
@@ -922,16 +882,6 @@ export async function bagikanStatusPembelajaran(
     updatedAt: nowIso,
   });
 
-  for (const pid of penerimaPendaftaranIds) {
-    const pend = rosterMap.get(pid)!;
-    await db.orm.public.StatusPembelajaranPenerima.create({
-      statusId: statusRecord.id,
-      pendaftaranId: pid,
-      anakId: pend.anakId,
-      createdAt: nowIso,
-    });
-  }
-
   await db.orm.public.AuditPerubahan.create({
     entitas: "status_pembelajaran",
     entitasId: statusRecord.id,
@@ -1055,28 +1005,29 @@ export async function laporkanFotoStatus(
   }
 
   if (user.role === "orang_tua") {
+    const [targetStatus] = await collect(
+      db.orm.public.StatusPembelajaran.where({ id: statusId }).all()
+    );
+    if (!targetStatus) {
+      return { error: "Status pembelajaran tidak ditemukan" };
+    }
     const children = await collect(
       db.orm.public.Anak.where({ orangTuaId: user.id }).all()
     );
-    const childIds = new Set(children.map((c) => c.id));
-    const recipients = await collect(
-      db.orm.public.StatusPembelajaranPenerima.where({ statusId }).all()
-    );
-    const isRecipient = recipients.some((r) => childIds.has(r.anakId));
-    if (!isRecipient) {
+    const childIds = children.map((c) => c.id);
+    const enrollments = childIds.length
+      ? await collect(
+          db.orm.public.Pendaftaran.where((p) => p.anakId.in(childIds))
+            .where((p) => p.kelasId.eq(targetStatus.kelasId))
+            .all()
+        )
+      : [];
+    if (enrollments.length === 0) {
       return { error: "Akses ditolak: Anda bukan penerima status pembelajaran ini" };
     }
   }
 
   const nowIso = new Date().toISOString();
-  await db.orm.public.LaporanFotoStatus.create({
-    statusId,
-    pelaporId: user.id,
-    alasan,
-    catatan: catatan || null,
-    createdAt: nowIso,
-  });
-
   await db.orm.public.AuditPerubahan.create({
     entitas: "laporan_foto_status",
     entitasId: statusId,

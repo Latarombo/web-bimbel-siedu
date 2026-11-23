@@ -97,7 +97,7 @@ export default async function AttendancePage({
   const sesiTersimpan = sesiBySlot.get(item.id);
   if (sesiTersimpan?.statusSesi === "dibatalkan") notFound();
 
-  const [pendaftaranKelas, existing, semuaAnak, catatanPertemuanRows] = await Promise.all([
+  const [pendaftaranKelas, existing, semuaAnak] = await Promise.all([
     collect(
       db.orm.public.Pendaftaran.where((p) => p.kelasId.eq(kid)).all(),
     ),
@@ -107,11 +107,13 @@ export default async function AttendancePage({
         .all(),
     ),
     collect(db.orm.public.Anak.all()),
-    sesiTersimpan
-      ? collect(db.orm.public.CatatanPertemuan.where((c) => c.sesiId.eq(sesiTersimpan.id)).all())
-      : Promise.resolve([]),
   ]);
-  const catatanPertemuan = catatanPertemuanRows[0];
+  const catatanPertemuan = sesiTersimpan?.catatanMateri || sesiTersimpan?.catatanPr ? {
+    materi: sesiTersimpan.catatanMateri,
+    pr: sesiTersimpan.catatanPr,
+    draf: sesiTersimpan.catatanDraf,
+    diterbitkanPada: sesiTersimpan.catatanDiterbitkanPada,
+  } : null;
   const anakById = new Map(semuaAnak.map((a) => [a.id, a]));
 
   const existingMap = new Map(existing.map((e) => [e.pendaftaranId, e]));
