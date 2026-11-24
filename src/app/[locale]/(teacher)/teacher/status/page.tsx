@@ -3,7 +3,8 @@ import { redirect } from '@/i18n/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/prisma/db';
 import { collect } from '@/lib/collect';
-import StatusForm, {
+import StatusHubView from '@/components/teacher/status-hub-view';
+import type {
   ClassOption,
   ExistingStatus,
   StudentRecipient,
@@ -104,7 +105,11 @@ export default async function TeacherStatusPage() {
         </p>
       </div>
 
-      <StatusForm classes={classOptions} pastStatuses={pastStatuses} />
+      <StatusHubView
+        classes={classOptions}
+        pastStatuses={pastStatuses}
+        guruName={session.user.name ?? 'Guru'}
+      />
     </div>
   );
 }

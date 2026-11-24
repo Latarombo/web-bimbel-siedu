@@ -991,38 +991,41 @@ export default async function ParentHome({
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="flex items-center justify-around gap-4 py-2">
+                <div className="flex items-center justify-around gap-6 py-2">
                   <RingProgres
                     pct={dipilih.persenHadir ?? 0}
                     label={tr("attendanceLabel")}
                     tone={ringTone}
-                    size={104}
+                    size={108}
                     variant="light"
                   />
-                  <div className="grid grid-cols-2 gap-2 text-center text-xs">
-                    <div className="rounded-xl bg-emerald-50 p-2 border border-emerald-100">
-                      <p className="text-[10px] font-semibold text-emerald-600">
+                  <div className="space-y-2 text-xs text-slate-600 min-w-[140px]">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="flex items-center gap-1.5 font-medium text-slate-600">
+                        <span className="size-2 rounded-full bg-emerald-500" />
                         {tr("text116")}
-                      </p>
-                      <p className="text-base font-bold text-emerald-950 tabular-nums">
+                      </span>
+                      <span className="font-bold text-slate-900 tabular-nums">
                         {dipilih.presensi.hadir}
-                      </p>
+                      </span>
                     </div>
-                    <div className="rounded-xl bg-amber-50 p-2 border border-amber-100">
-                      <p className="text-[10px] font-semibold text-amber-600">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="flex items-center gap-1.5 font-medium text-slate-600">
+                        <span className="size-2 rounded-full bg-amber-400" />
                         {tr("text117")}/{tr("text118")}
-                      </p>
-                      <p className="text-base font-bold text-amber-950 tabular-nums">
+                      </span>
+                      <span className="font-bold text-slate-900 tabular-nums">
                         {dipilih.presensi.izin + dipilih.presensi.sakit}
-                      </p>
+                      </span>
                     </div>
-                    <div className="col-span-2 rounded-xl bg-rose-50 p-2 border border-rose-100">
-                      <p className="text-[10px] font-semibold text-rose-600">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="flex items-center gap-1.5 font-medium text-slate-600">
+                        <span className="size-2 rounded-full bg-rose-500" />
                         {tr("text119")}
-                      </p>
-                      <p className="text-base font-bold text-rose-950 tabular-nums">
+                      </span>
+                      <span className={`font-bold tabular-nums ${dipilih.presensi.alpa > 0 ? "text-rose-600 font-extrabold" : "text-slate-900"}`}>
                         {dipilih.presensi.alpa}
-                      </p>
+                      </span>
                     </div>
                   </div>
                 </div>

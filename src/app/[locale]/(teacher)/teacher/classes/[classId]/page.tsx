@@ -11,6 +11,7 @@ import {
   type ScheduleSlotItem,
   type ClassAssessmentItem,
 } from "@/components/teacher/classes/class-detail-view";
+import type { TeacherCalendarSessionItem } from "@/components/teacher/calendar/teacher-calendar-view";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -22,7 +23,7 @@ export default async function TeacherClassDetail({
 }) {
   const locale = await getLocale();
   const session = await auth();
-  if (!session?.user) return redirect("/login?next=/teacher/classes");
+  if (!session?.user) return redirect("/login?next=/teacher/dashboard");
   const { classId } = await params;
   const kid = Number(classId);
   if (!Number.isInteger(kid)) notFound();
@@ -258,6 +259,7 @@ export default async function TeacherClassDetail({
         namaWali: wali?.name ?? null,
         teleponWali: wali?.nomorTelepon ?? null,
         alamatWali: wali?.alamat ?? null,
+        persetujuanFoto: Boolean(anak?.persetujuanFoto),
       };
     },
   );
@@ -277,6 +279,100 @@ export default async function TeacherClassDetail({
       nextSessionTime,
     };
   });
+
+  // Generate calendar sessions for this class (Google Classroom format)
+  const storedBySlotAndDate = new Map(
+    semuaSesiKelas.map((s) => [`${s.jadwalItemId}:${s.tanggalPertemuan}`, s]),
+  );
+
+  const attendanceBySlotAndDate = new Map<string, number>();
+  for (const pres of presensiByGuru) {
+    if (sesiIds.has(pres.jadwalItemId)) {
+      const key = `${pres.jadwalItemId}:${pres.tanggalPertemuan}`;
+      attendanceBySlotAndDate.set(key, (attendanceBySlotAndDate.get(key) ?? 0) + 1);
+    }
+  }
+
+  const calendarSessions: TeacherCalendarSessionItem[] = [];
+  if (periode && jadwal.length > 0) {
+    const planned = rencanakanSesi(
+      periode.tanggalMulai,
+      periode.tanggalSelesai,
+      jadwal,
+      semuaSesiKelas,
+    );
+
+    const merged = [
+      ...semuaSesiKelas.map((s) => ({
+        jadwalItemId: s.jadwalItemId,
+        tanggalPertemuan: s.tanggalPertemuan,
+        jamMulai: s.jamMulai,
+        jamSelesai: s.jamSelesai,
+        statusSesi: s.statusSesi,
+      })),
+      ...planned.map((p) => ({
+        jadwalItemId: p.jadwalItemId,
+        tanggalPertemuan: p.tanggalPertemuan,
+        jamMulai: p.jamMulai,
+        jamSelesai: p.jamSelesai,
+        statusSesi: "terjadwal",
+      })),
+    ];
+
+    const namaMapel = m?.nama ?? "Kelas";
+    const formatTingkat = kelas.tingkat
+      ? (kelas.tingkat.toLowerCase().startsWith("kelas") ? kelas.tingkat : `Kelas ${kelas.tingkat}`)
+      : null;
+    const kelasDisplayName = `${namaMapel} · ${kelas.jenjang}${formatTingkat ? ` (${formatTingkat})` : ""}`;
+    const pesertaCount = pendaftaran.length;
+
+    for (const sessionItem of merged) {
+      const key = `${sessionItem.jadwalItemId}:${sessionItem.tanggalPertemuan}`;
+      const stored = storedBySlotAndDate.get(key);
+      const isPast = sessionItem.tanggalPertemuan < hariIniStr;
+      const isToday = sessionItem.tanggalPertemuan === hariIniStr;
+
+      const relatedPenilaian = penilaianRaw.filter((p) =>
+        (stored?.id !== undefined && p.sesiPertemuanId === stored.id) ||
+        p.tanggal === sessionItem.tanggalPertemuan
+      );
+
+      const tugasList = relatedPenilaian.map((p) => ({
+        id: p.id,
+        nama: p.nama,
+        nilaiMaksimum: Number(p.nilaiMaksimum),
+        draf: p.draf,
+      }));
+
+      calendarSessions.push({
+        kelasId: kid,
+        sesiPertemuanId: stored?.id,
+        jadwalItemId: sessionItem.jadwalItemId,
+        tanggalPertemuan: sessionItem.tanggalPertemuan,
+        jamMulai: (stored?.jamMulai ?? sessionItem.jamMulai).slice(0, 5),
+        jamSelesai: (stored?.jamSelesai ?? sessionItem.jamSelesai).slice(0, 5),
+        kelasNama: namaMapel,
+        kelasDisplayName,
+        jenjang: kelas.jenjang,
+        tingkat: kelas.tingkat,
+        statusSesi: stored?.statusSesi ?? sessionItem.statusSesi,
+        pesertaCount,
+        presensiCount: attendanceBySlotAndDate.get(key) ?? 0,
+        isPast,
+        isToday,
+        catatanMateri: stored?.catatanMateri ?? null,
+        catatanPr: stored?.catatanPr ?? null,
+        tugasList,
+      });
+    }
+
+    calendarSessions.sort((a, b) => {
+      if (a.tanggalPertemuan !== b.tanggalPertemuan) {
+        return a.tanggalPertemuan.localeCompare(b.tanggalPertemuan);
+      }
+      return a.jamMulai.localeCompare(b.jamMulai);
+    });
+  }
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
@@ -303,6 +399,7 @@ export default async function TeacherClassDetail({
             : null
         }
         activeAttendanceSession={activeAttendanceSession}
+        calendarSessions={calendarSessions}
         todayStr={hariIniStr}
         locale={locale}
         stats={{

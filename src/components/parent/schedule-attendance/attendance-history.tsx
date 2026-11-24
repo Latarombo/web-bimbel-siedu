@@ -14,8 +14,8 @@ export function AttendanceHistory() {
   const locale = useLocale();
   const [filter, setFilter] = useState<"semua" | "hadir" | "izin" | "sakit" | "alpa">("semua");
 
-  const filteredRecords = filter === "semua" 
-    ? state.records 
+  const filteredRecords = filter === "semua"
+    ? state.records
     : state.records.filter((r) => r.status === filter);
 
   const statusLabels: Record<string, string> = {

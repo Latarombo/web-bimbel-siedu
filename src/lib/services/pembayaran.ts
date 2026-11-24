@@ -13,40 +13,40 @@
 // - Semua fungsi idempoten: webhook Midtrans mengirim status berulang.
 //
 // Impor relatif supaya bisa dijalankan node langsung (konvensi pendaftaran.ts).
-import { db } from "../../prisma/db";
-import type { Hasil } from "./pendaftaran";
-import { dalamJendela7Hari } from "@/lib/format/hari";
+import { db } from '../../prisma/db';
+import type { Hasil } from './pendaftaran';
+import { dalamJendela7Hari } from '@/lib/format/hari';
 
 async function collect<T>(src: AsyncIterable<T>): Promise<T[]> {
-  const out: T[] = [];
-  for await (const r of src) out.push(r);
-  return out;
+    const out: T[] = [];
+    for await (const r of src) out.push(r);
+    return out;
 }
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 function plusHari(days: number): string {
-  return new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+    return new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
 }
 
 const hariIni = () => new Date().toISOString().slice(0, 10);
 
 /** Tagihan terbuka (pending/gagal) berikutnya untuk satu pendaftaran, atau null. */
 export async function tagihanBerikutinya(pendaftaranId: number) {
-  const semua = await collect(
-    db.orm.public.Pembayaran.where((b) =>
-      b.pendaftaranId.eq(pendaftaranId),
-    ).all(),
-  );
-  const terbuka = semua
-    .filter((b) => b.status === "pending" || b.status === "gagal")
-    .sort(
-      (a, b) =>
-        (a.jatuhTempo ?? "9999-12-31").localeCompare(
-          b.jatuhTempo ?? "9999-12-31",
-        ) || (a.cicilanKe ?? 0) - (b.cicilanKe ?? 0),
+    const semua = await collect(
+        db.orm.public.Pembayaran.where((b) =>
+            b.pendaftaranId.eq(pendaftaranId),
+        ).all(),
     );
-  return terbuka[0] ?? null;
+    const terbuka = semua
+        .filter((b) => b.status === 'pending' || b.status === 'gagal')
+        .sort(
+            (a, b) =>
+                (a.jatuhTempo ?? '9999-12-31').localeCompare(
+                    b.jatuhTempo ?? '9999-12-31',
+                ) || (a.cicilanKe ?? 0) - (b.cicilanKe ?? 0),
+        );
+    return terbuka[0] ?? null;
 }
 
 /**
@@ -57,68 +57,70 @@ export async function tagihanBerikutinya(pendaftaranId: number) {
  * Return cicilan_ke yang dibuat, atau null.
  */
 async function terbitkanCicilanBerikutnya(
-  tx: Tx,
-  pendaftaranId: number,
+    tx: Tx,
+    pendaftaranId: number,
 ): Promise<number | null> {
-  const [p] = await collect(
-    tx.query(
-      db.raw
-        .sql`select p.metode_bayar, p.tenor_bulan, k.biaya_periode::text as total
+    const [p] = await collect(
+        tx.query(
+            db.raw
+                .sql`select p.metode_bayar, p.tenor_bulan, k.biaya_periode::text as total
                  from pendaftaran p join kelas k on k.id = p.kelas_id
                  where p.id = ${pendaftaranId}`
-        .returnsRow({
-          metode_bayar: "pg/text@1",
-          tenor_bulan: "pg/int4@1",
-          total: "pg/text@1",
-        })
-        .build(),
-    ),
-  );
-  if (!p || p.metode_bayar !== "dp_cicilan" || !p.tenor_bulan) return null;
-  const nCicilan = p.tenor_bulan - 1; // tenor = DP + (tenor-1) cicilan
+                .returnsRow({
+                    metode_bayar: 'pg/text@1',
+                    tenor_bulan: 'pg/int4@1',
+                    total: 'pg/text@1',
+                })
+                .build(),
+        ),
+    );
+    if (!p || p.metode_bayar !== 'dp_cicilan' || !p.tenor_bulan) return null;
+    const nCicilan = p.tenor_bulan - 1; // tenor = DP + (tenor-1) cicilan
 
-  const bills = await collect(
-    tx.query(
-      db.raw.sql`select tipe, status, cicilan_ke, jumlah::text as jumlah
+    const bills = await collect(
+        tx.query(
+            db.raw.sql`select tipe, status, cicilan_ke, jumlah::text as jumlah
                  from pembayaran where pendaftaran_id = ${pendaftaranId}`
-        .returnsRow({
-          tipe: "pg/text@1",
-          status: "pg/text@1",
-          cicilan_ke: "pg/int4@1",
-          jumlah: "pg/text@1",
-        })
-        .build(),
-    ),
-  );
-  if (!bills.some((b) => b.tipe === "dp" && b.status === "berhasil"))
-    return null;
+                .returnsRow({
+                    tipe: 'pg/text@1',
+                    status: 'pg/text@1',
+                    cicilan_ke: 'pg/int4@1',
+                    jumlah: 'pg/text@1',
+                })
+                .build(),
+        ),
+    );
+    if (!bills.some((b) => b.tipe === 'dp' && b.status === 'berhasil'))
+        return null;
 
-  // Jangan menumpuk: kalau masih ada tagihan terbuka, itu yang harus dibayar.
-  if (bills.some((b) => b.status === "pending" || b.status === "gagal"))
-    return null;
+    // Jangan menumpuk: kalau masih ada tagihan terbuka, itu yang harus dibayar.
+    if (bills.some((b) => b.status === 'pending' || b.status === 'gagal'))
+        return null;
 
-  const cicilanTerbit = bills.filter((b) => b.tipe === "cicilan");
-  if (cicilanTerbit.length >= nCicilan) return null;
-  const ke = cicilanTerbit.length + 1;
+    const cicilanTerbit = bills.filter((b) => b.tipe === 'cicilan');
+    if (cicilanTerbit.length >= nCicilan) return null;
+    const ke = cicilanTerbit.length + 1;
 
-  const dibayar = bills
-    .filter((b) => b.status === "berhasil")
-    .reduce((s, b) => s + Number(b.jumlah), 0);
-  const sisa = Number(p.total) - dibayar;
-  const slotTersisa = nCicilan - cicilanTerbit.length; // termasuk yang mau dibuat
-  const jumlah =
-    slotTersisa === 1 ? sisa : Math.min(sisa, Math.floor(sisa / slotTersisa));
-  if (jumlah <= 0) return null;
+    const dibayar = bills
+        .filter((b) => b.status === 'berhasil')
+        .reduce((s, b) => s + Number(b.jumlah), 0);
+    const sisa = Number(p.total) - dibayar;
+    const slotTersisa = nCicilan - cicilanTerbit.length; // termasuk yang mau dibuat
+    const jumlah =
+        slotTersisa === 1
+            ? sisa
+            : Math.min(sisa, Math.floor(sisa / slotTersisa));
+    if (jumlah <= 0) return null;
 
-  await tx.execute(
-    db.raw
-      .sql`insert into pembayaran (pendaftaran_id, tipe, cicilan_ke, jumlah, jatuh_tempo, status, created_at, updated_at)
+    await tx.execute(
+        db.raw
+            .sql`insert into pembayaran (pendaftaran_id, tipe, cicilan_ke, jumlah, jatuh_tempo, status, created_at, updated_at)
                values (${pendaftaranId}, 'cicilan', ${ke}, ${jumlah}::numeric,
                        ${plusHari(30)}::date, 'pending', now(), now())`
-      .affectedCount()
-      .build(),
-  );
-  return ke;
+            .affectedCount()
+            .build(),
+    );
+    return ke;
 }
 
 /**
@@ -131,145 +133,150 @@ async function terbitkanCicilanBerikutnya(
  *   pembayaran sama sekali — itu syarat cron pembatalan-24-jam.
  */
 async function setelahBerhasil(tx: Tx, pendaftaranId: number) {
-  await terbitkanCicilanBerikutnya(tx, pendaftaranId);
+    await terbitkanCicilanBerikutnya(tx, pendaftaranId);
 
-  const [belumLunas] = await collect(
-    tx.query(
-      db.raw.sql`select count(*)::int as n from pembayaran
+    const [belumLunas] = await collect(
+        tx.query(
+            db.raw.sql`select count(*)::int as n from pembayaran
  where pendaftaran_id = ${pendaftaranId} and status <> 'berhasil'`
-        .returnsRow({ n: "pg/int4@1" })
-        .build(),
-    ),
-  );
-  const [pendaftaran] = await collect(
-    tx.query(
-      db.raw.sql`select status from pendaftaran where id = ${pendaftaranId}`
-        .returnsRow({ status: "pg/text@1" })
-        .build(),
-    ),
-  );
-  if (!pendaftaran) return;
-  // Lunas semua → aktif.
-  if (belumLunas?.n === 0) {
-    if (
-      pendaftaran.status === "menunggu_pembayaran" ||
-      pendaftaran.status === "tertunggak"
-    ) {
-      await tx.execute(
-        db.raw
-          .sql`update pendaftaran set status = 'terdaftar', updated_at = now()
+                .returnsRow({ n: 'pg/int4@1' })
+                .build(),
+        ),
+    );
+    const [pendaftaran] = await collect(
+        tx.query(
+            db.raw
+                .sql`select status from pendaftaran where id = ${pendaftaranId}`
+                .returnsRow({ status: 'pg/text@1' })
+                .build(),
+        ),
+    );
+    if (!pendaftaran) return;
+    // Lunas semua → aktif.
+    if (belumLunas?.n === 0) {
+        if (
+            pendaftaran.status === 'menunggu_pembayaran' ||
+            pendaftaran.status === 'tertunggak'
+        ) {
+            await tx.execute(
+                db.raw
+                    .sql`update pendaftaran set status = 'terdaftar', updated_at = now()
  where id = ${pendaftaranId}`
-          .affectedCount()
-          .build(),
-      );
+                    .affectedCount()
+                    .build(),
+            );
+        }
+        return;
     }
-    return;
-  }
-  // Masih ada tagihan terbuka: DP cicilan yang lunas = terdaftar.
-  if (pendaftaran.status === "menunggu_pembayaran") {
-    const [dpLunas] = await collect(
-      tx.query(
-        db.raw.sql`select exists (
+    // Masih ada tagihan terbuka: DP cicilan yang lunas = terdaftar.
+    if (pendaftaran.status === 'menunggu_pembayaran') {
+        const [dpLunas] = await collect(
+            tx.query(
+                db.raw.sql`select exists (
  select 1 from pembayaran
  where pendaftaran_id = ${pendaftaranId} and tipe = 'dp' and status = 'berhasil'
  ) as ada`
-          .returnsRow({ ada: "pg/bool@1" })
-          .build(),
-      ),
-    );
-    if (dpLunas?.ada) {
-      await tx.execute(
-        db.raw
-          .sql`update pendaftaran set status = 'terdaftar', updated_at = now()
+                    .returnsRow({ ada: 'pg/bool@1' })
+                    .build(),
+            ),
+        );
+        if (dpLunas?.ada) {
+            await tx.execute(
+                db.raw
+                    .sql`update pendaftaran set status = 'terdaftar', updated_at = now()
  where id = ${pendaftaranId}`
-          .affectedCount()
-          .build(),
-      );
+                    .affectedCount()
+                    .build(),
+            );
+        }
     }
-  }
 
-  // Jika sebelumnya 'tertunggak', dan sekarang tidak ada lagi tagihan yang melewati jatuh tempo,
-  // pulihkan status pendaftaran kembali menjadi 'terdaftar'.
-  if (pendaftaran.status === "tertunggak") {
-    const [adaTerlambat] = await collect(
-      tx.query(
-        db.raw.sql`select exists (
+    // Jika sebelumnya 'tertunggak', dan sekarang tidak ada lagi tagihan yang melewati jatuh tempo,
+    // pulihkan status pendaftaran kembali menjadi 'terdaftar'.
+    if (pendaftaran.status === 'tertunggak') {
+        const [adaTerlambat] = await collect(
+            tx.query(
+                db.raw.sql`select exists (
           select 1 from pembayaran
           where pendaftaran_id = ${pendaftaranId}
             and status = 'pending'
             and jatuh_tempo < current_date
         ) as ada`
-          .returnsRow({ ada: "pg/bool@1" })
-          .build(),
-      ),
-    );
-    if (!adaTerlambat?.ada) {
-      await tx.execute(
-        db.raw
-          .sql`update pendaftaran set status = 'terdaftar', updated_at = now()
+                    .returnsRow({ ada: 'pg/bool@1' })
+                    .build(),
+            ),
+        );
+        if (!adaTerlambat?.ada) {
+            await tx.execute(
+                db.raw
+                    .sql`update pendaftaran set status = 'terdaftar', updated_at = now()
  where id = ${pendaftaranId}`
-          .affectedCount()
-          .build(),
-      );
+                    .affectedCount()
+                    .build(),
+            );
+        }
     }
-  }
 }
 export async function tandaiBerhasil(
-  pembayaranId: number,
+    pembayaranId: number,
 ): Promise<Hasil<null>> {
-  return db.transaction(async (tx) => {
-    const [b] = await collect(
-      tx.query(
-        db.raw.sql`select id, pendaftaran_id, status from pembayaran
+    return db.transaction(async (tx) => {
+        const [b] = await collect(
+            tx.query(
+                db.raw.sql`select id, pendaftaran_id, status from pembayaran
                    where id = ${pembayaranId} for update`
-          .returnsRow({
-            id: "pg/int4@1",
-            pendaftaran_id: "pg/int4@1",
-            status: "pg/text@1",
-          })
-          .build(),
-      ),
-    );
-    if (!b) return { ok: false, error: "Tagihan tidak ditemukan." };
-    if (b.status === "berhasil") return { ok: true, value: null };
+                    .returnsRow({
+                        id: 'pg/int4@1',
+                        pendaftaran_id: 'pg/int4@1',
+                        status: 'pg/text@1',
+                    })
+                    .build(),
+            ),
+        );
+        if (!b) return { ok: false, error: 'Tagihan tidak ditemukan.' };
+        if (b.status === 'berhasil') return { ok: true, value: null };
 
-    await tx.execute(
-      db.raw.sql`update pembayaran
+        await tx.execute(
+            db.raw.sql`update pembayaran
                  set status = 'berhasil', dibayar_pada = now(), updated_at = now()
                  where id = ${pembayaranId}`
-        .affectedCount()
-        .build(),
-    );
+                .affectedCount()
+                .build(),
+        );
 
-    await setelahBerhasil(tx, b.pendaftaran_id);
-    return { ok: true, value: null };
-  });
+        await setelahBerhasil(tx, b.pendaftaran_id);
+        return { ok: true, value: null };
+    });
 }
 
 /** Tandai Pembayaran 'gagal' (deny/cancel/expire dari gateway). Idempoten. */
 export async function tandaiGagal(pembayaranId: number): Promise<Hasil<null>> {
-  return db.transaction(async (tx) => {
-    const [b] = await collect(
-      tx.query(
-        db.raw
-          .sql`select id, status from pembayaran where id = ${pembayaranId} for update`
-          .returnsRow({ id: "pg/int4@1", status: "pg/text@1" })
-          .build(),
-      ),
-    );
-    if (!b) return { ok: false, error: "Tagihan tidak ditemukan." };
-    if (b.status === "berhasil")
-      return { ok: false, error: "Sudah dibayar — status gagal diabaikan." };
-    if (b.status === "gagal") return { ok: true, value: null };
+    return db.transaction(async (tx) => {
+        const [b] = await collect(
+            tx.query(
+                db.raw
+                    .sql`select id, status from pembayaran where id = ${pembayaranId} for update`
+                    .returnsRow({ id: 'pg/int4@1', status: 'pg/text@1' })
+                    .build(),
+            ),
+        );
+        if (!b) return { ok: false, error: 'Tagihan tidak ditemukan.' };
+        if (b.status === 'berhasil')
+            return {
+                ok: false,
+                error: 'Sudah dibayar — status gagal diabaikan.',
+            };
+        if (b.status === 'gagal') return { ok: true, value: null };
 
-    await tx.execute(
-      db.raw.sql`update pembayaran set status = 'gagal', updated_at = now()
+        await tx.execute(
+            db.raw
+                .sql`update pembayaran set status = 'gagal', updated_at = now()
                  where id = ${pembayaranId}`
-        .affectedCount()
-        .build(),
-    );
-    return { ok: true, value: null };
-  });
+                .affectedCount()
+                .build(),
+        );
+        return { ok: true, value: null };
+    });
 }
 
 /** Prefix order_id Midtrans Siedu — dipakai halaman pay & webhook. */
@@ -281,30 +288,30 @@ export const ORDER_ID = (pembayaranId: number) => `siedu-pemb-${pembayaranId}`;
  * cancel|expire|deny → gagal; selain itu tidak ada aksi.
  */
 export async function terapkanStatusMidtrans(
-  orderId: string,
-  transactionStatus: string,
+    orderId: string,
+    transactionStatus: string,
 ): Promise<{ ok: boolean; note: string }> {
-  const m = /^siedu-pemb-(\d+)(?:-.*)?$/.exec(orderId);
-  if (!m) return { ok: true, note: "order_id bukan milik Siedu — diabaikan" };
-  const id = Number(m[1]);
-  const st = transactionStatus.toLowerCase();
-  if (st === "settlement" || st === "capture") {
-    await db.orm.public.Pembayaran.where({ id }).update({
-      referensiGateway: orderId,
-      updatedAt: new Date().toISOString(),
-    });
-    const r = await tandaiBerhasil(id);
-    return r.ok
-      ? { ok: true, note: `pembayaran ${id} → berhasil` }
-      : { ok: false, note: r.error };
-  }
-  if (st === "cancel" || st === "expire" || st === "deny") {
-    const r = await tandaiGagal(id);
-    return r.ok
-      ? { ok: true, note: `pembayaran ${id} → gagal (${st})` }
-      : { ok: false, note: r.error };
-  }
-  return { ok: true, note: `status ${st} — tidak ada aksi` };
+    const m = /^siedu-pemb-(\d+)(?:-.*)?$/.exec(orderId);
+    if (!m) return { ok: true, note: 'order_id bukan milik Siedu — diabaikan' };
+    const id = Number(m[1]);
+    const st = transactionStatus.toLowerCase();
+    if (st === 'settlement' || st === 'capture') {
+        await db.orm.public.Pembayaran.where({ id }).update({
+            referensiGateway: orderId,
+            updatedAt: new Date().toISOString(),
+        });
+        const r = await tandaiBerhasil(id);
+        return r.ok
+            ? { ok: true, note: `pembayaran ${id} → berhasil` }
+            : { ok: false, note: r.error };
+    }
+    if (st === 'cancel' || st === 'expire' || st === 'deny') {
+        const r = await tandaiGagal(id);
+        return r.ok
+            ? { ok: true, note: `pembayaran ${id} → gagal (${st})` }
+            : { ok: false, note: r.error };
+    }
+    return { ok: true, note: `status ${st} — tidak ada aksi` };
 }
 
 /**
@@ -316,66 +323,75 @@ export async function terapkanStatusMidtrans(
  * Per pendaftaran: satu kegagalan tidak membatalkan seluruh batch.
  */
 export async function processTunggakan(): Promise<{
-  menjadiTertunggak: number;
-  dibatalkanTunggakan: number;
+    menjadiTertunggak: number;
+    dibatalkanTunggakan: number;
 }> {
-  const kandidat = await collect(
-    db.orm.public.Pendaftaran.where((p) =>
-      p.status.in(["terdaftar", "tertunggak"]),
-    ).all(),
-  );
-
-  let menjadiTertunggak = 0;
-  let dibatalkanTunggakan = 0;
-  for (const p of kandidat) {
-    const bills = await collect(
-      db.orm.public.Pembayaran.where((b) => b.pendaftaranId.eq(p.id)).all(),
+    const kandidat = await collect(
+        db.orm.public.Pendaftaran.where((p) =>
+            p.status.in(['terdaftar', 'tertunggak']),
+        ).all(),
     );
-    const terlambat = bills.filter(
-      (b) => b.status === "pending" && b.jatuhTempo && b.jatuhTempo < hariIni(),
-    );
-    if (terlambat.length === 0) continue;
 
-    if (p.status === "terdaftar") {
-      await db.orm.public.Pendaftaran.where({ id: p.id }).update({
-        status: "tertunggak",
-      });
-      menjadiTertunggak++;
-      continue;
-    }
+    let menjadiTertunggak = 0;
+    let dibatalkanTunggakan = 0;
+    for (const p of kandidat) {
+        const bills = await collect(
+            db.orm.public.Pembayaran.where((b) =>
+                b.pendaftaranId.eq(p.id),
+            ).all(),
+        );
+        const terlambat = bills.filter(
+            (b) =>
+                b.status === 'pending' &&
+                b.jatuhTempo &&
+                b.jatuhTempo < hariIni(),
+        );
+        if (terlambat.length === 0) continue;
 
-    // Masih tertunggak: baru dibatalkan kalau SEMUA tagihan terlambat sudah
-    // lewat tenggang 7 hari.
-    if (!terlambat.every((b) => !dalamJendela7Hari(b.jatuhTempo!))) continue;
+        if (p.status === 'terdaftar') {
+            await db.orm.public.Pendaftaran.where({ id: p.id }).update({
+                status: 'tertunggak',
+            });
+            menjadiTertunggak++;
+            continue;
+        }
 
-    try {
-      await db.transaction(async (tx) => {
-        await tx.execute(
-          db.raw
-            .sql`update pendaftaran set status = 'dibatalkan_tunggakan', updated_at = now()
+        // Masih tertunggak: baru dibatalkan kalau SEMUA tagihan terlambat sudah
+        // lewat tenggang 7 hari.
+        if (!terlambat.every((b) => !dalamJendela7Hari(b.jatuhTempo!)))
+            continue;
+
+        try {
+            await db.transaction(async (tx) => {
+                await tx.execute(
+                    db.raw
+                        .sql`update pendaftaran set status = 'dibatalkan_tunggakan', updated_at = now()
                      where id = ${p.id}`
-            .affectedCount()
-            .build(),
-        );
-        await tx.execute(
-          db.raw
-            .sql`update pembayaran set status = 'gagal', updated_at = now()
+                        .affectedCount()
+                        .build(),
+                );
+                await tx.execute(
+                    db.raw
+                        .sql`update pembayaran set status = 'gagal', updated_at = now()
                      where pendaftaran_id = ${p.id} and status = 'pending'`
-            .affectedCount()
-            .build(),
-        );
-        await tx.execute(
-          db.raw
-            .sql`update kelas set kuota_terisi = greatest(kuota_terisi - 1, 0), updated_at = now()
+                        .affectedCount()
+                        .build(),
+                );
+                await tx.execute(
+                    db.raw
+                        .sql`update kelas set kuota_terisi = greatest(kuota_terisi - 1, 0), updated_at = now()
                      where id = ${p.kelasId}`
-            .affectedCount()
-            .build(),
-        );
-      });
-      dibatalkanTunggakan++;
-    } catch (e) {
-      console.error(`processTunggakan: pendaftaran ${p.id} gagal diproses`, e);
+                        .affectedCount()
+                        .build(),
+                );
+            });
+            dibatalkanTunggakan++;
+        } catch (e) {
+            console.error(
+                `processTunggakan: pendaftaran ${p.id} gagal diproses`,
+                e,
+            );
+        }
     }
-  }
-  return { menjadiTertunggak, dibatalkanTunggakan };
+    return { menjadiTertunggak, dibatalkanTunggakan };
 }

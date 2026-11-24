@@ -39,11 +39,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         { name: t("text2"), href: "/admin/dashboard", icon: "grid" },
         {
           name: t("text3"),
-          href: "/admin/enrollments/flagged",
+          href: "/admin/enrollments",
           icon: "clipboard",
           badge: nPendaftaranMasalah,
         },
-        { name: t("text5"), href: "/admin/corrections", icon: "check" },
       ],
     },
     {

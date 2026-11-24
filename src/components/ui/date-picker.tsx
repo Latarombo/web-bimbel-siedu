@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useId } from 'react';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, X } from 'lucide-react';
+import {
+    Calendar as CalendarIcon,
+    ChevronLeft,
+    ChevronRight,
+    ChevronDown,
+    X,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface DatePickerProps {
@@ -23,19 +29,41 @@ export interface DatePickerProps {
 }
 
 const MONTHS_ID = [
-    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+    'Januari',
+    'Februari',
+    'Maret',
+    'April',
+    'Mei',
+    'Juni',
+    'Juli',
+    'Agustus',
+    'September',
+    'Oktober',
+    'November',
+    'Desember',
 ];
 
 const MONTHS_EN = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
 ];
 
 const DAYS_ID = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 const DAYS_EN = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-function parseISODate(isoString?: string): { year: number; month: number; day: number } | null {
+function parseISODate(
+    isoString?: string,
+): { year: number; month: number; day: number } | null {
     if (!isoString) return null;
     const parts = isoString.split('-');
     if (parts.length !== 3) return null;
@@ -79,10 +107,12 @@ export function DatePicker({
     const isControlled = controlledValue !== undefined;
 
     const [internalValue, setInternalValue] = useState<string>(
-        controlledValue ?? defaultValue ?? ''
+        controlledValue ?? defaultValue ?? '',
     );
 
-    const selectedValue = isControlled ? (controlledValue ?? '') : internalValue;
+    const selectedValue = isControlled
+        ? (controlledValue ?? '')
+        : internalValue;
 
     // Mode tampilan: 'calendar' atau 'years'
     const [viewMode, setViewMode] = useState<'calendar' | 'years'>('calendar');
@@ -92,10 +122,10 @@ export function DatePicker({
     const initialParsed = parseISODate(selectedValue);
     const today = new Date();
     const [currentYear, setCurrentYear] = useState<number>(
-        initialParsed?.year ?? today.getFullYear()
+        initialParsed?.year ?? today.getFullYear(),
     );
     const [currentMonth, setCurrentMonth] = useState<number>(
-        initialParsed?.month ?? today.getMonth()
+        initialParsed?.month ?? today.getMonth(),
     );
 
     // Sinkronisasi view saat selectedValue berubah
@@ -114,7 +144,8 @@ export function DatePicker({
     const isEn = locale.toLowerCase().startsWith('en');
     const months = isEn ? MONTHS_EN : MONTHS_ID;
     const daysHeader = isEn ? DAYS_EN : DAYS_ID;
-    const defaultPlaceholder = placeholder || (isEn ? 'Pick a date' : 'Pilih tanggal');
+    const defaultPlaceholder =
+        placeholder || (isEn ? 'Pick a date' : 'Pilih tanggal');
 
     const containerRef = useRef<HTMLDivElement>(null);
     const popoverRef = useRef<HTMLDivElement>(null);
@@ -124,10 +155,14 @@ export function DatePicker({
     useEffect(() => {
         if (viewMode === 'years' && yearListRef.current) {
             const listEl = yearListRef.current;
-            const activeBtn = listEl.querySelector<HTMLElement>('[data-selected="true"]');
+            const activeBtn = listEl.querySelector<HTMLElement>(
+                '[data-selected="true"]',
+            );
             if (activeBtn) {
                 const activeOffset = activeBtn.offsetTop - listEl.offsetTop;
-                const targetScroll = activeOffset - (listEl.clientHeight - activeBtn.clientHeight) / 2;
+                const targetScroll =
+                    activeOffset -
+                    (listEl.clientHeight - activeBtn.clientHeight) / 2;
                 listEl.scrollTop = Math.max(0, targetScroll);
             }
         }
@@ -142,7 +177,9 @@ export function DatePicker({
             const listEl = yearListRef.current;
             if (viewMode === 'years' && listEl) {
                 const canScrollUp = listEl.scrollTop > 0;
-                const canScrollDown = listEl.scrollTop < listEl.scrollHeight - listEl.clientHeight - 1;
+                const canScrollDown =
+                    listEl.scrollTop <
+                    listEl.scrollHeight - listEl.clientHeight - 1;
 
                 if (e.deltaY < 0 && canScrollUp) {
                     listEl.scrollTop += e.deltaY;
@@ -232,18 +269,30 @@ export function DatePicker({
     const isDateDisabled = (year: number, month: number, day: number) => {
         const d = new Date(year, month, day);
         if (maxParsed) {
-            const maxDate = new Date(maxParsed.year, maxParsed.month, maxParsed.day);
+            const maxDate = new Date(
+                maxParsed.year,
+                maxParsed.month,
+                maxParsed.day,
+            );
             if (d > maxDate) return true;
         }
         if (minParsed) {
-            const minDate = new Date(minParsed.year, minParsed.month, minParsed.day);
+            const minDate = new Date(
+                minParsed.year,
+                minParsed.month,
+                minParsed.day,
+            );
             if (d < minDate) return true;
         }
         return false;
     };
 
     // Generate grid tanggal untuk bulan aktif
-    const daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const daysInCurrentMonth = new Date(
+        currentYear,
+        currentMonth + 1,
+        0,
+    ).getDate();
     const firstDayIndex = new Date(currentYear, currentMonth, 1).getDay(); // 0 = Minggu
 
     const daysInPrevMonth = new Date(currentYear, currentMonth, 0).getDate();
@@ -331,22 +380,34 @@ export function DatePicker({
                 aria-describedby={ariaDescribedby}
                 className={cn(
                     'w-full flex items-center justify-between text-left rounded-lg transition-colors duration-150 cursor-pointer select-none bg-white dark:bg-slate-900',
-                    size === 'sm' ? 'h-9 px-3 text-xs sm:text-sm' : 'h-11 sm:h-10 px-3.5 text-base sm:text-sm',
+                    size === 'sm'
+                        ? 'h-9 px-3 text-xs sm:text-sm'
+                        : 'h-11 sm:h-10 px-3.5 text-base sm:text-sm',
                     'border border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500',
                     isOpen
                         ? 'border-brand ring-2 ring-brand/20 shadow-xs'
                         : 'focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20',
-                    disabled && 'bg-slate-50 dark:bg-slate-800 opacity-60 cursor-not-allowed pointer-events-none',
-                    ariaInvalid && 'border-rose-500 focus-visible:border-rose-600 focus-visible:ring-rose-500/20',
-                    className
+                    disabled &&
+                        'bg-slate-50 dark:bg-slate-800 opacity-60 cursor-not-allowed pointer-events-none',
+                    ariaInvalid &&
+                        'border-rose-500 focus-visible:border-rose-600 focus-visible:ring-rose-500/20',
+                    className,
                 )}
             >
                 <div className="flex items-center gap-3 overflow-hidden min-w-0">
-                    <CalendarIcon className={cn("text-slate-400 shrink-0", size === "sm" ? "w-4 h-4" : "w-4.5 h-4.5")} aria-hidden="true" />
+                    <CalendarIcon
+                        className={cn(
+                            'text-slate-400 shrink-0',
+                            size === 'sm' ? 'w-4 h-4' : 'w-4.5 h-4.5',
+                        )}
+                        aria-hidden="true"
+                    />
                     <span
                         className={cn(
                             'truncate',
-                            selectedValue ? 'text-slate-900 dark:text-slate-100 font-medium' : 'text-slate-400 dark:text-slate-500'
+                            selectedValue
+                                ? 'text-slate-900 dark:text-slate-100 font-medium'
+                                : 'text-slate-400 dark:text-slate-500',
                         )}
                     >
                         {selectedValue
@@ -357,7 +418,7 @@ export function DatePicker({
                 <ChevronDown
                     className={cn(
                         'w-4 h-4 text-slate-400 shrink-0 ml-2 transition-transform duration-150',
-                        isOpen && 'rotate-180 text-brand'
+                        isOpen && 'rotate-180 text-brand',
                     )}
                     aria-hidden="true"
                 />
@@ -389,7 +450,7 @@ export function DatePicker({
                             // Mobile (<640px): Bottom Sheet Modal
                             'fixed inset-x-0 bottom-0 rounded-t-3xl p-5 max-h-[85vh] overflow-y-auto sm:max-h-none sm:overflow-visible shadow-2xl animate-in slide-in-from-bottom duration-200',
                             // Desktop (>=640px): Popover Dropdown
-                            'sm:absolute sm:inset-auto sm:top-full sm:left-0 sm:mt-2 sm:w-[328px] sm:rounded-2xl sm:p-4 sm:border sm:border-slate-200 sm:shadow-xl sm:shadow-slate-950/20 sm:animate-in sm:fade-in-0 sm:zoom-in-95 sm:duration-150'
+                            'sm:absolute sm:inset-auto sm:top-full sm:left-0 sm:mt-2 sm:w-[328px] sm:rounded-2xl sm:p-4 sm:border sm:border-slate-200 sm:shadow-xl sm:shadow-slate-950/20 sm:animate-in sm:fade-in-0 sm:zoom-in-95 sm:duration-150',
                         )}
                     >
                         {/* Mobile Handle & Close Bar */}
@@ -415,7 +476,8 @@ export function DatePicker({
                                 aria-label="Bulan sebelumnya"
                                 className={cn(
                                     'w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:bg-slate-100 transition-colors cursor-pointer',
-                                    viewMode !== 'calendar' && 'opacity-0 pointer-events-none'
+                                    viewMode !== 'calendar' &&
+                                        'opacity-0 pointer-events-none',
                                 )}
                             >
                                 <ChevronLeft className="w-4 h-4" />
@@ -425,7 +487,11 @@ export function DatePicker({
                             <button
                                 type="button"
                                 onClick={() => {
-                                    setViewMode((prev) => (prev === 'calendar' ? 'years' : 'calendar'));
+                                    setViewMode((prev) =>
+                                        prev === 'calendar'
+                                            ? 'years'
+                                            : 'calendar',
+                                    );
                                 }}
                                 className="text-base font-semibold text-slate-900 px-2.5 py-1.5 rounded-lg hover:bg-slate-50 transition-colors flex items-center gap-1.5 cursor-pointer group"
                             >
@@ -435,7 +501,8 @@ export function DatePicker({
                                 <ChevronDown
                                     className={cn(
                                         'w-4 h-4 text-slate-600 group-hover:text-slate-600 transition-transform duration-200',
-                                        viewMode === 'years' && 'rotate-180 text-blue-600'
+                                        viewMode === 'years' &&
+                                            'rotate-180 text-blue-600',
                                     )}
                                     aria-hidden="true"
                                 />
@@ -448,7 +515,8 @@ export function DatePicker({
                                 aria-label="Bulan berikutnya"
                                 className={cn(
                                     'w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 active:bg-slate-100 transition-colors cursor-pointer',
-                                    viewMode !== 'calendar' && 'opacity-0 pointer-events-none'
+                                    viewMode !== 'calendar' &&
+                                        'opacity-0 pointer-events-none',
                                 )}
                             >
                                 <ChevronRight className="w-4 h-4" />
@@ -476,7 +544,8 @@ export function DatePicker({
                                         const isSelected =
                                             selectedParsed &&
                                             selectedParsed.year === cell.year &&
-                                            selectedParsed.month === cell.month &&
+                                            selectedParsed.month ===
+                                                cell.month &&
                                             selectedParsed.day === cell.day;
 
                                         const isToday =
@@ -490,7 +559,11 @@ export function DatePicker({
                                                 type="button"
                                                 disabled={cell.disabled}
                                                 onClick={() =>
-                                                    handleSelectDate(cell.year, cell.month, cell.day)
+                                                    handleSelectDate(
+                                                        cell.year,
+                                                        cell.month,
+                                                        cell.day,
+                                                    )
                                                 }
                                                 className={cn(
                                                     'relative h-10 w-full rounded-xl flex flex-col items-center justify-center text-sm transition-all duration-150 cursor-pointer select-none',
@@ -511,7 +584,7 @@ export function DatePicker({
                                                         'bg-blue-600 text-white font-semibold rounded-xl shadow-sm hover:bg-blue-700',
                                                     // Tanggal dinonaktifkan (misal masa depan)
                                                     cell.disabled &&
-                                                        'opacity-30 cursor-not-allowed hover:bg-transparent pointer-events-none'
+                                                        'opacity-30 cursor-not-allowed hover:bg-transparent pointer-events-none',
                                                 )}
                                             >
                                                 <span>{cell.day}</span>
@@ -534,7 +607,12 @@ export function DatePicker({
                                         {isEn ? 'Select Year' : 'Pilih Tahun'}
                                     </span>
                                     <span className="text-xs text-slate-600">
-                                        {availableYears[availableYears.length - 1]} – {availableYears[0]}
+                                        {
+                                            availableYears[
+                                                availableYears.length - 1
+                                            ]
+                                        }{' '}
+                                        – {availableYears[0]}
                                     </span>
                                 </div>
                                 <div
@@ -543,12 +621,17 @@ export function DatePicker({
                                     className="relative grid grid-cols-4 gap-2 grow min-h-0 overflow-y-auto overscroll-contain pr-1.5 pb-2 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 hover:[&::-webkit-scrollbar-thumb]:bg-slate-400"
                                 >
                                     {availableYears.map((yr) => {
-                                        const isSelectedYear = yr === currentYear;
+                                        const isSelectedYear =
+                                            yr === currentYear;
                                         return (
                                             <button
                                                 key={yr}
                                                 type="button"
-                                                data-selected={isSelectedYear ? 'true' : undefined}
+                                                data-selected={
+                                                    isSelectedYear
+                                                        ? 'true'
+                                                        : undefined
+                                                }
                                                 onClick={() => {
                                                     setCurrentYear(yr);
                                                     setViewMode('calendar');
@@ -557,7 +640,7 @@ export function DatePicker({
                                                     'py-2 text-sm font-medium rounded-xl text-center transition-all cursor-pointer select-none',
                                                     isSelectedYear
                                                         ? 'bg-blue-600 text-white font-semibold shadow-xs'
-                                                        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200'
+                                                        : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900 active:bg-slate-200',
                                                 )}
                                             >
                                                 {yr}

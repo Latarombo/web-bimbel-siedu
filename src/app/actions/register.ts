@@ -15,15 +15,26 @@ import { checkRateLimit, checkCooldown, getClientIp } from '@/lib/rate-limit';
 
 // Kebijakan kata sandi — hanya panjang minimal; UI (checklist RegisterForm)
 // dan server harus menuntut hal yang sama.
-const registerSchema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
-  email: z.string({error: t('invalidField')}).trim().toLowerCase().max(255, t('emailMax')).email(t('invalidEmail')),
-  password: z.string({error: t('invalidField')}).min(8, t('passwordMin')).max(72, t('passwordMax')),
-});
+const registerSchema = (
+    t: Awaited<ReturnType<typeof getTranslations<'auth'>>>,
+) =>
+    z.object({
+        email: z
+            .string({ error: t('invalidField') })
+            .trim()
+            .toLowerCase()
+            .max(255, t('emailMax'))
+            .email(t('invalidEmail')),
+        password: z
+            .string({ error: t('invalidField') })
+            .min(8, t('passwordMin'))
+            .max(72, t('passwordMax')),
+    });
 
 export type RegisterState = {
-  error?: string;
-  fieldErrors?: Record<string, string>;
-  email?: string;
+    error?: string;
+    fieldErrors?: Record<string, string>;
+    email?: string;
 };
 
 // PRD F1 + BR#25. Verifikasi email DITUNDA (belum ada SMTP) — akun langsung aktif,
@@ -34,64 +45,70 @@ export type RegisterState = {
 // dari prefix email (mis. budi@email.com → "budi"); step 2 menimpanya dengan nama
 // asli sekaligus mencatat cap consent.
 export async function registerParent(
-  _prev: RegisterState,
-  formData: FormData,
+    _prev: RegisterState,
+    formData: FormData,
 ): Promise<RegisterState> {
-  const locale = await getLocaleDariCookie();
-  const t = await getTranslations({locale, namespace: 'auth'});
-  const emailKetik = String(formData.get('email') ?? '');
-  const parsed = registerSchema(t).safeParse({
-    email: formData.get('email'),
-    password: formData.get('password'),
-  });
-  if (!parsed.success) {
-    const fieldErrors: Record<string, string> = {};
-    for (const issue of parsed.error.issues)
-      fieldErrors[String(issue.path[0])] ??= issue.message;
-    return { fieldErrors, email: emailKetik };
-  }
-
-  // Proteksi anti-bot registration flood
-  const headerList = await headers();
-  const clientIp = getClientIp(headerList);
-  const cd = checkCooldown(`register_cd:${clientIp}`, 30 * 1000);
-  if (!cd.allowed) {
-    return { error: t('rateLimitRegister'), email: emailKetik };
-  }
-  const ipRate = checkRateLimit(`register_ip:${clientIp}`, 5, 60 * 60 * 1000);
-  if (!ipRate.allowed) {
-    return { error: t('rateLimitRegister'), email: emailKetik };
-  }
-  const { email, password } = parsed.data;
-
-  try {
-    const existing = await db.orm.public.User.where((u) => u.email.eq(email)).first();
-    if (existing) {
-      return { fieldErrors: { email: t('emailRegistered') }, email };
+    const locale = await getLocaleDariCookie();
+    const t = await getTranslations({ locale, namespace: 'auth' });
+    const emailKetik = String(formData.get('email') ?? '');
+    const parsed = registerSchema(t).safeParse({
+        email: formData.get('email'),
+        password: formData.get('password'),
+    });
+    if (!parsed.success) {
+        const fieldErrors: Record<string, string> = {};
+        for (const issue of parsed.error.issues)
+            fieldErrors[String(issue.path[0])] ??= issue.message;
+        return { fieldErrors, email: emailKetik };
     }
 
-    await db.orm.public.User.create({
-      role: 'orang_tua',
-      name: email.split('@')[0],
-      email,
-      password: await bcrypt.hash(password, 10),
-      // BR#32: kolom NOT NULL — placeholder sampai user mengisi Nomor HP di
-      // step 2 (saveAccountInfo memvalidasi minimal 8 karakter).
-      nomorTelepon: '',
-      // privasiDisetujuiAt / waliDisetujuiAt sengaja TIDAK diisi di sini —
-      // consent dicatat saat step 2 (saveAccountInfo) setelah diceklis user.
-    });
-  } catch (err) {
-    console.error('[REGISTER ERROR]', err);
-    return { error: t('serverError'), email };
-  }
+    // Proteksi anti-bot registration flood
+    const headerList = await headers();
+    const clientIp = getClientIp(headerList);
+    const cd = checkCooldown(`register_cd:${clientIp}`, 30 * 1000);
+    if (!cd.allowed) {
+        return { error: t('rateLimitRegister'), email: emailKetik };
+    }
+    const ipRate = checkRateLimit(`register_ip:${clientIp}`, 5, 60 * 60 * 1000);
+    if (!ipRate.allowed) {
+        return { error: t('rateLimitRegister'), email: emailKetik };
+    }
+    const { email, password } = parsed.data;
 
-  try {
-    await signIn('credentials', { email, password, redirectTo: getPathname({href: '/register/account-info', locale}) });
-  } catch (e) {
-    const digest = (e as { digest?: string })?.digest ?? '';
-    if (digest.startsWith('NEXT_REDIRECT')) throw e;
-    return redirect({href: '/login', locale});
-  }
-  return redirect({href: '/register/account-info', locale});
+    try {
+        const existing = await db.orm.public.User.where((u) =>
+            u.email.eq(email),
+        ).first();
+        if (existing) {
+            return { fieldErrors: { email: t('emailRegistered') }, email };
+        }
+
+        await db.orm.public.User.create({
+            role: 'orang_tua',
+            name: email.split('@')[0],
+            email,
+            password: await bcrypt.hash(password, 10),
+            // BR#32: kolom NOT NULL — placeholder sampai user mengisi Nomor HP di
+            // step 2 (saveAccountInfo memvalidasi minimal 8 karakter).
+            nomorTelepon: '',
+            // privasiDisetujuiAt / waliDisetujuiAt sengaja TIDAK diisi di sini —
+            // consent dicatat saat step 2 (saveAccountInfo) setelah diceklis user.
+        });
+    } catch (err) {
+        console.error('[REGISTER ERROR]', err);
+        return { error: t('serverError'), email };
+    }
+
+    try {
+        await signIn('credentials', {
+            email,
+            password,
+            redirectTo: getPathname({ href: '/register/account-info', locale }),
+        });
+    } catch (e) {
+        const digest = (e as { digest?: string })?.digest ?? '';
+        if (digest.startsWith('NEXT_REDIRECT')) throw e;
+        return redirect({ href: '/login', locale });
+    }
+    return redirect({ href: '/register/account-info', locale });
 }

@@ -5,120 +5,122 @@
 // belum aktif; UI fallback ke instruksi transfer manual.
 // Referensi: Midtrans SNAP API v2 — create: POST /snap/v1/transaction,
 // status: GET /v2/{order_id}/status.
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, timingSafeEqual } from 'node:crypto';
 
 export function midtransServerKey(): string {
-  return process.env.MIDTRANS_SERVER_KEY ?? "";
+    return process.env.MIDTRANS_SERVER_KEY ?? '';
 }
 
 export function midtransClientKey(): string {
-  return (
-    process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ??
-    process.env.MIDTRANS_CLIENT_KEY ??
-    ""
-  );
+    return (
+        process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ??
+        process.env.MIDTRANS_CLIENT_KEY ??
+        ''
+    );
 }
 
-export function midtransEnv(): "sandbox" | "production" {
-  return (process.env.MIDTRANS_ENV ?? "sandbox") === "production"
-    ? "production"
-    : "sandbox";
+export function midtransEnv(): 'sandbox' | 'production' {
+    return (process.env.MIDTRANS_ENV ?? 'sandbox') === 'production'
+        ? 'production'
+        : 'sandbox';
 }
 
 export function snapScriptUrl(): string {
-  return midtransEnv() === "production"
-    ? "https://app.midtrans.com/snap/snap.js"
-    : "https://app.sandbox.midtrans.com/snap/snap.js";
+    return midtransEnv() === 'production'
+        ? 'https://app.midtrans.com/snap/snap.js'
+        : 'https://app.sandbox.midtrans.com/snap/snap.js';
 }
 
 export function midtransConfigured(): boolean {
-  return midtransServerKey().length > 0;
+    return midtransServerKey().length > 0;
 }
 
 function snapBaseUrl(): string {
-  return (process.env.MIDTRANS_ENV ?? "sandbox") === "production"
-    ? "https://app.midtrans.com"
-    : "https://app.sandbox.midtrans.com";
+    return (process.env.MIDTRANS_ENV ?? 'sandbox') === 'production'
+        ? 'https://app.midtrans.com'
+        : 'https://app.sandbox.midtrans.com';
 }
 
 function apiBaseUrl(): string {
-  return (process.env.MIDTRANS_ENV ?? "sandbox") === "production"
-    ? "https://api.midtrans.com"
-    : "https://api.sandbox.midtrans.com";
+    return (process.env.MIDTRANS_ENV ?? 'sandbox') === 'production'
+        ? 'https://api.midtrans.com'
+        : 'https://api.sandbox.midtrans.com';
 }
 
 function authHeader(): string {
-  return "Basic " + Buffer.from(`${midtransServerKey()}:`).toString("base64");
+    return 'Basic ' + Buffer.from(`${midtransServerKey()}:`).toString('base64');
 }
 
 export type SnapTransaksi = { token: string; redirect_url: string };
 
 /** Buat transaksi SNAP (channel VA/gopay/etc via redirect). order_id milik kita. */
 export async function snapCreate(params: {
-  orderId: string;
-  grossAmount: number;
-  email?: string;
-  firstName?: string;
-  description?: string;
-  finishUrl?: string;
-  unfinishUrl?: string;
-  errorUrl?: string;
+    orderId: string;
+    grossAmount: number;
+    email?: string;
+    firstName?: string;
+    description?: string;
+    finishUrl?: string;
+    unfinishUrl?: string;
+    errorUrl?: string;
 }): Promise<SnapTransaksi> {
-  const callbacks: Record<string, string> = {};
-  if (params.finishUrl) callbacks.finish = params.finishUrl;
-  if (params.unfinishUrl) callbacks.unfinish = params.unfinishUrl;
-  if (params.errorUrl) callbacks.error = params.errorUrl;
+    const callbacks: Record<string, string> = {};
+    if (params.finishUrl) callbacks.finish = params.finishUrl;
+    if (params.unfinishUrl) callbacks.unfinish = params.unfinishUrl;
+    if (params.errorUrl) callbacks.error = params.errorUrl;
 
-  const body = {
-    transaction_details: {
-      order_id: params.orderId,
-      gross_amount: params.grossAmount,
-    },
-    enabled_payments: [
-      "bca_va",
-      "bni_va",
-      "bri_va",
-      "cimb_va",
-      "permata_va",
-      "echannel",
-      "gopay",
-      "shopeepay",
-      "qris",
-      "other_cash",
-    ],
-    item_details: [
-      {
-        id: params.orderId,
-        price: params.grossAmount,
-        quantity: 1,
-        name: params.description ?? "Pembayaran kelas Siedu",
-      },
-    ],
-    user_info: {
-      user_name: params.firstName ?? "",
-      email: params.email ?? "",
-    },
-    ...(Object.keys(callbacks).length > 0 ? { callbacks, callback: callbacks } : {}),
-  };
-  const res = await fetch(`${snapBaseUrl()}/snap/v1/transactions`, {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      Authorization: authHeader(),
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(
-      `Midtrans SNAP create ${res.status}: ${text.slice(0, 200)}`,
-    );
-  }
-  const json = (await res.json()) as Partial<SnapTransaksi>;
-  if (!json.token || !json.redirect_url)
-    throw new Error("Respons SNAP tidak lengkap.");
-  return { token: json.token, redirect_url: json.redirect_url };
+    const body = {
+        transaction_details: {
+            order_id: params.orderId,
+            gross_amount: params.grossAmount,
+        },
+        enabled_payments: [
+            'bca_va',
+            'bni_va',
+            'bri_va',
+            'cimb_va',
+            'permata_va',
+            'echannel',
+            'gopay',
+            'shopeepay',
+            'qris',
+            'other_cash',
+        ],
+        item_details: [
+            {
+                id: params.orderId,
+                price: params.grossAmount,
+                quantity: 1,
+                name: params.description ?? 'Pembayaran kelas Siedu',
+            },
+        ],
+        user_info: {
+            user_name: params.firstName ?? '',
+            email: params.email ?? '',
+        },
+        ...(Object.keys(callbacks).length > 0
+            ? { callbacks, callback: callbacks }
+            : {}),
+    };
+    const res = await fetch(`${snapBaseUrl()}/snap/v1/transactions`, {
+        method: 'POST',
+        headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: authHeader(),
+        },
+        body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(
+            `Midtrans SNAP create ${res.status}: ${text.slice(0, 200)}`,
+        );
+    }
+    const json = (await res.json()) as Partial<SnapTransaksi>;
+    if (!json.token || !json.redirect_url)
+        throw new Error('Respons SNAP tidak lengkap.');
+    return { token: json.token, redirect_url: json.redirect_url };
 }
 
 /**
@@ -126,32 +128,35 @@ export async function snapCreate(params: {
  * kalau array v2 punya satu, atau status tunggal; null bila 404/belum ada.
  */
 export async function snapStatus(orderId: string): Promise<string | null> {
-  const res = await fetch(
-    `${apiBaseUrl()}/v2/${encodeURIComponent(orderId)}/status`,
-    {
-      headers: { Accept: "application/json", Authorization: authHeader() },
-    },
-  );
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Midtrans status ${res.status}`);
-  const json = (await res.json().catch(() => null)) as {
-    status_code?: string;
-    transaction_status?: string | string[];
-  } | null;
-  if (json?.status_code === "404") return null;
-  const st = json?.transaction_status;
-  if (Array.isArray(st)) {
-    const final = st.find((s) =>
-      ["settlement", "capture", "cancel", "expire", "deny"].includes(s),
+    const res = await fetch(
+        `${apiBaseUrl()}/v2/${encodeURIComponent(orderId)}/status`,
+        {
+            headers: {
+                Accept: 'application/json',
+                Authorization: authHeader(),
+            },
+        },
     );
-    return final ?? st[st.length - 1] ?? null;
-  }
-  return typeof st === "string" ? st : null;
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(`Midtrans status ${res.status}`);
+    const json = (await res.json().catch(() => null)) as {
+        status_code?: string;
+        transaction_status?: string | string[];
+    } | null;
+    if (json?.status_code === '404') return null;
+    const st = json?.transaction_status;
+    if (Array.isArray(st)) {
+        const final = st.find((s) =>
+            ['settlement', 'capture', 'cancel', 'expire', 'deny'].includes(s),
+        );
+        return final ?? st[st.length - 1] ?? null;
+    }
+    return typeof st === 'string' ? st : null;
 }
 
-const FINAL_STATUSES = ["settlement", "capture", "cancel", "expire", "deny"];
+const FINAL_STATUSES = ['settlement', 'capture', 'cancel', 'expire', 'deny'];
 export function isFinalStatus(st: string): boolean {
-  return FINAL_STATUSES.includes(st.toLowerCase());
+    return FINAL_STATUSES.includes(st.toLowerCase());
 }
 
 /**
@@ -161,21 +166,21 @@ export function isFinalStatus(st: string): boolean {
  * Cocok salah satu = valid. Constant-time compare.
  */
 export function verifikasiSignature(notif: Record<string, unknown>): boolean {
-  const key = midtransServerKey();
-  if (!key) return false;
-  const sig = String(notif.signature_key ?? "");
-  if (!/^[0-9a-f]{128}$/i.test(sig)) return false;
-  const orderId = String(notif.order_id ?? "");
-  const statusCode = String(notif.status_code ?? "");
-  const gross = String(notif.gross_amount ?? "");
-  const hash = (input: string) =>
-    createHash("sha512").update(input).digest("hex");
-  const v1 = hash(`${orderId}${statusCode}${gross}${key}`);
-  const v2 = hash(`${orderId}${statusCode}${key}`);
-  const sigBuf = Buffer.from(sig.toLowerCase(), "hex");
-  const eq = (hex: string) => {
-    const buf = Buffer.from(hex, "hex");
-    return buf.length === sigBuf.length && timingSafeEqual(buf, sigBuf);
-  };
-  return eq(v1) || eq(v2);
+    const key = midtransServerKey();
+    if (!key) return false;
+    const sig = String(notif.signature_key ?? '');
+    if (!/^[0-9a-f]{128}$/i.test(sig)) return false;
+    const orderId = String(notif.order_id ?? '');
+    const statusCode = String(notif.status_code ?? '');
+    const gross = String(notif.gross_amount ?? '');
+    const hash = (input: string) =>
+        createHash('sha512').update(input).digest('hex');
+    const v1 = hash(`${orderId}${statusCode}${gross}${key}`);
+    const v2 = hash(`${orderId}${statusCode}${key}`);
+    const sigBuf = Buffer.from(sig.toLowerCase(), 'hex');
+    const eq = (hex: string) => {
+        const buf = Buffer.from(hex, 'hex');
+        return buf.length === sigBuf.length && timingSafeEqual(buf, sigBuf);
+    };
+    return eq(v1) || eq(v2);
 }

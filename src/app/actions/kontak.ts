@@ -15,81 +15,114 @@ import { checkRateLimit, checkCooldown, getClientIp } from '@/lib/rate-limit';
  * masuk, tambahkan guard (ip cookie / caps) di sini, bukan di komponen.
  */
 
-const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) => z.object({
- nama: z.string({error: t('invalidField')}).trim().min(2, t('nameMin')).max(100, t('nameMax')),
- telepon: z
-  .string({error: t('invalidField')})
-  .trim()
-  .min(8, t('phoneMin'))
-  .max(20, t('phoneMax'))
-  .regex(/^[0-9+\-\s()]*$/, t('phoneCharacters')),
- email: z.string({error: t('invalidField')}).trim().toLowerCase().max(255, t('emailMax')).email(t('invalidEmail')),
- sekolah: z.string({error: t('invalidField')}).trim().max(150, t('schoolMax')).optional().or(z.literal('')),
- jenjang: z.union([z.enum(['TK', 'SD', 'SMP', 'SMA'], {error: t('invalidLevel')}).optional(), z.literal('')], {error: t('invalidLevel')}),
- subjek: z.enum(SUBJEK, { message: t('subjectRequired') }),
- pesan: z.string({error: t('invalidField')}).trim().min(10, t('messageMin')).max(2000, t('messageMax')),
-});
+const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) =>
+    z.object({
+        nama: z
+            .string({ error: t('invalidField') })
+            .trim()
+            .min(2, t('nameMin'))
+            .max(100, t('nameMax')),
+        telepon: z
+            .string({ error: t('invalidField') })
+            .trim()
+            .min(8, t('phoneMin'))
+            .max(20, t('phoneMax'))
+            .regex(/^[0-9+\-\s()]*$/, t('phoneCharacters')),
+        email: z
+            .string({ error: t('invalidField') })
+            .trim()
+            .toLowerCase()
+            .max(255, t('emailMax'))
+            .email(t('invalidEmail')),
+        sekolah: z
+            .string({ error: t('invalidField') })
+            .trim()
+            .max(150, t('schoolMax'))
+            .optional()
+            .or(z.literal('')),
+        jenjang: z.union(
+            [
+                z
+                    .enum(['TK', 'SD', 'SMP', 'SMA'], {
+                        error: t('invalidLevel'),
+                    })
+                    .optional(),
+                z.literal(''),
+            ],
+            { error: t('invalidLevel') },
+        ),
+        subjek: z.enum(SUBJEK, { message: t('subjectRequired') }),
+        pesan: z
+            .string({ error: t('invalidField') })
+            .trim()
+            .min(10, t('messageMin'))
+            .max(2000, t('messageMax')),
+    });
 
 export type KontakState = {
- ok?: boolean;
- error?: string;
- fieldErrors?: Record<string, string>;
- // Echo isian teks mentah saat gagal (React 19 me-reset form uncontrolled).
- nama?: string;
- telepon?: string;
- email?: string;
- sekolah?: string;
- jenjang?: string;
- subjek?: string;
- pesan?: string;
+    ok?: boolean;
+    error?: string;
+    fieldErrors?: Record<string, string>;
+    // Echo isian teks mentah saat gagal (React 19 me-reset form uncontrolled).
+    nama?: string;
+    telepon?: string;
+    email?: string;
+    sekolah?: string;
+    jenjang?: string;
+    subjek?: string;
+    pesan?: string;
 };
 
-export async function kirimPesanKontak(_prev: KontakState, formData: FormData): Promise<KontakState> {
-  const locale = await getLocaleDariCookie();
-  const t = await getTranslations({locale, namespace: 'auth'});
- const raw = {
-  nama: String(formData.get('nama') ?? ''),
-  telepon: String(formData.get('telepon') ?? ''),
-  email: String(formData.get('email') ?? ''),
-  sekolah: String(formData.get('sekolah') ?? ''),
-  jenjang: String(formData.get('jenjang') ?? ''),
-  subjek: String(formData.get('subjek') ?? ''),
-  pesan: String(formData.get('pesan') ?? ''),
- };
- const parsed = schema(t).safeParse(raw);
- if (!parsed.success) {
-  const fieldErrors: Record<string, string> = {};
-  for (const issue of parsed.error.issues) fieldErrors[String(issue.path[0])] ??= issue.message;
-  return { error: t('checkForm'), fieldErrors, ...raw };
- }
+export async function kirimPesanKontak(
+    _prev: KontakState,
+    formData: FormData,
+): Promise<KontakState> {
+    const locale = await getLocaleDariCookie();
+    const t = await getTranslations({ locale, namespace: 'auth' });
+    const raw = {
+        nama: String(formData.get('nama') ?? ''),
+        telepon: String(formData.get('telepon') ?? ''),
+        email: String(formData.get('email') ?? ''),
+        sekolah: String(formData.get('sekolah') ?? ''),
+        jenjang: String(formData.get('jenjang') ?? ''),
+        subjek: String(formData.get('subjek') ?? ''),
+        pesan: String(formData.get('pesan') ?? ''),
+    };
+    const parsed = schema(t).safeParse(raw);
+    if (!parsed.success) {
+        const fieldErrors: Record<string, string> = {};
+        for (const issue of parsed.error.issues)
+            fieldErrors[String(issue.path[0])] ??= issue.message;
+        return { error: t('checkForm'), fieldErrors, ...raw };
+    }
 
- // Proteksi anti-spam / flooding database
- const headerList = await headers();
- const clientIp = getClientIp(headerList);
- const cd = checkCooldown(`contact_cd:${clientIp}`, 30 * 1000);
- if (!cd.allowed) {
-  return {
-   error: t('rateLimitContact', { seconds: cd.retryAfterSeconds }),
-   ...raw,
-  };
- }
- const ipRate = checkRateLimit(`contact_ip:${clientIp}`, 3, 10 * 60 * 1000);
- if (!ipRate.allowed) {
-  return {
-   error: t('rateLimitContact', { seconds: ipRate.retryAfterSeconds }),
-   ...raw,
-  };
- }
+    // Proteksi anti-spam / flooding database
+    const headerList = await headers();
+    const clientIp = getClientIp(headerList);
+    const cd = checkCooldown(`contact_cd:${clientIp}`, 30 * 1000);
+    if (!cd.allowed) {
+        return {
+            error: t('rateLimitContact', { seconds: cd.retryAfterSeconds }),
+            ...raw,
+        };
+    }
+    const ipRate = checkRateLimit(`contact_ip:${clientIp}`, 3, 10 * 60 * 1000);
+    if (!ipRate.allowed) {
+        return {
+            error: t('rateLimitContact', { seconds: ipRate.retryAfterSeconds }),
+            ...raw,
+        };
+    }
 
- const d = parsed.data;
- await db.orm.public.PesanKontak.create({
-  nama: d.nama,
-  telepon: d.telepon,
-  email: d.email,
-  sekolah: d.sekolah || null,
-  jenjang: d.jenjang || null,
-  subjek: d.subjek,
-  pesan: d.pesan,
- });
- return { ok: true };
+    const d = parsed.data;
+    await db.orm.public.PesanKontak.create({
+        nama: d.nama,
+        telepon: d.telepon,
+        email: d.email,
+        sekolah: d.sekolah || null,
+        jenjang: d.jenjang || null,
+        subjek: d.subjek,
+        pesan: d.pesan,
+    });
+    return { ok: true };
 }

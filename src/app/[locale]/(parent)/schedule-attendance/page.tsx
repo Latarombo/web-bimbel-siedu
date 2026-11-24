@@ -1,462 +1,596 @@
-import { getTranslations, getLocale } from "next-intl/server";
-import { redirect } from "@/i18n/navigation";
-import { Link } from "@/i18n/navigation";
-import { auth } from "@/lib/auth";
-import { db } from "@/prisma/db";
-import { collect } from "@/lib/collect";
-import { Card, CardPad } from "@/components/ui/card";
+import { getTranslations, getLocale } from 'next-intl/server';
+import { redirect } from '@/i18n/navigation';
+import { Link } from '@/i18n/navigation';
+import { auth } from '@/lib/auth';
+import { db } from '@/prisma/db';
+import { collect } from '@/lib/collect';
+import { Card, CardPad } from '@/components/ui/card';
 
-import { ScheduleTab } from "@/components/parent/schedule-attendance/schedule-tab";
-import { AttendanceTab } from "@/components/parent/schedule-attendance/attendance-tab";
-import { JadwalRecord } from "@/components/parent/schedule-attendance/schedule-context";
-import { PresensiRecord } from "@/components/parent/schedule-attendance/attendance-context";
-import { CalendarDays, UserCheck, Award, Users } from "lucide-react";
-import { StudentAvatar } from "@/components/parent/student-avatar";
+import { ScheduleTab } from '@/components/parent/schedule-attendance/schedule-tab';
+import { AttendanceTab } from '@/components/parent/schedule-attendance/attendance-tab';
+import { JadwalRecord } from '@/components/parent/schedule-attendance/schedule-context';
+import { PresensiRecord } from '@/components/parent/schedule-attendance/attendance-context';
+import { CalendarDays, UserCheck, Award, Users } from 'lucide-react';
+import { StudentAvatar } from '@/components/parent/student-avatar';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 // C7 — Schedule & Attendance (tab gabungan via ?tab=, pola shadcn Tabs server-side).
 // Jadwal: JadwalItem kelas yang diikuti anak (pendaftaran aktif), dikelompokkan per hari.
 // Presensi: rows Presensi pendaftaran milik anak.
 
 const URUTAN_HARI = [
-  "Senin",
-  "Selasa",
-  "Rabu",
-  "Kamis",
-  "Jumat",
-  "Sabtu",
-  "Minggu",
+    'Senin',
+    'Selasa',
+    'Rabu',
+    'Kamis',
+    'Jumat',
+    'Sabtu',
+    'Minggu',
 ] as const;
 
 export default async function ScheduleAttendancePage({
-  searchParams,
+    searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; status?: string; anakId?: string }>;
+    searchParams: Promise<{ tab?: string; status?: string; anakId?: string }>;
 }) {
-  const tr = await getTranslations("parent");
-  const locale = await getLocale();
-  const session = await auth();
-  if (!session?.user) {
-    return redirect({href: "/login?next=/schedule-attendance", locale});
-  }
-  const ortuId = Number(session.user.id);
-  const { tab, anakId: anakIdParam } = await searchParams;
-  const anakTerpilihId = anakIdParam ? Number(anakIdParam) : null;
-  const tabAktif =
-    tab === "presensi"
-      ? "presensi"
-      : tab === "nilai"
-        ? "nilai"
-        : tab === "laporan"
-          ? "laporan"
-          : "jadwal";
-
-  const anak = await collect(
-    db.orm.public.Anak.where((a) => a.orangTuaId.eq(ortuId)).all(),
-  );
-  const anakIds = new Set(anak.map((a) => a.id));
-  const namaAnak = new Map(anak.map((a) => [a.id, a.nama]));
-
-  const pendaftaran = await collect(
-    db.orm.public.Pendaftaran.include("kelas", (b) =>
-      b.select("id", "mataPelajaranId", "guruId", "ruangan"),
-    ).all(),
-  );
-  const pendaftaranAktifSemua = pendaftaran.filter(
-    (p) =>
-      anakIds.has(p.anakId) &&
-      ["menunggu_pembayaran", "terdaftar", "tertunggak"].includes(p.status),
-  );
-  const milikSaya = anakTerpilihId
-    ? pendaftaranAktifSemua.filter((p) => p.anakId === anakTerpilihId)
-    : pendaftaranAktifSemua;
-
-  // Nama mapel + guru per kelas.
-  const mapelIds = [...new Set(milikSaya.map((p) => p.kelas.mataPelajaranId))];
-  const guruIds = [...new Set(milikSaya.map((p) => p.kelas.guruId))];
-  const [mapelRows, guruRows] = await Promise.all([
-    mapelIds.length
-      ? collect(db.orm.public.MataPelajaran.where((m) => m.id.in(mapelIds)).all())
-      : Promise.resolve([]),
-    guruIds.length
-      ? collect(db.orm.public.User.where((u) => u.id.in(guruIds)).all())
-      : Promise.resolve([]),
-  ]);
-  const mapel = new Map(mapelRows.map((m) => [m.id, m.nama]));
-  const guru = new Map(guruRows.map((g) => [g.id, g.name]));
-
-  // Jadwal per kelas yang diikuti.
-  const kelasIds = [
-    ...new Set(
-      milikSaya
-        .map((p) => p.kelasId)
-        .filter((id): id is number => typeof id === "number"),
-    ),
-  ];
-  const jadwalItems = kelasIds.length
-    ? await collect(db.orm.public.JadwalItem.where((j) => j.kelasId.in(kelasIds)).all())
-    : [];
-  const jadwalRowsRaw: { j: (typeof jadwalItems)[0]; p: (typeof milikSaya)[0] }[] = [];
-  for (const p of milikSaya) {
-    for (const j of jadwalItems) {
-      if (j.kelasId === p.kelasId) {
-        jadwalRowsRaw.push({ j, p });
-      }
+    const tr = await getTranslations('parent');
+    const locale = await getLocale();
+    const session = await auth();
+    if (!session?.user) {
+        return redirect({ href: '/login?next=/schedule-attendance', locale });
     }
-  }
-  jadwalRowsRaw.sort(
-    (x, y) =>
-      URUTAN_HARI.indexOf(x.j.hari as (typeof URUTAN_HARI)[number]) -
-        URUTAN_HARI.indexOf(y.j.hari as (typeof URUTAN_HARI)[number]) ||
-      x.j.jamMulai.localeCompare(y.j.jamMulai),
-  );
+    const ortuId = Number(session.user.id);
+    const { tab, anakId: anakIdParam } = await searchParams;
+    const anakTerpilihId = anakIdParam ? Number(anakIdParam) : null;
+    const tabAktif =
+        tab === 'presensi'
+            ? 'presensi'
+            : tab === 'nilai'
+              ? 'nilai'
+              : tab === 'laporan'
+                ? 'laporan'
+                : 'jadwal';
 
-  const jadwalRecords: JadwalRecord[] = jadwalRowsRaw.map(({ j, p }) => ({
-    id: `${p.id}-${j.id}`,
-    hari: j.hari,
-    jamMulai: j.jamMulai,
-    jamSelesai: j.jamSelesai,
-    mapel: mapel.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`,
-    guru: guru.get(p.kelas.guruId) ?? "-",
-    ruangan: p.kelas.ruangan,
-    anak: namaAnak.get(p.anakId) ?? tr("text162"),
-    jenjang: p.jenjangSaatDaftar,
-  }));
+    const anak = await collect(
+        db.orm.public.Anak.where((a) => a.orangTuaId.eq(ortuId)).all(),
+    );
+    const anakIds = new Set(anak.map((a) => a.id));
+    const namaAnak = new Map(anak.map((a) => [a.id, a.nama]));
 
-  // Presensi & Penilaian terbit untuk pendaftaran anak milik saya (diproses paralel)
-  const pendaftaranIds = milikSaya.map((p) => p.id);
-  const milikSayaIds = new Set(pendaftaranIds);
-  const [presensiItems, penilaianTerbit, semuaHasilPenilaian] = await Promise.all([
-    pendaftaranIds.length
-      ? collect(
-          db.orm.public.Presensi.where((s) => s.pendaftaranId.in(pendaftaranIds))
-            .orderBy((s) => s.tanggalPertemuan.desc())
-            .all(),
+    const pendaftaran = await collect(
+        db.orm.public.Pendaftaran.include('kelas', (b) =>
+            b.select('id', 'mataPelajaranId', 'guruId', 'ruangan'),
+        ).all(),
+    );
+    const pendaftaranAktifSemua = pendaftaran.filter(
+        (p) =>
+            anakIds.has(p.anakId) &&
+            ['menunggu_pembayaran', 'terdaftar', 'tertunggak'].includes(
+                p.status,
+            ),
+    );
+    const milikSaya = anakTerpilihId
+        ? pendaftaranAktifSemua.filter((p) => p.anakId === anakTerpilihId)
+        : pendaftaranAktifSemua;
+
+    // Nama mapel + guru per kelas.
+    const mapelIds = [
+        ...new Set(milikSaya.map((p) => p.kelas.mataPelajaranId)),
+    ];
+    const guruIds = [...new Set(milikSaya.map((p) => p.kelas.guruId))];
+    const [mapelRows, guruRows] = await Promise.all([
+        mapelIds.length
+            ? collect(
+                  db.orm.public.MataPelajaran.where((m) =>
+                      m.id.in(mapelIds),
+                  ).all(),
+              )
+            : Promise.resolve([]),
+        guruIds.length
+            ? collect(db.orm.public.User.where((u) => u.id.in(guruIds)).all())
+            : Promise.resolve([]),
+    ]);
+    const mapel = new Map(mapelRows.map((m) => [m.id, m.nama]));
+    const guru = new Map(guruRows.map((g) => [g.id, g.name]));
+
+    // Jadwal per kelas yang diikuti.
+    const kelasIds = [
+        ...new Set(
+            milikSaya
+                .map((p) => p.kelasId)
+                .filter((id): id is number => typeof id === 'number'),
+        ),
+    ];
+    const jadwalItems = kelasIds.length
+        ? await collect(
+              db.orm.public.JadwalItem.where((j) =>
+                  j.kelasId.in(kelasIds),
+              ).all(),
+          )
+        : [];
+    const jadwalRowsRaw: {
+        j: (typeof jadwalItems)[0];
+        p: (typeof milikSaya)[0];
+    }[] = [];
+    for (const p of milikSaya) {
+        for (const j of jadwalItems) {
+            if (j.kelasId === p.kelasId) {
+                jadwalRowsRaw.push({ j, p });
+            }
+        }
+    }
+    jadwalRowsRaw.sort(
+        (x, y) =>
+            URUTAN_HARI.indexOf(x.j.hari as (typeof URUTAN_HARI)[number]) -
+                URUTAN_HARI.indexOf(y.j.hari as (typeof URUTAN_HARI)[number]) ||
+            x.j.jamMulai.localeCompare(y.j.jamMulai),
+    );
+
+    const jadwalRecords: JadwalRecord[] = jadwalRowsRaw.map(({ j, p }) => ({
+        id: `${p.id}-${j.id}`,
+        hari: j.hari,
+        jamMulai: j.jamMulai,
+        jamSelesai: j.jamSelesai,
+        mapel: mapel.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`,
+        guru: guru.get(p.kelas.guruId) ?? '-',
+        ruangan: p.kelas.ruangan,
+        anak: namaAnak.get(p.anakId) ?? tr('text162'),
+        jenjang: p.jenjangSaatDaftar,
+    }));
+
+    // Presensi & Penilaian terbit untuk pendaftaran anak milik saya (diproses paralel)
+    const pendaftaranIds = milikSaya.map((p) => p.id);
+    const milikSayaIds = new Set(pendaftaranIds);
+    const [presensiItems, penilaianTerbit, semuaHasilPenilaian] =
+        await Promise.all([
+            pendaftaranIds.length
+                ? collect(
+                      db.orm.public.Presensi.where((s) =>
+                          s.pendaftaranId.in(pendaftaranIds),
+                      )
+                          .orderBy((s) => s.tanggalPertemuan.desc())
+                          .all(),
+                  )
+                : Promise.resolve([]),
+            collect(
+                db.orm.public.Penilaian.where((p) => p.draf.eq(false)).all(),
+            ),
+            collect(db.orm.public.HasilPenilaian.all()),
+        ]);
+
+    const pendaftaranMap = new Map(milikSaya.map((p) => [p.id, p]));
+    const presensiRaw: {
+        s: (typeof presensiItems)[0];
+        p: (typeof milikSaya)[0];
+    }[] = [];
+    for (const s of presensiItems) {
+        const p = pendaftaranMap.get(s.pendaftaranId);
+        if (p) presensiRaw.push({ s, p });
+    }
+
+    // Catatan pertemuan terbit (materi & PR) dan sesi untuk penilaian
+    const sesiIds = [
+        ...new Set([
+            ...presensiRaw
+                .map(({ s }) => s.sesiPertemuanId)
+                .filter((id): id is number => typeof id === 'number'),
+            ...penilaianTerbit
+                .map((pen) => pen.sesiPertemuanId)
+                .filter((id): id is number => typeof id === 'number'),
+        ]),
+    ];
+    const sesiPertemuanList =
+        sesiIds.length > 0
+            ? await collect(
+                  db.orm.public.SesiPertemuan.where((s) =>
+                      s.id.in(sesiIds),
+                  ).all(),
+              )
+            : [];
+    const sesiById = new Map(sesiPertemuanList.map((s) => [s.id, s]));
+
+    const presensiRecords: PresensiRecord[] = presensiRaw.map(({ s, p }) => {
+        const sesi = s.sesiPertemuanId ? sesiById.get(s.sesiPertemuanId) : null;
+        return {
+            id: `${p.id}-${s.id}`,
+            tanggal: s.tanggalPertemuan,
+            status: s.status as 'hadir' | 'izin' | 'sakit' | 'alpa',
+            mapel: mapel.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`,
+            anak: namaAnak.get(p.anakId) ?? tr('text162'),
+            catatan: s.catatan,
+            materi: sesi && !sesi.catatanDraf ? sesi.catatanMateri : null,
+            pr: sesi && !sesi.catatanDraf ? sesi.catatanPr : null,
+        };
+    });
+
+    const penilaianById = new Map(penilaianTerbit.map((p) => [p.id, p]));
+    const hasilMilikSaya = semuaHasilPenilaian
+        .filter(
+            (h) =>
+                milikSayaIds.has(h.pendaftaranId) &&
+                penilaianById.has(h.penilaianId),
         )
-      : Promise.resolve([]),
-    collect(db.orm.public.Penilaian.where((p) => p.draf.eq(false)).all()),
-    collect(db.orm.public.HasilPenilaian.all()),
-  ]);
+        .map((h) => {
+            const pen = penilaianById.get(h.penilaianId)!;
+            const pend = milikSaya.find((p) => p.id === h.pendaftaranId)!;
+            const sesi = pen.sesiPertemuanId
+                ? sesiById.get(pen.sesiPertemuanId)
+                : null;
+            return {
+                h,
+                pen,
+                pend,
+                sesi,
+                anakNama: namaAnak.get(pend.anakId) ?? tr('text162'),
+                mapelNama:
+                    mapel.get(pend.kelas.mataPelajaranId) ??
+                    `Kelas #${pend.kelasId}`,
+            };
+        })
+        .sort((a, b) => b.pen.tanggal.localeCompare(a.pen.tanggal));
 
-  const pendaftaranMap = new Map(milikSaya.map((p) => [p.id, p]));
-  const presensiRaw: { s: (typeof presensiItems)[0]; p: (typeof milikSaya)[0] }[] = [];
-  for (const s of presensiItems) {
-    const p = pendaftaranMap.get(s.pendaftaranId);
-    if (p) presensiRaw.push({ s, p });
-  }
-  
-  // Catatan pertemuan terbit (materi & PR) dan sesi untuk penilaian
-  const sesiIds = [
-    ...new Set([
-      ...presensiRaw
-        .map(({ s }) => s.sesiPertemuanId)
-        .filter((id): id is number => typeof id === "number"),
-      ...penilaianTerbit
-        .map((pen) => pen.sesiPertemuanId)
-        .filter((id): id is number => typeof id === "number"),
-    ]),
-  ];
-  const sesiPertemuanList =
-    sesiIds.length > 0
-      ? await collect(
-          db.orm.public.SesiPertemuan.where((s) => s.id.in(sesiIds)).all(),
-        )
-      : [];
-  const sesiById = new Map(
-    sesiPertemuanList.map((s) => [s.id, s]),
-  );
-
-  const presensiRecords: PresensiRecord[] = presensiRaw.map(({ s, p }) => {
-    const sesi = s.sesiPertemuanId ? sesiById.get(s.sesiPertemuanId) : null;
-    return {
-      id: `${p.id}-${s.id}`,
-      tanggal: s.tanggalPertemuan,
-      status: s.status as "hadir" | "izin" | "sakit" | "alpa",
-      mapel: mapel.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`,
-      anak: namaAnak.get(p.anakId) ?? tr("text162"),
-      catatan: s.catatan,
-      materi: sesi && !sesi.catatanDraf ? sesi.catatanMateri : null,
-      pr: sesi && !sesi.catatanDraf ? sesi.catatanPr : null,
-    };
-  });
-
-  const penilaianById = new Map(penilaianTerbit.map((p) => [p.id, p]));
-  const hasilMilikSaya = semuaHasilPenilaian
-    .filter((h) => milikSayaIds.has(h.pendaftaranId) && penilaianById.has(h.penilaianId))
-    .map((h) => {
-      const pen = penilaianById.get(h.penilaianId)!;
-      const pend = milikSaya.find((p) => p.id === h.pendaftaranId)!;
-      const sesi = pen.sesiPertemuanId ? sesiById.get(pen.sesiPertemuanId) : null;
-      return {
-        h,
-        pen,
-        pend,
-        sesi,
-        anakNama: namaAnak.get(pend.anakId) ?? tr("text162"),
-        mapelNama: mapel.get(pend.kelas.mataPelajaranId) ?? `Kelas #${pend.kelasId}`,
-      };
-    })
-    .sort((a, b) => b.pen.tanggal.localeCompare(a.pen.tanggal));
-
-  return (
-    <div className="min-h-full bg-slate-50/50 pb-16">
-      {/* Hero Header Full-Bleed (Konsisten dengan Beranda / Akun Anak / Tagihan) */}
-      <section className="relative overflow-hidden bg-[#1d4ed8] text-white pt-8 pb-16 sm:pt-10 sm:pb-20 shadow-xs border-b border-blue-900/20">
-        {/* Gelombang sudut khas Siedu */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          <svg
-            className="absolute -right-8 -top-8 w-72 sm:w-96 md:w-[480px]"
-            viewBox="0 0 400 280"
-            fill="none"
-          >
-            <path d="M120 0 C200 45, 290 110, 400 240 L400 0 Z" fill="white" fillOpacity="0.05" />
-            <path d="M190 0 C260 40, 330 95, 400 180 L400 0 Z" fill="white" fillOpacity="0.07" />
-            <path d="M270 0 C325 30, 365 65, 400 120 L400 0 Z" fill="white" fillOpacity="0.09" />
-          </svg>
-
-          <svg
-            className="absolute -left-8 -bottom-8 w-64 sm:w-80 md:w-[420px]"
-            viewBox="0 0 360 260"
-            fill="none"
-          >
-            <path d="M0 60 C90 105, 180 175, 280 260 L0 260 Z" fill="white" fillOpacity="0.05" />
-            <path d="M0 120 C75 155, 145 205, 210 260 L0 260 Z" fill="white" fillOpacity="0.07" />
-            <path d="M0 180 C50 205, 100 230, 140 260 L0 260 Z" fill="white" fillOpacity="0.08" />
-          </svg>
-        </div>
-
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-xs border border-white/20">
-                <CalendarDays className="size-3.5" />
-                <span>{tr("saHeroBadge")}</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight">
-                {tr("saHeroTitle")}
-              </h1>
-              <p className="text-xs sm:text-sm lg:text-base text-blue-100/90 max-w-2xl leading-relaxed font-medium">
-                {tr("saHeroDesc")}
-              </p>
-            </div>
-
-            {/* Quick Stats Badges */}
-            <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
-              <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
-                <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
-                  {tr("saStatClasses")}
-                </span>
-                <span className="text-xl font-extrabold text-white tabular-nums">
-                  {milikSaya.length}
-                </span>
-              </div>
-              <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
-                <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
-                  {tr("saStatSessions")}
-                </span>
-                <span className="text-xl font-extrabold text-white tabular-nums">
-                  {jadwalRecords.length}
-                </span>
-              </div>
-              <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
-                <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
-                  {tr("saStatAttendance")}
-                </span>
-                <span className="text-xl font-extrabold text-white tabular-nums">
-                  {presensiRecords.length}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Konten: Filter Anak, Tabs, dan Isi (sejajar max-w-7xl di atas) */}
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-6">
-
-      {/* Filter Per Anak jika ada anak terdaftar */}
-      {anak.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/60">
-          <span className="text-xs font-bold text-slate-500 pl-3 pr-1 flex items-center gap-1.5">
-            <Users className="size-3.5" />
-            {tr("saFilterStudent")}
-          </span>
-          <Link
-            href={`/schedule-attendance?tab=${tabAktif}`}
-            className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
-              !anakTerpilihId
-                ? "bg-white text-blue-700 shadow-xs border border-slate-200/80"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            {tr("saAllChildren")}
-          </Link>
-          {anak.map((a) => (
-            <Link
-              key={a.id}
-              href={`/schedule-attendance?tab=${tabAktif}&anakId=${a.id}`}
-              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all flex items-center gap-2 ${
-                anakTerpilihId === a.id
-                  ? "bg-white text-blue-700 shadow-xs border border-slate-200/80"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <StudentAvatar
-                nama={a.nama}
-                jenjang={a.jenjangTerakhir}
-                size="xs"
-                showRing={false}
-                className="size-5 shrink-0"
-              />
-              <span>{a.nama}</span>
-              {a.jenjangTerakhir && (
-                <span className="opacity-70 text-[10px]">({a.jenjangTerakhir})</span>
-              )}
-            </Link>
-          ))}
-        </div>
-      )}
-
-      {/* Modern Card Tabs Switcher */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
-        {[
-          { key: "jadwal", label: tr("saTabSchedule"), count: jadwalRecords.length, icon: CalendarDays },
-          { key: "presensi", label: tr("saTabAttendance"), count: presensiRecords.length, icon: UserCheck },
-          { key: "nilai", label: tr("classAssessmentsTitle"), count: hasilMilikSaya.length, icon: Award },
-        ].map(({ key, label, count, icon: Icon }) => {
-          const isActive = tabAktif === key;
-          const queryParams = new URLSearchParams();
-          queryParams.set("tab", key);
-          if (anakTerpilihId) queryParams.set("anakId", String(anakTerpilihId));
-
-          return (
-            <Link
-              key={key}
-              href={`/schedule-attendance?${queryParams.toString()}`}
-              className={`group relative flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
-                isActive
-                  ? "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20 ring-2 ring-blue-600/20"
-                  : "bg-white border-slate-200/90 text-slate-700 hover:border-blue-300 hover:bg-slate-50/70 shadow-2xs"
-              }`}
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
+    return (
+        <div className="min-h-full bg-slate-50/50 pb-16">
+            {/* Hero Header Full-Bleed (Konsisten dengan Beranda / Akun Anak / Tagihan) */}
+            <section className="relative overflow-hidden bg-[#1d4ed8] text-white pt-8 pb-16 sm:pt-10 sm:pb-20 shadow-xs border-b border-blue-900/20">
+                {/* Gelombang sudut khas Siedu */}
                 <div
-                  className={`size-8 sm:size-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                    isActive ? "bg-white/20 text-white" : "bg-blue-50 text-blue-600 group-hover:bg-blue-100/70"
-                  }`}
+                    className="pointer-events-none absolute inset-0 overflow-hidden"
+                    aria-hidden="true"
                 >
-                  <Icon className="size-4 sm:size-4.5" />
-                </div>
-                <div className="min-w-0">
-                  <span className="block text-xs sm:text-sm font-bold truncate">
-                    {label}
-                  </span>
-                </div>
-              </div>
-              <span
-                className={`ml-2 px-2 py-0.5 rounded-full text-xs font-extrabold tabular-nums shrink-0 ${
-                  isActive
-                    ? "bg-white text-blue-700"
-                    : "bg-slate-100 text-slate-600"
-                }`}
-              >
-                {count}
-              </span>
-            </Link>
-          );
-        })}
-      </div>
+                    <svg
+                        className="absolute -right-8 -top-8 w-72 sm:w-96 md:w-[480px]"
+                        viewBox="0 0 400 280"
+                        fill="none"
+                    >
+                        <path
+                            d="M120 0 C200 45, 290 110, 400 240 L400 0 Z"
+                            fill="white"
+                            fillOpacity="0.05"
+                        />
+                        <path
+                            d="M190 0 C260 40, 330 95, 400 180 L400 0 Z"
+                            fill="white"
+                            fillOpacity="0.07"
+                        />
+                        <path
+                            d="M270 0 C325 30, 365 65, 400 120 L400 0 Z"
+                            fill="white"
+                            fillOpacity="0.09"
+                        />
+                    </svg>
 
-      {tabAktif === "jadwal" ? (
-        <ScheduleTab records={jadwalRecords} />
-      ) : tabAktif === "presensi" ? (
-        <AttendanceTab records={presensiRecords} />
-      ) : (
-        <div className="space-y-4">
-          {hasilMilikSaya.length === 0 ? (
-            <Card className="mt-4 border-dashed border-slate-200 bg-slate-50/50">
-              <CardPad className="py-14 text-center">
-                <div className="mx-auto size-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
-                  <Award className="size-6" />
+                    <svg
+                        className="absolute -left-8 -bottom-8 w-64 sm:w-80 md:w-[420px]"
+                        viewBox="0 0 360 260"
+                        fill="none"
+                    >
+                        <path
+                            d="M0 60 C90 105, 180 175, 280 260 L0 260 Z"
+                            fill="white"
+                            fillOpacity="0.05"
+                        />
+                        <path
+                            d="M0 120 C75 155, 145 205, 210 260 L0 260 Z"
+                            fill="white"
+                            fillOpacity="0.07"
+                        />
+                        <path
+                            d="M0 180 C50 205, 100 230, 140 260 L0 260 Z"
+                            fill="white"
+                            fillOpacity="0.08"
+                        />
+                    </svg>
                 </div>
-                <p className="text-base font-bold text-slate-800">{tr("classAssessmentsTitle")}</p>
-                <p className="mx-auto mt-1 max-w-sm text-xs sm:text-sm text-muted leading-relaxed">
-                  {tr("saNoAssessments")}
-                </p>
-              </CardPad>
-            </Card>
-          ) : (
-            <ul className="grid gap-3.5">
-            {hasilMilikSaya.map(({ h, pen, anakNama, mapelNama, sesi }) => {
-              const statusLabel =
-                h.statusHasil === "dinilai"
-                  ? String(h.nilai)
-                  : h.statusHasil === "tidak_ikut"
-                    ? tr("notParticipated")
-                    : tr("notGraded");
 
-              return (
-                <li key={h.id}>
-                  <Card className="hover:shadow-xs transition-shadow">
-                    <CardPad className="py-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm sm:text-base font-bold text-slate-900">{pen.nama}</p>
-                          <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
-                            <span className="font-semibold text-blue-700">{mapelNama}</span>
-                            <span>•</span>
-                            <span className="font-medium text-slate-700">{anakNama}</span>
-                            <span>•</span>
-                            <span className="tabular-nums">
-                              {new Date(`${pen.tanggal}T00:00:00+07:00`).toLocaleDateString(
-                                locale === "en" ? "en-GB" : "id-ID",
-                                { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" },
-                              )}
-                            </span>
-                            {sesi ? (
-                              <>
-                                <span>•</span>
-                                <span className="font-medium text-slate-600">
-                                  {locale === "en" ? "Session" : "Sesi"}: {new Date(`${sesi.tanggalPertemuan}T00:00:00+07:00`).toLocaleDateString(
-                                    locale === "en" ? "en-GB" : "id-ID",
-                                    { day: "numeric", month: "short", timeZone: "Asia/Jakarta" },
-                                  )}
+                <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="space-y-2">
+                            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur-xs border border-white/20">
+                                <CalendarDays className="size-3.5" />
+                                <span>{tr('saHeroBadge')}</span>
+                            </div>
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight">
+                                {tr('saHeroTitle')}
+                            </h1>
+                            <p className="text-xs sm:text-sm lg:text-base text-blue-100/90 max-w-2xl leading-relaxed font-medium">
+                                {tr('saHeroDesc')}
+                            </p>
+                        </div>
+
+                        {/* Quick Stats Badges */}
+                        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 shrink-0">
+                            <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
+                                <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
+                                    {tr('saStatClasses')}
                                 </span>
-                              </>
-                            ) : null}
-                          </p>
+                                <span className="text-xl font-extrabold text-white tabular-nums">
+                                    {milikSaya.length}
+                                </span>
+                            </div>
+                            <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
+                                <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
+                                    {tr('saStatSessions')}
+                                </span>
+                                <span className="text-xl font-extrabold text-white tabular-nums">
+                                    {jadwalRecords.length}
+                                </span>
+                            </div>
+                            <div className="rounded-2xl bg-white/10 border border-white/15 px-4 py-2.5 backdrop-blur-xs text-center min-w-[85px]">
+                                <span className="block text-[10px] uppercase font-bold text-blue-200 tracking-wider">
+                                    {tr('saStatAttendance')}
+                                </span>
+                                <span className="text-xl font-extrabold text-white tabular-nums">
+                                    {presensiRecords.length}
+                                </span>
+                            </div>
                         </div>
-                        <div className="shrink-0 text-right">
-                          <span
-                            className={`inline-flex rounded-xl px-3 py-1 text-xs font-bold tabular-nums ${
-                              h.statusHasil === "dinilai"
-                                ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                                : h.statusHasil === "tidak_ikut"
-                                  ? "bg-rose-100 text-rose-800 border border-rose-200"
-                                  : "bg-slate-100 text-slate-700 border border-slate-200"
+                    </div>
+                </div>
+            </section>
+
+            {/* Konten: Filter Anak, Tabs, dan Isi (sejajar max-w-7xl di atas) */}
+            <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-6">
+                {/* Filter Per Anak jika ada anak terdaftar */}
+                {anak.length > 1 && (
+                    <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/60">
+                        <span className="text-xs font-bold text-slate-500 pl-3 pr-1 flex items-center gap-1.5">
+                            <Users className="size-3.5" />
+                            {tr('saFilterStudent')}
+                        </span>
+                        <Link
+                            href={`/schedule-attendance?tab=${tabAktif}`}
+                            className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all ${
+                                !anakTerpilihId
+                                    ? 'bg-white text-blue-700 shadow-xs border border-slate-200/80'
+                                    : 'text-slate-600 hover:text-slate-900'
                             }`}
-                          >
-                            {statusLabel}
-                          </span>
-                        </div>
-                      </div>
-                      {h.catatan ? (
-                        <div className="mt-3 rounded-xl border border-slate-200/70 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-700">
-                          <span className="font-semibold text-slate-600 mr-1.5">💬 {tr("teacherNote")}</span>
-                          <span className="leading-relaxed">{h.catatan}</span>
-                        </div>
-                      ) : null}
-                    </CardPad>
-                  </Card>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
-    )}
-      </div>
-    </div>
-  );
+                        >
+                            {tr('saAllChildren')}
+                        </Link>
+                        {anak.map((a) => (
+                            <Link
+                                key={a.id}
+                                href={`/schedule-attendance?tab=${tabAktif}&anakId=${a.id}`}
+                                className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all flex items-center gap-2 ${
+                                    anakTerpilihId === a.id
+                                        ? 'bg-white text-blue-700 shadow-xs border border-slate-200/80'
+                                        : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                            >
+                                <StudentAvatar
+                                    nama={a.nama}
+                                    jenjang={a.jenjangTerakhir}
+                                    size="xs"
+                                    showRing={false}
+                                    className="size-5 shrink-0"
+                                />
+                                <span>{a.nama}</span>
+                                {a.jenjangTerakhir && (
+                                    <span className="opacity-70 text-[10px]">
+                                        ({a.jenjangTerakhir})
+                                    </span>
+                                )}
+                            </Link>
+                        ))}
+                    </div>
+                )}
+
+                {/* Modern Card Tabs Switcher */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
+                    {[
+                        {
+                            key: 'jadwal',
+                            label: tr('saTabSchedule'),
+                            count: jadwalRecords.length,
+                            icon: CalendarDays,
+                        },
+                        {
+                            key: 'presensi',
+                            label: tr('saTabAttendance'),
+                            count: presensiRecords.length,
+                            icon: UserCheck,
+                        },
+                        {
+                            key: 'nilai',
+                            label: tr('classAssessmentsTitle'),
+                            count: hasilMilikSaya.length,
+                            icon: Award,
+                        },
+                    ].map(({ key, label, count, icon: Icon }) => {
+                        const isActive = tabAktif === key;
+                        const queryParams = new URLSearchParams();
+                        queryParams.set('tab', key);
+                        if (anakTerpilihId)
+                            queryParams.set('anakId', String(anakTerpilihId));
+
+                        return (
+                            <Link
+                                key={key}
+                                href={`/schedule-attendance?${queryParams.toString()}`}
+                                className={`group relative flex items-center justify-between p-3.5 sm:p-4 rounded-2xl border transition-all cursor-pointer ${
+                                    isActive
+                                        ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/20 ring-2 ring-blue-600/20'
+                                        : 'bg-white border-slate-200/90 text-slate-700 hover:border-blue-300 hover:bg-slate-50/70 shadow-2xs'
+                                }`}
+                            >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                    <div
+                                        className={`size-8 sm:size-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                                            isActive
+                                                ? 'bg-white/20 text-white'
+                                                : 'bg-blue-50 text-blue-600 group-hover:bg-blue-100/70'
+                                        }`}
+                                    >
+                                        <Icon className="size-4 sm:size-4.5" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <span className="block text-xs sm:text-sm font-bold truncate">
+                                            {label}
+                                        </span>
+                                    </div>
+                                </div>
+                                <span
+                                    className={`ml-2 px-2 py-0.5 rounded-full text-xs font-extrabold tabular-nums shrink-0 ${
+                                        isActive
+                                            ? 'bg-white text-blue-700'
+                                            : 'bg-slate-100 text-slate-600'
+                                    }`}
+                                >
+                                    {count}
+                                </span>
+                            </Link>
+                        );
+                    })}
+                </div>
+
+                {tabAktif === 'jadwal' ? (
+                    <ScheduleTab records={jadwalRecords} />
+                ) : tabAktif === 'presensi' ? (
+                    <AttendanceTab records={presensiRecords} />
+                ) : (
+                    <div className="space-y-4">
+                        {hasilMilikSaya.length === 0 ? (
+                            <Card className="mt-4 border-dashed border-slate-200 bg-slate-50/50">
+                                <CardPad className="py-14 text-center">
+                                    <div className="mx-auto size-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3">
+                                        <Award className="size-6" />
+                                    </div>
+                                    <p className="text-base font-bold text-slate-800">
+                                        {tr('classAssessmentsTitle')}
+                                    </p>
+                                    <p className="mx-auto mt-1 max-w-sm text-xs sm:text-sm text-muted leading-relaxed">
+                                        {tr('saNoAssessments')}
+                                    </p>
+                                </CardPad>
+                            </Card>
+                        ) : (
+                            <ul className="grid gap-3.5">
+                                {hasilMilikSaya.map(
+                                    ({ h, pen, anakNama, mapelNama, sesi }) => {
+                                        const statusLabel =
+                                            h.statusHasil === 'dinilai'
+                                                ? String(h.nilai)
+                                                : h.statusHasil === 'tidak_ikut'
+                                                  ? tr('notParticipated')
+                                                  : tr('notGraded');
+
+                                        return (
+                                            <li key={h.id}>
+                                                <Card className="hover:shadow-xs transition-shadow">
+                                                    <CardPad className="py-4">
+                                                        <div className="flex items-start justify-between gap-3">
+                                                            <div className="min-w-0 flex-1">
+                                                                <p className="text-sm sm:text-base font-bold text-slate-900">
+                                                                    {pen.nama}
+                                                                </p>
+                                                                <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                                                                    <span className="font-semibold text-blue-700">
+                                                                        {
+                                                                            mapelNama
+                                                                        }
+                                                                    </span>
+                                                                    <span>
+                                                                        •
+                                                                    </span>
+                                                                    <span className="font-medium text-slate-700">
+                                                                        {
+                                                                            anakNama
+                                                                        }
+                                                                    </span>
+                                                                    <span>
+                                                                        •
+                                                                    </span>
+                                                                    <span className="tabular-nums">
+                                                                        {new Date(
+                                                                            `${pen.tanggal}T00:00:00+07:00`,
+                                                                        ).toLocaleDateString(
+                                                                            locale ===
+                                                                                'en'
+                                                                                ? 'en-GB'
+                                                                                : 'id-ID',
+                                                                            {
+                                                                                day: 'numeric',
+                                                                                month: 'short',
+                                                                                year: 'numeric',
+                                                                                timeZone:
+                                                                                    'Asia/Jakarta',
+                                                                            },
+                                                                        )}
+                                                                    </span>
+                                                                    {sesi ? (
+                                                                        <>
+                                                                            <span>
+                                                                                •
+                                                                            </span>
+                                                                            <span className="font-medium text-slate-600">
+                                                                                {locale ===
+                                                                                'en'
+                                                                                    ? 'Session'
+                                                                                    : 'Sesi'}
+                                                                                :{' '}
+                                                                                {new Date(
+                                                                                    `${sesi.tanggalPertemuan}T00:00:00+07:00`,
+                                                                                ).toLocaleDateString(
+                                                                                    locale ===
+                                                                                        'en'
+                                                                                        ? 'en-GB'
+                                                                                        : 'id-ID',
+                                                                                    {
+                                                                                        day: 'numeric',
+                                                                                        month: 'short',
+                                                                                        timeZone:
+                                                                                            'Asia/Jakarta',
+                                                                                    },
+                                                                                )}
+                                                                            </span>
+                                                                        </>
+                                                                    ) : null}
+                                                                </p>
+                                                            </div>
+                                                            <div className="shrink-0 text-right">
+                                                                <span
+                                                                    className={`inline-flex rounded-xl px-3 py-1 text-xs font-bold tabular-nums ${
+                                                                        h.statusHasil ===
+                                                                        'dinilai'
+                                                                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                                                            : h.statusHasil ===
+                                                                                'tidak_ikut'
+                                                                              ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                                                                              : 'bg-slate-100 text-slate-700 border border-slate-200'
+                                                                    }`}
+                                                                >
+                                                                    {
+                                                                        statusLabel
+                                                                    }
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        {h.catatan ? (
+                                                            <div className="mt-3 rounded-xl border border-slate-200/70 bg-slate-50 px-3.5 py-2.5 text-xs text-slate-700">
+                                                                <span className="font-semibold text-slate-600 mr-1.5">
+                                                                    💬{' '}
+                                                                    {tr(
+                                                                        'teacherNote',
+                                                                    )}
+                                                                </span>
+                                                                <span className="leading-relaxed">
+                                                                    {h.catatan}
+                                                                </span>
+                                                            </div>
+                                                        ) : null}
+                                                    </CardPad>
+                                                </Card>
+                                            </li>
+                                        );
+                                    },
+                                )}
+                            </ul>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
 }

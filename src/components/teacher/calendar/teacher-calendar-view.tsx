@@ -2,46 +2,62 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Link } from '@/i18n/navigation';
 import {
   ChevronLeft,
   ChevronRight,
-  LayoutGrid,
-  CalendarDays,
-  List,
 } from 'lucide-react';
 import { FilterDropdown } from '@/components/ui/filter-dropdown';
+import { CalendarSessionDrawer } from './calendar-session-drawer';
+
+export interface CalendarTugasItem {
+  id: number;
+  nama: string;
+  nilaiMaksimum: number;
+  draf: boolean;
+}
 
 export interface TeacherCalendarSessionItem {
   kelasId: number;
+  sesiPertemuanId?: number;
   jadwalItemId: number;
   tanggalPertemuan: string; // "YYYY-MM-DD"
   jamMulai: string; // "08:00"
   jamSelesai: string; // "09:30"
   kelasNama: string;
+  kelasDisplayName: string;
   jenjang: string;
+  tingkat?: string | null;
   statusSesi: string; // "terjadwal" | "selesai" | "dibatalkan"
   pesertaCount: number;
   presensiCount: number;
   isPast: boolean;
   isToday: boolean;
+  catatanMateri?: string | null;
+  catatanPr?: string | null;
+  tugasList: CalendarTugasItem[];
 }
 
 export interface ClassOption {
   id: number;
   name: string;
+  displayName: string;
   jenjang: string;
+  tingkat?: string | null;
 }
 
-interface TeacherCalendarViewProps {
+export type ViewMode = 'daily' | 'weekly' | 'monthly' | 'agenda';
+
+export interface TeacherCalendarViewProps {
   sessions: TeacherCalendarSessionItem[];
   classes: ClassOption[];
   todayStr: string; // "YYYY-MM-DD"
   locale: string;
+  hideClassFilter?: boolean;
+  allowedViews?: ViewMode[];
+  defaultView?: ViewMode;
 }
 
-type ViewMode = 'weekly' | 'monthly' | 'agenda';
-type TimeScope = 'week' | 'month' | 'today' | 'all';
+type TimeScope = 'day' | 'week' | 'month' | 'all';
 
 // Helper: Convert YYYY-MM-DD to local Date object
 function parseDate(dateStr: string): Date {
@@ -65,26 +81,47 @@ function getMonday(d: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), diff);
 }
 
-// Day name mappings: must match i18n keys: day_Minggu, day_Senin, ...
+// Day name mappings
 const DAY_KEYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as const;
 
-const JENJANG_THEMES: Record<string, { badge: string }> = {
+// Classroom signature color palettes per jenjang/class theme
+const CLASSROOM_THEMES: Record<string, {
+  cardBorder: string;
+  cardBg: string;
+  dot: string;
+  monthlyChip: string;
+}> = {
   TK: {
-    badge: "bg-pink-100/80 text-pink-700 dark:bg-pink-900/60 dark:text-pink-300 border-pink-200/80 dark:border-pink-800",
+    cardBorder: 'border-l-pink-500 dark:border-l-pink-400',
+    cardBg: 'bg-pink-50/50 hover:bg-pink-50/80 dark:bg-pink-950/20 dark:hover:bg-pink-950/40',
+    dot: 'bg-pink-500',
+    monthlyChip: 'bg-pink-100/90 text-pink-900 border-pink-200 dark:bg-pink-950/60 dark:text-pink-200 dark:border-pink-900/50',
   },
   SD: {
-    badge: "bg-blue-100/80 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 border-blue-200/80 dark:border-blue-800",
+    cardBorder: 'border-l-blue-600 dark:border-l-blue-500',
+    cardBg: 'bg-blue-50/50 hover:bg-blue-50/80 dark:bg-blue-950/20 dark:hover:bg-blue-950/40',
+    dot: 'bg-blue-600',
+    monthlyChip: 'bg-blue-100/90 text-blue-900 border-blue-200 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-900/50',
   },
   SMP: {
-    badge: "bg-emerald-100/80 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-800",
+    cardBorder: 'border-l-emerald-600 dark:border-l-emerald-500',
+    cardBg: 'bg-emerald-50/50 hover:bg-emerald-50/80 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/40',
+    dot: 'bg-emerald-600',
+    monthlyChip: 'bg-emerald-100/90 text-emerald-900 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-900/50',
   },
   SMA: {
-    badge: "bg-amber-100/80 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300 border-amber-200/80 dark:border-amber-800",
+    cardBorder: 'border-l-amber-600 dark:border-l-amber-500',
+    cardBg: 'bg-amber-50/50 hover:bg-amber-50/80 dark:bg-amber-950/20 dark:hover:bg-amber-950/40',
+    dot: 'bg-amber-600',
+    monthlyChip: 'bg-amber-100/90 text-amber-950 border-amber-200 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-900/50',
   },
 };
 
-const DEFAULT_THEME = {
-  badge: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700",
+const DEFAULT_CLASSROOM_THEME = {
+  cardBorder: 'border-l-slate-500 dark:border-l-slate-400',
+  cardBg: 'bg-slate-50/60 hover:bg-slate-100/70 dark:bg-slate-800/40 dark:hover:bg-slate-800/60',
+  dot: 'bg-slate-500',
+  monthlyChip: 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
 };
 
 export function TeacherCalendarView({
@@ -92,23 +129,31 @@ export function TeacherCalendarView({
   classes,
   todayStr,
   locale,
+  hideClassFilter = false,
+  allowedViews = ['daily', 'weekly', 'monthly', 'agenda'],
+  defaultView = 'weekly',
 }: TeacherCalendarViewProps) {
   const t = useTranslations('teacher');
 
-  // View state: 'weekly' (default), 'monthly', or 'agenda'
-  const [viewMode, setViewMode] = useState<ViewMode>('weekly');
+  // View state: 'daily' | 'weekly' | 'monthly' | 'agenda'
+  const [viewMode, setViewMode] = useState<ViewMode>(defaultView);
 
-  // Time scope: 'week' (default) | 'month' | 'today' | 'all'
-  const [timeScope, setTimeScope] = useState<TimeScope>('week');
+  // Time scope: 'day' | 'week' | 'month' | 'all'
+  const [timeScope, setTimeScope] = useState<TimeScope>(
+    defaultView === 'daily' ? 'day' : defaultView === 'monthly' ? 'month' : defaultView === 'agenda' ? 'all' : 'week'
+  );
 
   // Anchor date for navigation (defaults to today)
   const [anchorDateStr, setAnchorDateStr] = useState<string>(todayStr);
 
-  // Class filter state
+  // Classroom Class Filter (single select: all or specific class)
   const [selectedClassId, setSelectedClassId] = useState<number | null>(null);
 
   // Mobile selected day in weekly view
   const [mobileSelectedDate, setMobileSelectedDate] = useState<string>(todayStr);
+
+  // Drawer state for selected session
+  const [selectedSession, setSelectedSession] = useState<TeacherCalendarSessionItem | null>(null);
 
   const anchorDate = useMemo(() => parseDate(anchorDateStr), [anchorDateStr]);
 
@@ -150,7 +195,6 @@ export function TeacherCalendarView({
     const year = anchorDate.getFullYear();
     const month = anchorDate.getMonth(); // 0-indexed
     const firstDayIndex = new Date(year, month, 1).getDay(); // 0 is Sunday
-    // Adjust so Monday is 0, Sunday is 6
     const adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysInPrevMonth = new Date(year, month, 0).getDate();
@@ -204,8 +248,17 @@ export function TeacherCalendarView({
     return days;
   }, [anchorDate, todayStr]);
 
-  // Calculate dynamic date range label for toolbar
+  // Dynamic range label for Google Classroom header
   const rangeLabel = useMemo(() => {
+    if (viewMode === 'daily') {
+      return anchorDate.toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+    }
+
     if (viewMode === 'monthly' || timeScope === 'month') {
       return anchorDate.toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', {
         month: 'long',
@@ -225,22 +278,18 @@ export function TeacherCalendarView({
       return `${startStr} – ${endStr}`;
     }
 
-    if (timeScope === 'today') {
-      const d = parseDate(anchorDateStr);
-      return d.toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', {
-        weekday: 'long',
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      });
-    }
-
     return t('allPeriods') || 'Semua Jadwal';
-  }, [viewMode, timeScope, anchorDateStr, anchorDate, locale, t]);
+  }, [viewMode, timeScope, anchorDate, locale, t]);
 
   // Stepper handlers
   const handlePrev = () => {
-    if (viewMode === 'monthly' || timeScope === 'month') {
+    if (viewMode === 'daily') {
+      const d = parseDate(anchorDateStr);
+      d.setDate(d.getDate() - 1);
+      const newDateStr = formatDate(d);
+      setAnchorDateStr(newDateStr);
+      setMobileSelectedDate(newDateStr);
+    } else if (viewMode === 'monthly' || timeScope === 'month') {
       const d = parseDate(anchorDateStr);
       d.setMonth(d.getMonth() - 1);
       const newDateStr = formatDate(d);
@@ -252,17 +301,17 @@ export function TeacherCalendarView({
       const newDateStr = formatDate(d);
       setAnchorDateStr(newDateStr);
       setMobileSelectedDate(newDateStr);
-    } else if (timeScope === 'today') {
-      const d = parseDate(anchorDateStr);
-      d.setDate(d.getDate() - 1);
-      const newDateStr = formatDate(d);
-      setAnchorDateStr(newDateStr);
-      setMobileSelectedDate(newDateStr);
     }
   };
 
   const handleNext = () => {
-    if (viewMode === 'monthly' || timeScope === 'month') {
+    if (viewMode === 'daily') {
+      const d = parseDate(anchorDateStr);
+      d.setDate(d.getDate() + 1);
+      const newDateStr = formatDate(d);
+      setAnchorDateStr(newDateStr);
+      setMobileSelectedDate(newDateStr);
+    } else if (viewMode === 'monthly' || timeScope === 'month') {
       const d = parseDate(anchorDateStr);
       d.setMonth(d.getMonth() + 1);
       const newDateStr = formatDate(d);
@@ -274,12 +323,6 @@ export function TeacherCalendarView({
       const newDateStr = formatDate(d);
       setAnchorDateStr(newDateStr);
       setMobileSelectedDate(newDateStr);
-    } else if (timeScope === 'today') {
-      const d = parseDate(anchorDateStr);
-      d.setDate(d.getDate() + 1);
-      const newDateStr = formatDate(d);
-      setAnchorDateStr(newDateStr);
-      setMobileSelectedDate(newDateStr);
     }
   };
 
@@ -288,15 +331,23 @@ export function TeacherCalendarView({
     setMobileSelectedDate(todayStr);
   };
 
-  // Filter sessions based on timeScope and selectedClassId
+  // Base filter predicate (Class only, pure Classroom style)
+  const matchesClass = (s: TeacherCalendarSessionItem) => {
+    if (selectedClassId !== null && s.kelasId !== selectedClassId) {
+      return false;
+    }
+    return true;
+  };
+
+  // Filter sessions based on timeScope and class
   const scopedSessions = useMemo(() => {
     return sessions.filter((s) => {
-      // Class filter
-      if (selectedClassId !== null && s.kelasId !== selectedClassId) {
-        return false;
+      if (!matchesClass(s)) return false;
+
+      if (viewMode === 'daily') {
+        return s.tanggalPertemuan === anchorDateStr;
       }
 
-      // Time scope filter
       if (viewMode === 'monthly' || timeScope === 'month') {
         const ymPrefix = anchorDateStr.slice(0, 7); // "YYYY-MM"
         return s.tanggalPertemuan.startsWith(ymPrefix);
@@ -310,11 +361,6 @@ export function TeacherCalendarView({
         return s.tanggalPertemuan >= mondayStr && s.tanggalPertemuan <= sundayStr;
       }
 
-      if (timeScope === 'today') {
-        return s.tanggalPertemuan === anchorDateStr;
-      }
-
-      // 'all'
       return true;
     });
   }, [sessions, selectedClassId, viewMode, timeScope, anchorDateStr, anchorDate]);
@@ -335,7 +381,7 @@ export function TeacherCalendarView({
     const map = new Map<string, TeacherCalendarSessionItem[]>();
     for (const d of weekDays) {
       const list = sessions.filter((s) => {
-        if (selectedClassId !== null && s.kelasId !== selectedClassId) return false;
+        if (!matchesClass(s)) return false;
         return s.tanggalPertemuan === d.dateStr;
       });
       list.sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
@@ -348,7 +394,7 @@ export function TeacherCalendarView({
   const sessionsByAnyDate = useMemo(() => {
     const map = new Map<string, TeacherCalendarSessionItem[]>();
     for (const s of sessions) {
-      if (selectedClassId !== null && s.kelasId !== selectedClassId) continue;
+      if (!matchesClass(s)) continue;
       const list = map.get(s.tanggalPertemuan) ?? [];
       list.push(s);
       map.set(s.tanggalPertemuan, list);
@@ -356,639 +402,709 @@ export function TeacherCalendarView({
     return map;
   }, [sessions, selectedClassId]);
 
+  // Sessions for Daily View
+  const dailySessions = useMemo(() => {
+    return sessions
+      .filter((s) => matchesClass(s) && s.tanggalPertemuan === anchorDateStr)
+      .sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
+  }, [sessions, selectedClassId, anchorDateStr]);
+
+  const dailyDayIndex = anchorDate.getDay();
+  const dailyDayKey = DAY_KEYS[dailyDayIndex];
+  const dailyDayName = t(`day_${dailyDayKey}`);
+  const dailyFullDateFormatted = anchorDate.toLocaleDateString(
+    locale === 'en' ? 'en-GB' : 'id-ID',
+    {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }
+  );
+  const isDailyToday = anchorDateStr === todayStr;
+
   return (
-    <div className="space-y-4">
+    <>
       {/* ========================================================= */}
-      {/* 1. UNIFIED CALENDAR TOOLBAR (Cal.com / Google Calendar)    */}
+      {/* UNIFIED GOOGLE CLASSROOM CALENDAR CONTAINER (SINGLE CARD) */}
       {/* ========================================================= */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-2xs sm:p-4 lg:flex-row lg:items-center lg:justify-between">
-        {/* Left: Stepper + Date Range Label */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="inline-flex items-center rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/80 p-0.5 shadow-2xs">
-            <button
-              type="button"
-              onClick={handlePrev}
-              disabled={viewMode === 'agenda'}
-              aria-label={t('prevPeriod') || 'Sebelumnya'}
-              title={t('prevPeriod') || 'Sebelumnya'}
-              className="grid size-8 place-items-center rounded-lg text-slate-700 dark:text-slate-300 transition-colors hover:bg-white dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:shadow-2xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
-            >
-              <ChevronLeft className="size-4" />
-            </button>
-            <button
-              type="button"
-              onClick={handleToday}
-              className="px-3 py-1 text-xs font-bold text-blue-600 dark:text-blue-400 transition-colors hover:bg-white dark:hover:bg-slate-700 hover:shadow-2xs rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
-            >
-              {t('todayLabel') || 'Hari Ini'}
-            </button>
-            <button
-              type="button"
-              onClick={handleNext}
-              disabled={viewMode === 'agenda'}
-              aria-label={t('nextPeriod') || 'Berikutnya'}
-              title={t('nextPeriod') || 'Berikutnya'}
-              className="grid size-8 place-items-center rounded-lg text-slate-700 dark:text-slate-300 transition-colors hover:bg-white dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:shadow-2xs disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
-            >
-              <ChevronRight className="size-4" />
-            </button>
+      <div className="overflow-hidden rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
+        {/* TOP BAR: Class Filter + Navigation Stepper & Date + View Switcher */}
+        <div className="flex flex-col gap-3 border-b border-slate-200 dark:border-slate-800 p-3 sm:p-4 sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-slate-900">
+          {/* Left Side: Classroom Class Selector + Navigation Stepper */}
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
+            {/* Google Classroom Class Selector Dropdown (Hidden if hideClassFilter is true) */}
+            {!hideClassFilter && classes.length > 0 && (
+              <>
+                <div className="w-56 sm:w-64">
+                  <FilterDropdown
+                    value={String(selectedClassId ?? '')}
+                    onChange={(val) => setSelectedClassId(val ? Number(val) : null)}
+                    options={[
+                      { value: '', label: 'Semua kelas' },
+                      ...classes.map((c) => ({
+                        value: String(c.id),
+                        label: c.displayName,
+                      })),
+                    ]}
+                    size="sm"
+                    ariaLabel="Pilih kelas"
+                  />
+                </div>
+                <div className="h-5 w-px bg-slate-200 dark:border-slate-700 hidden sm:block" />
+              </>
+            )}
+
+            {/* Stepper: Today Button + Chevron Left + Date Range Label + Chevron Right */}
+            <div className="inline-flex items-center gap-1 sm:gap-2">
+              <button
+                type="button"
+                onClick={handleToday}
+                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 shadow-2xs mr-0.5 sm:mr-1"
+              >
+                {t('todayLabel') || 'Hari ini'}
+              </button>
+              <button
+                type="button"
+                onClick={handlePrev}
+                disabled={viewMode === 'agenda'}
+                aria-label={t('prevPeriod') || 'Sebelumnya'}
+                title={t('prevPeriod') || 'Sebelumnya'}
+                className="grid size-8 place-items-center rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+              >
+                <ChevronLeft className="size-4" />
+              </button>
+
+              <h2 className="font-display text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-base px-1 select-none whitespace-nowrap">
+                {rangeLabel}
+              </h2>
+
+              <button
+                type="button"
+                onClick={handleNext}
+                disabled={viewMode === 'agenda'}
+                aria-label={t('nextPeriod') || 'Berikutnya'}
+                title={t('nextPeriod') || 'Berikutnya'}
+                className="grid size-8 place-items-center rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+              >
+                <ChevronRight className="size-4" />
+              </button>
+            </div>
           </div>
 
-          <h2 className="font-display text-sm font-extrabold tracking-tight text-slate-950 dark:text-slate-50 sm:text-base">
-            {rangeLabel}
-          </h2>
-        </div>
+          {/* Right Side: View Mode Tabs (Harian / Kisi Mingguan / Kisi Bulanan / Agenda Kompak) */}
+          <div
+            className="inline-flex rounded-lg bg-slate-200/60 dark:bg-slate-950/70 p-1 border border-slate-300/80 dark:border-slate-800 shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.5)] self-start sm:self-auto gap-1"
+            role="group"
+            aria-label="Mode tampilan kalender"
+          >
+            {allowedViews.includes('daily') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('daily');
+                  setTimeScope('day');
+                }}
+                aria-label="Tampilan Harian"
+                title="Tampilan Harian"
+                className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                  viewMode === 'daily'
+                    ? 'bg-slate-100 dark:bg-slate-800/90 text-blue-600 dark:text-blue-400 font-bold shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.6)] border border-slate-300/70 dark:border-slate-700/70'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-slate-800/40 border border-transparent'
+                }`}
+              >
+                <span>Harian</span>
+              </button>
+            )}
 
-        {/* Center / Right: Filter & View Switcher */}
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          {/* Class Filter Dropdown */}
-          {classes.length > 1 && (
-            <FilterDropdown
-              value={String(selectedClassId ?? '')}
-              onChange={(val) => setSelectedClassId(val ? Number(val) : null)}
-              options={[
-                { value: '', label: t('allClasses') || 'Semua Kelas' },
-                ...classes.map((c) => ({
-                  value: String(c.id),
-                  label: `${c.name} (${c.jenjang})`,
-                })),
-              ]}
-              size="sm"
-              ariaLabel={t('filterClass')}
-            />
-          )}
+            {allowedViews.includes('weekly') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('weekly');
+                  setTimeScope('week');
+                }}
+                aria-label={t('weeklyGrid') || 'Kisi Mingguan'}
+                title={t('weeklyGrid') || 'Kisi Mingguan'}
+                className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                  viewMode === 'weekly'
+                    ? 'bg-slate-100 dark:bg-slate-800/90 text-blue-600 dark:text-blue-400 font-bold shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.6)] border border-slate-300/70 dark:border-slate-700/70'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-slate-800/40 border border-transparent'
+                }`}
+              >
+                <span>{t('weeklyGrid') || 'Kisi Mingguan'}</span>
+              </button>
+            )}
 
-          {/* View Mode Toggle: Weekly vs Monthly vs Agenda */}
-          <div className="inline-flex rounded-xl bg-slate-100/90 dark:bg-slate-800/90 p-0.5 shadow-2xs" role="group">
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode('weekly');
-                setTimeScope('week');
-              }}
-              aria-label={t('weeklyGrid') || 'Kisi Mingguan'}
-              title={t('weeklyGrid') || 'Kisi Mingguan'}
-              className={`inline-flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                viewMode === 'weekly'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
-              }`}
-            >
-              <LayoutGrid className="size-4" />
-              <span className="hidden md:inline">{t('weeklyGrid') || 'Mingguan'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode('monthly');
-                setTimeScope('month');
-              }}
-              aria-label={t('monthlyGrid') || 'Kisi Bulanan'}
-              title={t('monthlyGrid') || 'Kisi Bulanan'}
-              className={`inline-flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                viewMode === 'monthly'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
-              }`}
-            >
-              <CalendarDays className="size-4" />
-              <span className="hidden md:inline">{t('monthlyGrid') || 'Bulanan'}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setViewMode('agenda');
-                setTimeScope('all');
-              }}
-              aria-label={t('agendaView') || 'Agenda Kompak'}
-              title={t('agendaView') || 'Agenda Kompak'}
-              className={`inline-flex items-center gap-2 rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                viewMode === 'agenda'
-                  ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-2xs'
-                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
-              }`}
-            >
-              <List className="size-4" />
-              <span className="hidden md:inline">{t('agendaView') || 'Agenda'}</span>
-            </button>
+            {allowedViews.includes('monthly') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('monthly');
+                  setTimeScope('month');
+                }}
+                aria-label={t('monthlyGrid') || 'Kisi Bulanan'}
+                title={t('monthlyGrid') || 'Kisi Bulanan'}
+                className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                  viewMode === 'monthly'
+                    ? 'bg-slate-100 dark:bg-slate-800/90 text-blue-600 dark:text-blue-400 font-bold shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.6)] border border-slate-300/70 dark:border-slate-700/70'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-slate-800/40 border border-transparent'
+                }`}
+              >
+                <span>{t('monthlyGrid') || 'Kisi Bulanan'}</span>
+              </button>
+            )}
+
+            {allowedViews.includes('agenda') && (
+              <button
+                type="button"
+                onClick={() => {
+                  setViewMode('agenda');
+                  setTimeScope('all');
+                }}
+                aria-label={t('agendaView') || 'Agenda Kompak'}
+                title={t('agendaView') || 'Agenda Kompak'}
+                className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                  viewMode === 'agenda'
+                    ? 'bg-slate-100 dark:bg-slate-800/90 text-blue-600 dark:text-blue-400 font-bold shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.6)] border border-slate-300/70 dark:border-slate-700/70'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-slate-800/40 border border-transparent'
+                }`}
+              >
+                <span>{t('agendaView') || 'Agenda Kompak'}</span>
+              </button>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* ========================================================= */}
-      {/* 2. MODE A: WEEKLY TIMETABLE GRID (7 Columns)              */}
-      {/* ========================================================= */}
-      {viewMode === 'weekly' && (
-        <div className="space-y-4">
-          {/* Desktop 7-Column Timetable Grid (lg+) */}
-          <div className="hidden lg:block overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
-            {/* Header: 7 Days */}
-            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 divide-x divide-slate-100 dark:divide-slate-800/70 bg-slate-50/70 dark:bg-slate-800/50">
-              {weekDays.map((d) => (
+        {/* ========================================================= */}
+        {/* 1. MODE A: DAILY SCHEDULE VIEW (COMPACT AGENDA STYLE)     */}
+        {/* ========================================================= */}
+        {viewMode === 'daily' && (
+          <div>
+            {dailySessions.length === 0 ? (
+              <div className="p-10 text-center space-y-3">
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                  {t('noUpcomingSessions') || 'Tidak ada sesi pertemuan pada tanggal ini.'}
+                </p>
+                {anchorDateStr !== todayStr && (
+                  <button
+                    type="button"
+                    onClick={handleToday}
+                    className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                  >
+                    Kembali ke Hari Ini
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div>
+                {/* Date Header Ribbon */}
                 <div
-                  key={d.dateStr}
-                  className={`p-3 text-center transition-colors ${
-                    d.isToday ? 'bg-blue-50/90 dark:bg-blue-950/40' : ''
+                  className={`flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-4 py-2.5 ${
+                    isDailyToday
+                      ? 'bg-blue-50/80 dark:bg-blue-950/50 text-blue-900 dark:text-blue-200 font-bold'
+                      : 'bg-slate-50/80 dark:bg-slate-800/60 text-slate-900 dark:text-slate-100'
                   }`}
                 >
-                  <p
-                    className={`text-[11px] font-extrabold uppercase tracking-wider ${
-                      d.isToday ? 'text-blue-700 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-tight">
+                      {dailyDayName}, {dailyFullDateFormatted}
+                    </span>
+                    {isDailyToday && (
+                      <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[9px] font-bold text-white">
+                        {t('todayLabel') || 'HARI INI'}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 tabular-nums">
+                    {dailySessions.length} Sesi
+                  </span>
+                </div>
+
+                {/* Scannable Classroom Rows */}
+                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {dailySessions.map((session) => {
+                    const theme = CLASSROOM_THEMES[session.jenjang] ?? DEFAULT_CLASSROOM_THEME;
+                    const isCancelled = session.statusSesi === 'dibatalkan';
+                    const isFilled = session.presensiCount > 0;
+                    const hasTasks = session.tugasList.length > 0;
+
+                    return (
+                      <div
+                        key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
+                        onClick={() => setSelectedSession(session)}
+                        className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-l-4 ${theme.cardBorder} ${
+                          isCancelled ? 'opacity-70' : ''
+                        }`}
+                      >
+                        {/* Left: Time + Full Class Display Name (No Pill) */}
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400 shrink-0">
+                            {session.jamMulai} – {session.jamSelesai}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="font-display text-sm font-bold text-slate-950 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                              {session.kelasDisplayName}
+                            </p>
+                          </div>
+                          {hasTasks && (
+                            <span className="hidden md:inline-flex rounded bg-amber-100/90 dark:bg-amber-950/60 px-2 py-0.5 text-[10px] font-bold text-amber-900 dark:text-amber-200 shrink-0">
+                              {session.tugasList.length} Tugas
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Right: Participant Count + Status + Action Link */}
+                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                          <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
+                            {isCancelled
+                              ? 'Dibatalkan'
+                              : isFilled
+                              ? `${session.presensiCount}/${session.pesertaCount} hadir`
+                              : 'Belum presensi'}
+                          </span>
+                          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">
+                            Rincian Sesi →
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* 2. MODE B: WEEKLY TIMETABLE GRID (CLASSROOM SCHEDULE)     */}
+        {/* ========================================================= */}
+        {viewMode === 'weekly' && (
+          <div>
+            {/* Desktop 7-Column Timetable Grid (lg+) */}
+            <div className="hidden lg:block">
+              {/* Header: 7 Days (Senin - Minggu) */}
+              <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 divide-x divide-slate-100 dark:divide-slate-800/70 bg-slate-50/80 dark:bg-slate-800/50">
+                {weekDays.map((d) => (
+                  <div
+                    key={d.dateStr}
+                    className={`p-3 text-center transition-colors ${
+                      d.isToday ? 'bg-blue-50/80 dark:bg-blue-950/40' : ''
                     }`}
                   >
-                    {d.dayName}
-                  </p>
-                  <div className="mt-1 flex items-center justify-center">
-                    <span
-                      className={`size-7 rounded-full flex items-center justify-center text-xs font-bold tabular-nums transition-all ${
-                        d.isToday
-                          ? 'bg-blue-600 text-white shadow-xs ring-2 ring-blue-600/30'
-                          : 'text-slate-900 dark:text-slate-100'
+                    <p
+                      className={`text-[11px] font-semibold uppercase tracking-wider ${
+                        d.isToday ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-slate-500 dark:text-slate-400'
                       }`}
                     >
-                      {d.dayNum}
-                    </span>
+                      {d.dayName}
+                    </p>
+                    <div className="mt-1 flex items-center justify-center">
+                      <span
+                        className={`size-8 rounded-full flex items-center justify-center text-sm font-bold tabular-nums transition-all ${
+                          d.isToday
+                            ? 'bg-blue-600 text-white shadow-xs ring-2 ring-blue-600/20'
+                            : 'text-slate-900 dark:text-slate-100'
+                        }`}
+                      >
+                        {d.dayNum}
+                      </span>
+                    </div>
                   </div>
-                  {d.isToday && (
-                    <span className="mt-1 inline-block text-[9px] font-extrabold uppercase tracking-tight text-blue-600 dark:text-blue-400">
-                      {t('todayLabel') || 'HARI INI'}
-                    </span>
-                  )}
+                ))}
+              </div>
+
+              {/* Body: 7 Day Columns */}
+              <div className="grid grid-cols-7 divide-x divide-slate-100 dark:divide-slate-800/70 min-h-[480px] bg-slate-50/20 dark:bg-slate-950/20">
+                {weekDays.map((d) => {
+                  const daySessions = sessionsByWeekDay.get(d.dateStr) ?? [];
+                  return (
+                    <div
+                      key={d.dateStr}
+                      className={`p-2 space-y-2.5 transition-colors ${
+                        d.isToday ? 'bg-blue-50/20 dark:bg-blue-950/20' : ''
+                      }`}
+                    >
+                      {daySessions.length === 0 ? (
+                        <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-slate-200/80 dark:border-slate-800 p-2 text-center">
+                          <span className="text-xs text-slate-400 dark:text-slate-600">-</span>
+                        </div>
+                      ) : (
+                        daySessions.map((session) => {
+                          const theme = CLASSROOM_THEMES[session.jenjang] ?? DEFAULT_CLASSROOM_THEME;
+                          const isCancelled = session.statusSesi === 'dibatalkan';
+                          const isFilled = session.presensiCount > 0;
+                          const hasTasks = session.tugasList.length > 0;
+
+                          return (
+                            <div
+                              key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
+                              onClick={() => setSelectedSession(session)}
+                              className={`group relative flex flex-col justify-between rounded-xl border border-l-4 border-slate-200/80 dark:border-slate-800 p-3 shadow-2xs transition-all duration-150 hover:shadow-xs cursor-pointer ${theme.cardBorder} ${theme.cardBg} ${
+                                session.isToday && !isCancelled ? 'ring-1 ring-blue-500/20 dark:ring-blue-500/30' : ''
+                              } ${isCancelled ? 'opacity-70' : ''}`}
+                            >
+                              <div>
+                                {/* Time without Pill Badge */}
+                                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                                  <span className="tabular-nums">
+                                    {session.jamMulai} – {session.jamSelesai}
+                                  </span>
+                                </div>
+
+                                {/* Class Title: Nama Mapel · Jenjang (Tingkat) */}
+                                <h4 className="mt-1 font-display text-xs font-bold leading-snug text-slate-950 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                                  {session.kelasDisplayName}
+                                </h4>
+
+                                {/* Classroom Task indicator if present */}
+                                {hasTasks && (
+                                  <div className="mt-1.5 inline-flex items-center gap-1 rounded bg-amber-100/90 dark:bg-amber-950/60 px-1.5 py-0.5 text-[9px] font-bold text-amber-900 dark:text-amber-200">
+                                    <span>{session.tugasList.length} Tugas Diberikan</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Attendance status */}
+                              <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/80 flex items-center justify-between text-[10px]">
+                                <span className="font-semibold text-slate-600 dark:text-slate-400">
+                                  {isCancelled
+                                    ? 'Dibatalkan'
+                                    : isFilled
+                                    ? `${session.presensiCount}/${session.pesertaCount} hadir`
+                                    : 'Belum presensi'}
+                                </span>
+                                <span className="font-bold text-blue-600 dark:text-blue-400 opacity-90 group-hover:opacity-100">
+                                  Buka →
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Mobile / Tablet Day Carousel (<lg) */}
+            <div className="lg:hidden p-3 sm:p-4 space-y-3">
+              {/* Day Selector Tabs */}
+              <div className="flex overflow-x-auto pb-1 gap-2 scrollbar-hide">
+                {weekDays.map((d) => {
+                  const daySessions = sessionsByWeekDay.get(d.dateStr) ?? [];
+                  const isSelected = d.dateStr === mobileSelectedDate;
+                  return (
+                    <button
+                      key={d.dateStr}
+                      type="button"
+                      onClick={() => setMobileSelectedDate(d.dateStr)}
+                      className={`flex-shrink-0 flex flex-col items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                        isSelected
+                          ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/30'
+                          : d.isToday
+                          ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                          : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
+                      }`}
+                    >
+                      <span className="text-[10px] uppercase font-bold">{d.dayName.slice(0, 3)}</span>
+                      <span className="text-sm font-extrabold tabular-nums">{d.dayNum}</span>
+                      {daySessions.length > 0 && (
+                        <span
+                          className={`mt-0.5 rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                            isSelected ? 'bg-white/20 text-white' : 'bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300'
+                          }`}
+                        >
+                          {daySessions.length}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Selected Day Session Cards on Mobile */}
+              <div className="space-y-3">
+                {(() => {
+                  const activeSessions = sessionsByWeekDay.get(mobileSelectedDate) ?? [];
+                  if (activeSessions.length === 0) {
+                    return (
+                      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center shadow-2xs">
+                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                          {t('noScheduleToday') || 'Tidak ada jadwal pada tanggal ini'}
+                        </p>
+                      </div>
+                    );
+                  }
+                  return activeSessions.map((session) => {
+                    const theme = CLASSROOM_THEMES[session.jenjang] ?? DEFAULT_CLASSROOM_THEME;
+                    const isCancelled = session.statusSesi === 'dibatalkan';
+                    const isFilled = session.presensiCount > 0;
+                    const hasTasks = session.tugasList.length > 0;
+
+                    return (
+                      <div
+                        key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
+                        onClick={() => setSelectedSession(session)}
+                        className={`group relative flex flex-col justify-between rounded-2xl border border-l-4 border-slate-200/90 dark:border-slate-800 p-4 shadow-2xs transition-all hover:shadow-xs cursor-pointer ${theme.cardBorder} ${theme.cardBg} ${
+                          session.isToday && !isCancelled ? 'ring-1 ring-blue-500/20 dark:ring-blue-500/30' : ''
+                        } ${isCancelled ? 'opacity-70' : ''}`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <span className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400">
+                              {session.jamMulai} – {session.jamSelesai}
+                            </span>
+                            <h4 className="mt-1 font-display text-sm font-bold text-slate-950 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                              {session.kelasDisplayName}
+                            </h4>
+                            {hasTasks && (
+                              <div className="mt-2 inline-flex items-center gap-1 rounded bg-amber-100/90 dark:bg-amber-950/60 px-2 py-0.5 text-[10px] font-bold text-amber-900 dark:text-amber-200">
+                                <span>{session.tugasList.length} Tugas Diberikan</span>
+                              </div>
+                            )}
+                          </div>
+                          <span className="shrink-0 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                            {isCancelled
+                              ? 'Batal'
+                              : isFilled
+                              ? `${session.presensiCount}/${session.pesertaCount} hadir`
+                              : 'Belum presensi'}
+                          </span>
+                        </div>
+
+                        <div className="mt-3.5 pt-2.5 border-t border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-xs">
+                          <span className="text-slate-500 dark:text-slate-400 font-medium">
+                            {session.pesertaCount} siswa terdaftar
+                          </span>
+                          <span className="font-bold text-blue-600 dark:text-blue-400">
+                            Buka Sesi →
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* 3. MODE C: MONTHLY FULL-GRID (CLASSROOM / GOOGLE CALENDAR) */}
+        {/* ========================================================= */}
+        {viewMode === 'monthly' && (
+          <div>
+            {/* Day Headers (Mon - Sun) */}
+            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 divide-x divide-slate-100 dark:divide-slate-800/70 bg-slate-50/80 dark:bg-slate-800/50 text-center">
+              {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map((day) => (
+                <div key={day} className="py-3 text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                  <span className="hidden sm:inline">{day}</span>
+                  <span className="sm:hidden">{day.slice(0, 3)}</span>
                 </div>
               ))}
             </div>
 
-            {/* Body: 7 Day Columns */}
-            <div className="grid grid-cols-7 divide-x divide-slate-100 dark:divide-slate-800/70 min-h-[420px] bg-slate-50/20 dark:bg-slate-950/20">
-              {weekDays.map((d) => {
-                const daySessions = sessionsByWeekDay.get(d.dateStr) ?? [];
+            {/* 35 / 42 Day Grid */}
+            <div className="grid grid-cols-7 divide-x divide-y divide-slate-100 dark:divide-slate-800/70 bg-slate-50/20 dark:bg-slate-950/20">
+              {monthGridDays.map((day, idx) => {
+                const daySessions = sessionsByAnyDate.get(day.dateStr) ?? [];
+                const hasSessions = daySessions.length > 0;
+
                 return (
                   <div
-                    key={d.dateStr}
-                    className={`p-2 space-y-3 transition-colors ${
-                      d.isToday ? 'bg-blue-50/20 dark:bg-blue-950/20' : ''
-                    }`}
+                    key={`${day.dateStr}-${idx}`}
+                    className={`min-h-[95px] sm:min-h-[120px] p-2 transition-colors flex flex-col justify-between ${
+                      day.isCurrentMonth ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/60 dark:bg-slate-950/50 text-slate-400 dark:text-slate-600'
+                    } ${day.isToday ? 'bg-blue-50/30 dark:bg-blue-950/30' : ''}`}
                   >
-                    {daySessions.length === 0 ? (
-                      <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-slate-200/80 dark:border-slate-800 p-2 text-center">
-                        <span className="text-xs font-medium text-slate-400 dark:text-slate-600">-</span>
-                      </div>
-                    ) : (
-                      daySessions.map((session) => {
-                        const theme = JENJANG_THEMES[session.jenjang] ?? DEFAULT_THEME;
-                        const isCancelled = session.statusSesi === 'dibatalkan';
-                        const isFilled = session.presensiCount > 0;
-                        const attendanceUrl = `/teacher/classes/${session.kelasId}/sessions/${session.tanggalPertemuan}/attendance?sesi=${session.jadwalItemId}`;
-
-                        const statusConfig = isCancelled
-                          ? {
-                              badgeBg: 'bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-900/60',
-                              badgeText: 'Batal',
-                              actionText: t('sessionCancelled') || 'Dibatalkan',
-                              actionStyle: 'text-rose-600 dark:text-rose-400',
-                            }
-                          : isFilled
-                          ? {
-                              badgeBg: 'bg-emerald-50 text-emerald-800 border-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-900/60',
-                              badgeText: `${session.presensiCount}/${session.pesertaCount}`,
-                              actionText: 'Lihat →',
-                              actionStyle: 'text-slate-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400',
-                            }
-                          : session.isToday
-                          ? {
-                              badgeBg: 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/60',
-                              badgeText: 'Hari Ini',
-                              actionText: 'Presensi →',
-                              actionStyle: 'text-blue-600 dark:text-blue-400 font-bold group-hover:translate-x-0.5 transition-transform',
-                            }
-                          : {
-                              badgeBg: 'bg-slate-100 text-slate-600 border-slate-200/80 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
-                              badgeText: 'Terjadwal',
-                              actionText: 'Detail →',
-                              actionStyle: 'text-slate-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400',
-                            };
-
-                        return (
-                          <Link
-                            key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
-                            href={isCancelled ? '#' : attendanceUrl}
-                            className={`group relative flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 p-3 shadow-2xs transition-all duration-150 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xs cursor-pointer ${
-                              session.isToday && !isCancelled ? 'ring-1 ring-blue-500/20 dark:ring-blue-500/30' : ''
-                            } ${isCancelled ? 'opacity-70 pointer-events-none' : ''}`}
-                          >
-                            <div>
-                              {/* Top Row: Time Chip & Status Pill */}
-                              <div className="flex items-center justify-between gap-1">
-                                <span className="inline-flex items-center rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-bold tabular-nums text-slate-700 dark:text-slate-300">
-                                  {session.jamMulai} - {session.jamSelesai}
-                                </span>
-                                <span
-                                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[9px] font-bold ${statusConfig.badgeBg}`}
-                                >
-                                  {statusConfig.badgeText}
-                                </span>
-                              </div>
-
-                              {/* Jenjang Badge + Subject Title */}
-                              <div className="mt-2 space-y-1">
-                                <span
-                                  className={`inline-block rounded-md border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${theme.badge}`}
-                                >
-                                  {session.jenjang}
-                                </span>
-                                <h4 className="font-display text-xs font-bold leading-snug text-slate-950 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-                                  {session.kelasNama}
-                                </h4>
-                              </div>
-                            </div>
-
-                            {/* Bottom Hairline Strip: Count & Action */}
-                            <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
-                              <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 tabular-nums">
-                                {session.pesertaCount} siswa
-                              </span>
-                              <span
-                                className={`text-[10px] font-bold transition-all ${statusConfig.actionStyle}`}
-                              >
-                                {statusConfig.actionText}
-                              </span>
-                            </div>
-                          </Link>
-                        );
-                      })
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Mobile / Tablet Day Carousel (<lg) */}
-          <div className="lg:hidden space-y-3">
-            {/* Day Selector Tabs */}
-            <div className="flex overflow-x-auto pb-1 gap-2 scrollbar-hide">
-              {weekDays.map((d) => {
-                const daySessions = sessionsByWeekDay.get(d.dateStr) ?? [];
-                const isSelected = d.dateStr === mobileSelectedDate;
-                return (
-                  <button
-                    key={d.dateStr}
-                    type="button"
-                    onClick={() => setMobileSelectedDate(d.dateStr)}
-                    className={`flex-shrink-0 flex flex-col items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                      isSelected
-                        ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/30'
-                        : d.isToday
-                        ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
-                        : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
-                    }`}
-                  >
-                    <span className="text-[10px] uppercase font-bold">{d.dayName.slice(0, 3)}</span>
-                    <span className="text-sm font-extrabold tabular-nums">{d.dayNum}</span>
-                    {daySessions.length > 0 && (
+                    {/* Top Bar: Date Number + Sesi Count */}
+                    <div className="flex items-center justify-between">
                       <span
-                        className={`mt-0.5 rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                          isSelected ? 'bg-white/20 text-white' : 'bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300'
+                        className={`size-6 rounded-full flex items-center justify-center text-xs font-bold tabular-nums ${
+                          day.isToday
+                            ? 'bg-blue-600 text-white shadow-2xs'
+                            : day.isCurrentMonth
+                            ? 'text-slate-900 dark:text-slate-100'
+                            : 'text-slate-400 dark:text-slate-600'
                         }`}
                       >
-                        {daySessions.length}
+                        {day.dayNum}
                       </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Selected Day Sessi Cards on Mobile */}
-            <div className="space-y-3">
-              {(() => {
-                const activeSessions = sessionsByWeekDay.get(mobileSelectedDate) ?? [];
-                if (activeSessions.length === 0) {
-                  return (
-                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center shadow-2xs">
-                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                        {t('noScheduleToday') || 'Tidak ada jadwal pada tanggal ini'}
-                      </p>
-                    </div>
-                  );
-                }
-                return activeSessions.map((session) => {
-                  const theme = JENJANG_THEMES[session.jenjang] ?? DEFAULT_THEME;
-                  const isCancelled = session.statusSesi === 'dibatalkan';
-                  const isFilled = session.presensiCount > 0;
-                  const attendanceUrl = `/teacher/classes/${session.kelasId}/sessions/${session.tanggalPertemuan}/attendance?sesi=${session.jadwalItemId}`;
-
-                  const statusConfig = isCancelled
-                    ? {
-                        badgeBg: 'bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-900/60',
-                        badgeText: 'Batal',
-                        actionText: t('sessionCancelled') || 'Dibatalkan',
-                        actionStyle: 'text-rose-600 dark:text-rose-400',
-                      }
-                    : isFilled
-                    ? {
-                        badgeBg: 'bg-emerald-50 text-emerald-800 border-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-900/60',
-                        badgeText: `${session.presensiCount}/${session.pesertaCount} Hadir`,
-                        actionText: 'Lihat Sesi →',
-                        actionStyle: 'text-slate-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400',
-                      }
-                    : session.isToday
-                    ? {
-                        badgeBg: 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/60',
-                        badgeText: 'Hari Ini',
-                        actionText: 'Catat Presensi →',
-                        actionStyle: 'text-blue-600 dark:text-blue-400 font-bold',
-                      }
-                    : {
-                        badgeBg: 'bg-slate-100 text-slate-600 border-slate-200/80 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
-                        badgeText: 'Terjadwal',
-                        actionText: 'Detail Sesi →',
-                        actionStyle: 'text-slate-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400',
-                      };
-
-                  return (
-                    <Link
-                      key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
-                      href={isCancelled ? '#' : attendanceUrl}
-                      className={`group relative flex flex-col justify-between rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-2xs transition-all hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xs cursor-pointer ${
-                        session.isToday && !isCancelled ? 'ring-1 ring-blue-500/20 dark:ring-blue-500/30' : ''
-                      } ${isCancelled ? 'opacity-70 pointer-events-none' : ''}`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="inline-flex items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-bold tabular-nums text-slate-800 dark:text-slate-200">
-                              {session.jamMulai} - {session.jamSelesai}
-                            </span>
-                            <span className={`inline-block rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${theme.badge}`}>
-                              {session.jenjang}
-                            </span>
-                          </div>
-                          <h4 className="mt-2 font-display text-sm font-extrabold text-slate-950 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                            {session.kelasNama}
-                          </h4>
-                        </div>
-                        <span className={`shrink-0 inline-flex items-center rounded-full border px-3 py-0.5 text-xs font-bold ${statusConfig.badgeBg}`}>
-                          {statusConfig.badgeText}
-                        </span>
-                      </div>
-
-                      <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums font-semibold">
-                          {session.pesertaCount} siswa
-                        </span>
-                        <span className={`text-xs font-bold ${statusConfig.actionStyle}`}>
-                          {statusConfig.actionText}
-                        </span>
-                      </div>
-                    </Link>
-                  );
-                });
-              })()}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* 3. MODE B: MONTHLY FULL-GRID (Google Calendar / Notion)    */}
-      {/* ========================================================= */}
-      {viewMode === 'monthly' && (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
-          {/* Day Headers (Mon - Sun) */}
-          <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 divide-x divide-slate-100 dark:divide-slate-800/70 bg-slate-50/80 dark:bg-slate-800/50 text-center">
-            {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map((day) => (
-              <div key={day} className="py-3 text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                <span className="hidden sm:inline">{day}</span>
-                <span className="sm:hidden">{day.slice(0, 3)}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* 35 / 42 Day Grid */}
-          <div className="grid grid-cols-7 divide-x divide-y divide-slate-100 dark:divide-slate-800/70 bg-slate-50/20 dark:bg-slate-950/20">
-            {monthGridDays.map((day, idx) => {
-              const daySessions = sessionsByAnyDate.get(day.dateStr) ?? [];
-              const hasSessions = daySessions.length > 0;
-
-              return (
-                <div
-                  key={`${day.dateStr}-${idx}`}
-                  onClick={() => {
-                    if (hasSessions) {
-                      setAnchorDateStr(day.dateStr);
-                      setMobileSelectedDate(day.dateStr);
-                      setViewMode('weekly');
-                    }
-                  }}
-                  className={`min-h-[90px] sm:min-h-[115px] p-2 transition-colors flex flex-col justify-between ${
-                    day.isCurrentMonth ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/60 dark:bg-slate-950/50 text-slate-400 dark:text-slate-600'
-                  } ${day.isToday ? 'bg-blue-50/30 dark:bg-blue-950/30' : ''} ${
-                    hasSessions ? 'cursor-pointer hover:bg-blue-50/20 dark:hover:bg-blue-950/20' : ''
-                  }`}
-                >
-                  {/* Top Bar: Date Number + Pill */}
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`size-6 rounded-full flex items-center justify-center text-xs font-bold tabular-nums ${
-                        day.isToday
-                          ? 'bg-blue-600 text-white shadow-2xs'
-                          : day.isCurrentMonth
-                          ? 'text-slate-900 dark:text-slate-100'
-                          : 'text-slate-400 dark:text-slate-600'
-                      }`}
-                    >
-                      {day.dayNum}
-                    </span>
-                    {hasSessions && (
-                      <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[9px] font-extrabold text-slate-700 dark:text-slate-300 sm:hidden">
-                        {daySessions.length}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Scheduled Sessions Chips */}
-                  <div className="mt-1 space-y-1 overflow-hidden flex-1">
-                    {daySessions.slice(0, 2).map((s) => {
-                      const isFilled = s.presensiCount > 0;
-                      const isCancelled = s.statusSesi === 'dibatalkan';
-
-                      return (
-                        <div
-                          key={`${s.jadwalItemId}-${s.tanggalPertemuan}`}
-                          title={`${s.jamMulai} ${s.kelasNama}`}
-                          className={`hidden sm:flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold truncate border ${
-                            isCancelled
-                              ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/60'
-                              : isFilled
-                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-900/60'
-                              : 'bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-900/60'
-                          }`}
-                        >
-                          <span
-                            className={`size-1.5 rounded-full shrink-0 ${
-                              isCancelled
-                                ? 'bg-rose-500'
-                                : isFilled
-                                ? 'bg-emerald-500'
-                                : 'bg-blue-600'
-                            }`}
-                          />
-                          <span className="tabular-nums font-bold shrink-0">{s.jamMulai}</span>
-                          <span className="truncate">{s.kelasNama}</span>
-                        </div>
-                      );
-                    })}
-
-                    {daySessions.length > 2 && (
-                      <span className="hidden sm:inline-block text-[9px] font-bold text-slate-500 dark:text-slate-400 pl-1">
-                        +{daySessions.length - 2} lainnya
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================= */}
-      {/* 4. MODE C: COMPACT AGENDA LIST (High-Density List)        */}
-      {/* ========================================================= */}
-      {viewMode === 'agenda' && (
-        <div className="space-y-4">
-          {sessionsByDate.size === 0 ? (
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center shadow-2xs">
-              <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
-                {t('noUpcomingSessions') || 'Tidak ada sesi pertemuan untuk filter ini.'}
-              </p>
-            </div>
-          ) : (
-            [...sessionsByDate.entries()].map(([dateStr, items]) => {
-              const d = parseDate(dateStr);
-              const dayIndex = d.getDay();
-              const dayKey = DAY_KEYS[dayIndex];
-              const dayName = t(`day_${dayKey}`);
-              const fullDateFormatted = d.toLocaleDateString(
-                locale === 'en' ? 'en-GB' : 'id-ID',
-                {
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                }
-              );
-              const isDateToday = dateStr === todayStr;
-
-              return (
-                <div
-                  key={dateStr}
-                  className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs"
-                >
-                  {/* Date Header */}
-                  <div
-                    className={`flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-4 py-3 ${
-                      isDateToday
-                        ? 'bg-blue-50/80 dark:bg-blue-950/50 text-blue-900 dark:text-blue-200 font-bold'
-                        : 'bg-slate-50/80 dark:bg-slate-800/60 text-slate-900 dark:text-slate-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-extrabold uppercase tracking-tight">
-                        {dayName}, {fullDateFormatted}
-                      </span>
-                      {isDateToday && (
-                        <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[9px] font-bold text-white">
-                          {t('todayLabel') || 'HARI INI'}
+                      {hasSessions && (
+                        <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[9px] font-bold text-slate-700 dark:text-slate-300 sm:hidden">
+                          {daySessions.length}
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 tabular-nums">
-                      {items.length} Sesi
-                    </span>
-                  </div>
 
-                  {/* Scannable Compact Rows */}
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {items.map((session) => {
-                      const theme = JENJANG_THEMES[session.jenjang] ?? DEFAULT_THEME;
-                      const isCancelled = session.statusSesi === 'dibatalkan';
-                      const isFilled = session.presensiCount > 0;
-                      const attendanceUrl = `/teacher/classes/${session.kelasId}/sessions/${session.tanggalPertemuan}/attendance?sesi=${session.jadwalItemId}`;
+                    {/* Scheduled Sessions Chips (Google Classroom signature chips) */}
+                    <div className="mt-1.5 space-y-1 overflow-hidden flex-1">
+                      {daySessions.slice(0, 2).map((s) => {
+                        const theme = CLASSROOM_THEMES[s.jenjang] ?? DEFAULT_CLASSROOM_THEME;
+                        const hasTasks = s.tugasList.length > 0;
 
-                      const statusConfig = isCancelled
-                        ? {
-                            badgeBg: 'bg-rose-50 text-rose-700 border-rose-200/80 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-900/60',
-                            badgeText: 'Batal',
-                            actionText: t('sessionCancelled') || 'Dibatalkan',
-                            actionStyle: 'text-rose-600 dark:text-rose-400',
-                          }
-                        : isFilled
-                        ? {
-                            badgeBg: 'bg-emerald-50 text-emerald-800 border-emerald-200/80 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-900/60',
-                            badgeText: `${session.presensiCount}/${session.pesertaCount} Hadir`,
-                            actionText: 'Lihat Sesi →',
-                            actionStyle: 'text-slate-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400',
-                          }
-                        : session.isToday
-                        ? {
-                            badgeBg: 'bg-blue-50 text-blue-700 border-blue-200/80 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/60',
-                            badgeText: 'Hari Ini',
-                            actionText: 'Catat Presensi →',
-                            actionStyle: 'text-blue-600 dark:text-blue-400 font-bold',
-                          }
-                        : {
-                            badgeBg: 'bg-slate-100 text-slate-600 border-slate-200/80 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700',
-                            badgeText: 'Terjadwal',
-                            actionText: 'Detail Sesi →',
-                            actionStyle: 'text-slate-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400',
-                          };
+                        return (
+                          <div
+                            key={`${s.jadwalItemId}-${s.tanggalPertemuan}`}
+                            onClick={() => setSelectedSession(s)}
+                            title={`${s.jamMulai} ${s.kelasDisplayName}${hasTasks ? ` (${s.tugasList.length} Tugas)` : ''}`}
+                            className={`hidden sm:flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold truncate border cursor-pointer hover:shadow-2xs transition-all ${theme.monthlyChip}`}
+                          >
+                            <span className={`size-1.5 rounded-full shrink-0 ${theme.dot}`} />
+                            <span className="tabular-nums font-bold shrink-0">{s.jamMulai}</span>
+                            <span className="truncate">{s.kelasDisplayName}</span>
+                            {hasTasks && (
+                              <span className="text-[9px] font-bold text-amber-700 dark:text-amber-300 shrink-0">
+                                • T
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
 
-                      return (
-                        <Link
-                          key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
-                          href={isCancelled ? '#' : attendanceUrl}
-                          className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer ${
-                            isCancelled ? 'opacity-70 pointer-events-none' : ''
-                          }`}
+                      {daySessions.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAnchorDateStr(day.dateStr);
+                            setMobileSelectedDate(day.dateStr);
+                            setViewMode('weekly');
+                          }}
+                          className="hidden sm:inline-block text-[9px] font-bold text-blue-600 dark:text-blue-400 pl-1 hover:underline cursor-pointer"
                         >
-                          {/* Left: Time + Jenjang + Class Name */}
-                          <div className="flex items-center gap-3 min-w-0">
-                            <span className="inline-flex shrink-0 items-center rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-bold tabular-nums text-slate-800 dark:text-slate-200">
-                              {session.jamMulai} - {session.jamSelesai}
-                            </span>
-                            <span className={`inline-block shrink-0 rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${theme.badge}`}>
-                              {session.jenjang}
-                            </span>
-                            <div className="min-w-0">
-                              <p className="font-display text-sm font-bold text-slate-950 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
-                                {session.kelasNama}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Right: Participant Count + Status Pill + Action Link */}
-                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                            <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums font-semibold">
-                              {session.pesertaCount} siswa
-                            </span>
-                            <span className={`inline-flex items-center rounded-full border px-3 py-0.5 text-xs font-bold ${statusConfig.badgeBg}`}>
-                              {statusConfig.badgeText}
-                            </span>
-                            <span className={`text-xs font-bold ${statusConfig.actionStyle}`}>
-                              {statusConfig.actionText}
-                            </span>
-                          </div>
-                        </Link>
-                      );
-                    })}
+                          +{daySessions.length - 2} lainnya
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      )}
-    </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* 4. MODE D: COMPACT AGENDA LIST (CLASSROOM TO-DO/SCHEDULE)  */}
+        {/* ========================================================= */}
+        {viewMode === 'agenda' && (
+          <div>
+            {sessionsByDate.size === 0 ? (
+              <div className="p-10 text-center">
+                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">
+                  {t('noUpcomingSessions') || 'Tidak ada sesi pertemuan untuk filter ini.'}
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                {[...sessionsByDate.entries()].map(([dateStr, items]) => {
+                  const d = parseDate(dateStr);
+                  const dayIndex = d.getDay();
+                  const dayKey = DAY_KEYS[dayIndex];
+                  const dayName = t(`day_${dayKey}`);
+                  const fullDateFormatted = d.toLocaleDateString(
+                    locale === 'en' ? 'en-GB' : 'id-ID',
+                    {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    }
+                  );
+                  const isDateToday = dateStr === todayStr;
+
+                  return (
+                    <div key={dateStr}>
+                      {/* Date Header Ribbon */}
+                      <div
+                        className={`flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-4 py-2.5 ${
+                          isDateToday
+                            ? 'bg-blue-50/80 dark:bg-blue-950/50 text-blue-900 dark:text-blue-200 font-bold'
+                            : 'bg-slate-50/80 dark:bg-slate-800/60 text-slate-900 dark:text-slate-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold uppercase tracking-tight">
+                            {dayName}, {fullDateFormatted}
+                          </span>
+                          {isDateToday && (
+                            <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[9px] font-bold text-white">
+                              {t('todayLabel') || 'HARI INI'}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 tabular-nums">
+                          {items.length} Sesi
+                        </span>
+                      </div>
+
+                      {/* Scannable Classroom Rows */}
+                      <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {items.map((session) => {
+                          const theme = CLASSROOM_THEMES[session.jenjang] ?? DEFAULT_CLASSROOM_THEME;
+                          const isCancelled = session.statusSesi === 'dibatalkan';
+                          const isFilled = session.presensiCount > 0;
+                          const hasTasks = session.tugasList.length > 0;
+
+                          return (
+                            <div
+                              key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
+                              onClick={() => setSelectedSession(session)}
+                              className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-l-4 ${theme.cardBorder} ${
+                                isCancelled ? 'opacity-70' : ''
+                              }`}
+                            >
+                              {/* Left: Time + Full Class Display Name (No Pill) */}
+                              <div className="flex items-center gap-3 min-w-0">
+                                <span className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400 shrink-0">
+                                  {session.jamMulai} – {session.jamSelesai}
+                                </span>
+                                <div className="min-w-0">
+                                  <p className="font-display text-sm font-bold text-slate-950 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                                    {session.kelasDisplayName}
+                                  </p>
+                                </div>
+                                {hasTasks && (
+                                  <span className="hidden md:inline-flex rounded bg-amber-100/90 dark:bg-amber-950/60 px-2 py-0.5 text-[10px] font-bold text-amber-900 dark:text-amber-200 shrink-0">
+                                    {session.tugasList.length} Tugas
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Right: Participant Count + Status + Action Link */}
+                              <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                                <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
+                                  {isCancelled
+                                    ? 'Dibatalkan'
+                                    : isFilled
+                                    ? `${session.presensiCount}/${session.pesertaCount} hadir`
+                                    : 'Belum presensi'}
+                                </span>
+                                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">
+                                  Rincian Sesi →
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ========================================================= */}
+      {/* 5. SLIDE-OVER SESSION DETAIL DRAWER                       */}
+      {/* ========================================================= */}
+      <CalendarSessionDrawer
+        isOpen={selectedSession !== null}
+        onClose={() => setSelectedSession(null)}
+        session={selectedSession}
+        locale={locale}
+      />
+    </>
   );
 }

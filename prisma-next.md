@@ -27,9 +27,9 @@ Every model you define in your contract can be queried from your app. Your edito
 ```typescript
 import { db } from './src/prisma/db';
 
-const user = await db.orm.public.User
-  .where({ email: 'alice@example.com' })
-  .first();
+const user = await db.orm.public.User.where({
+    email: 'alice@example.com',
+}).first();
 
 // Your editor will show the type of user as
 // { id: number; email: string; username: string | null; name: string | null; createdAt: Date; posts: Post[] } | null
@@ -54,12 +54,12 @@ import { definePrismaConfig } from '@prisma/cli-engine';
 import { defineConfig as ormConfig } from '@prisma/orm-postgres/config';
 
 export default definePrismaConfig({
-  orm: ormConfig({
-    contract: './src/prisma/contract.prisma',
-    db: {
-      connection: process.env['DATABASE_URL']!,
-    },
-  }),
+    orm: ormConfig({
+        contract: './src/prisma/contract.prisma',
+        db: {
+            connection: process.env['DATABASE_URL']!,
+        },
+    }),
 });
 ```
 
@@ -83,13 +83,13 @@ npx prisma migration status    # Show migration status
 
 ### Files
 
-| File | Purpose |
-|---|---|
-| [`src/prisma/contract.prisma`](src/prisma/contract.prisma) | Your data contract — define your models here |
-| [`prisma.config.ts`](prisma.config.ts) | CLI configuration |
-| [`src/prisma/db.ts`](src/prisma/db.ts) | Database client — `import { db } from './src/prisma/db'` |
-| `src/prisma/contract.json` | Compiled contract (generated) |
-| `src/prisma/contract.d.ts` | Contract types (generated) |
+| File                                                       | Purpose                                                  |
+| ---------------------------------------------------------- | -------------------------------------------------------- |
+| [`src/prisma/contract.prisma`](src/prisma/contract.prisma) | Your data contract — define your models here             |
+| [`prisma.config.ts`](prisma.config.ts)                     | CLI configuration                                        |
+| [`src/prisma/db.ts`](src/prisma/db.ts)                     | Database client — `import { db } from './src/prisma/db'` |
+| `src/prisma/contract.json`                                 | Compiled contract (generated)                            |
+| `src/prisma/contract.d.ts`                                 | Contract types (generated)                               |
 
 ### Workflow
 

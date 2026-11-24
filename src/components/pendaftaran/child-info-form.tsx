@@ -162,20 +162,26 @@ export default function ChildInfoForm({
         {
             nama: state.nama ?? '',
             tanggal_lahir: state.tanggal_lahir ?? '',
-            jenjang_terakhir: (state.jenjang_terakhir as 'TK' | 'SD' | 'SMP' | 'SMA' | '') ?? '',
+            jenjang_terakhir:
+                (state.jenjang_terakhir as 'TK' | 'SD' | 'SMP' | 'SMA' | '') ??
+                '',
             tingkat: state.tingkat ?? '',
             nomor_telepon: state.nomor_telepon ?? '',
             email_notifikasi: state.email_notifikasi ?? '',
             hpSama: ortuPunyaHp,
-        }
+        },
     );
 
     // Tanggal lahir & Jenjang & Kelas/Tingkat
     const [tanggalLahir, setTanggalLahir] = useState(draft.tanggal_lahir);
-    const [jenjang, setJenjang] = useState<'TK' | 'SD' | 'SMP' | 'SMA' | ''>(draft.jenjang_terakhir);
+    const [jenjang, setJenjang] = useState<'TK' | 'SD' | 'SMP' | 'SMA' | ''>(
+        draft.jenjang_terakhir,
+    );
     const [tingkat, setTingkat] = useState(draft.tingkat);
     const [nama, setNama] = useState(draft.nama);
-    const [emailNotifikasi, setEmailNotifikasi] = useState(draft.email_notifikasi);
+    const [emailNotifikasi, setEmailNotifikasi] = useState(
+        draft.email_notifikasi,
+    );
 
     // Toggle "No. HP anak sama dengan orang tua"
     const [hpSama, setHpSama] = useState(draft.hpSama);
@@ -263,14 +269,20 @@ export default function ChildInfoForm({
                 {title ?? t('childTitle')}
             </h2>
             {subtitle ? (
-                <p className="text-sm text-slate-600 mb-6 leading-relaxed">{subtitle}</p>
+                <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+                    {subtitle}
+                </p>
             ) : (
                 <div className="mb-6" />
             )}
 
             <form action={formAction} className="space-y-5">
                 {redirectTo ? (
-                    <input type="hidden" name="redirect_to" value={redirectTo} />
+                    <input
+                        type="hidden"
+                        name="redirect_to"
+                        value={redirectTo}
+                    />
                 ) : null}
 
                 {/* Nama Lengkap Anak — wajib */}
@@ -302,7 +314,9 @@ export default function ChildInfoForm({
                                 setDraftField('nama', e.target.value);
                             }}
                             aria-invalid={errors.nama ? true : undefined}
-                            aria-describedby={errors.nama ? 'nama-error' : undefined}
+                            aria-describedby={
+                                errors.nama ? 'nama-error' : undefined
+                            }
                             className={`${inputBase} ${
                                 errors.nama
                                     ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
@@ -311,7 +325,10 @@ export default function ChildInfoForm({
                         />
                     </div>
                     {errors.nama ? (
-                        <p id="nama-error" className="mt-1.5 text-xs text-rose-600 font-medium">
+                        <p
+                            id="nama-error"
+                            className="mt-1.5 text-xs text-rose-600 font-medium"
+                        >
                             {errors.nama}
                         </p>
                     ) : null}
@@ -343,7 +360,10 @@ export default function ChildInfoForm({
                         }
                     />
                     {errors.tanggal_lahir ? (
-                        <p id="tgl-error" className="mt-1.5 text-xs text-rose-600 font-medium">
+                        <p
+                            id="tgl-error"
+                            className="mt-1.5 text-xs text-rose-600 font-medium"
+                        >
                             {errors.tanggal_lahir}
                         </p>
                     ) : null}
@@ -370,7 +390,7 @@ export default function ChildInfoForm({
                             value={jenjang}
                             onChange={(val) =>
                                 handleJenjangChange(
-                                    val as 'TK' | 'SD' | 'SMP' | 'SMA'
+                                    val as 'TK' | 'SD' | 'SMP' | 'SMA',
                                 )
                             }
                             options={JENJANG_LIST}
@@ -385,7 +405,10 @@ export default function ChildInfoForm({
                             }
                         />
                         {errors.jenjang_terakhir ? (
-                            <p id="jenjang-error" className="mt-1.5 text-xs text-rose-600 font-medium">
+                            <p
+                                id="jenjang-error"
+                                className="mt-1.5 text-xs text-rose-600 font-medium"
+                            >
                                 {errors.jenjang_terakhir}
                             </p>
                         ) : null}
@@ -423,7 +446,10 @@ export default function ChildInfoForm({
                             }
                         />
                         {errors.tingkat ? (
-                            <p id="tingkat-error" className="mt-1.5 text-xs text-rose-600 font-medium">
+                            <p
+                                id="tingkat-error"
+                                className="mt-1.5 text-xs text-rose-600 font-medium"
+                            >
                                 {errors.tingkat}
                             </p>
                         ) : null}
@@ -461,7 +487,9 @@ export default function ChildInfoForm({
                             }}
                             readOnly={hpTerkunci}
                             aria-readonly={hpTerkunci}
-                            aria-invalid={errors.nomor_telepon ? true : undefined}
+                            aria-invalid={
+                                errors.nomor_telepon ? true : undefined
+                            }
                             aria-describedby={
                                 errors.nomor_telepon ? 'hp-error' : undefined
                             }
@@ -493,7 +521,10 @@ export default function ChildInfoForm({
                                             setDraftField('nomor_telepon', '');
                                         } else {
                                             setHpValue(parentPhone);
-                                            setDraftField('nomor_telepon', parentPhone);
+                                            setDraftField(
+                                                'nomor_telepon',
+                                                parentPhone,
+                                            );
                                         }
                                     }}
                                     className="sr-only peer"
@@ -506,7 +537,10 @@ export default function ChildInfoForm({
                         </div>
                     )}
                     {errors.nomor_telepon ? (
-                        <p id="hp-error" className="mt-1.5 text-xs text-rose-600 font-medium">
+                        <p
+                            id="hp-error"
+                            className="mt-1.5 text-xs text-rose-600 font-medium"
+                        >
                             {errors.nomor_telepon}
                         </p>
                     ) : null}
@@ -537,7 +571,10 @@ export default function ChildInfoForm({
                             value={emailNotifikasi}
                             onChange={(e) => {
                                 setEmailNotifikasi(e.target.value);
-                                setDraftField('email_notifikasi', e.target.value);
+                                setDraftField(
+                                    'email_notifikasi',
+                                    e.target.value,
+                                );
                             }}
                             aria-invalid={
                                 errors.email_notifikasi ? true : undefined
@@ -555,7 +592,10 @@ export default function ChildInfoForm({
                         />
                     </div>
                     {errors.email_notifikasi ? (
-                        <p id="email-error" className="mt-1.5 text-xs text-rose-600 font-medium">
+                        <p
+                            id="email-error"
+                            className="mt-1.5 text-xs text-rose-600 font-medium"
+                        >
                             {errors.email_notifikasi}
                         </p>
                     ) : null}
@@ -573,10 +613,23 @@ export default function ChildInfoForm({
                             viewBox="0 0 24 24"
                             aria-hidden="true"
                         >
-                            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4m0 4h.01" />
+                            <circle
+                                cx="12"
+                                cy="12"
+                                r="9"
+                                stroke="currentColor"
+                                strokeWidth={1.75}
+                            />
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.75}
+                                d="M12 8v4m0 4h.01"
+                            />
                         </svg>
-                        <div className="flex-1 leading-relaxed">{state.error}</div>
+                        <div className="flex-1 leading-relaxed">
+                            {state.error}
+                        </div>
                     </div>
                 ) : null}
 
@@ -587,7 +640,11 @@ export default function ChildInfoForm({
                         disabled={pending}
                         className="w-full bg-brand hover:bg-brand-strong disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-semibold py-3 rounded-lg transition-colors duration-200 flex items-center justify-center cursor-pointer shadow-xs"
                     >
-                        <span>{pending ? t('processing') : (submitLabel ?? t('createChild'))}</span>
+                        <span>
+                            {pending
+                                ? t('processing')
+                                : (submitLabel ?? t('createChild'))}
+                        </span>
                     </button>
                 </div>
 

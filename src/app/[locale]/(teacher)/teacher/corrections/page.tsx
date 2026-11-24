@@ -189,7 +189,7 @@ export default async function TeacherCorrections({
               <Link href="/teacher/grades" className="block font-semibold text-blue-700 dark:text-blue-400 hover:underline">
                 {t("findEditable")}
               </Link>
-              <Link href="/teacher/classes" className="block font-semibold text-blue-700 dark:text-blue-400 hover:underline">
+              <Link href="/teacher/dashboard" className="block font-semibold text-blue-700 dark:text-blue-400 hover:underline">
                 {t("attendanceByClass")}
               </Link>
             </div>

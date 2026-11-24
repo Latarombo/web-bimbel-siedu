@@ -278,36 +278,32 @@ export default async function TeacherDashboard() {
           />
         </div>
 
-        {/* Sisi Kanan: 3 Kartu Metrik Berbaris ke Bawah (4 Kolom di Desktop, Sejajar Tinggi) */}
+        {/* Sisi Kanan: 2 Kartu Metrik Operasional Sejajar (4 Kolom di Desktop) */}
         <div className="lg:col-span-4 grid grid-cols-2 lg:flex lg:flex-col lg:justify-between gap-4 h-full">
-          {/* Card 1: Sesi Hari Ini (Full width pada mobile 2-cols) */}
-          <div className="col-span-2 lg:col-span-1 flex flex-col justify-center rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs lg:flex-1">
+          {/* Card 1: Sesi Hari Ini */}
+          <div className="flex flex-col justify-center rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs lg:flex-1">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {t("todaySessions")}
             </span>
             <span className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
               {sesiHariIni.length}
             </span>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Jadwal tatap muka hari ini
+            </p>
           </div>
 
-          {/* Card 2: Total Murid */}
-          <div className="col-span-1 flex flex-col justify-center rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs lg:flex-1">
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              {t("totalStudents")}
-            </span>
-            <span className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
-              {uniqueStudentsCount}
-            </span>
-          </div>
-
-          {/* Card 3: Perlu Dinilai */}
-          <div className="col-span-1 flex flex-col justify-center rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs lg:flex-1">
+          {/* Card 2: Antrean Perlu Dinilai */}
+          <div className="flex flex-col justify-center rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-6 shadow-2xs lg:flex-1">
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {t("needsGrading")}
             </span>
             <span className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${antreanPenilaian.length > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-950 dark:text-white"}`}>
               {antreanPenilaian.length}
             </span>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              {antreanPenilaian.length > 0 ? "Menunggu koreksi nilai" : "Seluruh tugas terperiksa"}
+            </p>
           </div>
         </div>
       </div>
@@ -476,7 +472,7 @@ export default async function TeacherDashboard() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {/* 1. Catat Presensi */}
             <Link
-              href={firstUnfinishedSession ? `/teacher/classes/${firstUnfinishedSession.kelasId}/sessions/${hariIniStr}/attendance` : "/teacher/classes"}
+              href={firstUnfinishedSession ? `/teacher/classes/${firstUnfinishedSession.kelasId}/sessions/${hariIniStr}/attendance` : "/teacher/dashboard"}
               className="group relative flex flex-col items-center justify-center text-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 hover:border-blue-300 dark:hover:border-blue-800 hover:bg-blue-50/30 dark:hover:bg-blue-950/20 transition-all shadow-2xs min-h-24 sm:min-h-28"
             >
               <ArrowUpRight className="absolute top-4 right-4 size-4 text-slate-300 dark:text-slate-600 group-hover:text-blue-500 transition-colors" />

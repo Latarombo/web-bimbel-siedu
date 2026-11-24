@@ -46,8 +46,18 @@ export default function LoginForm({
                     className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 text-sm text-emerald-800 mb-5 flex items-center gap-2.5"
                     role="status"
                 >
-                    <svg className="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    <svg
+                        className="w-5 h-5 text-emerald-600 shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                        />
                     </svg>
                     <span>{t('resetSuccessAlert')}</span>
                 </div>
@@ -66,8 +76,19 @@ export default function LoginForm({
                         viewBox="0 0 24 24"
                         aria-hidden="true"
                     >
-                        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4m0 4h.01" />
+                        <circle
+                            cx="12"
+                            cy="12"
+                            r="9"
+                            stroke="currentColor"
+                            strokeWidth={1.75}
+                        />
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.75}
+                            d="M12 8v4m0 4h.01"
+                        />
                     </svg>
                     <div className="flex-1 leading-relaxed">{oauthError}</div>
                 </div>
@@ -86,8 +107,19 @@ export default function LoginForm({
                         viewBox="0 0 24 24"
                         aria-hidden="true"
                     >
-                        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4m0 4h.01" />
+                        <circle
+                            cx="12"
+                            cy="12"
+                            r="9"
+                            stroke="currentColor"
+                            strokeWidth={1.75}
+                        />
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.75}
+                            d="M12 8v4m0 4h.01"
+                        />
                     </svg>
                     <div className="flex-1 leading-relaxed">{state.error}</div>
                 </div>
@@ -104,7 +136,9 @@ export default function LoginForm({
                         className="block text-sm font-semibold text-slate-700 mb-1.5"
                     >
                         {t('email')}{' '}
-                        <span className="text-danger" aria-hidden="true">*</span>
+                        <span className="text-danger" aria-hidden="true">
+                            *
+                        </span>
                     </label>
                     <input
                         id="email"
@@ -133,7 +167,9 @@ export default function LoginForm({
                             className="block text-sm font-semibold text-slate-700"
                         >
                             {t('password')}{' '}
-                            <span className="text-danger" aria-hidden="true">*</span>
+                            <span className="text-danger" aria-hidden="true">
+                                *
+                            </span>
                         </label>
                         <Link
                             href="/forgot-password"

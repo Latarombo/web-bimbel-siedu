@@ -1,23 +1,23 @@
-import { getTranslations, getLocale } from "next-intl/server";
-import { notFound } from "next/navigation";
-import { redirect } from "@/i18n/navigation";
-import { auth } from "@/lib/auth";
-import { db } from "@/prisma/db";
-import { collect } from "@/lib/collect";
-import { Card, CardPad } from "@/components/ui/card";
-import { ButtonLink } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { rupiah, fmtTanggal } from "@/lib/format/format";
-import { SITE } from "@/lib/site";
-import { midtransConfigured, snapStatus, isFinalStatus } from "@/lib/midtrans";
+import { getTranslations, getLocale } from 'next-intl/server';
+import { notFound } from 'next/navigation';
+import { redirect } from '@/i18n/navigation';
+import { auth } from '@/lib/auth';
+import { db } from '@/prisma/db';
+import { collect } from '@/lib/collect';
+import { Card, CardPad } from '@/components/ui/card';
+import { ButtonLink } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { rupiah, fmtTanggal } from '@/lib/format/format';
+import { SITE } from '@/lib/site';
+import { midtransConfigured, snapStatus, isFinalStatus } from '@/lib/midtrans';
 import {
-  ORDER_ID,
-  terapkanStatusMidtrans,
-  tagihanBerikutinya,
-} from "@/lib/services/pembayaran";
-import { ClassTicket } from "@/components/parent/class-ticket";
+    ORDER_ID,
+    terapkanStatusMidtrans,
+    tagihanBerikutinya,
+} from '@/lib/services/pembayaran';
+import { ClassTicket } from '@/components/parent/class-ticket';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 // C5 — Halaman kembali (finish URL Midtrans) + ringkasan status & Tiket Kelas. Webhook adalah
 // sumber kebenaran; halaman ini hanya menyegar satu transaksi kalau Midtrans
@@ -25,219 +25,247 @@ export const dynamic = "force-dynamic";
 // bisa tertunda beberapa detik). Lookup sekali per halaman, bukan polling.
 
 type Props = {
-  params: Promise<{ id: string }>;
-  searchParams: Promise<{
-    pembayaran?: string;
-    status?: string;
-    order_id?: string;
-    transaction_status?: string;
-  }>;
+    params: Promise<{ id: string }>;
+    searchParams: Promise<{
+        pembayaran?: string;
+        status?: string;
+        order_id?: string;
+        transaction_status?: string;
+    }>;
 };
 
 export default async function PaymentResultPage({
-  params,
-  searchParams,
+    params,
+    searchParams,
 }: Props) {
-  const tr = await getTranslations("parent");
+    const tr = await getTranslations('parent');
 
-  function labelBerikutnya(b: { tipe: string; cicilanKe: number | null }) {
-    if (b.tipe === "cicilan") return `cicilan ke-${b.cicilanKe}`;
-    return b.tipe === "dp" ? tr("text077") : "pembayaran";
-  }
-
-  const locale = await getLocale();
-  const session = await auth();
-  if (!session?.user) {
-    return redirect({ href: "/login?next=/home", locale });
-  }
-  const { id } = await params;
-  const pid = Number(id);
-  if (!Number.isInteger(pid)) notFound();
-  const sp = await searchParams;
-  const { pembayaran } = sp;
-
-  const [p] = await collect(
-    db.orm.public.Pendaftaran.where((x) => x.id.eq(pid)).all(),
-  );
-  if (!p) notFound();
-  const [anak] = await collect(
-    db.orm.public.Anak.where((x) => x.id.eq(p.anakId)).all(),
-  );
-  if (!anak || anak.orangTuaId !== Number(session.user.id)) notFound();
-
-  const pembayaranId = Number(pembayaran);
-  const bills = Number.isInteger(pembayaranId)
-    ? await collect(
-        db.orm.public.Pembayaran.where((b) => b.pendaftaranId.eq(pid)).all(),
-      )
-    : [];
-  const bill = bills.find((b) => b.id === pembayaranId) ?? bills[0] ?? null;
-  if (!bill) redirect({ href: `/enrollments/${pid}`, locale });
-
-  const orderId = sp.order_id || bill.referensiGateway || ORDER_ID(bill.id);
-
-  // Segarkan dari gateway (hanya status final, hanya transaksi ini).
-  if (midtransConfigured()) {
-    try {
-      const st = sp.transaction_status || (await snapStatus(orderId));
-      if (st && isFinalStatus(st))
-        await terapkanStatusMidtrans(orderId, st);
-    } catch (e) {
-      // Lookup gagal bukan akhir dunia — webhook tetap menyusul.
-      console.error("[payment-result] lookup status gagal:", e);
+    function labelBerikutnya(b: { tipe: string; cicilanKe: number | null }) {
+        if (b.tipe === 'cicilan') return `cicilan ke-${b.cicilanKe}`;
+        return b.tipe === 'dp' ? tr('text077') : 'pembayaran';
     }
-  }
 
-  const [segar] = await collect(
-    db.orm.public.Pembayaran.where((b) => b.id.eq(bill.id)).all(),
-  );
-  const tagihanLagi = await tagihanBerikutinya(pid);
-  const [pSegar] = await collect(
-    db.orm.public.Pendaftaran.where((x) => x.id.eq(pid)).all(),
-  );
+    const locale = await getLocale();
+    const session = await auth();
+    if (!session?.user) {
+        return redirect({ href: '/login?next=/home', locale });
+    }
+    const { id } = await params;
+    const pid = Number(id);
+    if (!Number.isInteger(pid)) notFound();
+    const sp = await searchParams;
+    const { pembayaran } = sp;
 
-  const ok = segar.status === "berhasil";
-  const gagal = segar.status === "gagal";
-  const isTerdaftar = pSegar?.status === "terdaftar";
-  const label =
-    segar.tipe === "cicilan"
-      ? `Cicilan ke-${segar.cicilanKe}`
-      : segar.tipe === "dp"
-        ? tr("text045")
-        : tr("text046");
+    const [p] = await collect(
+        db.orm.public.Pendaftaran.where((x) => x.id.eq(pid)).all(),
+    );
+    if (!p) notFound();
+    const [anak] = await collect(
+        db.orm.public.Anak.where((x) => x.id.eq(p.anakId)).all(),
+    );
+    if (!anak || anak.orangTuaId !== Number(session.user.id)) notFound();
 
-  // Jika pembayaran berhasil & terdaftar, ambil detail kelas, pengajar, dan jadwal untuk ClassTicket
-  const [kelasRows, jadwalRows] = isTerdaftar
-    ? await Promise.all([
-        collect(db.orm.public.Kelas.where((k) => k.id.eq(p.kelasId)).all()),
-        collect(
-          db.orm.public.JadwalItem.where((j) => j.kelasId.eq(p.kelasId)).all(),
-        ),
-      ])
-    : [[], []];
+    const pembayaranId = Number(pembayaran);
+    const bills = Number.isInteger(pembayaranId)
+        ? await collect(
+              db.orm.public.Pembayaran.where((b) =>
+                  b.pendaftaranId.eq(pid),
+              ).all(),
+          )
+        : [];
+    const bill = bills.find((b) => b.id === pembayaranId) ?? bills[0] ?? null;
+    if (!bill) redirect({ href: `/enrollments/${pid}`, locale });
 
-  const kelasItem = kelasRows[0];
-  const [mapelRows, guruRows] = kelasItem
-    ? await Promise.all([
-        collect(
-          db.orm.public.MataPelajaran.where((m) =>
-            m.id.eq(kelasItem.mataPelajaranId),
-          ).all(),
-        ),
-        collect(
-          db.orm.public.User.where((u) => u.id.eq(kelasItem.guruId)).all(),
-        ),
-      ])
-    : [[], []];
+    const orderId = sp.order_id || bill.referensiGateway || ORDER_ID(bill.id);
 
-  const subjectName = mapelRows[0]?.nama ?? `Kelas #${p.kelasId}`;
-  const teacherName = guruRows[0]?.name ?? "Pengajar Siedu";
+    // Segarkan dari gateway (hanya status final, hanya transaksi ini).
+    if (midtransConfigured()) {
+        try {
+            const st = sp.transaction_status || (await snapStatus(orderId));
+            if (st && isFinalStatus(st))
+                await terapkanStatusMidtrans(orderId, st);
+        } catch (e) {
+            // Lookup gagal bukan akhir dunia — webhook tetap menyusul.
+            console.error('[payment-result] lookup status gagal:', e);
+        }
+    }
 
-  return (
-    <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10 space-y-8">
-      {/* 1. Status Card Ringkas */}
-      <Card>
-        <CardPad className="text-center">
-          <p
-            className={`mx-auto grid size-12 place-items-center rounded-full text-2xl font-black ${
-              ok
-                ? "bg-emerald-100 text-emerald-700"
-                : gagal
-                  ? "bg-rose-100 text-rose-700"
-                  : "bg-amber-100 text-amber-700"
-            }`}
-            aria-hidden="true"
-          >
-            {ok ? "✓" : gagal ? "✕" : "…"}
-          </p>
-          <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
-            {ok ? tr("text062") : gagal ? tr("text063") : tr("text064")}
-          </h1>
-          <p className="mt-2 text-sm text-muted">
-            {label} {rupiah(Number(segar.jumlah))} {tr("text065")} {anak.nama}.{" "}
-            {ok
-              ? isTerdaftar
-                ? tr("text066")
-                : tr("text067")
-              : gagal
-                ? tr("text068")
-                : tr("text069")}
-          </p>
-          <div className="mt-3 flex justify-center">
-            {ok ? <Badge tone="emerald">{tr("text070")}</Badge> : null}
-            {gagal ? <Badge tone="red">{tr("text071")}</Badge> : null}
-            {!ok && !gagal ? (
-              <Badge tone="amber">
-                {tr("text072")} {segar.status}
-              </Badge>
-            ) : null}
-          </div>
+    const [segar] = await collect(
+        db.orm.public.Pembayaran.where((b) => b.id.eq(bill.id)).all(),
+    );
+    const tagihanLagi = await tagihanBerikutinya(pid);
+    const [pSegar] = await collect(
+        db.orm.public.Pendaftaran.where((x) => x.id.eq(pid)).all(),
+    );
 
-          {/* Penjelasan tenang untuk tagihan cicilan berikutnya (jika ada) */}
-          {ok && isTerdaftar && tagihanLagi ? (
-            <div className="mt-5 rounded-2xl border border-blue-200/80 bg-blue-50/70 p-4 text-left max-w-lg mx-auto">
-              <div className="flex items-center gap-2">
-                <span className="size-2 rounded-full bg-blue-600 shrink-0" />
-                <p className="text-xs font-bold text-blue-950 uppercase tracking-wider">
-                  {tr("nextInstallmentTitle")}
-                </p>
-              </div>
-              <p className="mt-1.5 text-xs text-blue-900 leading-relaxed">
-                {tr("nextInstallmentNote", {
-                  installment: labelBerikutnya(tagihanLagi),
-                  amount: rupiah(Number(tagihanLagi.jumlah)),
-                  date: tagihanLagi.jatuhTempo ? fmtTanggal(tagihanLagi.jatuhTempo, locale) : "-",
-                })}
-              </p>
-            </div>
-          ) : null}
+    const ok = segar.status === 'berhasil';
+    const gagal = segar.status === 'gagal';
+    const isTerdaftar = pSegar?.status === 'terdaftar';
+    const label =
+        segar.tipe === 'cicilan'
+            ? `Cicilan ke-${segar.cicilanKe}`
+            : segar.tipe === 'dp'
+              ? tr('text045')
+              : tr('text046');
 
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
-            <ButtonLink
-              href={`/enrollments/${pid}`}
-              variant="default"
-              className="min-h-10 px-5"
-            >
-              {tr("viewClassTicket")}
-            </ButtonLink>
-            <ButtonLink href="/home" variant="outline" className="min-h-10 px-5">
-              {tr("text075")}
-            </ButtonLink>
-            {ok && tagihanLagi ? (
-              <ButtonLink
-                href={`/enrollments/${pid}`}
-                variant="ghost"
-                className="text-xs text-muted hover:text-foreground"
-              >
-                {tr("payNextInstallmentEarly", { installment: labelBerikutnya(tagihanLagi) })}
-              </ButtonLink>
-            ) : null}
-          </div>
-        </CardPad>
-      </Card>
+    // Jika pembayaran berhasil & terdaftar, ambil detail kelas, pengajar, dan jadwal untuk ClassTicket
+    const [kelasRows, jadwalRows] = isTerdaftar
+        ? await Promise.all([
+              collect(
+                  db.orm.public.Kelas.where((k) => k.id.eq(p.kelasId)).all(),
+              ),
+              collect(
+                  db.orm.public.JadwalItem.where((j) =>
+                      j.kelasId.eq(p.kelasId),
+                  ).all(),
+              ),
+          ])
+        : [[], []];
 
-      {/* 2. TIKET KELAS & PANDUAN RUANGAN (Tampil saat pembayaran berhasil & terdaftar) */}
-      {ok && isTerdaftar && kelasItem && (
-        <div className="pt-2">
-          <ClassTicket
-            enrollmentId={p.id}
-            childName={anak.nama}
-            subjectName={subjectName}
-            grade={kelasItem.jenjang}
-            teacherName={teacherName}
-            ruangan={kelasItem.ruangan}
-            jadwal={jadwalRows.map((j) => ({
-              hari: j.hari,
-              mulai: j.jamMulai,
-              selesai: j.jamSelesai,
-            }))}
-          />
+    const kelasItem = kelasRows[0];
+    const [mapelRows, guruRows] = kelasItem
+        ? await Promise.all([
+              collect(
+                  db.orm.public.MataPelajaran.where((m) =>
+                      m.id.eq(kelasItem.mataPelajaranId),
+                  ).all(),
+              ),
+              collect(
+                  db.orm.public.User.where((u) =>
+                      u.id.eq(kelasItem.guruId),
+                  ).all(),
+              ),
+          ])
+        : [[], []];
+
+    const subjectName = mapelRows[0]?.nama ?? `Kelas #${p.kelasId}`;
+    const teacherName = guruRows[0]?.name ?? 'Pengajar Siedu';
+
+    return (
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+            {/* 1. Status Card Ringkas */}
+            <Card>
+                <CardPad className="text-center">
+                    <p
+                        className={`mx-auto grid size-12 place-items-center rounded-full text-2xl font-black ${
+                            ok
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : gagal
+                                  ? 'bg-rose-100 text-rose-700'
+                                  : 'bg-amber-100 text-amber-700'
+                        }`}
+                        aria-hidden="true"
+                    >
+                        {ok ? '✓' : gagal ? '✕' : '…'}
+                    </p>
+                    <h1 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
+                        {ok
+                            ? tr('text062')
+                            : gagal
+                              ? tr('text063')
+                              : tr('text064')}
+                    </h1>
+                    <p className="mt-2 text-sm text-muted">
+                        {label} {rupiah(Number(segar.jumlah))} {tr('text065')}{' '}
+                        {anak.nama}.{' '}
+                        {ok
+                            ? isTerdaftar
+                                ? tr('text066')
+                                : tr('text067')
+                            : gagal
+                              ? tr('text068')
+                              : tr('text069')}
+                    </p>
+                    <div className="mt-3 flex justify-center">
+                        {ok ? (
+                            <Badge tone="emerald">{tr('text070')}</Badge>
+                        ) : null}
+                        {gagal ? (
+                            <Badge tone="red">{tr('text071')}</Badge>
+                        ) : null}
+                        {!ok && !gagal ? (
+                            <Badge tone="amber">
+                                {tr('text072')} {segar.status}
+                            </Badge>
+                        ) : null}
+                    </div>
+
+                    {/* Penjelasan tenang untuk tagihan cicilan berikutnya (jika ada) */}
+                    {ok && isTerdaftar && tagihanLagi ? (
+                        <div className="mt-5 rounded-2xl border border-blue-200/80 bg-blue-50/70 p-4 text-left max-w-lg mx-auto">
+                            <div className="flex items-center gap-2">
+                                <span className="size-2 rounded-full bg-blue-600 shrink-0" />
+                                <p className="text-xs font-bold text-blue-950 uppercase tracking-wider">
+                                    {tr('nextInstallmentTitle')}
+                                </p>
+                            </div>
+                            <p className="mt-1.5 text-xs text-blue-900 leading-relaxed">
+                                {tr('nextInstallmentNote', {
+                                    installment: labelBerikutnya(tagihanLagi),
+                                    amount: rupiah(Number(tagihanLagi.jumlah)),
+                                    date: tagihanLagi.jatuhTempo
+                                        ? fmtTanggal(
+                                              tagihanLagi.jatuhTempo,
+                                              locale,
+                                          )
+                                        : '-',
+                                })}
+                            </p>
+                        </div>
+                    ) : null}
+
+                    <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5">
+                        <ButtonLink
+                            href={`/enrollments/${pid}`}
+                            variant="default"
+                            className="min-h-10 px-5"
+                        >
+                            {tr('viewClassTicket')}
+                        </ButtonLink>
+                        <ButtonLink
+                            href="/home"
+                            variant="outline"
+                            className="min-h-10 px-5"
+                        >
+                            {tr('text075')}
+                        </ButtonLink>
+                        {ok && tagihanLagi ? (
+                            <ButtonLink
+                                href={`/enrollments/${pid}`}
+                                variant="ghost"
+                                className="text-xs text-muted hover:text-foreground"
+                            >
+                                {tr('payNextInstallmentEarly', {
+                                    installment: labelBerikutnya(tagihanLagi),
+                                })}
+                            </ButtonLink>
+                        ) : null}
+                    </div>
+                </CardPad>
+            </Card>
+
+            {/* 2. TIKET KELAS & PANDUAN RUANGAN (Tampil saat pembayaran berhasil & terdaftar) */}
+            {ok && isTerdaftar && kelasItem && (
+                <div className="pt-2">
+                    <ClassTicket
+                        enrollmentId={p.id}
+                        childName={anak.nama}
+                        subjectName={subjectName}
+                        grade={kelasItem.jenjang}
+                        teacherName={teacherName}
+                        ruangan={kelasItem.ruangan}
+                        jadwal={jadwalRows.map((j) => ({
+                            hari: j.hari,
+                            mulai: j.jamMulai,
+                            selesai: j.jamSelesai,
+                        }))}
+                    />
+                </div>
+            )}
+
+            <p className="text-center text-xs text-muted print:hidden">
+                {tr('text076')} {SITE.email} / {SITE.telepon}.
+            </p>
         </div>
-      )}
-
-      <p className="text-center text-xs text-muted print:hidden">
-        {tr("text076")} {SITE.email} / {SITE.telepon}.
-      </p>
-    </div>
-  );
+    );
 }

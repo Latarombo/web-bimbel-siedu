@@ -14,8 +14,8 @@ import {
 export const dynamic = "force-dynamic";
 
 /*
- * Jadwal mengajar guru: arsitektur kalender berbasis Weekly Grid, Monthly Grid,
- * dan Compact Agenda.
+ * Jadwal mengajar guru: kanvas penuh gaya Google Classroom
+ * dengan filter kelas terpadu dan penamaan kelas tipografis (tanpa pill jenjang redundan).
  */
 
 export default async function TeacherCalendarPage() {
@@ -48,12 +48,15 @@ export default async function TeacherCalendarPage() {
     );
   }
 
-  const [periodeList, mapelList, jadwalList, pendaftaranList, presensiList] = await Promise.all([
+  const [periodeList, mapelList, jadwalList, pendaftaranList, presensiList, penilaianList] = await Promise.all([
     collect(db.orm.public.PeriodePendaftaran.where((p) => p.id.in(kelasList.map((k) => k.periodeId))).all()),
     collect(db.orm.public.MataPelajaran.all()),
     collect(db.orm.public.JadwalItem.where((j) => j.kelasId.in(kelasIds)).all()),
     collect(db.orm.public.Pendaftaran.where((p) => p.kelasId.in(kelasIds)).all()),
     collect(db.orm.public.Presensi.where((x) => x.dicatatOleh.eq(guruId)).all()),
+    kelasIds.length > 0
+      ? collect(db.orm.public.Penilaian.where((p) => p.kelasId.in(kelasIds)).all())
+      : Promise.resolve([]),
   ]);
 
   const slotIds = jadwalList.map((j) => j.id);
@@ -122,6 +125,10 @@ export default async function TeacherCalendarPage() {
     ];
 
     const namaMapel = mapelMap.get(k.mataPelajaranId) ?? t("class");
+    const formatTingkat = k.tingkat
+      ? (k.tingkat.toLowerCase().startsWith("kelas") ? k.tingkat : `Kelas ${k.tingkat}`)
+      : null;
+    const kelasDisplayName = `${namaMapel} · ${k.jenjang}${formatTingkat ? ` (${formatTingkat})` : ""}`;
 
     for (const sessionItem of merged) {
       const key = `${sessionItem.jadwalItemId}:${sessionItem.tanggalPertemuan}`;
@@ -129,19 +136,37 @@ export default async function TeacherCalendarPage() {
       const isPast = sessionItem.tanggalPertemuan < hariIni;
       const isToday = sessionItem.tanggalPertemuan === hariIni;
 
+      const relatedPenilaian = penilaianList.filter((p) =>
+        (stored?.id !== undefined && p.sesiPertemuanId === stored.id) ||
+        (p.kelasId === k.id && p.tanggal === sessionItem.tanggalPertemuan)
+      );
+
+      const tugasList = relatedPenilaian.map((p) => ({
+        id: p.id,
+        nama: p.nama,
+        nilaiMaksimum: Number(p.nilaiMaksimum),
+        draf: p.draf,
+      }));
+
       allSessions.push({
         kelasId: k.id,
+        sesiPertemuanId: stored?.id,
         jadwalItemId: sessionItem.jadwalItemId,
         tanggalPertemuan: sessionItem.tanggalPertemuan,
         jamMulai: (stored?.jamMulai ?? sessionItem.jamMulai).slice(0, 5),
         jamSelesai: (stored?.jamSelesai ?? sessionItem.jamSelesai).slice(0, 5),
         kelasNama: namaMapel,
+        kelasDisplayName,
         jenjang: k.jenjang,
+        tingkat: k.tingkat,
         statusSesi: stored?.statusSesi ?? sessionItem.statusSesi,
         pesertaCount: activeStudentsPerClass.get(k.id) ?? 0,
         presensiCount: attendanceBySlotAndDate.get(key) ?? 0,
         isPast,
         isToday,
+        catatanMateri: stored?.catatanMateri ?? null,
+        catatanPr: stored?.catatanPr ?? null,
+        tugasList,
       });
     }
   }
@@ -154,15 +179,19 @@ export default async function TeacherCalendarPage() {
     return a.jamMulai.localeCompare(b.jamMulai);
   });
 
-  const todayCount = allSessions.filter((s) => s.isToday && s.statusSesi !== "dibatalkan").length;
-  const pendingAttendanceCount = allSessions.filter((s) => s.presensiCount === 0 && s.statusSesi !== "dibatalkan").length;
-  const completedAttendanceCount = allSessions.filter((s) => s.presensiCount > 0 && s.statusSesi !== "dibatalkan").length;
-
-  const classOptions: ClassOption[] = kelasList.map((k) => ({
-    id: k.id,
-    name: mapelMap.get(k.mataPelajaranId) ?? t("class"),
-    jenjang: k.jenjang,
-  }));
+  const classOptions: ClassOption[] = kelasList.map((k) => {
+    const namaMapel = mapelMap.get(k.mataPelajaranId) ?? t("class");
+    const formatTingkat = k.tingkat
+      ? (k.tingkat.toLowerCase().startsWith("kelas") ? k.tingkat : `Kelas ${k.tingkat}`)
+      : null;
+    return {
+      id: k.id,
+      name: namaMapel,
+      displayName: `${namaMapel} · ${k.jenjang}${formatTingkat ? ` (${formatTingkat})` : ""}`,
+      jenjang: k.jenjang,
+      tingkat: k.tingkat,
+    };
+  });
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
@@ -176,78 +205,13 @@ export default async function TeacherCalendarPage() {
         </p>
       </div>
 
-      {/* 4 SLEEK KPI STAT CARDS */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {/* Card 1: Total Sesi */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Total Sesi
-              </p>
-              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-slate-950 dark:text-white">
-                {allSessions.length}
-              </p>
-            </div>
-            <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
-              Total jadwal pertemuan
-            </p>
-          </div>
-
-          {/* Card 2: Sesi Hari Ini */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                {t("todaySessions")}
-              </p>
-              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-slate-950 dark:text-white">
-                {todayCount}
-              </p>
-            </div>
-            <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
-              Jadwal aktif hari ini
-            </p>
-          </div>
-
-          {/* Card 3: Perlu Presensi */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Perlu Presensi
-              </p>
-              <p className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${
-                pendingAttendanceCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-950 dark:text-white"
-              }`}>
-                {pendingAttendanceCount}
-              </p>
-            </div>
-            <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
-              {pendingAttendanceCount > 0 ? "Sesi belum dicatat" : "Seluruh sesi tuntas dicatat"}
-            </p>
-          </div>
-
-          {/* Card 4: Presensi Selesai */}
-          <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Presensi Selesai
-              </p>
-              <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-slate-950 dark:text-white">
-                {completedAttendanceCount}
-              </p>
-            </div>
-            <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
-              Kehadiran telah dicatat
-            </p>
-          </div>
-        </div>
-
-        {/* FULL INTERACTIVE CALENDAR: WEEKLY / MONTHLY / AGENDA */}
-        <TeacherCalendarView
-          sessions={allSessions}
-          classes={classOptions}
-          todayStr={hariIni}
-          locale={locale}
-        />
+      {/* GOOGLE CLASSROOM CALENDAR CANVAS */}
+      <TeacherCalendarView
+        sessions={allSessions}
+        classes={classOptions}
+        todayStr={hariIni}
+        locale={locale}
+      />
     </div>
   );
 }

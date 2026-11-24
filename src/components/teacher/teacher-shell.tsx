@@ -80,6 +80,7 @@ export function TeacherShell({
         isDrawerOpen={isDrawerOpen}
         onCloseDrawer={() => setIsDrawerOpen(false)}
         onOpenLogout={() => setIsLogoutOpen(true)}
+        teacherClasses={searchClasses}
       />
 
       <div

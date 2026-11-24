@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useTransition } from "react";
+import { useState, useMemo, useTransition, useRef } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { hapusPenilaian } from "@/app/actions/teacher";
 import {
@@ -15,6 +15,12 @@ import {
   ArrowUp,
   ArrowDown,
   Trash2,
+  Camera,
+  Plus,
+  UserCheck,
+  FileSpreadsheet,
+  Download,
+  Image as ImageIcon,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -26,7 +32,13 @@ import { ExportClassModal, type ExportType } from "./export-class-modal";
 import { QuickAssessmentModal } from "./quick-assessment-modal";
 import { QuickGradeDrawer } from "./quick-grade-drawer";
 import { StudentProfileDrawer } from "./student-profile-drawer";
+import { WhatsappStoryCreatorModal } from "@/components/teacher/whatsapp-story-creator-modal";
+import { compressImageFile } from "@/lib/image-compress";
 import { UnderlineTabs } from "@/components/ui/underline-tabs";
+import {
+  TeacherCalendarView,
+  type TeacherCalendarSessionItem,
+} from "@/components/teacher/calendar/teacher-calendar-view";
 
 export interface StudentRosterItem {
   id: number; // pendaftaranId
@@ -44,6 +56,7 @@ export interface StudentRosterItem {
   namaWali?: string | null;
   teleponWali?: string | null;
   alamatWali?: string | null;
+  persetujuanFoto?: boolean;
 }
 
 export interface ScheduleSlotItem {
@@ -96,6 +109,7 @@ export interface ClassDetailViewProps {
     jamSelesai: string;
     isToday: boolean;
   } | null;
+  calendarSessions?: TeacherCalendarSessionItem[];
   todayStr: string;
   locale: string;
   stats: {
@@ -122,12 +136,19 @@ export function ClassDetailView({
   sessions = [],
   firstTodaySession,
   activeAttendanceSession,
+  calendarSessions = [],
   todayStr,
+  locale = "id",
   stats,
 }: ClassDetailViewProps) {
   const router = useRouter();
   const [isDeletingAssessmentId, setIsDeletingAssessmentId] = useState<number | null>(null);
   const [isPendingDelete, startDeleteTransition] = useTransition();
+
+  const formatTingkat = tingkat
+    ? (tingkat.toLowerCase().startsWith("kelas") ? tingkat : `Kelas ${tingkat}`)
+    : null;
+  const classDisplayName = `${className} · ${jenjang}${formatTingkat ? ` (${formatTingkat})` : ""}`;
 
   const handleDeleteAssessment = (id: number, nama: string) => {
     if (!confirm(`Yakin ingin menghapus tugas '${nama}'? Seluruh data nilai siswa pada tugas ini akan ikut dihapus secara permanen.`)) return;
@@ -178,6 +199,39 @@ export function ClassDetailView({
   const [editingAssessment, setEditingAssessment] = useState<ClassAssessmentItem | null>(null);
   const [gradingStudentId, setGradingStudentId] = useState<number | null>(null);
   const [profileStudentId, setProfileStudentId] = useState<number | null>(null);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [statusCreatorMode, setStatusCreatorMode] = useState<'photo' | 'text'>('photo');
+  const [statusCreatorPhotos, setStatusCreatorPhotos] = useState<string[]>([]);
+  const photoFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleOpenPhotoCreator = () => {
+    photoFileInputRef.current?.click();
+  };
+
+  const handlePhotoFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    try {
+      const compressedList: string[] = [];
+      for (const f of files.slice(0, 5)) {
+        const compressed = await compressImageFile(f);
+        compressedList.push(compressed);
+      }
+      setStatusCreatorPhotos(compressedList);
+      setStatusCreatorMode('photo');
+      setIsStatusModalOpen(true);
+    } catch (err) {
+      console.error('Gagal memproses foto:', err);
+    } finally {
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleOpenTextCreator = () => {
+    setStatusCreatorPhotos([]);
+    setStatusCreatorMode('text');
+    setIsStatusModalOpen(true);
+  };
 
   // Search, sort & pagination state for roster
   const [searchQuery, setSearchQuery] = useState("");
@@ -276,13 +330,6 @@ export function ClassDetailView({
           Dashboard
         </Link>
         <span className="text-slate-400 dark:text-slate-600">/</span>
-        <Link
-          href="/teacher/classes"
-          className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-        >
-          Kelas Diampu
-        </Link>
-        <span className="text-slate-400 dark:text-slate-600">/</span>
         <span className="font-medium text-slate-800 dark:text-slate-200 truncate">
           {className} {jenjang} {tingkat ? `· ${tingkat}` : ""}
         </span>
@@ -300,46 +347,51 @@ export function ClassDetailView({
           </p>
         </div>
 
-        {/* Action Buttons: Primary, Secondary, Utility */}
+        {/* Header Actions: Hanya Bagikan Status & Buat Tugas */}
         <div className="flex flex-wrap items-center gap-2">
-          {attendanceTarget ? (
-            <Link
-              href={`/teacher/classes/${classId}/sessions/${attendanceTarget.tanggalPertemuan}/attendance?sesi=${attendanceTarget.jadwalItemId}`}
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors"
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/60 active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-semibold text-emerald-800 dark:text-emerald-300 shadow-2xs transition-all duration-150 cursor-pointer"
+                title="Bagikan status pembelajaran kelas ke orang tua murid (Aktif 24 jam)"
+              >
+                <Camera className="size-4 shrink-0" aria-hidden="true" />
+                <span>Bagikan Status</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-48 p-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl"
             >
-              <span>
-                {attendanceTarget.isToday
-                  ? "Catat Presensi Hari Ini"
-                  : "Isi Presensi"}
-              </span>
-            </Link>
-          ) : null}
+              <DropdownMenuItem
+                onClick={handleOpenPhotoCreator}
+                className="w-full cursor-pointer rounded-lg px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <div className="flex items-center gap-2.5 w-full text-left">
+                  <ImageIcon className="size-4 text-slate-500 dark:text-slate-400 shrink-0" aria-hidden="true" />
+                  <span>Foto & Video</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleOpenTextCreator}
+                className="w-full cursor-pointer rounded-lg px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <div className="flex items-center gap-2.5 w-full text-left">
+                  <Pencil className="size-4 text-slate-500 dark:text-slate-400 shrink-0" aria-hidden="true" />
+                  <span>Teks</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <button
             type="button"
             onClick={() => setIsAssessmentModalOpen(true)}
-            className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-all duration-150 cursor-pointer"
           >
+            <Plus className="size-4 shrink-0" aria-hidden="true" />
             <span>Buat Tugas</span>
-          </button>
-
-          <Link
-            href={`/teacher/classes/${classId}/reports`}
-            className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 shadow-2xs transition-colors"
-          >
-            <span>Rapor Semester</span>
-          </Link>
-
-          <button
-            type="button"
-            onClick={() => {
-              setExportInitialType("summary");
-              setIsExportModalOpen(true);
-            }}
-            className="inline-flex items-center justify-center rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
-            title="Ekspor data rombel (CSV)"
-          >
-            <span>Ekspor</span>
           </button>
         </div>
       </div>
@@ -363,7 +415,7 @@ export function ClassDetailView({
       {/* TAB 1: ROSTER SISWA */}
       {activeTab === "roster" && (
         <div className="space-y-4">
-          {/* Section Toolbar: Header left, Search right */}
+          {/* Section Toolbar: Header left, Search & Actions right */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h2 className="text-sm sm:text-base font-semibold text-slate-950 dark:text-slate-50">
@@ -374,23 +426,46 @@ export function ClassDetailView({
               </p>
             </div>
 
-            <div className="relative w-full sm:w-64">
-              <label htmlFor="search-student-roster" className="sr-only">
-                Cari nama siswa
-              </label>
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" aria-hidden="true" />
-              <input
-                id="search-student-roster"
-                type="search"
-                autoComplete="off"
-                placeholder="Cari nama siswa…"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative w-full sm:w-56">
+                <label htmlFor="search-student-roster" className="sr-only">
+                  Cari nama siswa
+                </label>
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none" aria-hidden="true" />
+                <input
+                  id="search-student-roster"
+                  type="search"
+                  autoComplete="off"
+                  placeholder="Cari nama siswa…"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="h-10 sm:h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-8 pr-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                />
+              </div>
+
+              <Link
+                href={`/teacher/classes/${classId}/reports`}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 shadow-2xs transition-all duration-150"
+              >
+                <FileSpreadsheet className="size-4 text-slate-500 dark:text-slate-400 shrink-0" aria-hidden="true" />
+                <span>Rapor Semester</span>
+              </Link>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setExportInitialType("summary");
+                  setIsExportModalOpen(true);
                 }}
-                className="h-10 sm:h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-8 pr-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
-              />
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 shadow-2xs transition-all duration-150 cursor-pointer"
+                title="Ekspor data rombel (CSV)"
+              >
+                <Download className="size-4 text-slate-500 dark:text-slate-400 shrink-0" aria-hidden="true" />
+                <span>Ekspor</span>
+              </button>
             </div>
           </div>
 
@@ -824,66 +899,23 @@ export function ClassDetailView({
 
       {/* TAB 2: JADWAL & SESI PERTEMUAN */}
       {activeTab === "schedule" && (
-        <div className="space-y-4">
-          <div>
-            <h2 className="text-sm sm:text-base font-semibold text-slate-950 dark:text-slate-50">
-              Jadwal Sesi Mingguan
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Waktu tatap muka rutin rombongan belajar ini dan tautan langsung pencatatan presensi.
-            </p>
-          </div>
-
-          <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
-            <div className="divide-y divide-slate-100 dark:divide-slate-800">
-              {schedules.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400">
-                  Belum ada jadwal yang ditentukan untuk kelas ini.
-                </div>
-              ) : (
-                schedules.map((j) => (
-                  <div
-                    key={j.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        Hari {j.hari}
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 tabular-nums">
-                        {j.jamMulai.slice(0, 5)} - {j.jamSelesai.slice(0, 5)} WIB
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {j.nextSessionDate ? (
-                        <div className="text-left sm:text-right">
-                          <span className="text-xs font-medium text-slate-700 dark:text-slate-300 block">
-                            Sesi Berikutnya: {j.nextSessionDate}
-                          </span>
-                          {j.nextSessionTime ? (
-                            <span className="text-[11px] text-slate-500 dark:text-slate-400 block tabular-nums">
-                              {j.nextSessionTime}
-                            </span>
-                          ) : null}
-                        </div>
-                      ) : null}
-
-                      {j.nextSessionDate ? (
-                        <Link
-                          href={`/teacher/classes/${classId}/sessions/${j.nextSessionDate}/attendance?sesi=${j.id}`}
-                          className="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-3 py-2 text-xs font-medium text-white transition-colors cursor-pointer"
-                        >
-                          <span>Presensi</span>
-                        </Link>
-                      ) : null}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
+        <TeacherCalendarView
+          sessions={calendarSessions}
+          classes={[
+            {
+              id: classId,
+              name: className,
+              displayName: classDisplayName,
+              jenjang,
+              tingkat,
+            },
+          ]}
+          todayStr={todayStr}
+          locale={locale}
+          hideClassFilter={true}
+          allowedViews={["daily", "weekly", "monthly"]}
+          defaultView="weekly"
+        />
       )}
 
       {/* TAB 3: TUGAS & ASESMEN */}
@@ -903,8 +935,9 @@ export function ClassDetailView({
               <button
                 type="button"
                 onClick={() => setIsAssessmentModalOpen(true)}
-                className="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-all duration-150 cursor-pointer"
               >
+                <Plus className="size-4 shrink-0" aria-hidden="true" />
                 <span>Buat Tugas</span>
               </button>
             </div>
@@ -922,8 +955,9 @@ export function ClassDetailView({
                 <button
                   type="button"
                   onClick={() => setIsAssessmentModalOpen(true)}
-                  className="inline-flex items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2 text-xs sm:text-sm font-medium text-white shadow-xs transition-colors cursor-pointer"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-[0.98] px-4 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-all duration-150 cursor-pointer"
                 >
+                  <Plus className="size-4 shrink-0" aria-hidden="true" />
                   <span>Buat Tugas Pertama</span>
                 </button>
               </div>
@@ -1199,16 +1233,39 @@ export function ClassDetailView({
 
             <div className="space-y-2">
               <Link
-                href="/teacher/status"
-                className="flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
+                href={`/teacher/classes/${classId}/reports`}
+                className="flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 active:scale-[0.99] transition-all"
               >
-                <div>
-                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
-                    Dokumentasi Belajar
-                  </p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Bagikan foto kegiatan pembelajaran ke orang tua
-                  </p>
+                <div className="flex items-start gap-2.5">
+                  <FileSpreadsheet className="size-4 text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" aria-hidden="true" />
+                  <div>
+                    <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+                      Rapor Semester
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Pengisian capaian akhir dan rapor semester murid
+                    </p>
+                  </div>
+                </div>
+                <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                  Buka
+                </span>
+              </Link>
+
+              <Link
+                href="/teacher/status"
+                className="flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 active:scale-[0.99] transition-all"
+              >
+                <div className="flex items-start gap-2.5">
+                  <Camera className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" />
+                  <div>
+                    <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+                      Dokumentasi Belajar
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Bagikan foto kegiatan pembelajaran ke orang tua
+                    </p>
+                  </div>
                 </div>
                 <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
                   Buka
@@ -1221,15 +1278,18 @@ export function ClassDetailView({
                   setExportInitialType("attendance");
                   setIsExportModalOpen(true);
                 }}
-                className="w-full flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors text-left cursor-pointer"
+                className="w-full flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 active:scale-[0.99] transition-all text-left cursor-pointer"
               >
-                <div>
-                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
-                    Rekap Presensi (CSV)
-                  </p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Unduh riwayat kehadiran seluruh sesi rombel
-                  </p>
+                <div className="flex items-start gap-2.5">
+                  <Download className="size-4 text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" aria-hidden="true" />
+                  <div>
+                    <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+                      Rekap Presensi (CSV)
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Unduh riwayat kehadiran seluruh sesi rombel
+                    </p>
+                  </div>
                 </div>
                 <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
                   Unduh
@@ -1242,15 +1302,18 @@ export function ClassDetailView({
                   setExportInitialType("grades");
                   setIsExportModalOpen(true);
                 }}
-                className="w-full flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors text-left cursor-pointer"
+                className="w-full flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 active:scale-[0.99] transition-all text-left cursor-pointer"
               >
-                <div>
-                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
-                    Rekap Nilai (CSV)
-                  </p>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Unduh data nilai tugas dan asesmen siswa
-                  </p>
+                <div className="flex items-start gap-2.5">
+                  <Download className="size-4 text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" aria-hidden="true" />
+                  <div>
+                    <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
+                      Rekap Nilai (CSV)
+                    </p>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Unduh data nilai tugas dan asesmen siswa
+                    </p>
+                  </div>
                 </div>
                 <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
                   Unduh
@@ -1308,6 +1371,44 @@ export function ClassDetailView({
         student={students.find((s) => s.id === profileStudentId) ?? null}
         classId={classId}
         onOpenGrading={(pid) => setGradingStudentId(pid)}
+      />
+
+      {/* Hidden File Input untuk pilih foto status langsung dari dialog file picker native */}
+      <input
+        ref={photoFileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        onChange={handlePhotoFileSelected}
+        className="hidden"
+      />
+
+      {/* 5. WhatsappStoryCreatorModal (WhatsApp Story Creator) */}
+      <WhatsappStoryCreatorModal
+        isOpen={isStatusModalOpen}
+        onClose={() => {
+          setIsStatusModalOpen(false);
+          setStatusCreatorPhotos([]);
+        }}
+        defaultClassId={classId}
+        initialMode={statusCreatorMode}
+        initialPhotos={statusCreatorPhotos}
+        classes={[
+          {
+            id: classId,
+            nama: `${className} · ${jenjang} ${tingkat ? `(${tingkat})` : ""}`,
+            jenjang,
+            students: students.map((s) => ({
+              pendaftaranId: s.id,
+              anakId: s.anakId,
+              namaAnak: s.nama,
+              persetujuanFoto: Boolean(s.persetujuanFoto),
+            })),
+          },
+        ]}
+        onSuccess={() => {
+          router.refresh();
+        }}
       />
     </div>
   );

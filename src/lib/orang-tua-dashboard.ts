@@ -9,348 +9,393 @@
  * jatuhTempo), Presensi (status/catatan/tanggal), NilaiProgres (kuantitatif +
  * kualitatif), Kelas+JadwalItem (hari & jam), User (nama guru). Nol angka ketokan.
  */
-import { db } from "@/prisma/db";
-import { collect } from "@/lib/collect";
-import type { DisplayLocale } from "@/lib/format/label";
-import { hariDariTanggal, type Hari } from "@/lib/format/hari";
+import { db } from '@/prisma/db';
+import { collect } from '@/lib/collect';
+import type { DisplayLocale } from '@/lib/format/label';
+import { hariDariTanggal, type Hari } from '@/lib/format/hari';
 
 export const STATUS_AKTIF_DB = [
-  "menunggu_pembayaran",
-  "terdaftar",
-  "tertunggak",
+    'menunggu_pembayaran',
+    'terdaftar',
+    'tertunggak',
 ] as const;
 
 const URUTAN_HARI: Hari[] = [
-  "Senin",
-  "Selasa",
-  "Rabu",
-  "Kamis",
-  "Jumat",
-  "Sabtu",
-  "Minggu",
+    'Senin',
+    'Selasa',
+    'Rabu',
+    'Kamis',
+    'Jumat',
+    'Sabtu',
+    'Minggu',
 ];
 
 export type KartuTagihan = {
-  /** Jumlah yang masih harus dibayar (pending + gagal). */
-  belumDibayar: number;
-  /** Sudah dibayar pada periode berjalan. */
-  sudahDibayar: number;
-  /** Tagihan berikutnya: pending terdekat, atau 'gagal' kalau ada retry. */
-  berikutnya: {
-    pembayaranId: number;
-    label: string;
-    jumlah: number;
-    jatuhTempo: string | null;
-    status: "pending" | "gagal";
-    /** <0 = lewat jatuh tempo. */
-    sisaHari: number | null;
-  } | null;
-  /** Hanya berarti untuk metode dp_cicilan. */
-  tenor: { lunas: number; total: number } | null;
-  metode: "lunas" | "dp_cicilan";
+    /** Jumlah yang masih harus dibayar (pending + gagal). */
+    belumDibayar: number;
+    /** Sudah dibayar pada periode berjalan. */
+    sudahDibayar: number;
+    /** Tagihan berikutnya: pending terdekat, atau 'gagal' kalau ada retry. */
+    berikutnya: {
+        pembayaranId: number;
+        label: string;
+        jumlah: number;
+        jatuhTempo: string | null;
+        status: 'pending' | 'gagal';
+        /** <0 = lewat jatuh tempo. */
+        sisaHari: number | null;
+    } | null;
+    /** Hanya berarti untuk metode dp_cicilan. */
+    tenor: { lunas: number; total: number } | null;
+    metode: 'lunas' | 'dp_cicilan';
 };
 
 export type AnakDashboard = {
-  id: number;
-  nama: string;
-  jenjang: string | null;
-  /** Status Pendaftaran aktif terakhir (enum DB) — untuk badge. */
-  status: string;
-  /** true kalau pendaftaran aktif terakhir masih berstatus menunggu_pembayaran. */
-  menungguPembayaran: boolean;
-  tertunggak: boolean;
-  /** Label kelas aktif: mapel + guru + ruangan. */
-  kelas: { mapel: string; guru: string; ruangan?: string | null } | null;
-  tagihan: KartuTagihan | null;
-  jadwal: {
-    hari: string;
-    mulai: string;
-    selesai: string;
-    mapel: string;
-    guru: string;
-    ruangan?: string | null;
-    /** Tanggal pertemuan berikutnya, null kalau hari jadwal belum terpetakan. */
-    tanggalBerikutnya: string | null;
-  }[];
-  presensi: {
-    total: number;
-    hadir: number;
-    izin: number;
-    sakit: number;
-    alpa: number;
-  };
-  /** Riwayat presensi urut tanggal (terbaru dulu) — utk kalender kehadiran. */
-  presensiRiwayat: { tanggal: string; status: string }[];
-  persenHadir: number | null;
-  pertemuanTerakhir: {
-    tanggal: string;
+    id: number;
+    nama: string;
+    jenjang: string | null;
+    /** Status Pendaftaran aktif terakhir (enum DB) — untuk badge. */
     status: string;
-    catatan: string | null;
-  } | null;
-  nilai: { tanggal: string; nilai: number }[];
-  catatanTerakhir: { teks: string; guru: string; tanggal: string } | null;
-  pendaftaranId: number | null;
-  kelasId: number | null;
+    /** true kalau pendaftaran aktif terakhir masih berstatus menunggu_pembayaran. */
+    menungguPembayaran: boolean;
+    tertunggak: boolean;
+    /** Label kelas aktif: mapel + guru + ruangan. */
+    kelas: { mapel: string; guru: string; ruangan?: string | null } | null;
+    tagihan: KartuTagihan | null;
+    jadwal: {
+        hari: string;
+        mulai: string;
+        selesai: string;
+        mapel: string;
+        guru: string;
+        ruangan?: string | null;
+        /** Tanggal pertemuan berikutnya, null kalau hari jadwal belum terpetakan. */
+        tanggalBerikutnya: string | null;
+    }[];
+    presensi: {
+        total: number;
+        hadir: number;
+        izin: number;
+        sakit: number;
+        alpa: number;
+    };
+    /** Riwayat presensi urut tanggal (terbaru dulu) — utk kalender kehadiran. */
+    presensiRiwayat: { tanggal: string; status: string }[];
+    persenHadir: number | null;
+    pertemuanTerakhir: {
+        tanggal: string;
+        status: string;
+        catatan: string | null;
+    } | null;
+    nilai: { tanggal: string; nilai: number }[];
+    catatanTerakhir: { teks: string; guru: string; tanggal: string } | null;
+    pendaftaranId: number | null;
+    kelasId: number | null;
 };
 
 function hariSebagai(tglIso: string) {
-  const t = new Date(tglIso);
-  return Math.round((t.getTime() - Date.now()) / 86_400_000);
+    const t = new Date(tglIso);
+    return Math.round((t.getTime() - Date.now()) / 86_400_000);
 }
 
 function tanggalHariBerikut(target: Hari, dari = new Date()): string {
-  const dariStr = dari.toISOString().slice(0, 10);
-  const indexIni = URUTAN_HARI.indexOf(hariDariTanggal(dariStr));
-  const selisih = (URUTAN_HARI.indexOf(target) - indexIni + 7) % 7;
-  const d = new Date(`${dariStr}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + selisih);
-  return d.toISOString().slice(0, 10);
+    const dariStr = dari.toISOString().slice(0, 10);
+    const indexIni = URUTAN_HARI.indexOf(hariDariTanggal(dariStr));
+    const selisih = (URUTAN_HARI.indexOf(target) - indexIni + 7) % 7;
+    const d = new Date(`${dariStr}T00:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + selisih);
+    return d.toISOString().slice(0, 10);
 }
 
 export async function dashboardOrangTua(
-  ortuId: number,
-  locale: DisplayLocale = "id",
+    ortuId: number,
+    locale: DisplayLocale = 'id',
 ): Promise<AnakDashboard[]> {
-  const [anak, pendaftaran] = await Promise.all([
-    collect(db.orm.public.Anak.where((a) => a.orangTuaId.eq(ortuId)).all()),
-    collect(
-      db.orm.public.Pendaftaran.include("kelas", (b) =>
-        b.select("id", "mataPelajaranId", "guruId", "jenjang", "ruangan"),
-      ).all(),
-    ),
-  ]);
-  if (anak.length === 0) return [];
-
-  const anakIds = new Set(anak.map((a) => a.id));
-  const milikSaya = pendaftaran
-    .filter((p) => anakIds.has(p.anakId))
-    .sort((x, y) => x.createdAt.localeCompare(y.createdAt));
-  const pidSaya = milikSaya.map((p) => p.id);
-
-  // ORM rc.8 di repo ini belum terbukti mendukung `.inArray`, dan pola yang sudah
-  // jalan di halaman ini/lain adalah "ambil tabel kecil, saring di JS"
-  // (lihat Pendaftaran.all() di atas & lib/kelas.ts). Skala lembaga aman.
-  const [pembayaran, presensi, penilaian, hasilPenilaian, mapelRows, guruRows, jadwalRows] =
-    await Promise.all([
-      collect(db.orm.public.Pembayaran.all()),
-      collect(db.orm.public.Presensi.all()),
-      collect(db.orm.public.Penilaian.where((pen) => pen.draf.eq(false)).all()),
-      collect(db.orm.public.HasilPenilaian.where((h) => h.statusHasil.eq("dinilai")).all()),
-      collect(db.orm.public.MataPelajaran.all()),
-      collect(db.orm.public.User.where((u) => u.role.eq("guru")).all()),
-      collect(db.orm.public.JadwalItem.all()),
+    const [anak, pendaftaran] = await Promise.all([
+        collect(db.orm.public.Anak.where((a) => a.orangTuaId.eq(ortuId)).all()),
+        collect(
+            db.orm.public.Pendaftaran.include('kelas', (b) =>
+                b.select(
+                    'id',
+                    'mataPelajaranId',
+                    'guruId',
+                    'jenjang',
+                    'ruangan',
+                ),
+            ).all(),
+        ),
     ]);
-  const pidSet = new Set(pidSaya);
-  const kelasIdSet = new Set(milikSaya.map((p) => p.kelasId));
-  const tagihanSemua = pembayaran.filter((b) => pidSet.has(b.pendaftaranId));
-  const presensiSemua = presensi.filter((s) => pidSet.has(s.pendaftaranId));
-  const penilaianById = new Map(penilaian.map((pen) => [pen.id, pen]));
-  const hasilSemua = hasilPenilaian.filter((h) => pidSet.has(h.pendaftaranId) && penilaianById.has(h.penilaianId));
-  const jadwalSemua = jadwalRows.filter((j) => kelasIdSet.has(j.kelasId));
+    if (anak.length === 0) return [];
 
-  const mapel = new Map(mapelRows.map((m) => [m.id, m.nama]));
-  const guru = new Map(guruRows.map((g) => [g.id, g.name]));
-  const byPendaftaran = <T extends { pendaftaranId: number }>(rows: T[]) => {
-    const out = new Map<number, T[]>();
-    for (const r of rows) {
-      const list = out.get(r.pendaftaranId);
-      if (list) list.push(r);
-      else out.set(r.pendaftaranId, [r]);
-    }
-    return out;
-  };
-  const tagihanByP = byPendaftaran(tagihanSemua);
-  const presensiByP = byPendaftaran(presensiSemua);
-  const hasilByP = byPendaftaran(hasilSemua);
-  const jadwalByKelas = new Map<number, typeof jadwalSemua>();
-  for (const j of jadwalSemua) {
-    const list = jadwalByKelas.get(j.kelasId);
-    if (list) list.push(j);
-    else jadwalByKelas.set(j.kelasId, [j]);
-  }
+    const anakIds = new Set(anak.map((a) => a.id));
+    const milikSaya = pendaftaran
+        .filter((p) => anakIds.has(p.anakId))
+        .sort((x, y) => x.createdAt.localeCompare(y.createdAt));
+    const pidSaya = milikSaya.map((p) => p.id);
 
-  // Gabungkan ke per-anak: pendaftaran aktif terakhir yang pegang kendali kartu.
-  const out: AnakDashboard[] = [];
-  for (const a of anak) {
-    const punyanya = milikSaya.filter((p) => p.anakId === a.id);
-    if (punyanya.length === 0) {
-      // Anak sudah dibuat tapi belum memilih kelas — tetap muncul di switcher
-      // supaya orang tua tidak mengira datanya hilang.
-      out.push({
-        id: a.id,
-        nama: a.nama,
-        jenjang: a.jenjangTerakhir ?? null,
-        status: "",
-        menungguPembayaran: false,
-        tertunggak: false,
-        kelas: null,
-        tagihan: null,
-        jadwal: [],
-        presensi: { total: 0, hadir: 0, izin: 0, sakit: 0, alpa: 0 },
-        presensiRiwayat: [],
-        persenHadir: null,
-        pertemuanTerakhir: null,
-        nilai: [],
-        catatanTerakhir: null,
-        pendaftaranId: null,
-        kelasId: null,
-      });
-      continue;
-    }
-    const aktif = punyanya.filter((p) =>
-      (STATUS_AKTIF_DB as readonly string[]).includes(p.status),
+    // ORM rc.8 di repo ini belum terbukti mendukung `.inArray`, dan pola yang sudah
+    // jalan di halaman ini/lain adalah "ambil tabel kecil, saring di JS"
+    // (lihat Pendaftaran.all() di atas & lib/kelas.ts). Skala lembaga aman.
+    const [
+        pembayaran,
+        presensi,
+        penilaian,
+        hasilPenilaian,
+        mapelRows,
+        guruRows,
+        jadwalRows,
+    ] = await Promise.all([
+        collect(db.orm.public.Pembayaran.all()),
+        collect(db.orm.public.Presensi.all()),
+        collect(
+            db.orm.public.Penilaian.where((pen) => pen.draf.eq(false)).all(),
+        ),
+        collect(
+            db.orm.public.HasilPenilaian.where((h) =>
+                h.statusHasil.eq('dinilai'),
+            ).all(),
+        ),
+        collect(db.orm.public.MataPelajaran.all()),
+        collect(db.orm.public.User.where((u) => u.role.eq('guru')).all()),
+        collect(db.orm.public.JadwalItem.all()),
+    ]);
+    const pidSet = new Set(pidSaya);
+    const kelasIdSet = new Set(milikSaya.map((p) => p.kelasId));
+    const tagihanSemua = pembayaran.filter((b) => pidSet.has(b.pendaftaranId));
+    const presensiSemua = presensi.filter((s) => pidSet.has(s.pendaftaranId));
+    const penilaianById = new Map(penilaian.map((pen) => [pen.id, pen]));
+    const hasilSemua = hasilPenilaian.filter(
+        (h) => pidSet.has(h.pendaftaranId) && penilaianById.has(h.penilaianId),
     );
-    const p = aktif[aktif.length - 1] ?? punyanya[punyanya.length - 1];
+    const jadwalSemua = jadwalRows.filter((j) => kelasIdSet.has(j.kelasId));
 
-    // --- Tagihan
-    const bills = tagihanByP.get(p.id) ?? [];
-    const belum = bills.filter(
-      (b) => b.status === "pending" || b.status === "gagal",
-    );
-    const lunas = bills.filter((b) => b.status === "berhasil");
-    const cicilanLunas = lunas.filter((b) => b.tipe === "cicilan").length;
-    const next = [...belum].sort((x, y) =>
-      (x.jatuhTempo ?? "9999").localeCompare(y.jatuhTempo ?? "9999"),
-    )[0];
-    const tagihan: KartuTagihan = {
-      belumDibayar: belum.reduce((s, b) => s + Number(b.jumlah), 0),
-      sudahDibayar: lunas.reduce((s, b) => s + Number(b.jumlah), 0),
-      metode: p.metodeBayar,
-      tenor:
-        p.metodeBayar === "dp_cicilan" && p.tenorBulan
-          ? { lunas: cicilanLunas, total: p.tenorBulan }
-          : null,
-      berikutnya: next
-        ? {
-            pembayaranId: next.id,
-            label:
-              next.tipe === "cicilan"
-                ? (locale === "en" ? `Installment ${next.cicilanKe}` : `Cicilan ke-${next.cicilanKe}`)
-                : next.tipe === "dp"
-                  ? (locale === "en" ? "Down payment (DP)" : "Uang muka (DP)")
-                  : (locale === "en" ? "Full payment" : "Pembayaran lunas"),
-            jumlah: Number(next.jumlah),
-            jatuhTempo: next.jatuhTempo,
-            status: next.status === "gagal" ? "gagal" : "pending",
-            sisaHari: next.jatuhTempo ? hariSebagai(next.jatuhTempo) : null,
-          }
-        : null,
-    };
-
-    // --- Jadwal minggu ini (hari enum + tanggal pertemuan berikutnya)
-    const jadwal = (jadwalByKelas.get(p.kelasId) ?? [])
-      .slice()
-      .sort(
-        (x, y) =>
-          URUTAN_HARI.indexOf(x.hari) - URUTAN_HARI.indexOf(y.hari) ||
-          x.jamMulai.localeCompare(y.jamMulai),
-      )
-      .map((j) => ({
-        hari: j.hari,
-        mulai: j.jamMulai.slice(0, 5),
-        selesai: j.jamSelesai.slice(0, 5),
-        mapel: mapel.get(p.kelas.mataPelajaranId) ?? `${locale === "en" ? "Class" : "Kelas"} #${p.kelasId}`,
-        guru: guru.get(p.kelas.guruId) ?? "-",
-        ruangan: p.kelas.ruangan ?? null,
-        tanggalBerikutnya: tanggalHariBerikut(j.hari),
-      }));
-
-    // --- Presensi
-    const pres = (presensiByP.get(p.id) ?? [])
-      .slice()
-      .sort((x, y) => y.tanggalPertemuan.localeCompare(x.tanggalPertemuan));
-    const hitung = (s: string) => pres.filter((x) => x.status === s).length;
-    const presensi = {
-      total: pres.length,
-      hadir: hitung("hadir"),
-      izin: hitung("izin"),
-      sakit: hitung("sakit"),
-      alpa: hitung("alpa"),
-    };
-    const presensiRiwayat = pres.map((x) => ({
-      tanggal: x.tanggalPertemuan,
-      status: x.status,
-    }));
-    const pertemuanTerakhir = pres[0]
-      ? {
-          tanggal: pres[0].tanggalPertemuan,
-          status: pres[0].status,
-          catatan: pres[0].catatan ?? null,
+    const mapel = new Map(mapelRows.map((m) => [m.id, m.nama]));
+    const guru = new Map(guruRows.map((g) => [g.id, g.name]));
+    const byPendaftaran = <T extends { pendaftaranId: number }>(rows: T[]) => {
+        const out = new Map<number, T[]>();
+        for (const r of rows) {
+            const list = out.get(r.pendaftaranId);
+            if (list) list.push(r);
+            else out.set(r.pendaftaranId, [r]);
         }
-      : null;
+        return out;
+    };
+    const tagihanByP = byPendaftaran(tagihanSemua);
+    const presensiByP = byPendaftaran(presensiSemua);
+    const hasilByP = byPendaftaran(hasilSemua);
+    const jadwalByKelas = new Map<number, typeof jadwalSemua>();
+    for (const j of jadwalSemua) {
+        const list = jadwalByKelas.get(j.kelasId);
+        if (list) list.push(j);
+        else jadwalByKelas.set(j.kelasId, [j]);
+    }
 
-    // --- Nilai + catatan guru terakhir (dari HasilPenilaian yang diterbitkan)
-    const hasilRows = (hasilByP.get(p.id) ?? [])
-      .filter((h) => h.nilai != null && penilaianById.has(h.penilaianId));
-
-    // Urutkan berdasarkan tanggal asesmen kelas
-    const sortedHasil = hasilRows.sort((x, y) => {
-      const tglX = penilaianById.get(x.penilaianId)?.tanggal ?? "";
-      const tglY = penilaianById.get(y.penilaianId)?.tanggal ?? "";
-      return tglX.localeCompare(tglY);
-    });
-
-    // Normalisasi skala 100
-    const nilai = sortedHasil.map((h) => {
-      const pen = penilaianById.get(h.penilaianId)!;
-      const maxScore = Number(pen.nilaiMaksimum) || 100;
-      const skala100 = Math.round((Number(h.nilai) / (maxScore > 0 ? maxScore : 100)) * 100);
-      return {
-        tanggal: pen.tanggal,
-        nilai: skala100,
-      };
-    });
-
-    const kualitatif = sortedHasil.filter((h) => h.catatan);
-    const terakhirKual = kualitatif[kualitatif.length - 1];
-    const penKual = terakhirKual ? penilaianById.get(terakhirKual.penilaianId) : null;
-    const catatanGuru = terakhirKual && penKual
-      ? {
-          teks: terakhirKual.catatan as string,
-          guru: guru.get(p.kelas.guruId) ?? (locale === "en" ? "Teacher" : "Guru"),
-          tanggal: penKual.tanggal,
+    // Gabungkan ke per-anak: pendaftaran aktif terakhir yang pegang kendali kartu.
+    const out: AnakDashboard[] = [];
+    for (const a of anak) {
+        const punyanya = milikSaya.filter((p) => p.anakId === a.id);
+        if (punyanya.length === 0) {
+            // Anak sudah dibuat tapi belum memilih kelas — tetap muncul di switcher
+            // supaya orang tua tidak mengira datanya hilang.
+            out.push({
+                id: a.id,
+                nama: a.nama,
+                jenjang: a.jenjangTerakhir ?? null,
+                status: '',
+                menungguPembayaran: false,
+                tertunggak: false,
+                kelas: null,
+                tagihan: null,
+                jadwal: [],
+                presensi: { total: 0, hadir: 0, izin: 0, sakit: 0, alpa: 0 },
+                presensiRiwayat: [],
+                persenHadir: null,
+                pertemuanTerakhir: null,
+                nilai: [],
+                catatanTerakhir: null,
+                pendaftaranId: null,
+                kelasId: null,
+            });
+            continue;
         }
-      : pres.find((x) => x.catatan)
-        ? {
-            teks: pres.find((x) => x.catatan)!.catatan as string,
-            guru: guru.get(p.kelas.guruId) ?? (locale === "en" ? "Teacher" : "Guru"),
-            tanggal: pres.find((x) => x.catatan)!.tanggalPertemuan,
-          }
-        : null;
+        const aktif = punyanya.filter((p) =>
+            (STATUS_AKTIF_DB as readonly string[]).includes(p.status),
+        );
+        const p = aktif[aktif.length - 1] ?? punyanya[punyanya.length - 1];
 
-    out.push({
-      id: a.id,
-      nama: a.nama,
-      jenjang: p.jenjangSaatDaftar ?? a.jenjangTerakhir ?? null,
-      status: p.status,
-      menungguPembayaran: p.status === "menunggu_pembayaran",
-      tertunggak: p.status === "tertunggak",
-      kelas: {
-        mapel: mapel.get(p.kelas.mataPelajaranId) ?? `${locale === "en" ? "Class" : "Kelas"} #${p.kelasId}`,
-        guru: guru.get(p.kelas.guruId) ?? "-",
-        ruangan: p.kelas.ruangan ?? null,
-      },
-      tagihan,
-      jadwal,
-      presensi,
-      presensiRiwayat,
-      persenHadir: pres.length
-        ? Math.round((presensi.hadir / pres.length) * 100)
-        : null,
-      pertemuanTerakhir,
-      nilai,
-      catatanTerakhir: catatanGuru,
-      pendaftaranId: p.id,
-      kelasId: p.kelasId,
-    });
-  }
+        // --- Tagihan
+        const bills = tagihanByP.get(p.id) ?? [];
+        const belum = bills.filter(
+            (b) => b.status === 'pending' || b.status === 'gagal',
+        );
+        const lunas = bills.filter((b) => b.status === 'berhasil');
+        const cicilanLunas = lunas.filter((b) => b.tipe === 'cicilan').length;
+        const next = [...belum].sort((x, y) =>
+            (x.jatuhTempo ?? '9999').localeCompare(y.jatuhTempo ?? '9999'),
+        )[0];
+        const tagihan: KartuTagihan = {
+            belumDibayar: belum.reduce((s, b) => s + Number(b.jumlah), 0),
+            sudahDibayar: lunas.reduce((s, b) => s + Number(b.jumlah), 0),
+            metode: p.metodeBayar,
+            tenor:
+                p.metodeBayar === 'dp_cicilan' && p.tenorBulan
+                    ? { lunas: cicilanLunas, total: p.tenorBulan }
+                    : null,
+            berikutnya: next
+                ? {
+                      pembayaranId: next.id,
+                      label:
+                          next.tipe === 'cicilan'
+                              ? locale === 'en'
+                                  ? `Installment ${next.cicilanKe}`
+                                  : `Cicilan ke-${next.cicilanKe}`
+                              : next.tipe === 'dp'
+                                ? locale === 'en'
+                                    ? 'Down payment (DP)'
+                                    : 'Uang muka (DP)'
+                                : locale === 'en'
+                                  ? 'Full payment'
+                                  : 'Pembayaran lunas',
+                      jumlah: Number(next.jumlah),
+                      jatuhTempo: next.jatuhTempo,
+                      status: next.status === 'gagal' ? 'gagal' : 'pending',
+                      sisaHari: next.jatuhTempo
+                          ? hariSebagai(next.jatuhTempo)
+                          : null,
+                  }
+                : null,
+        };
 
-  // Anak paling butuh perhatian duluan: tertunggak > menunggu bayar > sisanya.
-  return out.sort((x, y) => bobot(x) - bobot(y));
+        // --- Jadwal minggu ini (hari enum + tanggal pertemuan berikutnya)
+        const jadwal = (jadwalByKelas.get(p.kelasId) ?? [])
+            .slice()
+            .sort(
+                (x, y) =>
+                    URUTAN_HARI.indexOf(x.hari) - URUTAN_HARI.indexOf(y.hari) ||
+                    x.jamMulai.localeCompare(y.jamMulai),
+            )
+            .map((j) => ({
+                hari: j.hari,
+                mulai: j.jamMulai.slice(0, 5),
+                selesai: j.jamSelesai.slice(0, 5),
+                mapel:
+                    mapel.get(p.kelas.mataPelajaranId) ??
+                    `${locale === 'en' ? 'Class' : 'Kelas'} #${p.kelasId}`,
+                guru: guru.get(p.kelas.guruId) ?? '-',
+                ruangan: p.kelas.ruangan ?? null,
+                tanggalBerikutnya: tanggalHariBerikut(j.hari),
+            }));
+
+        // --- Presensi
+        const pres = (presensiByP.get(p.id) ?? [])
+            .slice()
+            .sort((x, y) =>
+                y.tanggalPertemuan.localeCompare(x.tanggalPertemuan),
+            );
+        const hitung = (s: string) => pres.filter((x) => x.status === s).length;
+        const presensi = {
+            total: pres.length,
+            hadir: hitung('hadir'),
+            izin: hitung('izin'),
+            sakit: hitung('sakit'),
+            alpa: hitung('alpa'),
+        };
+        const presensiRiwayat = pres.map((x) => ({
+            tanggal: x.tanggalPertemuan,
+            status: x.status,
+        }));
+        const pertemuanTerakhir = pres[0]
+            ? {
+                  tanggal: pres[0].tanggalPertemuan,
+                  status: pres[0].status,
+                  catatan: pres[0].catatan ?? null,
+              }
+            : null;
+
+        // --- Nilai + catatan guru terakhir (dari HasilPenilaian yang diterbitkan)
+        const hasilRows = (hasilByP.get(p.id) ?? []).filter(
+            (h) => h.nilai != null && penilaianById.has(h.penilaianId),
+        );
+
+        // Urutkan berdasarkan tanggal asesmen kelas
+        const sortedHasil = hasilRows.sort((x, y) => {
+            const tglX = penilaianById.get(x.penilaianId)?.tanggal ?? '';
+            const tglY = penilaianById.get(y.penilaianId)?.tanggal ?? '';
+            return tglX.localeCompare(tglY);
+        });
+
+        // Normalisasi skala 100
+        const nilai = sortedHasil.map((h) => {
+            const pen = penilaianById.get(h.penilaianId)!;
+            const maxScore = Number(pen.nilaiMaksimum) || 100;
+            const skala100 = Math.round(
+                (Number(h.nilai) / (maxScore > 0 ? maxScore : 100)) * 100,
+            );
+            return {
+                tanggal: pen.tanggal,
+                nilai: skala100,
+            };
+        });
+
+        const kualitatif = sortedHasil.filter((h) => h.catatan);
+        const terakhirKual = kualitatif[kualitatif.length - 1];
+        const penKual = terakhirKual
+            ? penilaianById.get(terakhirKual.penilaianId)
+            : null;
+        const catatanGuru =
+            terakhirKual && penKual
+                ? {
+                      teks: terakhirKual.catatan as string,
+                      guru:
+                          guru.get(p.kelas.guruId) ??
+                          (locale === 'en' ? 'Teacher' : 'Guru'),
+                      tanggal: penKual.tanggal,
+                  }
+                : pres.find((x) => x.catatan)
+                  ? {
+                        teks: pres.find((x) => x.catatan)!.catatan as string,
+                        guru:
+                            guru.get(p.kelas.guruId) ??
+                            (locale === 'en' ? 'Teacher' : 'Guru'),
+                        tanggal: pres.find((x) => x.catatan)!.tanggalPertemuan,
+                    }
+                  : null;
+
+        out.push({
+            id: a.id,
+            nama: a.nama,
+            jenjang: p.jenjangSaatDaftar ?? a.jenjangTerakhir ?? null,
+            status: p.status,
+            menungguPembayaran: p.status === 'menunggu_pembayaran',
+            tertunggak: p.status === 'tertunggak',
+            kelas: {
+                mapel:
+                    mapel.get(p.kelas.mataPelajaranId) ??
+                    `${locale === 'en' ? 'Class' : 'Kelas'} #${p.kelasId}`,
+                guru: guru.get(p.kelas.guruId) ?? '-',
+                ruangan: p.kelas.ruangan ?? null,
+            },
+            tagihan,
+            jadwal,
+            presensi,
+            presensiRiwayat,
+            persenHadir: pres.length
+                ? Math.round((presensi.hadir / pres.length) * 100)
+                : null,
+            pertemuanTerakhir,
+            nilai,
+            catatanTerakhir: catatanGuru,
+            pendaftaranId: p.id,
+            kelasId: p.kelasId,
+        });
+    }
+
+    // Anak paling butuh perhatian duluan: tertunggak > menunggu bayar > sisanya.
+    return out.sort((x, y) => bobot(x) - bobot(y));
 }
 
 function bobot(a: AnakDashboard) {
-  if (a.tertunggak) return 0;
-  if ((a.tagihan?.belumDibayar ?? 0) > 0) return a.menungguPembayaran ? 1 : 2;
-  return 3;
+    if (a.tertunggak) return 0;
+    if ((a.tagihan?.belumDibayar ?? 0) > 0) return a.menungguPembayaran ? 1 : 2;
+    return 3;
 }

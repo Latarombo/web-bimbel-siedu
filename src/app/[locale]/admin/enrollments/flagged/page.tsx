@@ -1,5 +1,4 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import { redirect, getPathname } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
@@ -37,7 +36,7 @@ export default async function AdminFlagged({ searchParams }: { searchParams: Pro
 
   const masalah = pendaftaran.filter((p) => STATUS_MASALAH.includes(p.status));
   const daftar = filter === "semua" ? masalah : masalah.filter((p) => p.status === filter);
-  const urut = [...daftar].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const urut = daftar.toSorted((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
   const columns: TableColumn[] = [
     { key: "anak", header: t("text117") },
@@ -81,6 +80,7 @@ export default async function AdminFlagged({ searchParams }: { searchParams: Pro
   return (
     <PageShell wide>
       <PageHeader
+        backHref="/admin/enrollments"
         title={t("text121")}
         desc={t("text122")}
         meta={masalah.length > 0 ? t("reviewCount", { count: masalah.length }) : t("text123")}

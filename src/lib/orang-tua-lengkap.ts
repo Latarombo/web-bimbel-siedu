@@ -14,13 +14,15 @@ import { db } from '@/prisma/db';
  * cache() = dedupe per request: layout (gate) + halaman + server action boleh
  * memanggil tanpa query ganda.
  */
-export const orangTuaBelumLengkap = cache(async (ortuId: number): Promise<boolean> => {
-  const user = await db.orm.public.User.where({ id: ortuId }).first();
-  // Baris hilang ( akun dihapus admin ) → anggap belum lengkap; halaman tujuan
-  // sudah punya tembok sendiri yang mengirim user ke /login.
-  if (!user) return true;
-  return !user.privasiDisetujuiAt || !user.waliDisetujuiAt;
-});
+export const orangTuaBelumLengkap = cache(
+    async (ortuId: number): Promise<boolean> => {
+        const user = await db.orm.public.User.where({ id: ortuId }).first();
+        // Baris hilang ( akun dihapus admin ) → anggap belum lengkap; halaman tujuan
+        // sudah punya tembok sendiri yang mengirim user ke /login.
+        if (!user) return true;
+        return !user.privasiDisetujuiAt || !user.waliDisetujuiAt;
+    },
+);
 
 /** Tujuan paksa untuk orang tua yang belum menuntaskan step 2. */
 export const AKUN_INFO_PATH = '/register/account-info';
@@ -31,10 +33,10 @@ export const AKUN_INFO_PATH = '/register/account-info';
  * supaya login ulang tidak terasa seperti jalan buntu di dashboard kosong.
  */
 export async function homeUntukUser(user: {
- id: number;
- role: 'admin' | 'guru' | 'orang_tua';
+    id: number;
+    role: 'admin' | 'guru' | 'orang_tua';
 }): Promise<string> {
- if (user.role === 'admin') return '/admin/dashboard';
- if (user.role === 'guru') return '/teacher/dashboard';
- return (await orangTuaBelumLengkap(user.id)) ? AKUN_INFO_PATH : '/home';
+    if (user.role === 'admin') return '/admin/dashboard';
+    if (user.role === 'guru') return '/teacher/dashboard';
+    return (await orangTuaBelumLengkap(user.id)) ? AKUN_INFO_PATH : '/home';
 }

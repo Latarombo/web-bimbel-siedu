@@ -68,9 +68,9 @@ export default function GoogleButton({
                 setRedirecting(true);
                 // Provider tidak terdaftar (mis. env hilang setelah build) →
                 // next-auth client mengalihkan ke halaman signin bawaan (fallback aman).
-                void signIn('google', { redirectTo: getPathname({ href: '/', locale }) }).catch(() =>
-                    setRedirecting(false),
-                );
+                void signIn('google', {
+                    redirectTo: getPathname({ href: '/', locale }),
+                }).catch(() => setRedirecting(false));
             }}
             className="w-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-semibold py-3 rounded-lg flex items-center justify-center space-x-3 transition-colors cursor-pointer disabled:opacity-60"
         >

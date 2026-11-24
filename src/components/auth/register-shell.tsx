@@ -41,7 +41,9 @@ export default async function RegisterShell({
                 </div>
 
                 {/* Right Side - Form */}
-                <div className="lg:w-1/2 flex justify-center lg:justify-end">{children}</div>
+                <div className="lg:w-1/2 flex justify-center lg:justify-end">
+                    {children}
+                </div>
             </main>
 
             {/* Wave Animation */}
@@ -50,14 +52,23 @@ export default async function RegisterShell({
             {/* Footer */}
             <footer className="px-4 py-5 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-white text-xs sm:text-sm z-10 gap-3">
                 <p className="text-center sm:text-left">
-                    {t('copyright', {year: new Date().getFullYear(), name: SITE.nama})}
+                    {t('copyright', {
+                        year: new Date().getFullYear(),
+                        name: SITE.nama,
+                    })}
                 </p>
                 <div className="flex items-center space-x-4 text-white/90">
-                    <Link href="/privacy-policy" className="hover:text-white transition-colors">
+                    <Link
+                        href="/privacy-policy"
+                        className="hover:text-white transition-colors"
+                    >
                         {t('privacy')}
                     </Link>
                     <span className="hidden sm:inline opacity-60">•</span>
-                    <Link href="/terms" className="hover:text-white transition-colors">
+                    <Link
+                        href="/terms"
+                        className="hover:text-white transition-colors"
+                    >
                         {t('terms')}
                     </Link>
                 </div>

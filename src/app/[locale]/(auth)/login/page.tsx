@@ -17,7 +17,6 @@ export const dynamic = 'force-dynamic';
 // Pesan error OAuth yang aman ditampilkan — OAuthAccountNotLinked terjadi saat
 // email Google cocok dengan akun password existing (core menolak auto-link).
 
-
 // Dashboard sesuai role — lihat homeUntukUser() di lib/orang-tua-lengkap.ts
 // (satu sumber kebenaran dengan actions/login.ts & tembok layout parent).
 
@@ -27,13 +26,11 @@ export default async function LoginPage({
     searchParams: Promise<{ next?: string; error?: string; reset?: string }>;
 }) {
     const t = await getTranslations('auth');
-const OAUTH_ERROR_MESSAGES: Record<string, string> = {
-    OAuthAccountNotLinked:
-        t('oauthNotLinked'),
-    OAuthCallbackError:
-        t('oauthCallback'),
-    AccessDenied: t('oauthDenied'),
-};
+    const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+        OAuthAccountNotLinked: t('oauthNotLinked'),
+        OAuthCallbackError: t('oauthCallback'),
+        AccessDenied: t('oauthDenied'),
+    };
     const locale = await getLocale();
     const { next, error: oauthError, reset } = await searchParams;
 
@@ -44,14 +41,14 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
     // UX (ui-ux-pro-max Navigation): jangan paksa isi ulang form untuk state yang sudah ada.
     const session = await auth();
     if (session?.user) {
-    const target =
-    next && next.startsWith('/') && !next.startsWith('//')
-    ? next.replace(/^\/(?:en|id)(?=\/(?!\/)|[?#]|$)/, '') || '/'
-    : await homeUntukUser({
-    id: Number(session.user.id),
-    role: session.user.role,
-    });
-    return redirect({href: target, locale});
+        const target =
+            next && next.startsWith('/') && !next.startsWith('//')
+                ? next.replace(/^\/(?:en|id)(?=\/(?!\/)|[?#]|$)/, '') || '/'
+                : await homeUntukUser({
+                      id: Number(session.user.id),
+                      role: session.user.role,
+                  });
+        return redirect({ href: target, locale });
     }
 
     return (
@@ -82,7 +79,9 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
                         next={next}
                         googleEnabled={googleOAuthEnabled}
                         oauthError={
-                            oauthError ? OAUTH_ERROR_MESSAGES[oauthError] : undefined
+                            oauthError
+                                ? OAUTH_ERROR_MESSAGES[oauthError]
+                                : undefined
                         }
                         resetSuccess={reset === 'success'}
                     />
@@ -95,14 +94,23 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
             {/* Footer */}
             <footer className="px-4 py-5 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-white text-xs sm:text-sm z-10 gap-3">
                 <p className="text-center sm:text-left">
-                    {t('copyright', {year: new Date().getFullYear(), name: SITE.nama})}
+                    {t('copyright', {
+                        year: new Date().getFullYear(),
+                        name: SITE.nama,
+                    })}
                 </p>
                 <div className="flex items-center space-x-4 text-white/90">
-                    <Link href="/privacy-policy" className="hover:text-white transition-colors">
+                    <Link
+                        href="/privacy-policy"
+                        className="hover:text-white transition-colors"
+                    >
                         {t('privacy')}
                     </Link>
                     <span className="hidden sm:inline opacity-60">•</span>
-                    <Link href="/terms" className="hover:text-white transition-colors">
+                    <Link
+                        href="/terms"
+                        className="hover:text-white transition-colors"
+                    >
                         {t('terms')}
                     </Link>
                 </div>

@@ -1,18 +1,18 @@
 export const SITE = {
-  nama: "Siedu",
-  email: "halo@siedu.id",
-  telepon: "0341-752389",
-  whatsapp: "0838-4648-0817",
-  alamat: [
-    "Gg. 7 No.47, RT.7/RW.2",
-    "Mergosono, Kec. Kedungkandang",
-    "Kota Malang, Jawa Timur 65134",
-  ],
-  sosial: [
-    { nama: "Instagram", url: "https://instagram.com" },
-    { nama: "X (Twitter)", url: "https://twitter.com" },
-    { nama: "YouTube", url: "https://youtube.com" },
-  ],
+    nama: 'Siedu',
+    email: 'halo@siedu.id',
+    telepon: '0341-752389',
+    whatsapp: '0838-4648-0817',
+    alamat: [
+        'Gg. 7 No.47, RT.7/RW.2',
+        'Mergosono, Kec. Kedungkandang',
+        'Kota Malang, Jawa Timur 65134',
+    ],
+    sosial: [
+        { nama: 'Instagram', url: 'https://instagram.com' },
+        { nama: 'X (Twitter)', url: 'https://twitter.com' },
+        { nama: 'YouTube', url: 'https://youtube.com' },
+    ],
 } as const;
 
 /*
@@ -29,7 +29,7 @@ export const SITE = {
  * Bukan output=embed Google: sejak 13 Sep terbukti menyajikan iframe kosong
  * (0 tile) tanpa API key. Jangan dipakai lagi.
  */
-const mapsQuery = encodeURIComponent(SITE.alamat.join(", "));
+const mapsQuery = encodeURIComponent(SITE.alamat.join(', '));
 export const MAPS_SEARCH_URL = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
 export const MAPS_DIR_URL = `https://www.google.com/maps/dir/?api=1&destination=${mapsQuery}`;
 
@@ -40,21 +40,29 @@ const OSM_LAT = LOKASI_LAT;
 const OSM_LNG = LOKASI_LNG;
 const OSM_BBOX = `${(OSM_LNG - 0.01).toFixed(5)},${(OSM_LAT - 0.005).toFixed(5)},${(OSM_LNG + 0.01).toFixed(5)},${(OSM_LAT + 0.005).toFixed(5)}`;
 const OSM_EMBED_URL = `https://www.openstreetmap.org/export/embed.html?bbox=${OSM_BBOX}&layer=mapnik&marker=${OSM_LAT},${OSM_LNG}`;
-export const MAPS_ATTRIBUTION_URL = "https://www.openstreetmap.org/copyright";
+export const MAPS_ATTRIBUTION_URL = 'https://www.openstreetmap.org/copyright';
 
-export type MapsProvider = "google" | "osm";
+export type MapsProvider = 'google' | 'osm';
 
 /* Leaflet interaktif aktif secara default menggunakan tile OSM publik resmi. */
 export const PETA_INTERAKTIF = true;
 
-export function mapsEmbed(): { url: string; provider: MapsProvider; title: string } {
- const key = process.env.NEXT_PUBLIC_GMAPS_EMBED_KEY?.trim();
- if (key) {
-  return {
-   url: `https://www.google.com/maps/embed/v1/place?key=${encodeURIComponent(key)}&q=${mapsQuery}&zoom=16`,
-   provider: "google",
-   title: `Lokasi ${SITE.nama} di Google Maps`,
-  };
- }
- return { url: OSM_EMBED_URL, provider: "osm", title: `Lokasi ${SITE.nama} di OpenStreetMap` };
+export function mapsEmbed(): {
+    url: string;
+    provider: MapsProvider;
+    title: string;
+} {
+    const key = process.env.NEXT_PUBLIC_GMAPS_EMBED_KEY?.trim();
+    if (key) {
+        return {
+            url: `https://www.google.com/maps/embed/v1/place?key=${encodeURIComponent(key)}&q=${mapsQuery}&zoom=16`,
+            provider: 'google',
+            title: `Lokasi ${SITE.nama} di Google Maps`,
+        };
+    }
+    return {
+        url: OSM_EMBED_URL,
+        provider: 'osm',
+        title: `Lokasi ${SITE.nama} di OpenStreetMap`,
+    };
 }

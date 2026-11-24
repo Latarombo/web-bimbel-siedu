@@ -36,8 +36,8 @@ export default async function AdminPeriods({ searchParams }: { searchParams: Pro
     { key: "aksi", header: t("text61"), align: "right", sortable: false },
   ];
 
-  const rows: TableRowData[] = [...periode]
-    .sort((a, b) => b.tanggalMulai.localeCompare(a.tanggalMulai))
+  const rows: TableRowData[] = periode
+    .toSorted((a, b) => b.tanggalMulai.localeCompare(a.tanggalMulai))
     .map((p) => ({
       id: p.id,
       values: { nama: p.nama, status: p.status, rentang: p.tanggalMulai, nKelas: nKelas.get(p.id) ?? 0 },
@@ -50,7 +50,17 @@ export default async function AdminPeriods({ searchParams }: { searchParams: Pro
             <span className="mt-0.5 block text-slate-600">{t("registrationDeadline", { date: fmtTanggal(p.tanggalTutupPendaftaran) })}</span>
           </span>
         ),
-        nKelas: <span className="tabular-nums text-slate-700">{nKelas.get(p.id) ?? 0}</span>,
+        nKelas: (nKelas.get(p.id) ?? 0) > 0 ? (
+          <Link
+            href={`/admin/classes?periodeId=${p.id}`}
+            className="inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold tabular-nums text-blue-800 transition-colors hover:bg-blue-200"
+            title="Lihat kelas pada semester ini"
+          >
+            {nKelas.get(p.id) ?? 0}
+          </Link>
+        ) : (
+          <span className="tabular-nums text-slate-500">0</span>
+        ),
         aksi: (
           <Link href={`/admin/periods?edit=${p.id}`} className="text-sm font-semibold text-blue-700 hover:underline">{t("text83")} </Link>
         ),

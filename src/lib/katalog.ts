@@ -6,23 +6,41 @@ import { UKURAN_HALAMAN_KATALOG, type FilterKatalog } from './katalog-shared';
 
 export * from './katalog-shared';
 
-export async function kelasKatalogHalaman(filter: FilterKatalog, locale: string = 'id') {
-  const hariLabels = JSON.stringify(Object.fromEntries(
-    ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map((hari) => [hari, labelHari(hari, locale)]),
-  ));
-  const belumAdaJadwal = locale === 'en' ? 'Schedule to follow' : 'Jadwal menyusul';
+export async function kelasKatalogHalaman(
+    filter: FilterKatalog,
+    locale: string = 'id',
+) {
+    const hariLabels = JSON.stringify(
+        Object.fromEntries(
+            [
+                'Senin',
+                'Selasa',
+                'Rabu',
+                'Kamis',
+                'Jumat',
+                'Sabtu',
+                'Minggu',
+            ].map((hari) => [hari, labelHari(hari, locale)]),
+        ),
+    );
+    const belumAdaJadwal =
+        locale === 'en' ? 'Schedule to follow' : 'Jadwal menyusul';
 
-  const rawTingkat = (filter.tingkat ?? '').trim();
-  const numMatch = rawTingkat.match(/\b(\d+)\b/);
-  const gradeNum = numMatch ? parseInt(numMatch[1], 10) : 0;
-  const isTkA = Boolean(rawTingkat && /\b(tk\s*a|kelompok\s*a|\ba\b)/i.test(rawTingkat));
-  const isTkB = Boolean(rawTingkat && /\b(tk\s*b|kelompok\s*b|\bb\b)/i.test(rawTingkat));
+    const rawTingkat = (filter.tingkat ?? '').trim();
+    const numMatch = rawTingkat.match(/\b(\d+)\b/);
+    const gradeNum = numMatch ? parseInt(numMatch[1], 10) : 0;
+    const isTkA = Boolean(
+        rawTingkat && /\b(tk\s*a|kelompok\s*a|\ba\b)/i.test(rawTingkat),
+    );
+    const isTkB = Boolean(
+        rawTingkat && /\b(tk\s*b|kelompok\s*b|\bb\b)/i.test(rawTingkat),
+    );
 
-  const qClean = filter.q.trim();
-  const qWords = qClean.toLowerCase().split(/\s+/).filter(Boolean);
-  const qWordsJson = JSON.stringify(qWords);
+    const qClean = filter.q.trim();
+    const qWords = qClean.toLowerCase().split(/\s+/).filter(Boolean);
+    const qWordsJson = JSON.stringify(qWords);
 
-  const plan = db.raw.sql`
+    const plan = db.raw.sql`
     with jadwal_teks as (
       select j.kelas_id, string_agg(
         (${hariLabels}::jsonb ->> j.hari) || ' ' || left(j.jam_mulai::text, 5) || '-' || left(j.jam_selesai::text, 5),
@@ -105,28 +123,51 @@ export async function kelasKatalogHalaman(filter: FilterKatalog, locale: string 
       'jumlahJenjang', coalesce((select json_object_agg(jenjang, jumlah) from hitungan), '{}'::json),
       'total', jumlah, 'page', nomor, 'totalPages', maksimum
     )::text as data from halaman
-  `.returnsRow({ data: 'pg/text@1' }).build();
-  const [result] = await collect(db.runtime().query(plan));
-  const info = JSON.parse(result.data) as {
-    ids: number[]; jumlahJenjang: Record<string, number>; total: number; page: number; totalPages: number;
-  };
-  // Relasi hanya dimuat untuk maksimal 12 ID, bukan seluruh katalog.
-  const rows = info.ids.length ? await collect(
-    db.orm.public.Kelas.where((k) => k.id.in(info.ids))
-      .include('mataPelajaran', (b) => b.select('id', 'nama', 'deskripsi'))
-      .include('guru', (b) => b.select('id', 'name'))
-      .include('periode', (b) => b.select('id', 'nama'))
-      .include('jadwalItem', (b) => b.select('id', 'hari', 'jamMulai', 'jamSelesai').orderBy((j) => j.hari.asc()))
-      .limit(UKURAN_HALAMAN_KATALOG).all(),
-  ) : [];
-  const byId = new Map(rows.map((row) => [row.id, row]));
-  return {
-    ...info,
-    rows: info.ids.flatMap((id) => { const row = byId.get(id); return row ? [row] : []; }),
-    semua: Object.values(info.jumlahJenjang).reduce((sum, count) => sum + count, 0),
-  };
+  `
+        .returnsRow({ data: 'pg/text@1' })
+        .build();
+    const [result] = await collect(db.runtime().query(plan));
+    const info = JSON.parse(result.data) as {
+        ids: number[];
+        jumlahJenjang: Record<string, number>;
+        total: number;
+        page: number;
+        totalPages: number;
+    };
+    // Relasi hanya dimuat untuk maksimal 12 ID, bukan seluruh katalog.
+    const rows = info.ids.length
+        ? await collect(
+              db.orm.public.Kelas.where((k) => k.id.in(info.ids))
+                  .include('mataPelajaran', (b) =>
+                      b.select('id', 'nama', 'deskripsi'),
+                  )
+                  .include('guru', (b) => b.select('id', 'name'))
+                  .include('periode', (b) => b.select('id', 'nama'))
+                  .include('jadwalItem', (b) =>
+                      b
+                          .select('id', 'hari', 'jamMulai', 'jamSelesai')
+                          .orderBy((j) => j.hari.asc()),
+                  )
+                  .limit(UKURAN_HALAMAN_KATALOG)
+                  .all(),
+          )
+        : [];
+    const byId = new Map(rows.map((row) => [row.id, row]));
+    return {
+        ...info,
+        rows: info.ids.flatMap((id) => {
+            const row = byId.get(id);
+            return row ? [row] : [];
+        }),
+        semua: Object.values(info.jumlahJenjang).reduce(
+            (sum, count) => sum + count,
+            0,
+        ),
+    };
 }
 
 export async function daftarMataPelajaranKatalog() {
-  return collect(db.orm.public.MataPelajaran.orderBy((m) => m.nama.asc()).all());
+    return collect(
+        db.orm.public.MataPelajaran.orderBy((m) => m.nama.asc()).all(),
+    );
 }

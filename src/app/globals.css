@@ -1,6 +1,6 @@
 @import 'tailwindcss';
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -282,73 +282,73 @@
 }
 
 @layer utilities {
- .animate-grid-drift {
-   animation: grid-drift 16s linear infinite;
- }
+    .animate-grid-drift {
+        animation: grid-drift 16s linear infinite;
+    }
 
- /* Nav wave underline — class diterapkan ke <li> wrapper link desktop navbar.
+    /* Nav wave underline — class diterapkan ke <li> wrapper link desktop navbar.
     Pada hover, background SVG ombak dianimasikan dari kanan ke kiri selama 0.9s.
     Pseudo-element tidak bisa dipakai di Tailwind tanpa plugin, maka background
     langsung ke <li> yang sudah punya width & height tetap. */
- .nav-wave-link {
-   position: relative;
-   transition: background-position-x 0.9s linear;
- }
- .nav-wave-link:hover {
-   /* SVG ombak 390×50 — garis datar di kiri-kanan, lengkungan di tengah.
+    .nav-wave-link {
+        position: relative;
+        transition: background-position-x 0.9s linear;
+    }
+    .nav-wave-link:hover {
+        /* SVG ombak 390×50 — garis datar di kiri-kanan, lengkungan di tengah.
       stroke diganti brand Siedu #2563eb (URL-encoded: %232563eb) */
-   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='50' viewBox='0 0 390 50'%3E%3Cpath fill='none' stroke='%232563eb' stroke-width='1.5' stroke-miterlimit='10' d='M0,47.585c0,0,97.5,0,130,0c13.75,0,28.74-38.778,46.168-19.416C192.669,46.5,243.603,47.585,260,47.585c31.821,0,130,0,130,0'/%3E%3C/svg%3E");
-   background-repeat: repeat-x;
-   background-position-y: bottom;
-   background-size: 390px 50px;
-   animation: nav-wave-slide 0.9s linear;
- }
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='390' height='50' viewBox='0 0 390 50'%3E%3Cpath fill='none' stroke='%232563eb' stroke-width='1.5' stroke-miterlimit='10' d='M0,47.585c0,0,97.5,0,130,0c13.75,0,28.74-38.778,46.168-19.416C192.669,46.5,243.603,47.585,260,47.585c31.821,0,130,0,130,0'/%3E%3C/svg%3E");
+        background-repeat: repeat-x;
+        background-position-y: bottom;
+        background-size: 390px 50px;
+        animation: nav-wave-slide 0.9s linear;
+    }
 
- .animate-wave-slow {
- animation: wave-slow 15s linear infinite;
- }
+    .animate-wave-slow {
+        animation: wave-slow 15s linear infinite;
+    }
 
- .animate-wave-medium {
- animation: wave-medium 10s linear infinite;
- }
+    .animate-wave-medium {
+        animation: wave-medium 10s linear infinite;
+    }
 
- .animate-wave-fast {
- animation: wave-fast 7s linear infinite;
- }
+    .animate-wave-fast {
+        animation: wave-fast 7s linear infinite;
+    }
 
- /* Karusel testimoni: alur kartu digeser tangan, bukan jalan sendiri.
+    /* Karusel testimoni: alur kartu digeser tangan, bukan jalan sendiri.
     Scrollbar horizontal disembunyikan (scroll tetap jalan), tepi dikasih
     fade halus supaya kartu terpotong terlihat disengaja. */
- .no-scrollbar {
-   scrollbar-width: none;
-   -ms-overflow-style: none;
- }
- .no-scrollbar::-webkit-scrollbar {
-   display: none;
- }
- .carousel-fade {
-   -webkit-mask-image: linear-gradient(
-     to right,
-     transparent,
-     black 3%,
-     black 97%,
-     transparent
-   );
-   mask-image: linear-gradient(
-     to right,
-     transparent,
-     black 3%,
-     black 97%,
-     transparent
-   );
- }
+    .no-scrollbar {
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .carousel-fade {
+        -webkit-mask-image: linear-gradient(
+            to right,
+            transparent,
+            black 3%,
+            black 97%,
+            transparent
+        );
+        mask-image: linear-gradient(
+            to right,
+            transparent,
+            black 3%,
+            black 97%,
+            transparent
+        );
+    }
 
- /* Penanda "sekarang" di garis waktu dashboard guru: denyut halus sekali
+    /* Penanda "sekarang" di garis waktu dashboard guru: denyut halus sekali
     momen (frontend-design: motion tunggal yang menarik perhatian). Durasi
     di-nol-kan otomatis oleh blok prefers-reduced-motion di atas. */
- .now-pulse {
-   animation: now-pulse 2.2s ease-in-out infinite;
- }
+    .now-pulse {
+        animation: now-pulse 2.2s ease-in-out infinite;
+    }
 }
 
 /*
@@ -356,14 +356,14 @@
  * Stops page scroll chaining and prevents layout shift without dirty overflow:hidden on body.
  */
 dialog:modal {
-  overscroll-behavior: contain;
+    overscroll-behavior: contain;
 }
 
 dialog::backdrop {
-  overflow: hidden;
-  overscroll-behavior: contain;
-  background-color: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
+    overflow: hidden;
+    overscroll-behavior: contain;
+    background-color: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
 }
 
 /*
@@ -371,18 +371,19 @@ dialog::backdrop {
  * Non-intrusive feedback that triggers only after user interaction (:user-invalid).
  */
 :is(input, select, textarea):user-invalid {
-  border-color: var(--danger, #e11d48) !important;
+    border-color: var(--danger, #e11d48) !important;
 }
 
 :is(input, select, textarea):user-valid:not(:placeholder-shown) {
-  border-color: var(--success, #10b981);
+    border-color: var(--success, #10b981);
 }
 
 @keyframes now-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(34, 113, 149, 0.5);
-  }
-  50% {
-    box-shadow: 0 0 0 6px rgba(34, 113, 149, 0);
-  }
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 113, 149, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(34, 113, 149, 0);
+    }
 }

@@ -42,13 +42,17 @@ export default async function AdminSubjects({ searchParams }: { searchParams: Pr
           {m.deskripsi ? <p className="text-xs text-slate-500">{m.deskripsi}</p> : null}
         </div>
       ),
-      nKelas: (
-        <span
-          className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-bold tabular-nums ${
-            (dipakai.get(m.id) ?? 0) > 0 ? "bg-blue-100 text-blue-800" : "bg-slate-100 text-slate-600"
-          }`}
+      nKelas: (dipakai.get(m.id) ?? 0) > 0 ? (
+        <Link
+          href={`/admin/classes?mapelId=${m.id}`}
+          className="inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold tabular-nums text-blue-800 transition-colors hover:bg-blue-200"
+          title="Lihat kelas dengan mata pelajaran ini"
         >
           {dipakai.get(m.id) ?? 0}
+        </Link>
+      ) : (
+        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold tabular-nums text-slate-600">
+          0
         </span>
       ),
       aksi: (

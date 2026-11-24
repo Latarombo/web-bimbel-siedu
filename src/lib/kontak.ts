@@ -3,11 +3,11 @@
  * TIDAK boleh diekspor dari file 'use server' — nilai non-fungsi tidak bisa
  * menyeberang RSC boundary (SUBJEK.map is not a function, terbukti 12 Sep). */
 export const SUBJEK = [
- 'Pendaftaran',
- 'Program Belajar',
- 'Fasilitas',
- 'Biaya',
- 'Saran/Masukan/Keluhan',
+    'Pendaftaran',
+    'Program Belajar',
+    'Fasilitas',
+    'Biaya',
+    'Saran/Masukan/Keluhan',
 ] as const;
 
 export type SubjekPesan = (typeof SUBJEK)[number];

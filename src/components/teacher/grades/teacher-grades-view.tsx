@@ -7,18 +7,11 @@ import { QuickAssessmentModal } from "@/components/teacher/classes/quick-assessm
 import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import {
   Search,
-  MoreVertical,
   FileEdit,
   ChevronLeft,
   ChevronRight,
   BookOpen,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import { UnderlineTabs } from "@/components/ui/underline-tabs";
 
 export interface AssessmentItem {
@@ -208,55 +201,24 @@ export function TeacherGradesView({
         </div>
       </div>
 
-      {/* 2. Top 3 Metric Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Metric 1: Total Asesmen */}
-        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Total Asesmen
-            </p>
-            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
-              {stats.totalAssessments}
+      {/* 2. Banner Perlu Dinilai (Hanya Muncul Saat Ada Antrean Siswa Belum Dinilai) */}
+      {stats.studentsUngraded > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-950/40 px-4 py-3 text-xs sm:text-sm text-amber-900 dark:text-amber-200">
+          <div className="flex items-center gap-2">
+            <span className="size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+            <p className="font-medium">
+              Terdapat <b>{stats.studentsUngraded} siswa</b> yang belum dinilai pada asesmen aktif.
             </p>
           </div>
-          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
-            Asesmen kelas periode berjalan
-          </p>
+          <button
+            type="button"
+            onClick={() => setActiveTab("murid")}
+            className="font-bold text-amber-800 dark:text-amber-300 hover:underline shrink-0 cursor-pointer"
+          >
+            Buka Rekap Siswa →
+          </button>
         </div>
-
-        {/* Metric 2: Siswa Tuntas Dinilai */}
-        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Siswa Sudah Dinilai
-            </p>
-            <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
-              {stats.studentsGraded}
-            </p>
-          </div>
-          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
-            Memiliki riwayat entri nilai
-          </p>
-        </div>
-
-        {/* Metric 3: Siswa Belum Dinilai */}
-        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Perlu Dinilai
-            </p>
-            <p className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${
-              stats.studentsUngraded > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-950 dark:text-white"
-            }`}>
-              {stats.studentsUngraded}
-            </p>
-          </div>
-          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
-            {stats.studentsUngraded === 0 ? "Seluruh siswa telah memiliki nilai" : "Menunggu input penilaian pertama"}
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* 3. Propify Underline Tab Switcher with sliding animation */}
       <UnderlineTabs
@@ -412,38 +374,22 @@ export function TeacherGradesView({
                           <td className="sticky right-0 z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
                             <div className="inline-flex items-center gap-2 opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
                               <Link
-                                href={`/teacher/grades/assessment/${a.id}`}
-                                className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                href={`/teacher/classes/${a.kelasId}`}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-950 dark:hover:text-white transition-colors"
+                                title="Buka Detail Kelas"
                               >
-                                <span>Input Nilai</span>
+                                <BookOpen className="size-3.5" aria-hidden="true" />
+                                <span>Detail</span>
                               </Link>
 
-                              <DropdownMenu>
-                                <DropdownMenuTrigger className="grid size-7 place-items-center rounded-md text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-950 dark:hover:text-white transition-colors cursor-pointer">
-                                  <MoreVertical className="size-4" />
-                                  <span className="sr-only">Aksi Asesmen</span>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md rounded-md p-1">
-                                  <DropdownMenuItem asChild>
-                                    <Link
-                                      href={`/teacher/grades/assessment/${a.id}`}
-                                      className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded cursor-pointer"
-                                    >
-                                      <FileEdit className="size-4 text-slate-500 dark:text-slate-400" />
-                                      <span>Edit Nilai Murid</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem asChild>
-                                    <Link
-                                      href={`/teacher/classes/${a.kelasId}`}
-                                      className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded cursor-pointer"
-                                    >
-                                      <BookOpen className="size-4 text-slate-500 dark:text-slate-400" />
-                                      <span>Buka Detail Kelas</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                              <Link
+                                href={`/teacher/grades/assessment/${a.id}`}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                title="Input Nilai Asesmen"
+                              >
+                                <FileEdit className="size-3.5" aria-hidden="true" />
+                                <span>Input Nilai</span>
+                              </Link>
                             </div>
                           </td>
                         </tr>
@@ -524,18 +470,18 @@ export function TeacherGradesView({
                       {/* Action Buttons */}
                       <div className="flex items-center gap-2">
                         <Link
-                          href={`/teacher/grades/assessment/${a.id}`}
-                          className="flex-1 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                          href={`/teacher/classes/${a.kelasId}`}
+                          className="flex-1 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs transition-colors"
                         >
-                          <span>Input Nilai</span>
+                          <BookOpen className="size-4" aria-hidden="true" />
+                          <span>Detail</span>
                         </Link>
                         <Link
-                          href={`/teacher/classes/${a.kelasId}`}
-                          className="h-10 px-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-600 dark:text-slate-300 shadow-2xs"
-                          title="Buka Detail Kelas"
+                          href={`/teacher/grades/assessment/${a.id}`}
+                          className="flex-1 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
                         >
-                          <BookOpen className="size-4" />
-                          <span className="sr-only">Buka Detail Kelas</span>
+                          <FileEdit className="size-4" aria-hidden="true" />
+                          <span>Input Nilai</span>
                         </Link>
                       </div>
                     </div>

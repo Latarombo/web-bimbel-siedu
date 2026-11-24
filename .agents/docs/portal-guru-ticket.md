@@ -14,6 +14,7 @@ Dokumen ini adalah indeks ticket dan handoff untuk melanjutkan implementasi keti
 ## Status audit (sudah dilakukan)
 
 Audit statis selesai. Perbaikan satu bug sudah lulus tes:
+
 - presensi-form.tsx dulu mengirim label terjemahan (present/excused/...) sebagai value radio; sekarang value = kode status (hadir/izin/sakit/alpa), label tetap diterjemahkan. Tes: scripts/selfcheck-presensi-form.mjs (node --test, render HTML form React via TypeScript transpile; server action dan wrapper visual diisolasi, bukan tes RSC/server action/DB end-to-end; RED dulu untuk EN, GREEN sesudah fix). Pola tes ini bisa ditiru untuk form lain.
 - Saat audit awal belum ada migrasi. Kini paket fondasi M1 sudah dibuat dan direview offline (lihat checkpoint); diterapkan setelah persetujuan perintah apply; lihat bukti dan batas verifikasi pada checkpoint.
 
@@ -47,7 +48,7 @@ Nama dan kolom berikut adalah rancangan awal agent, bukan API atau simbol yang s
 
 Urutan milestone: tulis dan jalankan tes gagal untuk perilaku pertama, implementasikan irisan terkecil (kontrak/emit/plan/review bila perlu), uji pada database dev yang targetnya sudah dikonfirmasi, jalankan tes sampai lulus, lint/build, lalu perbarui bukti. Jangan menulis seluruh implementasi sebelum tes. Checklist selesai hanya bila kriteria penerimaan terpenuhi.
 
-M1: SesiPertemuan + PesertaSesi + generator sesi dari JadwalItem dalam rentang periode (fungsi di src/lib/, cron/ondemand), integrasi presensi page/action ke sesi nyata (peserta dari snapshot), perbaiki temuan #4-#7 (validasi tanggal/periode, konsistensi WIB, link ?sesi=). 
+M1: SesiPertemuan + PesertaSesi + generator sesi dari JadwalItem dalam rentang periode (fungsi di src/lib/, cron/ondemand), integrasi presensi page/action ke sesi nyata (peserta dari snapshot), perbaiki temuan #4-#7 (validasi tanggal/periode, konsistensi WIB, link ?sesi=).
 M2: CatatanPertemuan + draf/publikasi + transaksi presensi (temuan #3) + audit log + koreksi 7 hari berbasis pengiriman pertama sesi + halaman koreksi guru/admin fungsional.
 M3: Kalender guru (mingguan/bulanan/agenda) dari SesiPertemuan, Beranda dari sesi nyata (temuan #8), detail kelas (temuan #9), halaman ortu menampilkan materi/PR terbit.
 M4: Penilaian + HasilPenilaian + input massal kelas + draf/publikasi + tarik + integrasi detail kelas & ortu; NilaiProgres jadi legacy.
@@ -84,6 +85,7 @@ M8: Polishing UI mobile, i18n en menyusul, tes akses live via browser (login gur
 Setiap M adalah satu ticket lokal, bukan issue GitHub. Status awal seluruh M1-M8: TODO. Jangan tandai DONE hanya karena kontrak atau komponen sudah ditulis.
 
 ### M1: Fondasi sesi dan peserta
+
 - Dependensi: audit dan pemeriksaan target database dev.
 - Sesi terbentuk hanya dalam rentang periode; generator berulang tidak menduplikasi sesi.
 - Dua slot pada hari sama tetap berbeda; tanggal/hari konsisten WIB.
@@ -93,6 +95,7 @@ Setiap M adalah satu ticket lokal, bukan issue GitHub. Status awal seluruh M1-M8
 - Tes: batas periode, tanggal tidak valid, tengah malam WIB, idempotensi, peserta masuk/keluar, perubahan jadwal, dan akses kelas lain ditolak.
 
 ### M2: Pertemuan, presensi, draf dan koreksi
+
 - Dependensi: M1.
 - Awal belum diisi; tandai semua hadir dan ubah pengecualian; ringkasan sebelum kirim.
 - Draf server tidak tampil ke orang tua; kirim presensi atomik dan langsung terlihat penerima yang berhak.
@@ -102,6 +105,7 @@ Setiap M adalah satu ticket lokal, bukan issue GitHub. Status awal seluruh M1-M8
 - Tes: kegagalan di tengah penyimpanan rollback, retry tidak ganda, konflik dua tab tidak menimpa diam-diam, batas tujuh hari, catatan kosong, sesi dibatalkan, dan privasi draf.
 
 ### M3: Kalender, Beranda dan kelas
+
 - Dependensi: M1-M2.
 - Kalender mingguan/bulanan/agenda, Hari ini, navigasi waktu, dan klik langsung ke sesi tepat.
 - Beranda menonjolkan sesi terdekat dan presensi wajib tertunda; tidak memaksa nilai/catatan opsional.
@@ -110,6 +114,7 @@ Setiap M adalah satu ticket lokal, bukan issue GitHub. Status awal seluruh M1-M8
 - Tes: tidak ada jadwal, beberapa kelas, dua sesi sehari, libur, sesi lampau, navigasi HP dan keyboard.
 
 ### M4: Penilaian kelas
+
 - Dependensi: M1-M3.
 - Input satu daftar kelas; nama/tanggal/skala; nol, kosong dan tidak ikut berbeda.
 - Draf/publikasi/tarik publikasi berjalan sampai portal orang tua; nilai selalu ditampilkan dengan skala.
@@ -118,6 +123,7 @@ Setiap M adalah satu ticket lokal, bukan issue GitHub. Status awal seluruh M1-M8
 - Tes: skala/batas nilai, nilai nol, draf privat, tarik publikasi, pengiriman ulang, akses antar kelas dan periode selesai.
 
 ### M5: Perkembangan murid
+
 - Dependensi: M4.
 - Detail murid menunjukkan histori kelas terkait, kehadiran, penilaian dan perkembangan.
 - Catatan internal berbeda dari laporan orang tua, termasuk pada query/API dan pratinjau.
@@ -125,6 +131,7 @@ Setiap M adalah satu ticket lokal, bukan issue GitHub. Status awal seluruh M1-M8
 - Tes: publikasi/tarik, koreksi, akses guru kelas lain dan pemisahan data internal.
 
 ### M6: Status teks
+
 - Dependensi: M1 dan M3; dapat berjalan setelah fondasi stabil tanpa menunggu foto.
 - Buat dari menu status atau pertemuan, pilih kelas/penerima, pratinjau, bagikan secara atomik.
 - Penerima dibekukan saat publikasi; anak baru tidak mendapat unggahan lama; dua anak penerima satu orang tua tidak menduplikasi status.
@@ -133,6 +140,7 @@ Setiap M adalah satu ticket lokal, bukan issue GitHub. Status awal seluruh M1-M8
 - Tes: teks kosong ditolak, penerima kosong ditolak, penerima luar kelas ditolak, batas 24 jam, akses setelah keluar/selesai dan penarikan.
 
 ### M7: Foto, persetujuan dan retensi
+
 - Dependensi: M6; target storage privat dan biaya/retensi penyedia terkonfirmasi.
 - Persetujuan per anak default belum setuju; penolakan tidak memblokir pendaftaran; perubahan memiliki dasar/pelaku/waktu.
 - Kamera/galeri, pratinjau, maksimum lima foto, validasi format/ukuran di server, kompresi dan penghapusan metadata lokasi bila relevan.
@@ -142,6 +150,7 @@ Setiap M adalah satu ticket lokal, bukan issue GitHub. Status awal seluruh M1-M8
 - Tes: bukan penerima ditolak, upload gagal/retry, file yatim dibersihkan, limit lima, revokasi, URL/cache lama, penghapusan gagal dan retry cron, batas retensi. Jangan uji dengan foto anak nyata.
 
 ### M8: Pemeriksaan akhir
+
 - Dependensi: M1-M7.
 - Lima menu guru sesuai keputusan, layout HP tanpa overflow, label/error/save state jelas dan keyboard dapat digunakan.
 - Kunci ID/EN lengkap; value form tetap kanonik.
@@ -165,77 +174,77 @@ Setiap M adalah satu ticket lokal, bukan issue GitHub. Status awal seluruh M1-M8
 Seluruh tiket dan milestone dari audit teknis (`docs/portal-guru-audit.md` & `docs/portal-guru-ticket.md`) telah selesai diimplementasikan secara komprehensif:
 
 1. **M1: Fondasi Sesi Pertemuan Nyata**
-   - Rencana sesi berbasis kalender inklusif dan slot jadwal aktual, tanpa penulisan sesi spekulatif pada GET/prefetch.
-   - Pendaftaran ditutup tetap menerima presensi tanggal ajar yang valid dalam periode.
-   - Guard tanggal di luar periode, kelas/sesi dibatalkan, dan tanggal semu.
+    - Rencana sesi berbasis kalender inklusif dan slot jadwal aktual, tanpa penulisan sesi spekulatif pada GET/prefetch.
+    - Pendaftaran ditutup tetap menerima presensi tanggal ajar yang valid dalam periode.
+    - Guard tanggal di luar periode, kelas/sesi dibatalkan, dan tanggal semu.
 
 2. **M2: Catatan Pertemuan (Materi & PR) + Presensi Massal**
-   - Model `CatatanPertemuan` (draf vs terbit dengan `diterbitkanPada`).
-   - Server action `saveCatatanPertemuan` membentuk sesi bila belum ada, memvalidasi materi sebelum terbit, dan mendukung tarik ke draf.
-   - Form presensi massal dengan initial status unselected, tombol aksi massal ("Tandai semua hadir", "Kosongkan semua"), ringkasan indikator kehadiran real-time.
-   - Tampilan materi & PR terbit langsung pada kartu sesi portal orang tua.
+    - Model `CatatanPertemuan` (draf vs terbit dengan `diterbitkanPada`).
+    - Server action `saveCatatanPertemuan` membentuk sesi bila belum ada, memvalidasi materi sebelum terbit, dan mendukung tarik ke draf.
+    - Form presensi massal dengan initial status unselected, tombol aksi massal ("Tandai semua hadir", "Kosongkan semua"), ringkasan indikator kehadiran real-time.
+    - Tampilan materi & PR terbit langsung pada kartu sesi portal orang tua.
 
 3. **M3: Kalender & Agenda Sesi**
-   - Rute `/teacher/calendar` memvisualisasikan seluruh sesi mengajar guru per bulan.
-   - Sesi terencana, sesi selesai presensi, dan sesi dibatalkan ditandai secara distingtif dengan tautan langsung ke halaman presensi.
+    - Rute `/teacher/calendar` memvisualisasikan seluruh sesi mengajar guru per bulan.
+    - Sesi terencana, sesi selesai presensi, dan sesi dibatalkan ditandai secara distingtif dengan tautan langsung ke halaman presensi.
 
 4. **M2-bis: Koreksi & Audit Log**
-   - Model `PengajuanKoreksi` dan `AuditPerubahan` dengan histori lengkap entitas, aksi, nilai sebelum/sesudah, dan aktor.
-   - Server action `ajukanKoreksi` (guru) dan `prosesKoreksi` (admin persetujuan/penolakan atomik).
-   - Rute `/teacher/corrections` untuk pengajuan koreksi entri terkunci (>7 hari) dan rute `/admin/corrections` untuk antrean kerja admin.
+    - Model `PengajuanKoreksi` dan `AuditPerubahan` dengan histori lengkap entitas, aksi, nilai sebelum/sesudah, dan aktor.
+    - Server action `ajukanKoreksi` (guru) dan `prosesKoreksi` (admin persetujuan/penolakan atomik).
+    - Rute `/teacher/corrections` untuk pengajuan koreksi entri terkunci (>7 hari) dan rute `/admin/corrections` untuk antrean kerja admin.
 
 5. **M4: Penilaian Kelas Massal**
-   - Model `Penilaian` dan `HasilPenilaian` (skala fleksibel, status dinilai / belum_dinilai / tidak_ikut).
-   - Server action `savePenilaianBatch` dan `tarikPenilaian`.
-   - UI penilaian massal di rute `/teacher/grades/new` dan `/teacher/grades/assessment/[id]`.
-   - Tab "Penilaian Kelas" di portal orang tua (`/schedule-attendance?tab=nilai`).
+    - Model `Penilaian` dan `HasilPenilaian` (skala fleksibel, status dinilai / belum_dinilai / tidak_ikut).
+    - Server action `savePenilaianBatch` dan `tarikPenilaian`.
+    - UI penilaian massal di rute `/teacher/grades/new` dan `/teacher/grades/assessment/[id]`.
+    - Tab "Penilaian Kelas" di portal orang tua (`/schedule-attendance?tab=nilai`).
 
 6. **M5: Perkembangan Murid (Catatan Internal vs Laporan Publik)**
-   - Model `LaporanPerkembangan` dengan isolasi data ketat: catatan internal guru (privat) vs narasi publik orang tua.
-   - Server action `saveLaporanPerkembangan` dan `tarikLaporanPerkembangan`.
-   - Komponen `LaporanPerkembanganForm` dengan live preview tampilan orang tua.
-   - Helper `sanitizeLaporanForParent` di `src/lib/laporan-perkembangan.ts` menjamin catatan internal tidak pernah bocor ke payload orang tua.
-   - Tab "Laporan Perkembangan" di portal orang tua (`/schedule-attendance?tab=laporan`).
+    - Model `LaporanPerkembangan` dengan isolasi data ketat: catatan internal guru (privat) vs narasi publik orang tua.
+    - Server action `saveLaporanPerkembangan` dan `tarikLaporanPerkembangan`.
+    - Komponen `LaporanPerkembanganForm` dengan live preview tampilan orang tua.
+    - Helper `sanitizeLaporanForParent` di `src/lib/laporan-perkembangan.ts` menjamin catatan internal tidak pernah bocor ke payload orang tua.
+    - Tab "Laporan Perkembangan" di portal orang tua (`/schedule-attendance?tab=laporan`).
 
 7. **M6: Status Pembelajaran Teks & M7 Foto / Persetujuan / Retensi**
-   - Model `StatusPembelajaran`, `StatusPembelajaranPenerima`, dan `LaporanFotoStatus` beserta enum `StatusUnggahan` dan boolean `persetujuanFoto` pada model `Anak`.
-   - Server actions:
-     - `bagikanStatusPembelajaran`: validasi kepemilikan kelas, status aktif, teks/foto, batas 5 foto, pembekuan penerima, masa aktif 24 jam (`kadaluarsaPada`), dan pencatatan audit.
-     - `hapusStatusPembelajaran`: penarikan oleh guru (`dihapus_guru`).
-     - `tarikStatusPembelajaranAdmin`: penarikan darurat oleh admin (`ditarik_admin`).
-     - `laporkanFotoStatus`: laporan orang tua privat terhadap foto dokumentasi dengan verifikasi penerima sah.
-     - `updatePersetujuanFoto`: toggle izin foto per anak oleh orang tua dengan riwayat audit.
-     - `bersihkanRetensiStatus`: pengarsipan status lewat 24 jam dan purge media penyimpanan utama untuk kelas selesai >90 hari.
-   - Komponen & Halaman:
-     - `StatusForm` di rute baru `/teacher/status` dengan indikator izin foto per murid dan pratinjau live.
-     - Navigasi sidebar guru diperbarui dengan menu "Status Pembelajaran".
-     - Feed status pembelajaran di portal orang tua (`/home`).
-     - Komponen `PhotoConsentToggle` di halaman pengaturan profil anak (`/children/[id]/edit`).
+    - Model `StatusPembelajaran`, `StatusPembelajaranPenerima`, dan `LaporanFotoStatus` beserta enum `StatusUnggahan` dan boolean `persetujuanFoto` pada model `Anak`.
+    - Server actions:
+        - `bagikanStatusPembelajaran`: validasi kepemilikan kelas, status aktif, teks/foto, batas 5 foto, pembekuan penerima, masa aktif 24 jam (`kadaluarsaPada`), dan pencatatan audit.
+        - `hapusStatusPembelajaran`: penarikan oleh guru (`dihapus_guru`).
+        - `tarikStatusPembelajaranAdmin`: penarikan darurat oleh admin (`ditarik_admin`).
+        - `laporkanFotoStatus`: laporan orang tua privat terhadap foto dokumentasi dengan verifikasi penerima sah.
+        - `updatePersetujuanFoto`: toggle izin foto per anak oleh orang tua dengan riwayat audit.
+        - `bersihkanRetensiStatus`: pengarsipan status lewat 24 jam dan purge media penyimpanan utama untuk kelas selesai >90 hari.
+    - Komponen & Halaman:
+        - `StatusForm` di rute baru `/teacher/status` dengan indikator izin foto per murid dan pratinjau live.
+        - Navigasi sidebar guru diperbarui dengan menu "Status Pembelajaran".
+        - Feed status pembelajaran di portal orang tua (`/home`).
+        - Komponen `PhotoConsentToggle` di halaman pengaturan profil anak (`/children/[id]/edit`).
 
 8. **M8: Pemeriksaan Akhir, Build & Verifikasi**
-   - **TDD:** Seluruh 16 unit & integration selfcheck test suites lulus 83/83 tes tanpa kegagalan (0 failed).
-   - **Kompilasi & Build:** `npm run build` sukses 100% via PowerShell Windows (78/78 static & dynamic routes tanpa error TypeScript).
-   - **Linting:** ESLint 0 error dan 0 warning pada seluruh kode baru dan modifikasi.
-   - **Living Design System:** Memenuhi standar tipografi, tidak memakai em-dash (memakai koma atau `s.d.`), tidak memakai uppercase kicker badge, dan dwibahasa kanonik ID & EN lengkap.
-   - **Zero Unprompted Commits:** Tidak melakukan `git commit` tanpa instruksi eksplisit pengguna.
+    - **TDD:** Seluruh 16 unit & integration selfcheck test suites lulus 83/83 tes tanpa kegagalan (0 failed).
+    - **Kompilasi & Build:** `npm run build` sukses 100% via PowerShell Windows (78/78 static & dynamic routes tanpa error TypeScript).
+    - **Linting:** ESLint 0 error dan 0 warning pada seluruh kode baru dan modifikasi.
+    - **Living Design System:** Memenuhi standar tipografi, tidak memakai em-dash (memakai koma atau `s.d.`), tidak memakai uppercase kicker badge, dan dwibahasa kanonik ID & EN lengkap.
+    - **Zero Unprompted Commits:** Tidak melakukan `git commit` tanpa instruksi eksplisit pengguna.
 
 ### Hasil Catatan Pertemuan (Materi & PR) dan Integrasi Ortu (19 Sep 2026)
 
 - Fitur Catatan Pertemuan (Materi & PR) M2 selesai diimplementasikan secara terpisah dari presensi:
-  1. Kontrak data & migrasi: model `CatatanPertemuan` ditambahkan ke `src/prisma/contract.prisma`, di-emit via `npx prisma contract emit`, direncanakan via `npx prisma migration plan --name add_catatan_pertemuan --from 20260917T0932_teacher_session_foundation` (5 operasi aditif), diterapkan ke database via `scripts/prisma-win.ps1 apply`, dan ref `db` dimajukan ke `28d661ce...`.
-  2. Server action `saveCatatanPertemuan` di `src/app/actions/teacher.ts`:
-     - Menolak tanggal semu, di luar periode, atau sesi/kelas dibatalkan.
-     - Membentuk `SesiPertemuan` otomatis bila belum ada.
-     - Simpan draf: guru dapat menyimpan catatan materi dan PR tanpa harus langsung mempublikasikan (`draf: true`).
-     - Terbitkan: memvalidasi materi wajib diisi sebelum terbit ke orang tua (`draf: false`, `diterbitkanPada` tercatat).
-     - Tarik ke draf: guru dapat menarik kembali catatan yang sudah terbit ke status draf bila ada revisi.
-  3. Komponen `src/components/teacher/catatan-pertemuan-form.tsx`:
-     - Form terpisah di halaman presensi (`attendance/page.tsx`) di bawah daftar hadir sehingga presensi tidak terhambat oleh catatan materi.
-     - Indikator status badge (Draf vs Sudah diterbitkan) dengan waktu publikasi WIB.
-     - Tombol aksi kontekstual: Simpan Draf & Terbitkan ke Orang Tua (saat draf), atau Tarik ke Draf & Simpan Perubahan (saat terbit).
-  4. Tampilan orang tua `src/app/[locale]/(parent)/schedule-attendance/page.tsx`:
-     - Menampilkan materi pembelajaran dan tugas/PR yang sudah diterbitkan (`draf === false`) langsung pada kartu kehadiran sesi terkait.
-  5. i18n dwibahasa ID & EN lengkap ditambahkan ke `teacher.json` dan `parent.json`.
+    1. Kontrak data & migrasi: model `CatatanPertemuan` ditambahkan ke `src/prisma/contract.prisma`, di-emit via `npx prisma contract emit`, direncanakan via `npx prisma migration plan --name add_catatan_pertemuan --from 20260917T0932_teacher_session_foundation` (5 operasi aditif), diterapkan ke database via `scripts/prisma-win.ps1 apply`, dan ref `db` dimajukan ke `28d661ce...`.
+    2. Server action `saveCatatanPertemuan` di `src/app/actions/teacher.ts`:
+        - Menolak tanggal semu, di luar periode, atau sesi/kelas dibatalkan.
+        - Membentuk `SesiPertemuan` otomatis bila belum ada.
+        - Simpan draf: guru dapat menyimpan catatan materi dan PR tanpa harus langsung mempublikasikan (`draf: true`).
+        - Terbitkan: memvalidasi materi wajib diisi sebelum terbit ke orang tua (`draf: false`, `diterbitkanPada` tercatat).
+        - Tarik ke draf: guru dapat menarik kembali catatan yang sudah terbit ke status draf bila ada revisi.
+    3. Komponen `src/components/teacher/catatan-pertemuan-form.tsx`:
+        - Form terpisah di halaman presensi (`attendance/page.tsx`) di bawah daftar hadir sehingga presensi tidak terhambat oleh catatan materi.
+        - Indikator status badge (Draf vs Sudah diterbitkan) dengan waktu publikasi WIB.
+        - Tombol aksi kontekstual: Simpan Draf & Terbitkan ke Orang Tua (saat draf), atau Tarik ke Draf & Simpan Perubahan (saat terbit).
+    4. Tampilan orang tua `src/app/[locale]/(parent)/schedule-attendance/page.tsx`:
+        - Menampilkan materi pembelajaran dan tugas/PR yang sudah diterbitkan (`draf === false`) langsung pada kartu kehadiran sesi terkait.
+    5. i18n dwibahasa ID & EN lengkap ditambahkan ke `teacher.json` dan `parent.json`.
 - TDD RED: `scripts/selfcheck-catatan-pertemuan.mjs` dan `scripts/selfcheck-catatan-form.mjs` gagal (11 fail, 1 pass).
 - TDD GREEN: setelah implementasi, 12/12 tes catatan pertemuan lulus via PowerShell Windows.
 - Regresi penuh: 42/42 tes selfcheck di 6 suite (`selfcheck-sesi`, `selfcheck-presensi-form`, `selfcheck-service-sesi`, `selfcheck-presensi-action`, `selfcheck-catatan-pertemuan`, `selfcheck-catatan-form`) lulus 42/42 dalam 2.9 detik.
@@ -246,11 +255,11 @@ Seluruh tiket dan milestone dari audit teknis (`docs/portal-guru-audit.md` & `do
 ### Hasil form presensi massal dan unselected awal (19 Sep 2026)
 
 - Form presensi `src/components/teacher/presensi-form.tsx` diperbarui sesuai keputusan produk M2:
-  1. Default awal tidak lagi otomatis hadir untuk sesi baru (unselected bila `status` siswa belum tercatat).
-  2. Tombol aksi massal "Tandai semua hadir" (`markAllPresent`) dan "Kosongkan semua" (`clearAll`).
-  3. Indikator ringkasan kehadiran real-time per status (Hadir, Izin, Sakit, Alpa, Belum diisi) dengan badge warna semantik.
-  4. Peringatan interaktif bila masih ada siswa yang belum diisi status kehadirannya sebelum form dikirim.
-  5. Kunci i18n ID/EN lengkap ditambahkan di `src/i18n/messages/{id,en}/teacher.json`.
+    1. Default awal tidak lagi otomatis hadir untuk sesi baru (unselected bila `status` siswa belum tercatat).
+    2. Tombol aksi massal "Tandai semua hadir" (`markAllPresent`) dan "Kosongkan semua" (`clearAll`).
+    3. Indikator ringkasan kehadiran real-time per status (Hadir, Izin, Sakit, Alpa, Belum diisi) dengan badge warna semantik.
+    4. Peringatan interaktif bila masih ada siswa yang belum diisi status kehadirannya sebelum form dikirim.
+    5. Kunci i18n ID/EN lengkap ditambahkan di `src/i18n/messages/{id,en}/teacher.json`.
 - TDD RED: `scripts/selfcheck-presensi-form.mjs` gagal karena radio sebelumnya otomatis `checked` dan tombol aksi belum ada (4 fail, 2 pass).
 - TDD GREEN: setelah implementasi, 6/6 tes form presensi lulus via PowerShell Windows.
 - Regresi penuh: seluruh 30 tes selfcheck (`selfcheck-sesi`, `selfcheck-presensi-form`, `selfcheck-service-sesi`, `selfcheck-presensi-action`) lulus 30/30 (0 failed).
@@ -261,17 +270,16 @@ Seluruh tiket dan milestone dari audit teknis (`docs/portal-guru-audit.md` & `do
 ### Commit dan review (18 Sep 2026)
 
 - Dua commit lokal di branch main, BELUM di-push:
-  - 9f409ee feat: establish localized routes and shared UI foundation (218 file: rute [locale], i18n messages id/en, shared UI, migrasi 20260912T1426/20260912T1523/20260917T0932 + snapshot kontrak, tests/admin-hapus-guru.test.mjs).
-  - 1d3ba00 feat: add teacher session and atomic attendance workflows (26 file: docs/portal-guru-audit.md, docs/portal-guru-ticket.md, src/lib/rencana-sesi.ts, src/lib/service-sesi.ts, scripts/selfcheck-*.mjs, scripts/uji-*.mjs, scripts/ts-resolve*.mjs, perubahan teacher action/halaman, contract.prisma).
+    - 9f409ee feat: establish localized routes and shared UI foundation (218 file: rute [locale], i18n messages id/en, shared UI, migrasi 20260912T1426/20260912T1523/20260917T0932 + snapshot kontrak, tests/admin-hapus-guru.test.mjs).
+    - 1d3ba00 feat: add teacher session and atomic attendance workflows (26 file: docs/portal-guru-audit.md, docs/portal-guru-ticket.md, src/lib/rencana-sesi.ts, src/lib/service-sesi.ts, scripts/selfcheck-_.mjs, scripts/uji-_.mjs, scripts/ts-resolve*.mjs, perubahan teacher action/halaman, contract.prisma).
 - Review pra-commit oleh subagent independen (read-only):
-  - Review portal guru: passed=true, tanpa security concern atau logic error baru. M1 tetap incomplete (roster transisional), browser authenticated belum terverifikasi.
-  - Review fondasi: passed=false ditemukan satu security concern: hapusGuru (src/app/actions/admin.ts:213-234) dulu menghapus User hanya berdasarkan id. SUDAH diperbaiki menjadi `db.orm.public.User.where({ id: guruId, role: "guru" }).delete()` beserta tes tests/admin-hapus-guru.test.mjs.
+    - Review portal guru: passed=true, tanpa security concern atau logic error baru. M1 tetap incomplete (roster transisional), browser authenticated belum terverifikasi.
+    - Review fondasi: passed=false ditemukan satu security concern: hapusGuru (src/app/actions/admin.ts:213-234) dulu menghapus User hanya berdasarkan id. SUDAH diperbaiki menjadi `db.orm.public.User.where({ id: guruId, role: "guru" }).delete()` beserta tes tests/admin-hapus-guru.test.mjs.
 - Verifikasi sebelum commit: 27 tes (4 suite selfcheck + admin-hapus-guru) lulus; eslint src/app/actions/admin.ts dan tests/admin-hapus-guru.test.mjs lulus; npm run build lulus (TypeScript + 72 halaman) via PowerShell Windows. npm run lint seluruh repo tetap gagal 15 error di scripts/check-admin-i18n.cjs dan src/components/landing/CountUp.tsx (baseline, di luar perubahan ini).
 - Tidak ada push. .env.example sengaja tidak di-commit (perubahan user, bukan milik fitur). Log/cache (.dev.log, .refcache, .refs_cards, .tmp_*) dan laporan docs/test-results tetap untracked.
 - Izin commit ini hanya untuk kedua commit di atas. Migrasi 20260917T0932_teacher_session_foundation sudah diterapkan pada database terkonfigurasi sejak 17 Sep; identitas dev BELUM pernah dibuktikan.
 
 ### Hasil terbaru peserta historis
-
 
 - Presensi yang sudah tercatat tetap muncul pada halaman sesi dan bisa dikoreksi sesuai kunci 7 hari walaupun pendaftaran kemudian dibatalkan. Action dan loader memilih pendaftaran milik kelas yang aktif ATAU memiliki presensi pada slot+tanggal tersebut. Pendaftaran batal tanpa bukti presensi tidak otomatis dimasukkan. Tidak membuat PesertaSesi/backfill atau mengarang status keanggotaan lampau.
 - RED: murid dengan presensi lama hilang dari form setelah status dibatalkan. GREEN: 26 tes regresi, lint action/halaman/harness, dan build TypeScript + 72 halaman lulus melalui PowerShell Windows.
@@ -371,6 +379,7 @@ Seluruh tiket dan milestone dari audit teknis (`docs/portal-guru-audit.md` & `do
 - Sisa khusus guard: pembatalan SesiPertemuan individual belum dipakai, roster masih status saat ini, validasi input nilai belum dicakup tahap ini. Jangan menyebut integrasi sesi selesai. Langkah berikutnya tetap service sesi/peserta dengan histori dan uji DB terisolasi, bukan pindah fitur.
 
 Template pembaruan checkpoint:
+
 - Ticket/status:
 - Perubahan file:
 - Tes RED (perintah + kegagalan yang relevan):

@@ -8,7 +8,6 @@ import LogoutDialog from '@/components/common/logout-dialog';
 import { TeacherThemeSwitch } from './teacher-theme-switch';
 import {
   LayoutGrid,
-  BookOpen,
   Calendar,
   Award,
   Camera,
@@ -19,12 +18,16 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+import type { QuickSearchClassItem } from './teacher-quick-search';
+
 export interface NavItemDef {
   id: string;
   name: string;
   href: string;
   icon: LucideIcon;
 }
+
+export type TeacherClassItem = QuickSearchClassItem;
 
 interface TeacherSidebarProps {
   role: string;
@@ -36,6 +39,7 @@ interface TeacherSidebarProps {
   isDrawerOpen?: boolean;
   onCloseDrawer?: () => void;
   onOpenLogout?: () => void;
+  teacherClasses?: TeacherClassItem[];
 }
 
 export function TeacherSidebar({
@@ -48,6 +52,7 @@ export function TeacherSidebar({
   isDrawerOpen: isDrawerOpenProp,
   onCloseDrawer: onCloseDrawerProp,
   onOpenLogout: onOpenLogoutProp,
+  teacherClasses = [],
 }: TeacherSidebarProps) {
   const t = useTranslations('teacher');
   const tAdmin = useTranslations('shared.admin');
@@ -106,12 +111,6 @@ export function TeacherSidebar({
           name: t('navDashboard') || 'Dashboard',
           href: '/teacher/dashboard',
           icon: LayoutGrid,
-        },
-        {
-          id: 'classes',
-          name: t('navClasses') || 'Kelas',
-          href: '/teacher/classes',
-          icon: BookOpen,
         },
         {
           id: 'schedule',
@@ -321,6 +320,50 @@ export function TeacherSidebar({
                     );
                   })}
                 </ul>
+
+                {/* AI-Style Classes Navigation right below Pembelajaran (Only in expanded desktop mode) */}
+                {section.id === 'teaching' && !isCollapsed && (
+                  <div className="space-y-1 pt-3">
+                    <div className="px-3 pb-1 text-sm font-medium text-slate-800 dark:text-slate-300">
+                      {t('navClasses') || 'Kelas'}
+                    </div>
+                    {teacherClasses.length > 0 ? (
+                      <ul className="space-y-0.5">
+                        {teacherClasses.map((cls) => {
+                          const classHref = `/teacher/classes/${cls.id}`;
+                          const active = isRouteActive(classHref);
+
+                          return (
+                            <li key={cls.id}>
+                              <Link
+                                href={classHref}
+                                prefetch={true}
+                                aria-current={active ? 'page' : undefined}
+                                onClick={() => {
+                                  if (pathname !== classHref) setPendingHref(classHref);
+                                }}
+                                className={`group flex h-9 items-center rounded-md px-3 text-sm transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                                  active
+                                    ? 'bg-slate-100 font-semibold text-slate-950 dark:bg-slate-800 dark:text-white'
+                                    : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-slate-100'
+                                }`}
+                              >
+                                <span className="truncate min-w-0">
+                                  {cls.name}
+                                  {cls.tingkat ? ` · ${cls.tingkat}` : ''}
+                                </span>
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <p className="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400">
+                        Belum ada kelas aktif
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
           </nav>
@@ -482,6 +525,51 @@ export function TeacherSidebar({
                         );
                       })}
                     </ul>
+
+                    {/* AI-Style Classes Navigation right below Pembelajaran in Mobile Drawer */}
+                    {section.id === 'teaching' && (
+                      <div className="space-y-1 pt-3">
+                        <div className="px-3 pb-1 text-sm font-medium text-slate-800 dark:text-slate-300">
+                          {t('navClasses') || 'Kelas'}
+                        </div>
+                        {teacherClasses.length > 0 ? (
+                          <ul className="space-y-0.5">
+                            {teacherClasses.map((cls) => {
+                              const classHref = `/teacher/classes/${cls.id}`;
+                              const active = isRouteActive(classHref);
+
+                              return (
+                                <li key={cls.id}>
+                                  <Link
+                                    href={classHref}
+                                    prefetch={true}
+                                    aria-current={active ? 'page' : undefined}
+                                    onClick={() => {
+                                      if (pathname !== classHref) setPendingHref(classHref);
+                                      handleCloseDrawer();
+                                    }}
+                                    className={`group flex h-9 items-center rounded-md px-3 text-sm transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                                      active
+                                        ? 'bg-slate-100 font-semibold text-slate-950 dark:bg-slate-800 dark:text-white'
+                                        : 'font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-white'
+                                    }`}
+                                  >
+                                    <span className="truncate min-w-0">
+                                      {cls.name}
+                                      {cls.tingkat ? ` · ${cls.tingkat}` : ''}
+                                    </span>
+                                  </Link>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        ) : (
+                          <p className="px-3 py-1.5 text-xs text-slate-600 dark:text-slate-400">
+                            Belum ada kelas aktif
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </nav>

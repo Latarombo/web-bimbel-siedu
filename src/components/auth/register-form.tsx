@@ -12,17 +12,23 @@ const initial: RegisterState = {};
 // Checklist syarat password — cerminan registerSchema di actions/register.ts;
 // kalau keduanya tidak sama, user lolos UI lalu ditolak server.
 
-
 export default function RegisterForm({
     googleEnabled = false,
 }: {
     googleEnabled?: boolean;
 }) {
     const t = useTranslations('auth');
-const passwordRules = [
-    { key: 'length', label: t('minimumEight'), test: (pw: string) => pw.length >= 8 },
-] as const;
-    const [state, formAction, pending] = useActionState(registerParent, initial);
+    const passwordRules = [
+        {
+            key: 'length',
+            label: t('minimumEight'),
+            test: (pw: string) => pw.length >= 8,
+        },
+    ] as const;
+    const [state, formAction, pending] = useActionState(
+        registerParent,
+        initial,
+    );
     const [showPassword, setShowPassword] = useState(false);
     const [password, setPassword] = useState('');
     const errors = state.fieldErrors ?? {};
@@ -50,8 +56,19 @@ const passwordRules = [
                         viewBox="0 0 24 24"
                         aria-hidden="true"
                     >
-                        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth={1.75} />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M12 8v4m0 4h.01" />
+                        <circle
+                            cx="12"
+                            cy="12"
+                            r="9"
+                            stroke="currentColor"
+                            strokeWidth={1.75}
+                        />
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.75}
+                            d="M12 8v4m0 4h.01"
+                        />
                     </svg>
                     <div className="flex-1 leading-relaxed">{state.error}</div>
                 </div>
@@ -65,7 +82,9 @@ const passwordRules = [
                         className="block text-sm font-semibold text-slate-700 mb-1.5"
                     >
                         {t('email')}{' '}
-                        <span className="text-danger" aria-hidden="true">*</span>
+                        <span className="text-danger" aria-hidden="true">
+                            *
+                        </span>
                     </label>
                     <input
                         id="email"
@@ -82,7 +101,9 @@ const passwordRules = [
                         value={draft.email}
                         onChange={(e) => setDraftField('email', e.target.value)}
                         aria-invalid={errors.email ? true : undefined}
-                        aria-describedby={errors.email ? 'email-error' : undefined}
+                        aria-describedby={
+                            errors.email ? 'email-error' : undefined
+                        }
                         className={`w-full h-11 px-3.5 text-base sm:text-sm text-slate-800 border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/15 focus:border-brand transition-colors placeholder:text-slate-400 ${
                             errors.email
                                 ? 'border-rose-400 focus:border-rose-500 focus:ring-rose-500/15'
@@ -90,7 +111,10 @@ const passwordRules = [
                         }`}
                     />
                     {errors.email ? (
-                        <p id="email-error" className="mt-1 text-xs text-rose-600">
+                        <p
+                            id="email-error"
+                            className="mt-1 text-xs text-rose-600"
+                        >
                             {errors.email}
                         </p>
                     ) : null}
@@ -103,7 +127,9 @@ const passwordRules = [
                         className="block text-sm font-semibold text-slate-700 mb-1.5"
                     >
                         {t('password')}{' '}
-                        <span className="text-danger" aria-hidden="true">*</span>
+                        <span className="text-danger" aria-hidden="true">
+                            *
+                        </span>
                     </label>
                     <div className="relative">
                         <input
@@ -122,7 +148,10 @@ const passwordRules = [
                             onChange={(e) => setPassword(e.target.value)}
                             aria-invalid={errors.password ? true : undefined}
                             aria-describedby={
-                                [errors.password ? 'password-error' : null, 'password-rules']
+                                [
+                                    errors.password ? 'password-error' : null,
+                                    'password-rules',
+                                ]
                                     .filter(Boolean)
                                     .join(' ') || undefined
                             }
@@ -191,7 +220,9 @@ const passwordRules = [
                                 <li
                                     key={rule.key}
                                     className={`flex items-center gap-1.5 text-xs ${
-                                        ok ? 'text-emerald-600' : 'text-slate-600'
+                                        ok
+                                            ? 'text-emerald-600'
+                                            : 'text-slate-600'
                                     }`}
                                 >
                                     {ok ? (
@@ -222,7 +253,10 @@ const passwordRules = [
                         })}
                     </ul>
                     {errors.password ? (
-                        <p id="password-error" className="mt-1 text-xs text-rose-600">
+                        <p
+                            id="password-error"
+                            className="mt-1 text-xs text-rose-600"
+                        >
                             {errors.password}
                         </p>
                     ) : null}

@@ -14,7 +14,7 @@ export default async function TeacherStudentReportPage({
 }) {
   const locale = await getLocale();
   const session = await auth();
-  if (!session?.user) return redirect("/login?next=/teacher/classes");
+  if (!session?.user) return redirect("/login?next=/teacher/dashboard");
 
   const { classId, enrollmentId } = await params;
   const kid = Number(classId);

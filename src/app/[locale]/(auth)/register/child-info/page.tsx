@@ -18,8 +18,10 @@ export default async function ChildInfoPage() {
     const locale = await getLocale();
     // Tembok dalam: step 3 hanya untuk orang tua yang baru register.
     const session = await auth();
-    if (!session?.user) return redirect({href: '/login?next=/register/child-info', locale});
-    if (session.user.role !== 'orang_tua') return redirect({href: '/login', locale});
+    if (!session?.user)
+        return redirect({ href: '/login?next=/register/child-info', locale });
+    if (session.user.role !== 'orang_tua')
+        return redirect({ href: '/login', locale });
 
     const ortuId = Number(session.user.id);
 
@@ -30,9 +32,11 @@ export default async function ChildInfoPage() {
     // membuat anak baru tanpa batas.wizard hanya untuk anak pertama —
     // anak berikutnya lewat /children/new yang punya guard sendiri.
     const jumlahAnak = (
-        await collect(db.orm.public.Anak.where((a) => a.orangTuaId.eq(ortuId)).all())
+        await collect(
+            db.orm.public.Anak.where((a) => a.orangTuaId.eq(ortuId)).all(),
+        )
     ).length;
-    if (jumlahAnak > 0) return redirect({href: '/children', locale});
+    if (jumlahAnak > 0) return redirect({ href: '/children', locale });
 
     return (
         <RegisterShell heading={t('authHero')}>

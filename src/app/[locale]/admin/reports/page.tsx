@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { redirect, getPathname } from "@/i18n/navigation";
+import { Link, redirect, getPathname } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
@@ -26,7 +26,7 @@ export default async function AdminReports() {
     collect(db.orm.public.Pendaftaran.all()),
     collect(db.orm.public.Pembayaran.all()),
   ]);
-  const urut = [...periode].sort((a, b) => b.tanggalMulai.localeCompare(a.tanggalMulai));
+  const urut = periode.toSorted((a, b) => b.tanggalMulai.localeCompare(a.tanggalMulai));
 
   // Ringkasan atas (angka nyata, dihitung dari data yang sama dengan tabel).
   const berhasil = pembayaran.filter((b) => b.status === "berhasil");
@@ -77,7 +77,12 @@ export default async function AdminReports() {
       cells: {
         nama: (
           <div>
-            <p className="font-semibold text-slate-900">{pr.nama}</p>
+            <Link
+              href={`/admin/classes?periodeId=${pr.id}`}
+              className="font-semibold text-blue-700 hover:underline"
+            >
+              {pr.nama}
+            </Link>
             <p className="text-xs tabular-nums text-slate-500">
               {t("periodEnrollmentSummary", { start: fmtTanggal(pr.tanggalMulai), end: fmtTanggal(pr.tanggalSelesai), count: pP.length })}
             </p>

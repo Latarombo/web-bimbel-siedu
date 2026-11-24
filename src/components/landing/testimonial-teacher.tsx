@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations } from 'next-intl/server';
 /**
  * Section "Kata guru" di halaman /about.
  *
@@ -13,132 +13,154 @@ import { getTranslations } from "next-intl/server";
  * (pool 3 catatan, dirotasi per indeks) dan foto (stok headshot 01-03, dirotasi;
  * ganti dengan foto pengajar asli di /public/images bila ada).
  */
-import Image from "next/image";
-import { Quote, School } from "lucide-react";
-import type { GuruKatalog } from "@/lib/kelas";
+import Image from 'next/image';
+import { Quote, School } from 'lucide-react';
+import type { GuruKatalog } from '@/lib/kelas';
 
-const BRAND = "#2563eb";
-const CHIP = "#dbeafe";
-const LAVENDER = "#bfdbfe"; // latar foto; headshot putih menyatu via multiply
+const BRAND = '#2563eb';
+const CHIP = '#dbeafe';
+const LAVENDER = '#bfdbfe'; // latar foto; headshot putih menyatu via multiply
 
 /* Catatan redaksional — dirotasi ke guru sesuai urutan kartu. */
 
-
-const FOTO = ["/images/01_Teacher.png", "/images/02_Teacher.png", "/images/03_Teacher.png"];
-
-async function KartuGuru({ guru, index }: { guru: GuruKatalog; index: number }) {
- const tr = await getTranslations("public");
-const KUTIPAN = [
-  tr("text147"),
-  tr("text148"),
-  tr("text149"),
+const FOTO = [
+    '/images/01_Teacher.png',
+    '/images/02_Teacher.png',
+    '/images/03_Teacher.png',
 ];
 
-  const kutip = KUTIPAN[index % KUTIPAN.length];
-  const foto = FOTO[index % FOTO.length];
-  const jenjang = guru.jenjang.join(", ");
+async function KartuGuru({
+    guru,
+    index,
+}: {
+    guru: GuruKatalog;
+    index: number;
+}) {
+    const tr = await getTranslations('public');
+    const KUTIPAN = [tr('text147'), tr('text148'), tr('text149')];
 
-  // Ringkas nama mapel agar badge tetap proporsional & tidak kepanjangan
-  const mapelBersih = guru.mapel.map((m) => m.replace(/\s+(SMA|SMP|SD|TK)$/i, "").trim());
-  const mapelTampil = mapelBersih.length > 1
-    ? `${mapelBersih[0]} (+${mapelBersih.length - 1})`
-    : (mapelBersih[0] ?? "-");
+    const kutip = KUTIPAN[index % KUTIPAN.length];
+    const foto = FOTO[index % FOTO.length];
+    const jenjang = guru.jenjang.join(', ');
 
-  return (
-    <div className="relative w-full max-w-[440px] pt-9 sm:min-w-[300px] sm:grow sm:basis-0">
-      {/* HP: w-full saja (satu kartu per baris). grow/basis-0 dikhususkan sm+ supaya
+    // Ringkas nama mapel agar badge tetap proporsional & tidak kepanjangan
+    const mapelBersih = guru.mapel.map((m) =>
+        m.replace(/\s+(SMA|SMP|SD|TK)$/i, '').trim(),
+    );
+    const mapelTampil =
+        mapelBersih.length > 1
+            ? `${mapelBersih[0]} (+${mapelBersih.length - 1})`
+            : (mapelBersih[0] ?? '-');
+
+    return (
+        <div className="relative w-full max-w-[440px] pt-9 sm:min-w-[300px] sm:grow sm:basis-0">
+            {/* HP: w-full saja (satu kartu per baris). grow/basis-0 dikhususkan sm+ supaya
           3 kartu membagi rata — kalau tidak, dua kartu di HP berdampingan ±159px
           karena flex-basis:0 mengalahkan width:100% saat dihitung ruang utama. */}
-      {/* Badge mengampu — rata KIRI KARTU (left-0), sejajar tepi kiri kotak
+            {/* Badge mengampu — rata KIRI KARTU (left-0), sejajar tepi kiri kotak
           kutipan di bawahnya; dulu nempel tepi foto (12.5%) jadi terlihat
           menyendiri ke tengah. */}
-      <div className="absolute left-0 top-0 z-20">
-        <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm sm:px-4 sm:py-2.5">
-          <span
-            aria-hidden="true"
-            className="grid size-7 shrink-0 place-items-center rounded-lg sm:size-8"
-            style={{ backgroundColor: CHIP }}
-          >
-            <School className="size-4" style={{ color: BRAND }} />
-          </span>
-          <div className="min-w-0">
-            <p className="text-xs leading-tight text-slate-500">{tr("text151")}</p>
-            <p
-              className="text-[13px] font-semibold leading-tight text-slate-900 sm:text-sm max-w-[180px] sm:max-w-[210px] truncate"
-              title={guru.mapel.join(", ")}
-            >
-              {mapelTampil}
-            </p>
-          </div>
-        </div>
-      </div>
+            <div className="absolute left-0 top-0 z-20">
+                <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm sm:px-4 sm:py-2.5">
+                    <span
+                        aria-hidden="true"
+                        className="grid size-7 shrink-0 place-items-center rounded-lg sm:size-8"
+                        style={{ backgroundColor: CHIP }}
+                    >
+                        <School className="size-4" style={{ color: BRAND }} />
+                    </span>
+                    <div className="min-w-0">
+                        <p className="text-xs leading-tight text-slate-500">
+                            {tr('text151')}
+                        </p>
+                        <p
+                            className="text-[13px] font-semibold leading-tight text-slate-900 sm:text-sm max-w-[180px] sm:max-w-[210px] truncate"
+                            title={guru.mapel.join(', ')}
+                        >
+                            {mapelTampil}
+                        </p>
+                    </div>
+                </div>
+            </div>
 
-      {/* Foto potret — lebar 75% kartu (ukur dari guru.png & DOM ruangkelas: img
+            {/* Foto potret — lebar 75% kartu (ukur dari guru.png & DOM ruangkelas: img
           256px di dalam kartu 340px), RATA TENGAH lewat mx-auto supaya kotak
           kutipan menjorok sama besar di kiri-kanan. Latar lavender; headshot
           berlatar putih menyatu lewat multiply. */}
-      <div className="mx-auto w-[75%]">
-        <div className="overflow-hidden rounded-2xl border border-slate-200" style={{ backgroundColor: LAVENDER }}>
-          <div className="relative aspect-498/516">
-            <Image
-              src={foto}
-              alt={tr("teacherPhoto", {name: guru.nama})}
-              fill
-              sizes="(max-width: 768px) 75vw, (max-width: 1024px) 38vw, 28vw"
-              className="object-cover object-top mix-blend-multiply"
-            />
-          </div>
-        </div>
-      </div>
+            <div className="mx-auto w-[75%]">
+                <div
+                    className="overflow-hidden rounded-2xl border border-slate-200"
+                    style={{ backgroundColor: LAVENDER }}
+                >
+                    <div className="relative aspect-498/516">
+                        <Image
+                            src={foto}
+                            alt={tr('teacherPhoto', { name: guru.nama })}
+                            fill
+                            sizes="(max-width: 768px) 75vw, (max-width: 1024px) 38vw, 28vw"
+                            className="object-cover object-top mix-blend-multiply"
+                        />
+                    </div>
+                </div>
+            </div>
 
-      {/* Kotak kutipan — lebar penuh kartu, menutupi bawah foto, ikon kutip di sudut.
+            {/* Kotak kutipan — lebar penuh kartu, menutupi bawah foto, ikon kutip di sudut.
           -mt dalam % (margin % dihitung dari LEBAR containing block = kartu), sehingga
           tumpang tindih tetap ±21% tinggi foto di semua lebar. Angka tetap (72px) bikin
           foto HP yang lebih pendek ketutupan sampai 31%. */}
-      <div className="relative -mt-[16.5%] z-10">
-        <div className="relative rounded-2xl border-2 bg-white px-5 pb-5 pt-7 shadow-[0_14px_30px_rgba(15,35,95,0.10)] sm:px-6 sm:pb-6 sm:pt-8" style={{ borderColor: BRAND }}>
-          <span
-            aria-hidden="true"
-            className="absolute -top-5 left-4 grid size-10 place-items-center rounded-full shadow-md sm:left-5"
-            style={{ backgroundColor: BRAND }}
-          >
-            <Quote className="size-5 text-white" fill="currentColor" />
-          </span>
-          <p className="text-sm font-medium leading-relaxed text-slate-700 sm:text-[15px]">
-            &ldquo;{kutip}&rdquo;
-          </p>
-          <div className="mt-5 border-t border-dashed border-slate-200 pt-4">
-            <p className="text-base font-bold text-slate-900">{guru.nama}</p>
-            <p className="mt-0.5 text-sm text-slate-500">
-              {tr("teacherLevels", { level: jenjang })}</p>
-          </div>
+            <div className="relative -mt-[16.5%] z-10">
+                <div
+                    className="relative rounded-2xl border-2 bg-white px-5 pb-5 pt-7 shadow-[0_14px_30px_rgba(15,35,95,0.10)] sm:px-6 sm:pb-6 sm:pt-8"
+                    style={{ borderColor: BRAND }}
+                >
+                    <span
+                        aria-hidden="true"
+                        className="absolute -top-5 left-4 grid size-10 place-items-center rounded-full shadow-md sm:left-5"
+                        style={{ backgroundColor: BRAND }}
+                    >
+                        <Quote
+                            className="size-5 text-white"
+                            fill="currentColor"
+                        />
+                    </span>
+                    <p className="text-sm font-medium leading-relaxed text-slate-700 sm:text-[15px]">
+                        &ldquo;{kutip}&rdquo;
+                    </p>
+                    <div className="mt-5 border-t border-dashed border-slate-200 pt-4">
+                        <p className="text-base font-bold text-slate-900">
+                            {guru.nama}
+                        </p>
+                        <p className="mt-0.5 text-sm text-slate-500">
+                            {tr('teacherLevels', { level: jenjang })}
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default async function TestimonialSection({
-  gurus,
-  className = "",
+    gurus,
+    className = '',
 }: {
-  gurus: GuruKatalog[];
-  className?: string;
+    gurus: GuruKatalog[];
+    className?: string;
 }) {
-  // Tidak ada guru dengan kelas aktif? Section disembunyikan, bukan diisi nama palsu.
-  if (gurus.length === 0) return null;
+    // Tidak ada guru dengan kelas aktif? Section disembunyikan, bukan diisi nama palsu.
+    if (gurus.length === 0) return null;
 
-  return (
-    <div className={`relative overflow-visible bg-white ${className}`}>
-      <div className="relative w-full pt-2 pb-10 sm:pb-12 lg:pb-14">
-        {/* Flex terpusat, bukan grid 3 kolom: jumlah guru dari DB (bisa 1 atau 2),
+    return (
+        <div className={`relative overflow-visible bg-white ${className}`}>
+            <div className="relative w-full pt-2 pb-10 sm:pb-12 lg:pb-14">
+                {/* Flex terpusat, bukan grid 3 kolom: jumlah guru dari DB (bisa 1 atau 2),
             grid tetap membuat kartu tunggal mengambang kiri dengan ruang kosong lebar. */}
-        <div className="flex flex-wrap justify-center gap-x-8 lg:gap-x-10 gap-y-12 sm:gap-y-16">
-          {gurus.map((g, i) => (
-            <KartuGuru key={g.id} guru={g} index={i} />
-          ))}
+                <div className="flex flex-wrap justify-center gap-x-8 lg:gap-x-10 gap-y-12 sm:gap-y-16">
+                    {gurus.map((g, i) => (
+                        <KartuGuru key={g.id} guru={g} index={i} />
+                    ))}
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }

@@ -22,7 +22,7 @@ export default async function AttendancePage({
   const t = await getTranslations("teacher");
   const locale = await getLocale();
   const session = await auth();
-  if (!session?.user) return redirect({ href: "/login?next=/teacher/classes", locale });
+  if (!session?.user) return redirect({ href: "/login?next=/teacher/dashboard", locale });
   const { classId, date } = await params;
   const { sesi: sesiParam } = await searchParams;
   const kid = Number(classId);

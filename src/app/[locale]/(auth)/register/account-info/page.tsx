@@ -21,13 +21,16 @@ export default async function AccountInfoPage({
     const { lengkap } = await searchParams;
     // Tembok dalam: step 2 hanya untuk orang tua yang baru register.
     const session = await auth();
-    if (!session?.user) return redirect({href: '/login?next=/register/account-info', locale});
-    if (session.user.role !== 'orang_tua') return redirect({href: '/login', locale});
+    if (!session?.user)
+        return redirect({ href: '/login?next=/register/account-info', locale });
+    if (session.user.role !== 'orang_tua')
+        return redirect({ href: '/login', locale });
 
-    const parent = await db.orm.public.User
-        .where({ id: Number(session.user.id) })
-        .first();
-    if (!parent) return redirect({href: '/login?next=/register/account-info', locale});
+    const parent = await db.orm.public.User.where({
+        id: Number(session.user.id),
+    }).first();
+    if (!parent)
+        return redirect({ href: '/login?next=/register/account-info', locale });
 
     // Consent PRD F1 ditagih di step 2 bila belum ada — terjadi pada akun yang
     // dibuat via Google (melewati step 1) atau akun lama pra-kolom consent.

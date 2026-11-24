@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useMemo } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import {
   ChevronLeft,
@@ -12,8 +12,15 @@ import {
   Clock,
   AlertTriangle,
   CheckCircle2,
+  Maximize2,
 } from 'lucide-react';
 import { laporkanFotoStatus } from '@/app/actions/teacher';
+import { WhatsAppStoryRing } from '@/components/common/whatsapp-story-ring';
+import { formatWhatsAppTime } from '@/lib/whatsapp-time';
+import {
+  WhatsAppStoryViewerModal,
+  type StorySlide,
+} from '@/components/common/whatsapp-story-viewer-modal';
 
 export interface LearningStatusItem {
   id: number;
@@ -35,12 +42,45 @@ export function LearningStatusInlineStory({ statuses }: Props) {
   const locale = useLocale();
   const [activeStoryIdx, setActiveStoryIdx] = useState(0);
   const [activeMediaIdx, setActiveMediaIdx] = useState(0);
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
   const [reportingStatusId, setReportingStatusId] = useState<number | null>(null);
   const [alasan, setAlasan] = useState('');
   const [catatan, setCatatan] = useState('');
   const [reportSuccess, setReportSuccess] = useState<string | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+
+  const viewerSlides: StorySlide[] = useMemo(() => {
+    const list: StorySlide[] = [];
+    for (const item of statuses) {
+      if (!item.mediaUrls || item.mediaUrls.length === 0) {
+        list.push({
+          statusId: item.id,
+          authorName: item.guruNama || item.kelasNama,
+          authorRoleOrClass: item.kelasNama,
+          avatarText: (item.guruNama || item.kelasNama).slice(0, 2).toUpperCase(),
+          timestampFormatted: formatWhatsAppTime(item.diterbitkanPada),
+          text: item.kontenTeks,
+          isTextOnly: true,
+          bgGradient: 'bg-gradient-to-br from-amber-600 via-yellow-700 to-amber-900',
+        });
+      } else {
+        item.mediaUrls.forEach((photoUrl, pIdx) => {
+          list.push({
+            statusId: item.id,
+            authorName: item.guruNama || item.kelasNama,
+            authorRoleOrClass: item.kelasNama,
+            avatarText: (item.guruNama || item.kelasNama).slice(0, 2).toUpperCase(),
+            timestampFormatted: formatWhatsAppTime(item.diterbitkanPada),
+            text: pIdx === 0 ? item.kontenTeks : undefined,
+            imageUrl: photoUrl,
+            isTextOnly: false,
+          });
+        });
+      }
+    }
+    return list;
+  }, [statuses]);
 
   // If there are no statuses (Subtle & Compact Light Card - Seesaw / ClassDojo style)
   if (statuses.length === 0) {
@@ -129,12 +169,12 @@ export function LearningStatusInlineStory({ statuses }: Props) {
 
   return (
     <div className="space-y-3">
-      {/* Horizontal Story Selector (WhatsApp / IG Avatar Rings) if > 1 status */}
+      {/* Horizontal Story Selector (WhatsApp Avatar Rings) if > 1 status */}
       {statuses.length > 1 && (
         <div className="flex items-center gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {statuses.map((item, idx) => {
             const isSelected = idx === activeStoryIdx;
-            const hasPhotos = item.mediaUrls && item.mediaUrls.length > 0;
+            const photoCount = item.mediaUrls?.length || 1;
             return (
               <button
                 key={item.id}
@@ -143,38 +183,33 @@ export function LearningStatusInlineStory({ statuses }: Props) {
                   setActiveStoryIdx(idx);
                   setActiveMediaIdx(0);
                 }}
-                className={`group flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 transition-all ${
+                className={`group flex shrink-0 items-center gap-2.5 rounded-full border px-3 py-1.5 transition-all cursor-pointer ${
                   isSelected
-                    ? 'border-indigo-600 bg-indigo-50/80 shadow-xs'
-                    : 'border-slate-200 bg-white hover:border-slate-300'
+                    ? 'border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/40 shadow-xs ring-1 ring-emerald-500/30'
+                    : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700'
                 }`}
               >
-                <div
-                  className={`flex h-7 w-7 items-center justify-center rounded-full text-white transition-transform ${
-                    isSelected
-                      ? 'bg-gradient-to-tr from-indigo-600 via-indigo-500 to-teal-400 ring-2 ring-indigo-400 ring-offset-1'
-                      : 'bg-slate-400 group-hover:bg-slate-500'
-                  }`}
+                <WhatsAppStoryRing
+                  count={photoCount}
+                  size={32}
+                  strokeWidth={2}
+                  gap={2.5}
                 >
-                  {hasPhotos ? (
-                    <Camera className="h-3.5 w-3.5" />
-                  ) : (
-                    <FileText className="h-3.5 w-3.5" />
-                  )}
-                </div>
-                <div className="text-left">
+                  <div className="flex size-6.5 items-center justify-center rounded-full bg-slate-900 text-white font-bold text-[10px]">
+                    {item.guruNama ? item.guruNama.slice(0, 2).toUpperCase() : 'GU'}
+                  </div>
+                </WhatsAppStoryRing>
+                <div className="text-left min-w-0">
                   <p
-                    className={`text-xs font-semibold leading-none ${
-                      isSelected ? 'text-indigo-950' : 'text-slate-700'
+                    className={`text-xs font-semibold leading-tight truncate max-w-[140px] ${
+                      isSelected ? 'text-emerald-950 dark:text-emerald-300' : 'text-slate-800 dark:text-slate-200'
                     }`}
                   >
+                    {item.guruNama || item.kelasNama}
+                  </p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-none truncate max-w-[140px] mt-0.5">
                     {item.kelasNama}
                   </p>
-                  {item.anakNama && (
-                    <p className="mt-0.5 text-[10px] text-slate-500 leading-none">
-                      {item.anakNama}
-                    </p>
-                  )}
                 </div>
               </button>
             );
@@ -210,52 +245,69 @@ export function LearningStatusInlineStory({ statuses }: Props) {
         <div className="absolute top-0 inset-x-0 z-20 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent px-4 pb-6 pt-5">
           <div className="flex items-center gap-2.5 min-w-0">
             {/* Story Avatar Ring */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-400 via-teal-400 to-indigo-500 p-[2px]">
-              <div className="flex h-full w-full items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">
+            <WhatsAppStoryRing
+              count={mediaList.length > 0 ? mediaList.length : 1}
+              size={38}
+              strokeWidth={2}
+              gap={2.5}
+            >
+              <div className="flex size-7.5 items-center justify-center rounded-full bg-slate-900 text-xs font-bold text-white">
                 {currentStatus.guruNama
                   ? currentStatus.guruNama.slice(0, 2).toUpperCase()
                   : 'GS'}
               </div>
-            </div>
+            </WhatsAppStoryRing>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="truncate text-xs font-semibold text-white">
-                  {currentStatus.kelasNama}
+                  {currentStatus.guruNama ? currentStatus.guruNama : currentStatus.kelasNama}
                 </span>
-                {currentStatus.anakNama && (
-                  <span className="text-[11px] text-teal-300 font-medium">
-                    · {currentStatus.anakNama}
+                {currentStatus.guruNama && (
+                  <span className="text-[11px] text-white/70">
+                    · {currentStatus.kelasNama}
                   </span>
                 )}
-                {currentStatus.guruNama && (
-                  <span className="hidden sm:inline text-xs text-white/70">
-                    · {currentStatus.guruNama}
+                {currentStatus.anakNama && (
+                  <span className="text-[11px] text-teal-300 font-medium">
+                    ({currentStatus.anakNama})
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-white/60 flex items-center gap-1">
-                <Clock className="h-3 w-3 inline" />
-                {timeFormatted}
+              <p className="text-[11px] text-white/70 flex items-center gap-1 mt-0.5">
+                <Clock className="size-3 inline" />
+                {formatWhatsAppTime(currentStatus.diterbitkanPada)}
               </p>
             </div>
           </div>
 
-          {/* Report Button */}
-          {mediaList.length > 0 && (
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={() =>
-                setReportingStatusId(
-                  reportingStatusId === currentStatus.id ? null : currentStatus.id,
-                )
-              }
-              className="flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-[11px] text-white/75 backdrop-blur-xs transition-colors hover:bg-black/60 hover:text-white"
-              title={t('reportPhoto')}
+              onClick={() => setIsFullscreenOpen(true)}
+              className="flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-[11px] text-white/75 backdrop-blur-xs transition-colors hover:bg-black/60 hover:text-white cursor-pointer"
+              title="Buka Layar Penuh (WhatsApp)"
             >
-              <Flag className="h-3 w-3" />
-              <span className="hidden sm:inline">{t('reportPhoto')}</span>
+              <Maximize2 className="size-3" />
+              <span className="hidden sm:inline">Layar Penuh</span>
             </button>
-          )}
+
+            {/* Report Button */}
+            {mediaList.length > 0 && (
+              <button
+                type="button"
+                onClick={() =>
+                  setReportingStatusId(
+                    reportingStatusId === currentStatus.id ? null : currentStatus.id,
+                  )
+                }
+                className="flex items-center gap-1 rounded-full bg-black/40 px-2.5 py-1 text-[11px] text-white/75 backdrop-blur-xs transition-colors hover:bg-black/60 hover:text-white"
+                title={t('reportPhoto')}
+              >
+                <Flag className="h-3 w-3" />
+                <span className="hidden sm:inline">{t('reportPhoto')}</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Main Canvas: Image or WhatsApp Text Status */}
@@ -406,6 +458,15 @@ export function LearningStatusInlineStory({ statuses }: Props) {
           </div>
         )}
       </div>
+
+      {/* WhatsApp Fullscreen Story Player (Ref: Screenshot 2026-11-24 132646.png) */}
+      <WhatsAppStoryViewerModal
+        isOpen={isFullscreenOpen}
+        onClose={() => setIsFullscreenOpen(false)}
+        slides={viewerSlides}
+        initialSlideIdx={activeStoryIdx}
+        isViewerParent={true}
+      />
     </div>
   );
 }
