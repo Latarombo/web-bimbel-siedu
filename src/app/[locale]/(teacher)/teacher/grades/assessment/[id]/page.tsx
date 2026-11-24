@@ -41,11 +41,24 @@ export default async function EditClassAssessment({
   const mapelName = kelas ? mapelById.get(kelas.mataPelajaranId)?.nama ?? "Kelas" : "Kelas";
   const kelasLabel = kelas ? `${mapelName} · ${kelas.jenjang}${kelas.tingkat ? ` (${kelas.tingkat})` : ""}` : "";
 
-  const [pendaftaranRows, anakRows, hasilRows] = await Promise.all([
+  const [pendaftaranRows, anakRows, hasilRows, jadwalRows] = await Promise.all([
     collect(db.orm.public.Pendaftaran.where({ kelasId: assessment.kelasId }).all()),
     collect(db.orm.public.Anak.all()),
     collect(db.orm.public.HasilPenilaian.where({ penilaianId: assessment.id }).all()),
+    collect(db.orm.public.JadwalItem.where({ kelasId: assessment.kelasId }).all()),
   ]);
+
+  const jadwalIds = jadwalRows.map((j) => j.id);
+  const sesiRows = jadwalIds.length
+    ? await collect(
+        db.orm.public.SesiPertemuan.where((s) => s.jadwalItemId.in(jadwalIds)).all(),
+      )
+    : [];
+  sesiRows.sort((a, b) => a.tanggalPertemuan.localeCompare(b.tanggalPertemuan));
+  const sessionOptions = sesiRows.map((s, idx) => ({
+    id: s.id,
+    label: `Pertemuan #${idx + 1} (${s.tanggalPertemuan} · ${s.jamMulai.slice(0, 5)}-${s.jamSelesai.slice(0, 5)})`,
+  }));
 
   const anakById = new Map(anakRows.map((a) => [a.id, a]));
   const hasilByPendaftaran = new Map(hasilRows.map((h) => [h.pendaftaranId, h]));
@@ -97,6 +110,8 @@ export default async function EditClassAssessment({
         initialNilaiMaksimum={assessment.nilaiMaksimum}
         initialDraf={assessment.draf}
         diterbitkanPada={assessment.diterbitkanPada}
+        initialSesiId={assessment.sesiPertemuanId}
+        sessions={sessionOptions}
         siswa={siswa}
       />
     </div>

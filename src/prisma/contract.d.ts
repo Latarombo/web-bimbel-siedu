@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'24433f119ae2b28a40b529879a72a702b806105001c5cf1b20e6a59d22d1b580'>;
+  StorageHashBase<'84e95083007aff785f1438eb35d07765b318895f66d559f3ff7f49ee4c1c6827'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -360,6 +360,7 @@ export type FieldOutputTypes = {
       readonly nilaiMaksimum: CodecTypes['pg/numeric@1']['output'];
       readonly draf: CodecTypes['pg/bool@1']['output'];
       readonly diterbitkanPada: CodecTypes['pg/timestamptz-string@1']['output'] | null;
+      readonly sesiPertemuanId: CodecTypes['pg/int4@1']['output'] | null;
       readonly dibuatOleh: CodecTypes['pg/int4@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -567,6 +568,7 @@ export type FieldInputTypes = {
       readonly nilaiMaksimum: CodecTypes['pg/numeric@1']['input'];
       readonly draf: CodecTypes['pg/bool@1']['input'];
       readonly diterbitkanPada: CodecTypes['pg/timestamptz-string@1']['input'] | null;
+      readonly sesiPertemuanId: CodecTypes['pg/int4@1']['input'] | null;
       readonly dibuatOleh: CodecTypes['pg/int4@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -775,6 +777,7 @@ export type StorageColumnTypes = {
       readonly kelas_id: CodecTypes['pg/int4@1']['output'];
       readonly nama: CodecTypes['pg/text@1']['output'];
       readonly nilai_maksimum: CodecTypes['pg/numeric@1']['output'];
+      readonly sesi_id: CodecTypes['pg/int4@1']['output'] | null;
       readonly tanggal: CodecTypes['pg/date-string@1']['output'];
       readonly updated_at: CodecTypes['pg/timestamptz-string@1']['output'];
     };
@@ -982,6 +985,7 @@ export type StorageColumnInputTypes = {
       readonly kelas_id: CodecTypes['pg/int4@1']['input'];
       readonly nama: CodecTypes['pg/text@1']['input'];
       readonly nilai_maksimum: CodecTypes['pg/numeric@1']['input'];
+      readonly sesi_id: CodecTypes['pg/int4@1']['input'] | null;
       readonly tanggal: CodecTypes['pg/date-string@1']['input'];
       readonly updated_at: CodecTypes['pg/timestamptz-string@1']['input'];
     };
@@ -2062,6 +2066,11 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-string@1';
                   readonly nullable: true;
                 };
+                readonly sesi_id: {
+                  readonly nativeType: 'int4';
+                  readonly codecId: 'pg/int4@1';
+                  readonly nullable: true;
+                };
                 readonly dibuat_oleh: {
                   readonly nativeType: 'int4';
                   readonly codecId: 'pg/int4@1';
@@ -2090,6 +2099,12 @@ type ContractBase = Omit<
                   readonly unique: false;
                 },
                 {
+                  readonly name: 'penilaian_sesi_id_idx_9e4d5c99';
+                  readonly prefix: 'penilaian_sesi_id_idx';
+                  readonly columns: readonly ['sesi_id'];
+                  readonly unique: false;
+                },
+                {
                   readonly name: 'penilaian_dibuat_oleh_idx_3489b1c4';
                   readonly prefix: 'penilaian_dibuat_oleh_idx';
                   readonly columns: readonly ['dibuat_oleh'];
@@ -2112,6 +2127,18 @@ type ContractBase = Omit<
                   readonly target: {
                     readonly namespaceId: 'public' & NamespaceId;
                     readonly tableName: 'kelas';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'penilaian';
+                    readonly columns: readonly ['sesi_id'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'sesi_pertemuan';
                     readonly columns: readonly ['id'];
                   };
                 },
@@ -3767,6 +3794,10 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-string@1';
                 };
               };
+              readonly sesiPertemuanId: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
+              };
               readonly dibuatOleh: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
@@ -3817,6 +3848,17 @@ type ContractBase = Omit<
                   readonly targetFields: readonly ['id'];
                 };
               };
+              readonly sesi: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'SesiPertemuan';
+                };
+                readonly cardinality: 'N:1';
+                readonly on: {
+                  readonly localFields: readonly ['sesiPertemuanId'];
+                  readonly targetFields: readonly ['id'];
+                };
+              };
             };
             readonly storage: {
               readonly table: 'penilaian';
@@ -3829,6 +3871,7 @@ type ContractBase = Omit<
                 readonly nilaiMaksimum: { readonly column: 'nilai_maksimum' };
                 readonly draf: { readonly column: 'draf' };
                 readonly diterbitkanPada: { readonly column: 'diterbitkan_pada' };
+                readonly sesiPertemuanId: { readonly column: 'sesi_id' };
                 readonly dibuatOleh: { readonly column: 'dibuat_oleh' };
                 readonly createdAt: { readonly column: 'created_at' };
                 readonly updatedAt: { readonly column: 'updated_at' };
@@ -4170,6 +4213,17 @@ type ContractBase = Omit<
                 readonly on: {
                   readonly localFields: readonly ['jadwalItemId'];
                   readonly targetFields: readonly ['id'];
+                };
+              };
+              readonly penilaian: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Penilaian';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['id'];
+                  readonly targetFields: readonly ['sesiPertemuanId'];
                 };
               };
               readonly presensi: {

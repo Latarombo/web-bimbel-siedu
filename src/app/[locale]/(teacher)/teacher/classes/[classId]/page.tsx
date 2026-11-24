@@ -56,6 +56,22 @@ export default async function TeacherClassDetail({
       )
     : [];
 
+  const jadwalIds = jadwal.map((j) => j.id);
+  const semuaSesiKelas = jadwalIds.length
+    ? await collect(
+        db.orm.public.SesiPertemuan.where((s) => s.jadwalItemId.in(jadwalIds)).all(),
+      )
+    : [];
+  semuaSesiKelas.sort((a, b) => a.tanggalPertemuan.localeCompare(b.tanggalPertemuan));
+  const sesiMap = new Map(semuaSesiKelas.map((s, idx) => [s.id, {
+    ...s,
+    label: `Pertemuan #${idx + 1} (${s.tanggalPertemuan})`,
+  }]));
+  const sessionOptions = semuaSesiKelas.map((s, idx) => ({
+    id: s.id,
+    label: `Pertemuan #${idx + 1} (${s.tanggalPertemuan} · ${s.jamMulai.slice(0, 5)}-${s.jamSelesai.slice(0, 5)})`,
+  }));
+
   const hasilByPenilaian = new Map<number, typeof hasilPenilaianList>();
   for (const h of hasilPenilaianList) {
     const arr = hasilByPenilaian.get(h.penilaianId) ?? [];
@@ -68,6 +84,7 @@ export default async function TeacherClassDetail({
     const countDinilai = hList.filter((x) => x.statusHasil === "dinilai").length;
     const countTidakIkut = hList.filter((x) => x.statusHasil === "tidak_ikut").length;
     const countBelum = hList.filter((x) => x.statusHasil === "belum_dinilai").length;
+    const sesiInfo = p.sesiPertemuanId ? sesiMap.get(p.sesiPertemuanId) : null;
 
     return {
       id: p.id,
@@ -80,6 +97,8 @@ export default async function TeacherClassDetail({
       countTidakIkut,
       countBelum,
       totalSiswa: hList.length,
+      sesiPertemuanId: p.sesiPertemuanId,
+      sesiLabel: sesiInfo ? sesiInfo.label : null,
     };
   });
 
@@ -261,6 +280,7 @@ export default async function TeacherClassDetail({
         students={studentItems}
         schedules={scheduleSlotItems}
         assessments={assessmentItems}
+        sessions={sessionOptions}
         firstTodaySession={
           pertamaHariIni
             ? {

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useTransition } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
+import { hapusPenilaian } from "@/app/actions/teacher";
 import {
   Search,
   ChevronLeft,
@@ -13,6 +14,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  Trash2,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -57,6 +59,8 @@ export interface ClassAssessmentItem {
   countTidakIkut: number;
   countBelum: number;
   totalSiswa: number;
+  sesiPertemuanId?: number | null;
+  sesiLabel?: string | null;
 }
 
 export interface ClassDetailViewProps {
@@ -71,6 +75,7 @@ export interface ClassDetailViewProps {
   students: StudentRosterItem[];
   schedules: ScheduleSlotItem[];
   assessments: ClassAssessmentItem[];
+  sessions?: { id: number; label: string }[];
   firstTodaySession?: {
     jadwalItemId: number;
     jamMulai: string;
@@ -106,12 +111,31 @@ export function ClassDetailView({
   students: initialStudents,
   schedules,
   assessments,
+  sessions = [],
   firstTodaySession,
   activeAttendanceSession,
   todayStr,
   stats,
 }: ClassDetailViewProps) {
   const router = useRouter();
+  const [isDeletingAssessmentId, setIsDeletingAssessmentId] = useState<number | null>(null);
+  const [isPendingDelete, startDeleteTransition] = useTransition();
+
+  const handleDeleteAssessment = (id: number, nama: string) => {
+    if (!confirm(`Yakin ingin menghapus tugas '${nama}'? Seluruh data nilai siswa pada tugas ini akan ikut dihapus secara permanen.`)) return;
+    setIsDeletingAssessmentId(id);
+    startDeleteTransition(async () => {
+      const formData = new FormData();
+      formData.append("penilaian_id", String(id));
+      const res = await hapusPenilaian({ ok: false }, formData);
+      setIsDeletingAssessmentId(null);
+      if (res?.error) {
+        alert(res.error);
+      } else {
+        router.refresh();
+      }
+    });
+  };
 
   const attendanceTarget =
     activeAttendanceSession ??
@@ -885,6 +909,11 @@ export function ClassDetailView({
                           >
                             {a.nama}
                           </Link>
+                          {a.sesiLabel && (
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5" title={a.sesiLabel}>
+                              {a.sesiLabel}
+                            </p>
+                          )}
                         </td>
 
                         {/* 3. Tanggal (1 Data) */}
@@ -913,13 +942,23 @@ export function ClassDetailView({
 
                         {/* 6. Aksi (Sticky Right 0) */}
                         <td className="sticky right-0 z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
-                          <div className="flex items-center justify-end opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
+                          <div className="flex items-center justify-end gap-2 opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
                             <Link
                               href={`/teacher/grades/assessment/${a.id}`}
                               className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors cursor-pointer"
                             >
                               <span>Nilai Siswa</span>
                             </Link>
+                            <button
+                              type="button"
+                              disabled={isDeletingAssessmentId === a.id || isPendingDelete}
+                              onClick={() => handleDeleteAssessment(a.id, a.nama)}
+                              className="inline-flex items-center justify-center rounded-lg border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-950/30 p-2 text-xs font-semibold text-rose-600 dark:text-rose-400 transition-colors cursor-pointer disabled:opacity-50"
+                              title="Hapus Tugas"
+                              aria-label={`Hapus tugas ${a.nama}`}
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -973,12 +1012,30 @@ export function ClassDetailView({
                       </span>
                     </div>
 
-                    <Link
-                      href={`/teacher/grades/assessment/${a.id}`}
-                      className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
-                    >
-                      <span>Nilai Siswa</span>
-                    </Link>
+                    {a.sesiLabel && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        {a.sesiLabel}
+                      </p>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <Link
+                        href={`/teacher/grades/assessment/${a.id}`}
+                        className="flex-1 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                      >
+                        <span>Nilai Siswa</span>
+                      </Link>
+                      <button
+                        type="button"
+                        disabled={isDeletingAssessmentId === a.id || isPendingDelete}
+                        onClick={() => handleDeleteAssessment(a.id, a.nama)}
+                        className="size-10 grid place-items-center rounded-lg border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                        title="Hapus Tugas"
+                        aria-label={`Hapus tugas ${a.nama}`}
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1141,6 +1198,7 @@ export function ClassDetailView({
         isOpen={isAssessmentModalOpen}
         onClose={() => setIsAssessmentModalOpen(false)}
         classId={classId}
+        sessions={sessions}
         onSuccess={() => {
           setActiveTab("assessments");
           router.refresh();

@@ -32,6 +32,7 @@ erDiagram
 
     jadwal_item ||--o{ sesi_pertemuan : "realisasi sesi"
     sesi_pertemuan ||--o{ presensi : "presensi sesi"
+    sesi_pertemuan ||--o{ penilaian : "tugas sesi"
 
     pendaftaran ||--o{ pembayaran : "tagihan & cicilan"
     pendaftaran ||--o{ presensi : "riwayat hadir"
@@ -267,11 +268,12 @@ Pencatatan absensi kehadiran siswa pada pertemuan belajar.
 
 Header tugas, kuis, atau evaluasi belajar yang diselenggarakan guru dalam satu kelas.
 
-| Atribut (DB)       | Atribut (Prisma)  | Tipe Data     | Nullable | Default           | Keterangan & Constraint                 |
-| :----------------- | :---------------- | :------------ | :------: | :---------------- | :-------------------------------------- |
-| `id`               | `id`              | `integer`     |    NO    | `autoincrement()` | **Primary Key**                         |
-| `kelas_id`         | `kelasId`         | `integer`     |    NO    | -                 | **FK** -> `kelas(id)` ON DELETE CASCADE |
-| `nama`             | `nama`            | `text`        |    NO    | -                 | Judul tugas/kuis (Check: `<= 100` char) |
+| Atribut (DB)       | Atribut (Prisma)  | Tipe Data     | Nullable | Default           | Keterangan & Constraint                           |
+| :----------------- | :---------------- | :------------ | :------: | :---------------- | :------------------------------------------------ |
+| `id`               | `id`              | `integer`     |    NO    | `autoincrement()` | **Primary Key**                                   |
+| `kelas_id`         | `kelasId`         | `integer`     |    NO    | -                 | **FK** -> `kelas(id)` ON DELETE CASCADE           |
+| `sesi_id`          | `sesiPertemuanId` | `integer`     |   YES    | `NULL`            | **FK** -> `sesi_pertemuan(id)` ON DELETE SET NULL |
+| `nama`             | `nama`            | `text`        |    NO    | -                 | Judul tugas/kuis (Check: `<= 100` char)           |
 | `tanggal`          | `tanggal`         | `date`        |    NO    | -                 | Tanggal pelaksanaan penilaian           |
 | `nilai_maksimum`   | `nilaiMaksimum`   | `numeric`     |    NO    | `'100'`           | Batas skor tertinggi (Check: `> 0`)     |
 | `draf`             | `draf`            | `boolean`     |    NO    | `true`            | Status publikasi nilai                  |

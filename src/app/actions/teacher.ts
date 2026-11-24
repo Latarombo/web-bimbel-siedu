@@ -602,6 +602,8 @@ export async function savePenilaianBatch(
   const kelasId = Number(formData.get("kelas_id"));
   const penilaianIdRaw = formData.get("penilaian_id");
   const penilaianId = penilaianIdRaw ? Number(penilaianIdRaw) : null;
+  const sesiIdRaw = formData.get("sesi_id");
+  const sesiId = sesiIdRaw ? Number(sesiIdRaw) : null;
   const nama = String(formData.get("nama") ?? "").trim();
   const tanggal = String(formData.get("tanggal") ?? "").trim();
   const nilaiMaksimumRaw = formData.get("nilai_maksimum");
@@ -692,6 +694,7 @@ export async function savePenilaianBatch(
         nilaiMaksimum: String(nilaiMaksimum),
         draf: isDraf,
         diterbitkanPada: diterbitkanPada ?? existing.diterbitkanPada,
+        sesiPertemuanId: sesiId && sesiId > 0 ? sesiId : null,
       });
     } else {
       const created = await tx.orm.public.Penilaian.create({
@@ -702,6 +705,7 @@ export async function savePenilaianBatch(
         draf: isDraf,
         diterbitkanPada,
         dibuatOleh: guruId,
+        sesiPertemuanId: sesiId && sesiId > 0 ? sesiId : null,
       });
       currentPenilaianId = created.id;
     }
@@ -769,6 +773,55 @@ export async function tarikPenilaian(
 
   revalidatePath(`/teacher/classes/${p.kelasId}`);
   revalidatePath(`/teacher/classes/${p.kelasId}`, "page");
+  revalidatePath("/teacher/classes", "layout");
+  revalidatePath("/[locale]/teacher/grades", "page");
+  revalidatePath("/[locale]/teacher/classes/[classId]", "page");
+  revalidatePath("/[locale]/schedule-attendance", "page");
+  return { ok: true };
+}
+
+export async function hapusPenilaian(
+  prevOrFormData: GuruState | FormData,
+  maybeFormData?: FormData,
+): Promise<GuruState> {
+  const formData = (typeof FormData !== "undefined" && maybeFormData instanceof FormData)
+    ? maybeFormData
+    : (typeof FormData !== "undefined" && prevOrFormData instanceof FormData)
+      ? prevOrFormData
+      : (maybeFormData ?? prevOrFormData) as FormData;
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({ locale, namespace: "teacher" });
+  const guruId = await guardGuru();
+  if (!guruId) return { error: t("sessionExpired") };
+
+  const penilaianId = Number(formData.get("penilaian_id"));
+  if (!Number.isInteger(penilaianId) || penilaianId <= 0) return { error: t("invalidParameters") };
+
+  const [assessment] = await collect(
+    db.orm.public.Penilaian.where({ id: penilaianId, dibuatOleh: guruId }).all()
+  );
+  if (!assessment) return { error: t("assessmentNotFound") };
+
+  const kelasId = assessment.kelasId;
+  const namaAsesmen = assessment.nama;
+
+  await db.transaction(async (tx) => {
+    await tx.orm.public.HasilPenilaian.where({ penilaianId }).delete();
+    await tx.orm.public.Penilaian.where({ id: penilaianId }).delete();
+    await tx.orm.public.AuditPerubahan.create({
+      entitas: "penilaian",
+      entitasId: penilaianId,
+      aksi: "HAPUS_PENILAIAN",
+      sebelum: JSON.stringify({ nama: namaAsesmen, kelasId, tanggal: assessment.tanggal }),
+      sesudah: null,
+      alasan: `Guru menghapus tugas/asesmen '${namaAsesmen}'`,
+      aktorId: guruId,
+      createdAt: new Date().toISOString(),
+    });
+  });
+
+  revalidatePath(`/teacher/classes/${kelasId}`);
+  revalidatePath(`/teacher/classes/${kelasId}`, "page");
   revalidatePath("/teacher/classes", "layout");
   revalidatePath("/[locale]/teacher/grades", "page");
   revalidatePath("/[locale]/teacher/classes/[classId]", "page");

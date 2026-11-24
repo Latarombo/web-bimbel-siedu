@@ -11,6 +11,8 @@ interface QuickAssessmentModalProps {
   onClose: () => void;
   classId?: number;
   classes?: { id: number; nama: string; jenjang: string }[];
+  sessions?: { id: number; label: string }[];
+  defaultSesiId?: number;
   onSuccess: () => void;
 }
 
@@ -19,6 +21,8 @@ export function QuickAssessmentModal({
   onClose,
   classId,
   classes,
+  sessions = [],
+  defaultSesiId,
   onSuccess,
 }: QuickAssessmentModalProps) {
   const [selectedClassId, setSelectedClassId] = useState<number>(() => {
@@ -28,6 +32,7 @@ export function QuickAssessmentModal({
   const [tanggal, setTanggal] = useState("");
   const [nilaiMaksimum, setNilaiMaksimum] = useState("100");
   const [isDraft, setIsDraft] = useState(false);
+  const [sesiId, setSesiId] = useState<number | null>(defaultSesiId ?? null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -39,6 +44,7 @@ export function QuickAssessmentModal({
       setTanggal(new Date().toISOString().slice(0, 10));
       setNilaiMaksimum("100");
       setIsDraft(false);
+      setSesiId(defaultSesiId ?? null);
       setErrorMsg(null);
       if (classId) {
         setSelectedClassId(classId);
@@ -71,6 +77,9 @@ export function QuickAssessmentModal({
     startTransition(async () => {
       const formData = new FormData();
       formData.append("kelas_id", String(effectiveClassId));
+      if (sesiId) {
+        formData.append("sesi_id", String(sesiId));
+      }
       formData.append("nama", nama.trim());
       formData.append("tanggal", tanggal);
       formData.append("nilai_maksimum", String(maxScore));
@@ -192,6 +201,32 @@ export function QuickAssessmentModal({
                 required
               />
             </div>
+
+            {/* Sesi Pertemuan Terkait (Opsional) */}
+            {sessions.length > 0 && (
+              <div className="space-y-2">
+                <label
+                  htmlFor="assessment-sesi"
+                  className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
+                >
+                  Terkait Sesi Pertemuan (Opsional)
+                </label>
+                <select
+                  id="assessment-sesi"
+                  value={sesiId ?? ""}
+                  onChange={(e) => setSesiId(e.target.value ? Number(e.target.value) : null)}
+                  disabled={isPending}
+                  className="w-full h-11 sm:h-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 hover:border-slate-400 dark:hover:border-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors cursor-pointer"
+                >
+                  <option value="">Umum (Tanpa Sesi Tertentu)</option>
+                  {sessions.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Status Publikasi */}
             <div className="pt-1">

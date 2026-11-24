@@ -124,15 +124,21 @@ export default async function ScheduleAttendancePage({
     jenjang: p.jenjangSaatDaftar,
   }));
 
-  // Presensi pendaftaran milik saya.
+  // Presensi & Penilaian terbit untuk pendaftaran anak milik saya (diproses paralel)
   const pendaftaranIds = milikSaya.map((p) => p.id);
-  const presensiItems = pendaftaranIds.length
-    ? await collect(
-        db.orm.public.Presensi.where((s) => s.pendaftaranId.in(pendaftaranIds))
-          .orderBy((s) => s.tanggalPertemuan.desc())
-          .all(),
-      )
-    : [];
+  const milikSayaIds = new Set(pendaftaranIds);
+  const [presensiItems, penilaianTerbit, semuaHasilPenilaian] = await Promise.all([
+    pendaftaranIds.length
+      ? collect(
+          db.orm.public.Presensi.where((s) => s.pendaftaranId.in(pendaftaranIds))
+            .orderBy((s) => s.tanggalPertemuan.desc())
+            .all(),
+        )
+      : Promise.resolve([]),
+    collect(db.orm.public.Penilaian.where((p) => p.draf.eq(false)).all()),
+    collect(db.orm.public.HasilPenilaian.all()),
+  ]);
+
   const pendaftaranMap = new Map(milikSaya.map((p) => [p.id, p]));
   const presensiRaw: { s: (typeof presensiItems)[0]; p: (typeof milikSaya)[0] }[] = [];
   for (const s of presensiItems) {
@@ -140,13 +146,16 @@ export default async function ScheduleAttendancePage({
     if (p) presensiRaw.push({ s, p });
   }
   
-  // Catatan pertemuan terbit (materi & PR) untuk sesi-sesi presensi
+  // Catatan pertemuan terbit (materi & PR) dan sesi untuk penilaian
   const sesiIds = [
-    ...new Set(
-      presensiRaw
+    ...new Set([
+      ...presensiRaw
         .map(({ s }) => s.sesiPertemuanId)
         .filter((id): id is number => typeof id === "number"),
-    ),
+      ...penilaianTerbit
+        .map((pen) => pen.sesiPertemuanId)
+        .filter((id): id is number => typeof id === "number"),
+    ]),
   ];
   const sesiPertemuanList =
     sesiIds.length > 0
@@ -172,22 +181,18 @@ export default async function ScheduleAttendancePage({
     };
   });
 
-  // Penilaian terbit untuk pendaftaran anak milik saya
-  const milikSayaIds = new Set(milikSaya.map((p) => p.id));
-  const [penilaianTerbit, semuaHasilPenilaian] = await Promise.all([
-    collect(db.orm.public.Penilaian.where((p) => p.draf.eq(false)).all()),
-    collect(db.orm.public.HasilPenilaian.all()),
-  ]);
   const penilaianById = new Map(penilaianTerbit.map((p) => [p.id, p]));
   const hasilMilikSaya = semuaHasilPenilaian
     .filter((h) => milikSayaIds.has(h.pendaftaranId) && penilaianById.has(h.penilaianId))
     .map((h) => {
       const pen = penilaianById.get(h.penilaianId)!;
       const pend = milikSaya.find((p) => p.id === h.pendaftaranId)!;
+      const sesi = pen.sesiPertemuanId ? sesiById.get(pen.sesiPertemuanId) : null;
       return {
         h,
         pen,
         pend,
+        sesi,
         anakNama: namaAnak.get(pend.anakId) ?? tr("text162"),
         mapelNama: mapel.get(pend.kelas.mataPelajaranId) ?? `Kelas #${pend.kelasId}`,
       };
@@ -383,7 +388,7 @@ export default async function ScheduleAttendancePage({
             </Card>
           ) : (
             <ul className="grid gap-3.5">
-            {hasilMilikSaya.map(({ h, pen, anakNama, mapelNama }) => {
+            {hasilMilikSaya.map(({ h, pen, anakNama, mapelNama, sesi }) => {
               const statusLabel =
                 h.statusHasil === "dinilai"
                   ? String(h.nilai)
@@ -409,6 +414,17 @@ export default async function ScheduleAttendancePage({
                                 { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Jakarta" },
                               )}
                             </span>
+                            {sesi ? (
+                              <>
+                                <span>•</span>
+                                <span className="font-medium text-slate-600">
+                                  {locale === "en" ? "Session" : "Sesi"}: {new Date(`${sesi.tanggalPertemuan}T00:00:00+07:00`).toLocaleDateString(
+                                    locale === "en" ? "en-GB" : "id-ID",
+                                    { day: "numeric", month: "short", timeZone: "Asia/Jakarta" },
+                                  )}
+                                </span>
+                              </>
+                            ) : null}
                           </p>
                         </div>
                         <div className="shrink-0 text-right">

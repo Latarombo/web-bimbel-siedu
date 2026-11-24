@@ -342,6 +342,7 @@ model SesiPertemuan {
 
   jadwalItem JadwalItem    @relation(fields: [jadwalItemId], references: [id], onDelete: Restrict)
   presensi   Presensi[]
+  penilaian  Penilaian[]
 
   @@unique([jadwalItemId, tanggalPertemuan])
   @@index([tanggalPertemuan])
@@ -453,15 +454,18 @@ model Penilaian {
   nilaiMaksimum   Decimal           @default("100") @map("nilai_maksimum")
   draf            Boolean           @default(true) @map("draf")
   diterbitkanPada TimestamptzString? @map("diterbitkan_pada")
+  sesiPertemuanId Int?              @map("sesi_id")
   dibuatOleh      Int               @map("dibuat_oleh")
   createdAt       TimestamptzString @default(now()) @map("created_at")
   updatedAt       TimestamptzString @default(now()) @map("updated_at")
 
   kelas Kelas            @relation(fields: [kelasId], references: [id], onDelete: Cascade)
+  sesi  SesiPertemuan?   @relation(fields: [sesiPertemuanId], references: [id], onDelete: SetNull)
   guru  User             @relation("GuruPenilaian", fields: [dibuatOleh], references: [id], onDelete: Restrict)
   hasil HasilPenilaian[]
 
   @@index([kelasId])
+  @@index([sesiPertemuanId])
   @@index([dibuatOleh])
   @@index([tanggal])
   @@check(expression: "nilai_maksimum > 0", name: "penilaian_maksimum_positif")

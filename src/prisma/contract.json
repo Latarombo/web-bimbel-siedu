@@ -1830,6 +1830,13 @@
                   "kind": "scalar"
                 }
               },
+              "sesiPertemuanId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
               "tanggal": {
                 "nullable": false,
                 "type": {
@@ -1890,6 +1897,21 @@
                   "model": "Kelas",
                   "namespace": "public"
                 }
+              },
+              "sesi": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "sesiPertemuanId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "SesiPertemuan",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -1917,6 +1939,9 @@
                 },
                 "nilaiMaksimum": {
                   "column": "nilai_maksimum"
+                },
+                "sesiPertemuanId": {
+                  "column": "sesi_id"
                 },
                 "tanggal": {
                   "column": "tanggal"
@@ -2481,6 +2506,21 @@
                 },
                 "to": {
                   "model": "JadwalItem",
+                  "namespace": "public"
+                }
+              },
+              "penilaian": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "sesiPertemuanId"
+                  ]
+                },
+                "to": {
+                  "model": "Penilaian",
                   "namespace": "public"
                 }
               },
@@ -4487,6 +4527,11 @@
                   "nativeType": "numeric",
                   "nullable": false
                 },
+                "sesi_id": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
                 "tanggal": {
                   "codecId": "pg/date-string@1",
                   "nativeType": "date",
@@ -4518,6 +4563,23 @@
                     ],
                     "namespaceId": "public",
                     "tableName": "kelas"
+                  }
+                },
+                {
+                  "onDelete": "setNull",
+                  "source": {
+                    "columns": [
+                      "sesi_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "penilaian"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "sesi_pertemuan"
                   }
                 },
                 {
@@ -4553,6 +4615,14 @@
                   ],
                   "name": "penilaian_kelas_id_idx_933496b6",
                   "prefix": "penilaian_kelas_id_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "sesi_id"
+                  ],
+                  "name": "penilaian_sesi_id_idx_9e4d5c99",
+                  "prefix": "penilaian_sesi_id_idx",
                   "unique": false
                 },
                 {
@@ -5667,7 +5737,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "24433f119ae2b28a40b529879a72a702b806105001c5cf1b20e6a59d22d1b580"
+    "storageHash": "84e95083007aff785f1438eb35d07765b318895f66d559f3ff7f49ee4c1c6827"
   },
   "capabilities": {
     "postgres": {
