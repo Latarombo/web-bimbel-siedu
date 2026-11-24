@@ -205,6 +205,9 @@ export async function updateChild(
   const currentAnak = milikOrtu[0];
 
   const isTerkunci = await anakTerkunci(anakId);
+  if (isTerkunci) {
+    return { error: "Profil anak terkunci total karena sedang terdaftar dalam kelas aktif." };
+  }
 
   const emailKetik = String(formData.get("email_notifikasi") ?? "").trim();
   const teleponKetik = String(formData.get("nomor_telepon") ?? "").trim();

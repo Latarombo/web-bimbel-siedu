@@ -489,14 +489,19 @@ export default async function ParentHome({
       ? dipilih.nilai[dipilih.nilai.length - 1].nilai - dipilih.nilai[0].nilai
       : null;
 
-  // Kabar & Status Pembelajaran untuk anak terpilih
+  // Kabar & Status Pembelajaran untuk seluruh anak milik orang tua (multi-anak story WA)
+  const allChildrenIds = anakList.map((a) => a.id);
   const [allStatusList, allClasses, allMapel, allUsers, allPendaftaran] =
     await Promise.all([
       collect(db.orm.public.StatusPembelajaran.where((s) => s.status.eq("aktif")).all()),
       collect(db.orm.public.Kelas.all()),
       collect(db.orm.public.MataPelajaran.all()),
       collect(db.orm.public.User.all()),
-      collect(db.orm.public.Pendaftaran.where((p) => p.anakId.eq(dipilih.id)).all()),
+      collect(
+        allChildrenIds.length
+          ? db.orm.public.Pendaftaran.where((p) => p.anakId.in(allChildrenIds)).all()
+          : db.orm.public.Pendaftaran.where((p) => p.anakId.eq(dipilih.id)).all(),
+      ),
     ]);
 
   const activeEnrollments = allPendaftaran.filter((p) =>
@@ -510,6 +515,16 @@ export default async function ParentHome({
     nowIso,
   });
 
+  const anakNamaMap = new Map(anakList.map((a) => [a.id, a.nama]));
+  const classToChildNameMap = new Map<number, string[]>();
+  for (const p of activeEnrollments) {
+    const nama = anakNamaMap.get(p.anakId);
+    if (!nama) continue;
+    const existing = classToChildNameMap.get(p.kelasId) || [];
+    if (!existing.includes(nama)) existing.push(nama);
+    classToChildNameMap.set(p.kelasId, existing);
+  }
+
   const kelasMap = new Map(allClasses.map((k) => [k.id, k]));
   const mapelMap = new Map(allMapel.map((m) => [m.id, m.nama]));
   const userMap = new Map(allUsers.map((u) => [u.id, u.name]));
@@ -520,6 +535,12 @@ export default async function ParentHome({
       ? `${mapelMap.get(k.mataPelajaranId) ?? "Kelas"} #${k.id}`
       : `Kelas #${s.kelasId}`;
     const guruNama = k ? (userMap.get(k.guruId) ?? undefined) : undefined;
+    const enrolledChildren = classToChildNameMap.get(s.kelasId);
+    const anakNama =
+      enrolledChildren && enrolledChildren.length > 0
+        ? enrolledChildren.join(", ")
+        : undefined;
+
     let mediaUrls: string[] = [];
     if (s.mediaUrls) {
       try {
@@ -533,6 +554,7 @@ export default async function ParentHome({
       kelasId: s.kelasId,
       kelasNama,
       guruNama,
+      anakNama,
       kontenTeks: s.kontenTeks,
       mediaUrls,
       diterbitkanPada: s.diterbitkanPada,
@@ -782,7 +804,15 @@ export default async function ParentHome({
               <h3 className="text-sm font-semibold text-slate-900">
                 {tr("text120")}
               </h3>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5">
+                {dipilih.pendaftaranId && (
+                  <Link
+                    href={`/enrollments/${dipilih.pendaftaranId}/report`}
+                    className="text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors"
+                  >
+                    Buka Rapor Semester →
+                  </Link>
+                )}
                 {rataNilai != null && (
                   <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
                     {tr("dashOverall")}: <b>{rataNilai}</b>

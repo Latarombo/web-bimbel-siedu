@@ -47,6 +47,7 @@
 | C9 | Tambah Data Anak | `/children` (atau `/children/new`) | **Sheet / Drawer** | Form input profil anak baru |
 | C10 | Ubah Data Anak | `/children` (atau `/children/[id]/edit`) | **Sheet / Drawer** | Terkunci read-only jika ada pendaftaran aktif (BR#29) |
 | C11 | Profil Akun Wali | `/profile` | Halaman Penuh | Edit nama, telepon, alamat rumah |
+| C12 | Rapor Siswa Semester | `/enrollments/[id]/report` | Halaman Penuh | Laporan capaian nilai, presensi, catatan guru, dan cetak PDF resmi |
 
 ---
 
@@ -59,8 +60,11 @@
 | D3 | Input Presensi Pertemuan | `/teacher/classes/[classId]/sessions/[date]/attendance` | **Sheet / Halaman** | Tandai Hadir, Izin, Sakit, Alpa |
 | D4 | Nilai & Progres Belajar | `/teacher/grades` | Halaman Penuh | Rekap nilai siswa per kelas |
 | D5 | Input Nilai & Catatan | `/teacher/grades` | **Sheet / Drawer** | Nilai angka & catatan naratif siswa |
-| D6 | Pengajuan Koreksi | `/teacher/corrections` | **Dialog (Modal)** | Koreksi presensi/nilai setelah >7 hari (BR#18) |
+| D6 | Pengajuan Koreksi | `/teacher/corrections` | **Dialog (Modal)** | Riwayat koreksi presensi/nilai |
 | D7 | Profil Guru | `/teacher/profile` | Halaman Penuh | Informasi biodata & kontak pengajar |
+| D8 | Rekap Rapor Semester Kelas | `/teacher/classes/[classId]/reports` | Halaman Penuh | Indeks evaluasi rapor seluruh siswa kelas |
+| D9 | Pengisian & Detail Rapor Siswa | `/teacher/classes/[classId]/reports/[enrollmentId]` | Halaman Penuh | Perhitungan otomatis, evaluasi subjektif guru, terbitkan ke ortu, & cetak |
+| D10 | Status Pembelajaran | `/teacher/status` | Halaman Penuh | Unggah foto galeri & kamera langsung dengan caption ke orang tua kelas |
 
 ---
 

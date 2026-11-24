@@ -1393,6 +1393,13 @@
                   "kind": "scalar"
                 }
               },
+              "catatanRapor": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -1444,6 +1451,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "raporDiterbitkanPada": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
                   "kind": "scalar"
                 }
               },
@@ -1572,6 +1586,9 @@
                 "anakId": {
                   "column": "anak_id"
                 },
+                "catatanRapor": {
+                  "column": "catatan_rapor"
+                },
                 "createdAt": {
                   "column": "created_at"
                 },
@@ -1589,6 +1606,9 @@
                 },
                 "periodeId": {
                   "column": "periode_id"
+                },
+                "raporDiterbitkanPada": {
+                  "column": "rapor_diterbitkan_pada"
                 },
                 "status": {
                   "column": "status"
@@ -1774,6 +1794,13 @@
           },
           "Penilaian": {
             "fields": {
+              "catatan": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -1916,6 +1943,9 @@
             },
             "storage": {
               "fields": {
+                "catatan": {
+                  "column": "catatan"
+                },
                 "createdAt": {
                   "column": "created_at"
                 },
@@ -4069,6 +4099,11 @@
             "pendaftaran": {
               "checks": [
                 {
+                  "expression": "catatan_rapor IS NULL OR length(catatan_rapor) <= 2000",
+                  "name": "pendaftaran_catatan_rapor_len_9723b88f",
+                  "prefix": "pendaftaran_catatan_rapor_len"
+                },
+                {
                   "expression": "\"jenjang_saat_daftar\" IN ('TK', 'SD', 'SMP', 'SMA')",
                   "name": "pendaftaran_jenjang_saat_daftar_check_b576a932",
                   "prefix": "pendaftaran_jenjang_saat_daftar_check"
@@ -4094,6 +4129,11 @@
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
                   "nullable": false
+                },
+                "catatan_rapor": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
                 },
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
@@ -4144,6 +4184,11 @@
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
                   "nullable": false
+                },
+                "rapor_diterbitkan_pada": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
                 },
                 "status": {
                   "codecId": "pg/text@1",
@@ -4460,6 +4505,11 @@
             "penilaian": {
               "checks": [
                 {
+                  "expression": "catatan IS NULL OR length(catatan) <= 1000",
+                  "name": "penilaian_catatan_len_b5e712d8",
+                  "prefix": "penilaian_catatan_len"
+                },
+                {
                   "expression": "nilai_maksimum > 0",
                   "name": "penilaian_maksimum_positif_fba317bb",
                   "prefix": "penilaian_maksimum_positif"
@@ -4471,6 +4521,11 @@
                 }
               ],
               "columns": {
+                "catatan": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
                   "default": {
@@ -5737,7 +5792,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "84e95083007aff785f1438eb35d07765b318895f66d559f3ff7f49ee4c1c6827"
+    "storageHash": "a7f32ff1f735f9a39c37a05da35a875b685ae0616977e57e7bbbf50697306abd"
   },
   "capabilities": {
     "postgres": {

@@ -114,52 +114,81 @@ export function ChildEditForm({
         </p>
       </div>
 
-      <form action={formAction} className="space-y-4">
-        <input type="hidden" name="anak_id" value={anak.id} />
-
-        {isLocked ? (
-          <>
-            {/* MODE TERKUNCI (Ada Kelas Aktif): TILE RINGKASAN IDENTITAS STATIS */}
-            <input type="hidden" name="nama" value={anak.nama} />
-            <input type="hidden" name="tanggal_lahir" value={anak.tanggalLahir} />
-            <input type="hidden" name="jenjang_terakhir" value={anak.jenjangTerakhir} />
-            <input type="hidden" name="tingkat" value={anak.tingkat} />
-
-            <div className={`rounded-2xl border border-slate-200/90 bg-gradient-to-b ${style.bgGradient} p-4.5 space-y-3`}>
-              <div className="flex items-center gap-3.5">
-                <div
-                  className={`flex size-13 items-center justify-center rounded-2xl ${style.avatarBg} font-black text-lg shadow-2xs shrink-0`}
-                >
-                  {inisial}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
-                    {anak.nama}
-                  </h3>
-                  <div className="mt-1 flex items-center gap-1.5 flex-wrap">
-                    <span
-                      className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${style.badgeBg} ${style.badgeText} ${style.badgeBorder}`}
-                    >
-                      <BookOpen className="size-3" />
-                      {anak.jenjangTerakhir}
-                      {anak.tingkat ? ` • ${anak.tingkat}` : ''}
-                    </span>
-                    <span className="text-xs text-slate-500 font-medium">
-                      {umur}
-                    </span>
-                  </div>
-                </div>
+      {isLocked ? (
+        <div className="space-y-4">
+          {/* MODE TERKUNCI (Ada Kelas Aktif): TAMPILAN READ-ONLY LENGKAP */}
+          <div className={`rounded-2xl border border-slate-200/90 bg-gradient-to-b ${style.bgGradient} p-4.5 space-y-3`}>
+            <div className="flex items-center gap-3.5">
+              <div
+                className={`flex size-13 items-center justify-center rounded-2xl ${style.avatarBg} font-black text-lg shadow-2xs shrink-0`}
+              >
+                {inisial}
               </div>
-
-              <div className="flex items-start gap-2.5 rounded-xl bg-amber-50/80 border border-amber-200/80 p-3 text-xs text-amber-800">
-                <Lock className="size-4 text-amber-600 shrink-0 mt-0.5" />
-                <p className="leading-relaxed">
-                  {tr('editLockedNotice')}
-                </p>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 tracking-tight truncate">
+                  {anak.nama}
+                </h3>
+                <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                  <span
+                    className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${style.badgeBg} ${style.badgeText} ${style.badgeBorder}`}
+                  >
+                    <BookOpen className="size-3" />
+                    {anak.jenjangTerakhir}
+                    {anak.tingkat ? ` • ${anak.tingkat}` : ''}
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">
+                    {umur}
+                  </span>
+                </div>
               </div>
             </div>
-          </>
-        ) : (
+
+            <div className="flex items-start gap-2.5 rounded-xl bg-amber-50/90 border border-amber-200/90 p-3 text-xs text-amber-800">
+              <Lock className="size-4 text-amber-600 shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                {tr('editLockedNotice') || 'Data profil anak terkunci secara penuh karena sedang terdaftar dalam kelas aktif Siedu.'}
+              </p>
+            </div>
+          </div>
+
+          {/* Rincian Kontak Statis */}
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2.5 text-xs text-slate-700">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500 flex items-center gap-1.5">
+                <Phone className="size-3.5 text-slate-400" /> {t('childPhone')}
+              </span>
+              <span className="font-semibold text-slate-900">{anak.nomorTelepon || '-'}</span>
+            </div>
+            {anak.emailNotifikasi && (
+              <div className="flex items-center justify-between">
+                <span className="text-slate-500 flex items-center gap-1.5">
+                  <Mail className="size-3.5 text-slate-400" /> {t('childEmail')}
+                </span>
+                <span className="font-semibold text-slate-900">{anak.emailNotifikasi}</span>
+              </div>
+            )}
+            <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
+              <span className="text-slate-500 flex items-center gap-1.5">
+                <Camera className="size-3.5 text-slate-400" /> {tr('consentPhotoTitle')}
+              </span>
+              <span className={`font-semibold ${anak.persetujuanFoto ? 'text-emerald-700' : 'text-slate-600'}`}>
+                {anak.persetujuanFoto ? tr('consentActive') : tr('consentRevoked')}
+              </span>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Link
+              href="/children"
+              className="w-full flex items-center justify-center py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold transition-all duration-150 active:scale-[0.99] cursor-pointer shadow-sm"
+            >
+              <span>{tr('cancelBackChildren')}</span>
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <form action={formAction} className="space-y-4">
+          <input type="hidden" name="anak_id" value={anak.id} />
           <>
             {/* Field Nama Anak */}
             <div>
@@ -283,9 +312,8 @@ export function ChildEditForm({
               </div>
             </div>
           </>
-        )}
 
-        {/* KONTAK & KOMUNIKASI (Selalu Dapat Diubah Orang Tua) */}
+        {/* KONTAK & KOMUNIKASI (Dapat Diubah Orang Tua Saat Belum Ada Kelas Aktif) */}
         <div className="pt-2 border-t border-slate-100 space-y-4">
           {/* Field Nomor Telepon Anak */}
           <div>
@@ -463,6 +491,7 @@ export function ChildEditForm({
           </Link>
         </div>
       </form>
+      )}
     </div>
   );
 }

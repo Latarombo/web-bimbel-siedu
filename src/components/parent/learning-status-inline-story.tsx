@@ -20,6 +20,7 @@ export interface LearningStatusItem {
   kelasId: number;
   kelasNama: string;
   guruNama?: string;
+  anakNama?: string;
   kontenTeks: string;
   mediaUrls: string[];
   diterbitkanPada: string;
@@ -169,6 +170,11 @@ export function LearningStatusInlineStory({ statuses }: Props) {
                   >
                     {item.kelasNama}
                   </p>
+                  {item.anakNama && (
+                    <p className="mt-0.5 text-[10px] text-slate-500 leading-none">
+                      {item.anakNama}
+                    </p>
+                  )}
                 </div>
               </button>
             );
@@ -212,10 +218,15 @@ export function LearningStatusInlineStory({ statuses }: Props) {
               </div>
             </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="truncate text-xs font-semibold text-white">
                   {currentStatus.kelasNama}
                 </span>
+                {currentStatus.anakNama && (
+                  <span className="text-[11px] text-teal-300 font-medium">
+                    · {currentStatus.anakNama}
+                  </span>
+                )}
                 {currentStatus.guruNama && (
                   <span className="hidden sm:inline text-xs text-white/70">
                     · {currentStatus.guruNama}

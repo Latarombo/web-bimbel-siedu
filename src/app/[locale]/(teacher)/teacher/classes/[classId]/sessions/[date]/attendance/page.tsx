@@ -133,7 +133,7 @@ export default async function AttendancePage({
       jenjangTerakhir: anakById.get(s.anakId)?.jenjangTerakhir ?? null,
       status: lama?.status,
       catatan: lama?.catatan ?? "",
-      terkunci: lama ? !dalamJendela7Hari(lama.createdAt) : false,
+      terkunci: false,
       presensiId: lama?.id,
     };
   });

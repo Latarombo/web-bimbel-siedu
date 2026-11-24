@@ -499,6 +499,27 @@ export default async function EnrollmentDetailPage({
                 selesai: j.jamSelesai,
               }))}
             />
+
+            {/* Banner Akses Rapor Belajar Semester */}
+            <div className="mt-6 rounded-2xl border border-blue-200/90 bg-blue-50/80 p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                  Laporan Akademik Semester
+                </span>
+                <h3 className="text-base font-bold text-slate-900 mt-0.5">
+                  Rapor Capaian Belajar Siswa
+                </h3>
+                <p className="text-xs text-slate-600 mt-0.5 max-w-xl">
+                  Lihat rekapitulasi nilai tugas/asesmen, persentase presensi kehadiran, catatan evaluasi guru, dan cetak dokumen rapor resmi.
+                </p>
+              </div>
+              <Link
+                href={`/enrollments/${p.id}/report`}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer"
+              >
+                <span>Buka Rapor Semester</span>
+              </Link>
+            </div>
           </div>
         )}
 

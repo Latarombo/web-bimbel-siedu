@@ -1,9 +1,49 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { bagikanStatusPembelajaran, hapusStatusPembelajaran } from '@/app/actions/teacher';
 import { CardSelect } from '@/components/ui/card-select';
+import { Camera, Image as ImageIcon, Trash2, Loader2, Plus } from 'lucide-react';
+
+async function compressImageFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return resolve(e.target?.result as string);
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = () => reject(new Error('Gagal memuat gambar'));
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = () => reject(new Error('Gagal membaca berkas'));
+    reader.readAsDataURL(file);
+  });
+}
 
 export interface StudentRecipient {
   pendaftaranId: number;
@@ -48,6 +88,34 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isCompressing, setIsCompressing] = useState(false);
+
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFiles = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    if (photos.length + files.length > 5) {
+      setErrorMsg('Maksimal 5 foto per unggahan status.');
+      return;
+    }
+    setErrorMsg(null);
+    setIsCompressing(true);
+    try {
+      const newPhotos: string[] = [];
+      for (const f of files) {
+        const compressed = await compressImageFile(f);
+        newPhotos.push(compressed);
+      }
+      setPhotos((prev) => [...prev, ...newPhotos].slice(0, 5));
+    } catch {
+      setErrorMsg('Gagal memproses berkas foto.');
+    } finally {
+      setIsCompressing(false);
+      if (e.target) e.target.value = '';
+    }
+  };
 
   const currentClass = classes.find((c) => c.id === selectedClassId);
 
@@ -272,43 +340,80 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
 
           {/* Foto Kegiatan (Maks 5) */}
           <div>
-            <label htmlFor="photo-url-input" className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2 cursor-pointer">
-              {t('statusPhotos')} ({photos.length}/5)
-            </label>
-            <div className="mt-2 flex gap-2">
-              <input
-                id="photo-url-input"
-                type="url"
-                value={photoInput}
-                onChange={(e) => setPhotoInput(e.target.value)}
-                placeholder={t('photoUrlPlaceholder')}
-                disabled={photos.length >= 5}
-                className="block flex-1 h-11 sm:h-10 rounded-lg border border-slate-300 dark:border-slate-700 px-3 sm:px-4 text-base sm:text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 focus-visible:border-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/20 disabled:bg-slate-100 dark:disabled:bg-slate-850 transition-colors"
-              />
+            <div className="flex items-center justify-between mb-2">
+              <span className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Dokumentasi Foto ({photos.length}/5)
+              </span>
+              {isCompressing ? (
+                <span className="inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
+                  <Loader2 className="size-3.5 animate-spin" />
+                  <span>Memproses foto...</span>
+                </span>
+              ) : null}
+            </div>
+
+            {/* Hidden native file & camera inputs */}
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFiles}
+              className="hidden"
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleFiles}
+              className="hidden"
+            />
+
+            {/* Tombol Kamera & Galeri */}
+            <div className="flex flex-wrap gap-2.5">
               <button
                 type="button"
-                onClick={handleAddPhoto}
-                disabled={!photoInput.trim() || photos.length >= 5}
-                className="rounded-lg bg-slate-800 dark:bg-slate-700 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-700 dark:hover:bg-slate-600 disabled:opacity-50 cursor-pointer"
+                onClick={() => cameraInputRef.current?.click()}
+                disabled={photos.length >= 5 || isCompressing || isPending}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 disabled:opacity-50 transition-colors cursor-pointer"
               >
-                {t('addPhoto')}
+                <Camera className="size-4" />
+                <span>Ambil Foto Kamera</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => galleryInputRef.current?.click()}
+                disabled={photos.length >= 5 || isCompressing || isPending}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-750 disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                <ImageIcon className="size-4" />
+                <span>Pilih dari Galeri</span>
               </button>
             </div>
 
+            {/* Grid Thumbnail Foto Terpilih */}
             {photos.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
+              <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                 {photos.map((url, idx) => (
                   <div
                     key={idx}
-                    className="group relative flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-xs text-slate-700 dark:text-slate-300"
+                    className="group relative rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-slate-100 dark:bg-slate-800 aspect-square"
                   >
-                    <span className="max-w-[200px] truncate">{url}</span>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={url}
+                      alt={`Foto kegiatan ${idx + 1}`}
+                      className="size-full object-cover"
+                    />
                     <button
                       type="button"
                       onClick={() => handleRemovePhoto(idx)}
-                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 cursor-pointer"
+                      aria-label={`Hapus foto ${idx + 1}`}
+                      className="absolute top-1.5 right-1.5 grid size-6 place-items-center rounded-full bg-slate-900/80 text-white hover:bg-rose-600 transition-colors cursor-pointer shadow-xs"
                     >
-                      {t('removePhoto')}
+                      <Trash2 className="size-3.5" />
                     </button>
                   </div>
                 ))}
@@ -332,9 +437,14 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                     {photos.map((url, i) => (
                       <div
                         key={i}
-                        className="flex h-20 items-center justify-center rounded bg-slate-100 dark:bg-slate-800 text-xs text-slate-500 dark:text-slate-400 overflow-hidden"
+                        className="relative h-24 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
                       >
-                        [Foto {i + 1}: {url}]
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={url}
+                          alt={`Pratinjau foto ${i + 1}`}
+                          className="size-full object-cover"
+                        />
                       </div>
                     ))}
                   </div>

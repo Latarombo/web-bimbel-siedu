@@ -35,7 +35,7 @@ export default async function TeacherClassDetail({
   );
   if (!kelas) notFound();
 
-  const [mapel, jadwal, pendaftaran, semuaAnak, presensiByGuru, penilaianRaw] = await Promise.all([
+  const [mapel, jadwal, pendaftaran, semuaAnak, semuaWali, presensiByGuru, penilaianRaw] = await Promise.all([
     collect(db.orm.public.MataPelajaran.all()),
     collect(db.orm.public.JadwalItem.where((j) => j.kelasId.eq(kid)).all()),
     collect(
@@ -44,6 +44,7 @@ export default async function TeacherClassDetail({
         .all(),
     ),
     collect(db.orm.public.Anak.all()),
+    collect(db.orm.public.User.where((u) => u.role.eq("orang_tua")).all()),
     collect(db.orm.public.Presensi.where((x) => x.dicatatOleh.eq(guruId)).all()),
     collect(db.orm.public.Penilaian.where((p) => p.kelasId.eq(kid)).all()),
   ]);
@@ -99,11 +100,13 @@ export default async function TeacherClassDetail({
       totalSiswa: hList.length,
       sesiPertemuanId: p.sesiPertemuanId,
       sesiLabel: sesiInfo ? sesiInfo.label : null,
+      catatan: p.catatan ?? null,
     };
   });
 
   const m = mapel.find((x) => x.id === kelas.mataPelajaranId);
   const anakById = new Map(semuaAnak.map((a) => [a.id, a]));
+  const waliById = new Map(semuaWali.map((w) => [w.id, w]));
   const sesiIds = new Set(jadwal.map((j) => j.id));
   const hariIniStr = tanggalWIB(new Date());
 
@@ -237,17 +240,26 @@ export default async function TeacherClassDetail({
   );
 
   const studentItems: StudentRosterItem[] = rows.map(
-    ({ p, anak, nNilai, rata, hadir, tercatat }) => ({
-      id: p.id,
-      anakId: p.anakId,
-      nama: anak?.nama ?? `Siswa #${p.anakId}`,
-      status: p.status,
-      nNilai,
-      rata,
-      hadir,
-      tercatat,
-      tingkat: anak?.tingkat ?? null,
-    }),
+    ({ p, anak, nNilai, rata, hadir, tercatat }) => {
+      const wali = anak ? waliById.get(anak.orangTuaId) : null;
+      return {
+        id: p.id,
+        anakId: p.anakId,
+        nama: anak?.nama ?? `Siswa #${p.anakId}`,
+        status: p.status,
+        nNilai,
+        rata,
+        hadir,
+        tercatat,
+        tingkat: anak?.tingkat ?? null,
+        tanggalLahir: anak?.tanggalLahir ?? null,
+        nomorTelepon: anak?.nomorTelepon ?? null,
+        emailNotifikasi: anak?.emailNotifikasi ?? null,
+        namaWali: wali?.name ?? null,
+        teleponWali: wali?.nomorTelepon ?? null,
+        alamatWali: wali?.alamat ?? null,
+      };
+    },
   );
 
   const scheduleSlotItems: ScheduleSlotItem[] = sesi.map((j) => {

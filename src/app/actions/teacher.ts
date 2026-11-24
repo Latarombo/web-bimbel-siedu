@@ -140,10 +140,6 @@ export async function savePresensi(
       }
       const lama = existingMap.get(s.id);
 
-      if (lama && !dalamJendela7Hari(lama.createdAt)) {
-        ditolak += 1;
-        continue; // Legacy per-row correction rule; session-level audit is a later step.
-      }
       if (sesiPertemuanId === undefined) {
         const sesi = await tx.orm.public.SesiPertemuan.create({
           jadwalItemId,
@@ -154,6 +150,17 @@ export async function savePresensi(
         sesiPertemuanId = sesi.id;
       }
       if (lama) {
+        if (lama.status !== status || lama.catatan !== catatan) {
+          await tx.orm.public.AuditPerubahan.create({
+            entitas: 'presensi',
+            entitasId: lama.id,
+            aksi: 'koreksi_presensi',
+            sebelum: JSON.stringify({ status: lama.status, catatan: lama.catatan }),
+            sesudah: JSON.stringify({ status, catatan }),
+            alasan: 'Pembaruan presensi oleh guru',
+            aktorId: guruId,
+          });
+        }
         await tx.orm.public.Presensi.where({ id: lama.id }).update({
           sesiPertemuanId,
           status: status as (typeof STATUS_PRESENSI)[number],
@@ -606,6 +613,7 @@ export async function savePenilaianBatch(
   const sesiId = sesiIdRaw ? Number(sesiIdRaw) : null;
   const nama = String(formData.get("nama") ?? "").trim();
   const tanggal = String(formData.get("tanggal") ?? "").trim();
+  const catatanTugas = String(formData.get("catatan_tugas") ?? "").trim() || null;
   const nilaiMaksimumRaw = formData.get("nilai_maksimum");
   const nilaiMaksimum = nilaiMaksimumRaw ? Number(nilaiMaksimumRaw) : 100;
   const aksi = String(formData.get("aksi") ?? "simpan_draf"); // 'simpan_draf' | 'terbitkan'
@@ -613,6 +621,7 @@ export async function savePenilaianBatch(
   if (!Number.isInteger(kelasId) || kelasId <= 0) return { error: t("invalidParameters") };
   if (!nama || nama.length < 2) return { error: t("assessmentNameMin") };
   if (nama.length > 100) return { error: t("assessmentNameMax") };
+  if (catatanTugas && catatanTugas.length > 1000) return { error: t("notesMax") };
   if (!tanggalValid(tanggal)) return { error: t("invalidDate") };
   if (isNaN(nilaiMaksimum) || nilaiMaksimum <= 0) return { error: t("invalidMaxScore") };
 
@@ -692,6 +701,7 @@ export async function savePenilaianBatch(
         nama,
         tanggal,
         nilaiMaksimum: String(nilaiMaksimum),
+        catatan: catatanTugas,
         draf: isDraf,
         diterbitkanPada: diterbitkanPada ?? existing.diterbitkanPada,
         sesiPertemuanId: sesiId && sesiId > 0 ? sesiId : null,
@@ -701,6 +711,7 @@ export async function savePenilaianBatch(
         kelasId,
         nama,
         tanggal,
+        catatan: catatanTugas,
         nilaiMaksimum: String(nilaiMaksimum),
         draf: isDraf,
         diterbitkanPada,
@@ -867,11 +878,11 @@ export async function bagikanStatusPembelajaran(
     penerimaPendaftaranIds = penerimaRaw.map(Number).filter(Boolean);
   }
 
-  // Sanitasi skema URL foto: hanya izinkan https://, http://, atau relative path aman
+  // Sanitasi skema URL foto: hanya izinkan https://, http://, relative path aman, atau data:image/
   mediaUrls = mediaUrls.filter(
     (u) =>
       typeof u === "string" &&
-      (/^https?:\/\//i.test(u) || (u.startsWith("/") && !u.startsWith("//") && !u.includes("\\")))
+      (/^https?:\/\//i.test(u) || (u.startsWith("/") && !u.startsWith("//") && !u.includes("\\")) || u.startsWith("data:image/"))
   );
 
   const locale = await getLocaleDariCookie();
@@ -1212,6 +1223,85 @@ export async function bersihkanRetensiStatus({
 
   return { ok: true, countArchived, countPurged };
 }
+
+// --- Rapor Siswa Akhir Semester ---
+
+export async function simpanRaporSiswa({
+  pendaftaranId,
+  catatanRapor,
+  terbitkan = false,
+}: {
+  pendaftaranId: number;
+  catatanRapor: string;
+  terbitkan?: boolean;
+}): Promise<GuruState> {
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({ locale, namespace: "teacher" });
+  const guruId = await guardGuru();
+  if (!guruId) return { error: t("sessionExpired") };
+
+  if (!Number.isInteger(pendaftaranId) || pendaftaranId <= 0) {
+    return { error: t("invalidParameters") };
+  }
+
+  const [pendaftaran] = await collect(
+    db.orm.public.Pendaftaran.where({ id: pendaftaranId }).all()
+  );
+  if (!pendaftaran) return { error: "Pendaftaran tidak ditemukan" };
+
+  const [kelas] = await collect(
+    db.orm.public.Kelas.where({ id: pendaftaran.kelasId, guruId }).all()
+  );
+  if (!kelas) return { error: t("classNotOwned") };
+
+  const cleanedCatatan = catatanRapor.trim();
+  if (cleanedCatatan.length > 2000) {
+    return { error: "Catatan evaluasi rapor maksimal 2000 karakter" };
+  }
+
+  const nowIso = new Date().toISOString();
+  await db.orm.public.Pendaftaran.where({ id: pendaftaranId }).update({
+    catatanRapor: cleanedCatatan || null,
+    raporDiterbitkanPada: terbitkan ? nowIso : pendaftaran.raporDiterbitkanPada,
+    updatedAt: nowIso,
+  });
+
+  revalidatePath(`/[locale]/teacher/classes/${kelas.id}/reports`, "page");
+  revalidatePath(`/[locale]/teacher/classes/${kelas.id}/reports/${pendaftaranId}`, "page");
+  revalidatePath(`/[locale]/teacher/classes/${kelas.id}`, "page");
+  return { ok: true };
+}
+
+export async function tarikRaporSiswa({
+  pendaftaranId,
+}: {
+  pendaftaranId: number;
+}): Promise<GuruState> {
+  const locale = await getLocaleDariCookie();
+  const t = await getTranslations({ locale, namespace: "teacher" });
+  const guruId = await guardGuru();
+  if (!guruId) return { error: t("sessionExpired") };
+
+  const [pendaftaran] = await collect(
+    db.orm.public.Pendaftaran.where({ id: pendaftaranId }).all()
+  );
+  if (!pendaftaran) return { error: "Pendaftaran tidak ditemukan" };
+
+  const [kelas] = await collect(
+    db.orm.public.Kelas.where({ id: pendaftaran.kelasId, guruId }).all()
+  );
+  if (!kelas) return { error: t("classNotOwned") };
+
+  await db.orm.public.Pendaftaran.where({ id: pendaftaranId }).update({
+    raporDiterbitkanPada: null,
+    updatedAt: new Date().toISOString(),
+  });
+
+  revalidatePath(`/[locale]/teacher/classes/${kelas.id}/reports`, "page");
+  revalidatePath(`/[locale]/teacher/classes/${kelas.id}/reports/${pendaftaranId}`, "page");
+  return { ok: true };
+}
+
 
 
 

@@ -241,6 +241,8 @@ model Pendaftaran {
   metodeBayar       MetodeBayar          @map("metode_bayar")
   tenorBulan        Int?                 @map("tenor_bulan")
   status            StatusPendaftaran    @default(menunggu_pembayaran)
+  catatanRapor         String?            @map("catatan_rapor")
+  raporDiterbitkanPada TimestamptzString? @map("rapor_diterbitkan_pada")
   createdAt         TimestamptzString    @default(now()) @map("created_at")
   updatedAt         TimestamptzString    @default(now()) @map("updated_at")
 
@@ -260,6 +262,7 @@ model Pendaftaran {
   @@index([anakId, kelasId, periodeId], unique: true, where: "(status NOT IN ('dibatalkan_timeout','dibatalkan_tunggakan','dibatalkan_orang_tua','dibatalkan_kelas'))", name: "pendaftaran_aktif_unique")
   // BR#28: dp_cicilan wajib tenor; lunas tidak pakai tenor
   @@check(expression: "(metode_bayar = 'dp_cicilan' AND tenor_bulan IS NOT NULL AND tenor_bulan >= 2) OR (metode_bayar = 'lunas' AND tenor_bulan IS NULL)", name: "pendaftaran_tenor_konsisten")
+  @@check(expression: "catatan_rapor IS NULL OR length(catatan_rapor) <= 2000", name: "pendaftaran_catatan_rapor_len")
   @@map("pendaftaran")
 }
 
@@ -455,6 +458,7 @@ model Penilaian {
   draf            Boolean           @default(true) @map("draf")
   diterbitkanPada TimestamptzString? @map("diterbitkan_pada")
   sesiPertemuanId Int?              @map("sesi_id")
+  catatan         String?           @map("catatan")
   dibuatOleh      Int               @map("dibuat_oleh")
   createdAt       TimestamptzString @default(now()) @map("created_at")
   updatedAt       TimestamptzString @default(now()) @map("updated_at")
@@ -470,6 +474,7 @@ model Penilaian {
   @@index([tanggal])
   @@check(expression: "nilai_maksimum > 0", name: "penilaian_maksimum_positif")
   @@check(expression: "length(nama) <= 100", name: "penilaian_nama_len")
+  @@check(expression: "catatan IS NULL OR length(catatan) <= 1000", name: "penilaian_catatan_len")
   @@map("penilaian")
 }
 

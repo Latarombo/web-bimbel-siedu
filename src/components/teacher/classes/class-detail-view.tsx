@@ -25,6 +25,7 @@ import {
 import { ExportClassModal, type ExportType } from "./export-class-modal";
 import { QuickAssessmentModal } from "./quick-assessment-modal";
 import { QuickGradeDrawer } from "./quick-grade-drawer";
+import { StudentProfileDrawer } from "./student-profile-drawer";
 import { UnderlineTabs } from "@/components/ui/underline-tabs";
 
 export interface StudentRosterItem {
@@ -37,6 +38,12 @@ export interface StudentRosterItem {
   hadir: number;
   tercatat: number;
   tingkat?: string | null;
+  tanggalLahir?: string | null;
+  nomorTelepon?: string | null;
+  emailNotifikasi?: string | null;
+  namaWali?: string | null;
+  teleponWali?: string | null;
+  alamatWali?: string | null;
 }
 
 export interface ScheduleSlotItem {
@@ -61,6 +68,7 @@ export interface ClassAssessmentItem {
   totalSiswa: number;
   sesiPertemuanId?: number | null;
   sesiLabel?: string | null;
+  catatan?: string | null;
 }
 
 export interface ClassDetailViewProps {
@@ -167,7 +175,9 @@ export function ClassDetailView({
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportInitialType, setExportInitialType] = useState<ExportType>("summary");
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [editingAssessment, setEditingAssessment] = useState<ClassAssessmentItem | null>(null);
   const [gradingStudentId, setGradingStudentId] = useState<number | null>(null);
+  const [profileStudentId, setProfileStudentId] = useState<number | null>(null);
 
   // Search, sort & pagination state for roster
   const [searchQuery, setSearchQuery] = useState("");
@@ -312,6 +322,13 @@ export function ClassDetailView({
           >
             <span>Buat Tugas</span>
           </button>
+
+          <Link
+            href={`/teacher/classes/${classId}/reports`}
+            className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-medium text-slate-800 dark:text-slate-200 shadow-2xs transition-colors"
+          >
+            <span>Rapor Semester</span>
+          </Link>
 
           <button
             type="button"
@@ -515,9 +532,14 @@ export function ClassDetailView({
                               <div className="grid size-7 shrink-0 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
                                 {initial}
                               </div>
-                              <span className="font-semibold text-slate-950 dark:text-slate-50 truncate block text-sm" title={s.nama}>
+                              <button
+                                type="button"
+                                onClick={() => setProfileStudentId(s.id)}
+                                className="font-semibold text-slate-950 dark:text-slate-50 hover:text-blue-600 dark:hover:text-blue-400 truncate block text-sm text-left cursor-pointer transition-colors"
+                                title={`Buka profil ${s.nama}`}
+                              >
                                 {s.nama}
-                              </span>
+                              </button>
                             </div>
                           </td>
 
@@ -546,15 +568,16 @@ export function ClassDetailView({
                           {/* 6. Aksi: [Eye] + [Pencil] + [MoreVertical] (Sticky Right 0) */}
                           <td className="sticky right-0 z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
                             <div className="flex items-center justify-end gap-1 opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
-                              {/* Ikon Rincian Siswa */}
-                              <Link
-                                href={`/teacher/grades/${s.id}`}
-                                aria-label={`Rincian capaian belajar ${s.nama}`}
-                                title="Rincian Siswa"
-                                className="grid size-8 place-items-center rounded-lg border border-transparent text-slate-500 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors"
+                              {/* Ikon Profil Siswa */}
+                              <button
+                                type="button"
+                                onClick={() => setProfileStudentId(s.id)}
+                                aria-label={`Rincian profil ${s.nama}`}
+                                title="Profil Lengkap Siswa"
+                                className="grid size-8 place-items-center rounded-lg border border-transparent text-slate-500 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors cursor-pointer"
                               >
                                 <Eye className="size-4" aria-hidden="true" />
-                              </Link>
+                              </button>
 
                               {/* Ikon Input Nilai Cepat */}
                               <button
@@ -577,13 +600,29 @@ export function ClassDetailView({
                                   <MoreVertical className="size-4" aria-hidden="true" />
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md rounded-lg p-1 text-xs">
+                                  <DropdownMenuItem
+                                    onClick={() => setProfileStudentId(s.id)}
+                                    className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
+                                  >
+                                    <Eye className="size-3.5 text-slate-400" aria-hidden="true" />
+                                    <span>Profil Lengkap</span>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem asChild>
+                                    <Link
+                                      href={`/teacher/classes/${classId}/reports/${s.id}`}
+                                      className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
+                                    >
+                                      <Clock className="size-3.5 text-slate-400" aria-hidden="true" />
+                                      <span>Rapor Siswa</span>
+                                    </Link>
+                                  </DropdownMenuItem>
                                   <DropdownMenuItem asChild>
                                     <Link
                                       href={`/teacher/grades/${s.id}`}
                                       className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
                                     >
-                                      <Eye className="size-3.5 text-slate-400" aria-hidden="true" />
-                                      <span>Rincian Siswa</span>
+                                      <Pencil className="size-3.5 text-slate-400" aria-hidden="true" />
+                                      <span>Riwayat Nilai</span>
                                     </Link>
                                   </DropdownMenuItem>
                                   <DropdownMenuItem asChild>
@@ -635,9 +674,13 @@ export function ClassDetailView({
                           <div className="grid size-9 shrink-0 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
                             {initial}
                           </div>
-                          <p className="font-semibold text-slate-950 dark:text-slate-50 truncate text-sm">
+                          <button
+                            type="button"
+                            onClick={() => setProfileStudentId(s.id)}
+                            className="font-semibold text-slate-950 dark:text-slate-50 hover:text-blue-600 dark:hover:text-blue-400 truncate text-sm text-left cursor-pointer transition-colors"
+                          >
                             {s.nama}
-                          </p>
+                          </button>
                         </div>
 
                         {/* Menu Dropdown di Sudut Kanan Atas Kartu */}
@@ -650,13 +693,29 @@ export function ClassDetailView({
                             <MoreVertical className="size-4" aria-hidden="true" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md rounded-lg p-1 text-xs">
+                            <DropdownMenuItem
+                              onClick={() => setProfileStudentId(s.id)}
+                              className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
+                            >
+                              <Eye className="size-3.5 text-slate-400" aria-hidden="true" />
+                              <span>Profil Lengkap</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link
+                                href={`/teacher/classes/${classId}/reports/${s.id}`}
+                                className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
+                              >
+                                <Clock className="size-3.5 text-slate-400" aria-hidden="true" />
+                                <span>Rapor Siswa</span>
+                              </Link>
+                            </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link
                                 href={`/teacher/grades/${s.id}`}
                                 className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
                               >
-                                <Eye className="size-3.5 text-slate-400" aria-hidden="true" />
-                                <span>Rincian Siswa</span>
+                                <Pencil className="size-3.5 text-slate-400" aria-hidden="true" />
+                                <span>Riwayat Nilai</span>
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
@@ -943,6 +1002,15 @@ export function ClassDetailView({
                         {/* 6. Aksi (Sticky Right 0) */}
                         <td className="sticky right-0 z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
                           <div className="flex items-center justify-end gap-2 opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
+                            <button
+                              type="button"
+                              onClick={() => setEditingAssessment(a)}
+                              className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 p-2 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+                              title="Ubah Rincian Tugas"
+                              aria-label={`Ubah rincian tugas ${a.nama}`}
+                            >
+                              <Pencil className="size-3.5" />
+                            </button>
                             <Link
                               href={`/teacher/grades/assessment/${a.id}`}
                               className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors cursor-pointer"
@@ -1019,6 +1087,15 @@ export function ClassDetailView({
                     )}
 
                     <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingAssessment(a)}
+                        className="size-10 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer shrink-0"
+                        title="Ubah Rincian Tugas"
+                        aria-label={`Ubah rincian tugas ${a.nama}`}
+                      >
+                        <Pencil className="size-4" />
+                      </button>
                       <Link
                         href={`/teacher/grades/assessment/${a.id}`}
                         className="flex-1 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
@@ -1195,12 +1272,17 @@ export function ClassDetailView({
 
       {/* 2. QuickAssessmentModal (Linear style) */}
       <QuickAssessmentModal
-        isOpen={isAssessmentModalOpen}
-        onClose={() => setIsAssessmentModalOpen(false)}
+        isOpen={isAssessmentModalOpen || editingAssessment !== null}
+        onClose={() => {
+          setIsAssessmentModalOpen(false);
+          setEditingAssessment(null);
+        }}
         classId={classId}
         sessions={sessions}
+        initialData={editingAssessment}
         onSuccess={() => {
           setActiveTab("assessments");
+          setEditingAssessment(null);
           router.refresh();
         }}
       />
@@ -1217,6 +1299,15 @@ export function ClassDetailView({
         classId={classId}
         assessments={assessments}
         onSavedSuccess={handleGradeSavedSuccess}
+      />
+
+      {/* 4. StudentProfileDrawer (Slide-over drawer) */}
+      <StudentProfileDrawer
+        isOpen={profileStudentId != null}
+        onClose={() => setProfileStudentId(null)}
+        student={students.find((s) => s.id === profileStudentId) ?? null}
+        classId={classId}
+        onOpenGrading={(pid) => setGradingStudentId(pid)}
       />
     </div>
   );
