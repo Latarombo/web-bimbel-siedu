@@ -53,10 +53,10 @@ export default async function TeacherStatusPage() {
     };
   });
 
-  // 2. Fetch past statuses posted by this teacher
-  const statusList = await collect(
+  // 2. Fetch past statuses posted by this teacher (abaikan yang telah dihapus guru)
+  const statusList = (await collect(
     db.orm.public.StatusPembelajaran.where((s) => s.dibuatOleh.eq(guruId)).all()
-  );
+  )).filter((s) => s.status !== 'dihapus_guru');
 
   const kelasMap = new Map(kelas.map((k) => [k.id, mapelMap.get(k.mataPelajaranId) ?? `Kelas #${k.id}`]));
 
@@ -64,6 +64,27 @@ export default async function TeacherStatusPage() {
   const recipientCountMap = new Map<number, number>();
   for (const c of classOptions) {
     recipientCountMap.set(c.id, c.students.length);
+  }
+
+  // Count unique viewers per status from audit logs
+  const statusIds = statusList.map((s) => s.id);
+  const viewAuditLogs = statusIds.length > 0
+    ? await collect(
+        db.orm.public.AuditPerubahan.where((a) => a.entitas.eq("status_pembelajaran"))
+          .where((a) => a.aksi.eq("lihat_status"))
+          .where((a) => a.entitasId.in(statusIds))
+          .all()
+      )
+    : [];
+
+  const viewCountMap = new Map<number, Set<number>>();
+  for (const log of viewAuditLogs) {
+    let set = viewCountMap.get(log.entitasId);
+    if (!set) {
+      set = new Set<number>();
+      viewCountMap.set(log.entitasId, set);
+    }
+    set.add(log.aktorId);
   }
 
   // Sort statuses by createdAt descending
@@ -91,6 +112,7 @@ export default async function TeacherStatusPage() {
       diterbitkanPada: s.diterbitkanPada,
       kadaluarsaPada: s.kadaluarsaPada,
       penerimaCount: recipientCountMap.get(s.id) ?? 0,
+      viewCount: viewCountMap.get(s.id)?.size ?? 0,
     };
   });
 

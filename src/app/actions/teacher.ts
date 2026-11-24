@@ -878,11 +878,14 @@ export async function bagikanStatusPembelajaran(
     penerimaPendaftaranIds = penerimaRaw.map(Number).filter(Boolean);
   }
 
-  // Sanitasi skema URL foto: hanya izinkan https://, http://, relative path aman, atau data:image/
+  // Sanitasi skema URL foto: izinkan https://, http://, relative path aman, data:image/, atau token tema status teks bg:
   mediaUrls = mediaUrls.filter(
     (u) =>
       typeof u === "string" &&
-      (/^https?:\/\//i.test(u) || (u.startsWith("/") && !u.startsWith("//") && !u.includes("\\")) || u.startsWith("data:image/"))
+      (/^https?:\/\//i.test(u) ||
+        (u.startsWith("/") && !u.startsWith("//") && !u.includes("\\")) ||
+        u.startsWith("data:image/") ||
+        u.startsWith("bg:"))
   );
 
   const locale = await getLocaleDariCookie();
@@ -1301,6 +1304,96 @@ export async function tarikRaporSiswa({
   revalidatePath(`/[locale]/teacher/classes/${kelas.id}/reports/${pendaftaranId}`, "page");
   return { ok: true };
 }
+
+export interface StatusViewerItem {
+  userId: number;
+  userName: string;
+  role: string;
+  viewedAt: string;
+}
+
+export async function catatStatusDilihat(statusId: number): Promise<{ ok: boolean; error?: string }> {
+  const user = await guardUser();
+  if (!user) return { ok: false, error: "Sesi telah berakhir" };
+
+  if (!Number.isInteger(statusId) || statusId <= 0) {
+    return { ok: false, error: "ID status tidak valid" };
+  }
+
+  // Cek apakah user sudah tercatat pernah melihat status ini
+  const existingAudit = await collect(
+    db.orm.public.AuditPerubahan.where({
+      entitas: "status_pembelajaran",
+      entitasId: statusId,
+      aksi: "lihat_status",
+      aktorId: user.id,
+    }).all()
+  );
+
+  if (existingAudit.length === 0) {
+    const nowIso = new Date().toISOString();
+    await db.orm.public.AuditPerubahan.create({
+      entitas: "status_pembelajaran",
+      entitasId: statusId,
+      aksi: "lihat_status",
+      sebelum: null,
+      sesudah: JSON.stringify({ userId: user.id, role: user.role }),
+      alasan: "Pengguna melihat status kegiatan pembelajaran",
+      aktorId: user.id,
+      createdAt: nowIso,
+    });
+  }
+
+  return { ok: true };
+}
+
+export async function getStatusViewers(statusId: number): Promise<{ viewers: StatusViewerItem[]; error?: string }> {
+  const user = await guardUser();
+  if (!user) return { viewers: [], error: "Sesi telah berakhir" };
+
+  if (!Number.isInteger(statusId) || statusId <= 0) {
+    return { viewers: [], error: "ID status tidak valid" };
+  }
+
+  const logs = await collect(
+    db.orm.public.AuditPerubahan.where({
+      entitas: "status_pembelajaran",
+      entitasId: statusId,
+      aksi: "lihat_status",
+    }).all()
+  );
+
+  if (logs.length === 0) {
+    return { viewers: [] };
+  }
+
+  const actorIds = Array.from(new Set(logs.map((l) => l.aktorId)));
+  const users = await collect(
+    db.orm.public.User.where((u) => u.id.in(actorIds)).all()
+  );
+  const userMap = new Map(users.map((u) => [u.id, u]));
+
+  const seenActors = new Set<number>();
+  const viewers: StatusViewerItem[] = [];
+
+  // Urutkan logs terbaru dulu
+  logs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  for (const log of logs) {
+    if (seenActors.has(log.aktorId)) continue;
+    seenActors.add(log.aktorId);
+    const u = userMap.get(log.aktorId);
+    viewers.push({
+      userId: log.aktorId,
+      userName: u?.name ?? `Pengguna #${log.aktorId}`,
+      role: u?.role ?? 'orang_tua',
+      viewedAt: log.createdAt,
+    });
+  }
+
+  return { viewers };
+}
+
 
 
 

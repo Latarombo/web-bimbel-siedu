@@ -336,15 +336,11 @@ export function ClassDetailView({
       </nav>
 
       {/* 2. Page Header Row + Actions */}
-      <div className="flex flex-col gap-4 pb-4 border-b border-slate-200 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
-            {className} · {jenjang} {tingkat ? `(${tingkat})` : ""}
+            {className} · {jenjang}{tingkat ? ` (${tingkat})` : ""}
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            {periodeNama ? `Periode: ${periodeNama} · ` : ""}
-            Status: {classStatus === "aktif" ? "Aktif" : classStatus}
-          </p>
         </div>
 
         {/* Header Actions: Hanya Bagikan Status & Buat Tugas */}

@@ -5,6 +5,8 @@ interface WhatsAppStoryRingProps {
   count: number;
   /** Jumlah status yang sudah dilihat (0..count) */
   viewedCount?: number;
+  /** Status per segmen apakah sudah dilihat (opsional, jika ingin presisi per segmen) */
+  viewedSegments?: boolean[];
   /** Ukuran diameter luar ring dalam pixel (default: 56) */
   size?: number;
   /** Ketebalan garis ring dalam pixel (default: 2.5) */
@@ -26,6 +28,7 @@ interface WhatsAppStoryRingProps {
 export function WhatsAppStoryRing({
   count,
   viewedCount = 0,
+  viewedSegments,
   size = 56,
   strokeWidth = 2.5,
   gap = 3.5,
@@ -47,7 +50,7 @@ export function WhatsAppStoryRing({
 
   // Single status: lingkaran mulus 360 derajat
   if (count === 1) {
-    const isViewed = viewedCount >= 1;
+    const isViewed = viewedSegments ? Boolean(viewedSegments[0]) : viewedCount >= 1;
     return (
       <div
         className={`relative inline-flex items-center justify-center shrink-0 ${className}`}
@@ -96,7 +99,7 @@ export function WhatsAppStoryRing({
       >
         {Array.from({ length: count }).map((_, idx) => {
           // Segmen yang sudah dilihat diberi warna muted gray, yang belum diberi warna emerald
-          const isSegmentViewed = idx < viewedCount;
+          const isSegmentViewed = viewedSegments ? Boolean(viewedSegments[idx]) : idx < viewedCount;
           const offset = -(idx * step) + gap / 2;
 
           return (

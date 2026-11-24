@@ -211,6 +211,7 @@ export default async function TeacherCalendarPage() {
         classes={classOptions}
         todayStr={hariIni}
         locale={locale}
+        allowedViews={["daily", "weekly", "monthly"]}
       />
     </div>
   );

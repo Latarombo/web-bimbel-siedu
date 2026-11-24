@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { motion, LayoutGroup, useReducedMotion } from 'motion/react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -73,16 +74,28 @@ function formatDate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-// Helper: Get Monday of the week for a given date
-function getMonday(d: Date): Date {
+// Helper: Get Sunday of the week for a given date (Google Classroom week starts on Sunday)
+function getSunday(d: Date): Date {
   const date = new Date(d);
-  const day = date.getDay(); // 0 is Sunday, 1 is Monday
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+  const day = date.getDay(); // 0 is Sunday
+  const diff = date.getDate() - day;
   return new Date(date.getFullYear(), date.getMonth(), diff);
 }
 
+// 3-letter Day abbreviations matching Google Classroom screenshot
+const DAY_SHORT_NAMES = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'] as const;
+
 // Day name mappings
 const DAY_KEYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'] as const;
+
+// Google Classroom solid card colors per jenjang (high-contrast white text)
+const CLASSROOM_SOLID_COLORS: Record<string, string> = {
+  TK: 'bg-pink-600 hover:bg-pink-700 active:bg-pink-800',
+  SD: 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800',
+  SMP: 'bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900',
+  SMA: 'bg-[#964000] hover:bg-[#853800] active:bg-[#743000]', // Google Classroom Terracotta
+};
+const DEFAULT_SOLID_COLOR = 'bg-[#964000] hover:bg-[#853800] active:bg-[#743000]';
 
 // Classroom signature color palettes per jenjang/class theme
 const CLASSROOM_THEMES: Record<string, {
@@ -130,10 +143,11 @@ export function TeacherCalendarView({
   todayStr,
   locale,
   hideClassFilter = false,
-  allowedViews = ['daily', 'weekly', 'monthly', 'agenda'],
+  allowedViews = ['daily', 'weekly', 'monthly'],
   defaultView = 'weekly',
 }: TeacherCalendarViewProps) {
   const t = useTranslations('teacher');
+  const shouldReduceMotion = useReducedMotion();
 
   // View state: 'daily' | 'weekly' | 'monthly' | 'agenda'
   const [viewMode, setViewMode] = useState<ViewMode>(defaultView);
@@ -157,23 +171,25 @@ export function TeacherCalendarView({
 
   const anchorDate = useMemo(() => parseDate(anchorDateStr), [anchorDateStr]);
 
-  // Current week days (Monday - Sunday)
+  // Current week days (Sunday - Saturday, Google Classroom style)
   const weekDays = useMemo(() => {
-    const monday = getMonday(anchorDate);
+    const sunday = getSunday(anchorDate);
     const days: Array<{
       dateStr: string;
       dayNum: number;
       dayName: string;
+      dayNameShort: string;
       fullDateFormatted: string;
       isToday: boolean;
     }> = [];
 
     for (let i = 0; i < 7; i++) {
-      const d = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + i);
+      const d = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + i);
       const dateStr = formatDate(d);
       const dayIndex = d.getDay();
       const dayKey = DAY_KEYS[dayIndex];
       const dayName = t(`day_${dayKey}`);
+      const dayNameShort = DAY_SHORT_NAMES[dayIndex];
       const fullDateFormatted = d.toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', {
         day: 'numeric',
         month: 'short',
@@ -183,6 +199,7 @@ export function TeacherCalendarView({
         dateStr,
         dayNum: d.getDate(),
         dayName,
+        dayNameShort,
         fullDateFormatted,
         isToday: dateStr === todayStr,
       });
@@ -190,12 +207,12 @@ export function TeacherCalendarView({
     return days;
   }, [anchorDate, todayStr, locale, t]);
 
-  // Month grid days (35 or 42 cells) for monthly view
+  // Month grid days (35 or 42 cells) for monthly view (Sunday - Saturday)
   const monthGridDays = useMemo(() => {
     const year = anchorDate.getFullYear();
     const month = anchorDate.getMonth(); // 0-indexed
     const firstDayIndex = new Date(year, month, 1).getDay(); // 0 is Sunday
-    const adjustedFirstDay = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+    const adjustedFirstDay = firstDayIndex;
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysInPrevMonth = new Date(year, month, 0).getDate();
 
@@ -267,11 +284,11 @@ export function TeacherCalendarView({
     }
 
     if (viewMode === 'weekly' || timeScope === 'week') {
-      const monday = getMonday(anchorDate);
-      const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+      const sunday = getSunday(anchorDate);
+      const saturday = new Date(sunday.getFullYear(), sunday.getMonth(), sunday.getDate() + 6);
       const formatOpt: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' };
-      const startStr = monday.toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', formatOpt);
-      const endStr = sunday.toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', {
+      const startStr = sunday.toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', formatOpt);
+      const endStr = saturday.toLocaleDateString(locale === 'en' ? 'en-GB' : 'id-ID', {
         ...formatOpt,
         year: 'numeric',
       });
@@ -354,11 +371,11 @@ export function TeacherCalendarView({
       }
 
       if (viewMode === 'weekly' || timeScope === 'week') {
-        const mondayStr = formatDate(getMonday(anchorDate));
-        const sundayDate = new Date(getMonday(anchorDate));
-        sundayDate.setDate(sundayDate.getDate() + 6);
-        const sundayStr = formatDate(sundayDate);
-        return s.tanggalPertemuan >= mondayStr && s.tanggalPertemuan <= sundayStr;
+        const sundayStr = formatDate(getSunday(anchorDate));
+        const saturdayDate = new Date(getSunday(anchorDate));
+        saturdayDate.setDate(saturdayDate.getDate() + 6);
+        const saturdayStr = formatDate(saturdayDate);
+        return s.tanggalPertemuan >= sundayStr && s.tanggalPertemuan <= saturdayStr;
       }
 
       return true;
@@ -427,42 +444,33 @@ export function TeacherCalendarView({
       {/* ========================================================= */}
       {/* UNIFIED GOOGLE CLASSROOM CALENDAR CONTAINER (SINGLE CARD) */}
       {/* ========================================================= */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
-        {/* TOP BAR: Class Filter + Navigation Stepper & Date + View Switcher */}
-        <div className="flex flex-col gap-3 border-b border-slate-200 dark:border-slate-800 p-3 sm:p-4 sm:flex-row sm:items-center sm:justify-between bg-white dark:bg-slate-900">
-          {/* Left Side: Classroom Class Selector + Navigation Stepper */}
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-4">
-            {/* Google Classroom Class Selector Dropdown (Hidden if hideClassFilter is true) */}
-            {!hideClassFilter && classes.length > 0 && (
-              <>
-                <div className="w-56 sm:w-64">
-                  <FilterDropdown
-                    value={String(selectedClassId ?? '')}
-                    onChange={(val) => setSelectedClassId(val ? Number(val) : null)}
-                    options={[
-                      { value: '', label: 'Semua kelas' },
-                      ...classes.map((c) => ({
-                        value: String(c.id),
-                        label: c.displayName,
-                      })),
-                    ]}
-                    size="sm"
-                    ariaLabel="Pilih kelas"
-                  />
-                </div>
-                <div className="h-5 w-px bg-slate-200 dark:border-slate-700 hidden sm:block" />
-              </>
-            )}
+      <div className="overflow-hidden rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xs">
+        {/* TOP BAR: Class Filter + Navigation Stepper (Centered) + View Switcher */}
+        <div className="flex flex-col gap-3 border-b border-slate-300 dark:border-slate-700 p-3 sm:p-4 md:grid md:grid-cols-[1fr_auto_1fr] md:items-center bg-white dark:bg-slate-900">
+          {/* Left Side: Classroom Class Selector */}
+          <div className="flex items-center justify-center md:justify-start">
+            {!hideClassFilter && classes.length > 0 ? (
+              <div className="w-full max-w-xs sm:w-56 md:w-64">
+                <FilterDropdown
+                  value={String(selectedClassId ?? '')}
+                  onChange={(val) => setSelectedClassId(val ? Number(val) : null)}
+                  options={[
+                    { value: '', label: 'Semua kelas' },
+                    ...classes.map((c) => ({
+                      value: String(c.id),
+                      label: c.displayName,
+                    })),
+                  ]}
+                  size="sm"
+                  ariaLabel="Pilih kelas"
+                />
+              </div>
+            ) : null}
+          </div>
 
-            {/* Stepper: Today Button + Chevron Left + Date Range Label + Chevron Right */}
+          {/* Center: Navigation Stepper (Chevron Left + Date Range Label + Chevron Right) - ALWAYS CENTERED */}
+          <div className="flex items-center justify-center">
             <div className="inline-flex items-center gap-1 sm:gap-2">
-              <button
-                type="button"
-                onClick={handleToday}
-                className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 shadow-2xs mr-0.5 sm:mr-1"
-              >
-                {t('todayLabel') || 'Hari ini'}
-              </button>
               <button
                 type="button"
                 onClick={handlePrev}
@@ -474,7 +482,7 @@ export function TeacherCalendarView({
                 <ChevronLeft className="size-4" />
               </button>
 
-              <h2 className="font-display text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-base px-1 select-none whitespace-nowrap">
+              <h2 className="font-display text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100 sm:text-base px-1 select-none whitespace-nowrap text-center">
                 {rangeLabel}
               </h2>
 
@@ -491,87 +499,59 @@ export function TeacherCalendarView({
             </div>
           </div>
 
-          {/* Right Side: View Mode Tabs (Harian / Kisi Mingguan / Kisi Bulanan / Agenda Kompak) */}
-          <div
-            className="inline-flex rounded-lg bg-slate-200/60 dark:bg-slate-950/70 p-1 border border-slate-300/80 dark:border-slate-800 shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.5)] self-start sm:self-auto gap-1"
-            role="group"
-            aria-label="Mode tampilan kalender"
-          >
-            {allowedViews.includes('daily') && (
-              <button
-                type="button"
-                onClick={() => {
-                  setViewMode('daily');
-                  setTimeScope('day');
-                }}
-                aria-label="Tampilan Harian"
-                title="Tampilan Harian"
-                className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                  viewMode === 'daily'
-                    ? 'bg-slate-100 dark:bg-slate-800/90 text-blue-600 dark:text-blue-400 font-bold shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.6)] border border-slate-300/70 dark:border-slate-700/70'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-slate-800/40 border border-transparent'
-                }`}
+          {/* Right Side: View Mode Tabs (Harian / Mingguan / Bulanan) with Glass Effect & Spring Animation */}
+          <div className="flex items-center justify-center md:justify-end">
+            <LayoutGroup id="teacher-calendar-view-mode-tabs">
+              <div
+                className="relative inline-flex items-center rounded-xl bg-slate-200/50 dark:bg-slate-900/60 p-1 border border-slate-300/60 dark:border-slate-800/80 backdrop-blur-md shadow-[inset_0_1px_2.5px_rgba(0,0,0,0.08)] dark:shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.4)] gap-1"
+                role="group"
+                aria-label="Mode tampilan kalender"
               >
-                <span>Harian</span>
-              </button>
-            )}
-
-            {allowedViews.includes('weekly') && (
-              <button
-                type="button"
-                onClick={() => {
-                  setViewMode('weekly');
-                  setTimeScope('week');
-                }}
-                aria-label={t('weeklyGrid') || 'Kisi Mingguan'}
-                title={t('weeklyGrid') || 'Kisi Mingguan'}
-                className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                  viewMode === 'weekly'
-                    ? 'bg-slate-100 dark:bg-slate-800/90 text-blue-600 dark:text-blue-400 font-bold shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.6)] border border-slate-300/70 dark:border-slate-700/70'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-slate-800/40 border border-transparent'
-                }`}
-              >
-                <span>{t('weeklyGrid') || 'Kisi Mingguan'}</span>
-              </button>
-            )}
-
-            {allowedViews.includes('monthly') && (
-              <button
-                type="button"
-                onClick={() => {
-                  setViewMode('monthly');
-                  setTimeScope('month');
-                }}
-                aria-label={t('monthlyGrid') || 'Kisi Bulanan'}
-                title={t('monthlyGrid') || 'Kisi Bulanan'}
-                className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                  viewMode === 'monthly'
-                    ? 'bg-slate-100 dark:bg-slate-800/90 text-blue-600 dark:text-blue-400 font-bold shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.6)] border border-slate-300/70 dark:border-slate-700/70'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-slate-800/40 border border-transparent'
-                }`}
-              >
-                <span>{t('monthlyGrid') || 'Kisi Bulanan'}</span>
-              </button>
-            )}
-
-            {allowedViews.includes('agenda') && (
-              <button
-                type="button"
-                onClick={() => {
-                  setViewMode('agenda');
-                  setTimeScope('all');
-                }}
-                aria-label={t('agendaView') || 'Agenda Kompak'}
-                title={t('agendaView') || 'Agenda Kompak'}
-                className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                  viewMode === 'agenda'
-                    ? 'bg-slate-100 dark:bg-slate-800/90 text-blue-600 dark:text-blue-400 font-bold shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.12)] dark:shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.6)] border border-slate-300/70 dark:border-slate-700/70'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-slate-800/40 border border-transparent'
-                }`}
-              >
-                <span>{t('agendaView') || 'Agenda Kompak'}</span>
-              </button>
-            )}
+                {([
+                  { key: 'daily' as const, label: t('dailyView') || 'Harian', scope: 'day' as const },
+                  { key: 'weekly' as const, label: t('weeklyGrid') || 'Mingguan', scope: 'week' as const },
+                  { key: 'monthly' as const, label: t('monthlyGrid') || 'Bulanan', scope: 'month' as const },
+                  ...(allowedViews.includes('agenda')
+                    ? [{ key: 'agenda' as const, label: t('agendaView') || 'Agenda Kompak', scope: 'all' as const }]
+                    : []),
+                ] as const)
+                  .filter((item) => allowedViews.includes(item.key))
+                  .map((item) => {
+                    const isActive = viewMode === item.key;
+                    return (
+                      <motion.button
+                        key={item.key}
+                        type="button"
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          setViewMode(item.key);
+                          setTimeScope(item.scope);
+                        }}
+                        aria-label={item.label}
+                        title={item.label}
+                        className={`relative inline-flex items-center justify-center rounded-lg px-3 py-1 text-xs font-semibold cursor-pointer select-none transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
+                          isActive
+                            ? 'text-blue-600 dark:text-blue-400 font-bold'
+                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-slate-800/40'
+                        }`}
+                      >
+                        {isActive && (
+                          <motion.div
+                            layoutId="teacher-calendar-view-pill"
+                            className="absolute inset-0 rounded-lg bg-white/85 dark:bg-slate-800/90 backdrop-blur-sm shadow-[0_1.5px_4px_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[0_1.5px_4px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.1)] border border-white/60 dark:border-slate-700/60"
+                            transition={
+                              shouldReduceMotion
+                                ? { duration: 0 }
+                                : { type: 'spring', stiffness: 450, damping: 32 }
+                            }
+                          />
+                        )}
+                        <span className="relative z-10">{item.label}</span>
+                      </motion.button>
+                    );
+                  })}
+              </div>
+            </LayoutGroup>
           </div>
         </div>
 
@@ -599,7 +579,7 @@ export function TeacherCalendarView({
               <div>
                 {/* Date Header Ribbon */}
                 <div
-                  className={`flex items-center justify-between border-b border-slate-100 dark:border-slate-800 px-4 py-2.5 ${
+                  className={`flex items-center justify-between border-b border-slate-300 dark:border-slate-700 px-4 py-2.5 ${
                     isDailyToday
                       ? 'bg-blue-50/80 dark:bg-blue-950/50 text-blue-900 dark:text-blue-200 font-bold'
                       : 'bg-slate-50/80 dark:bg-slate-800/60 text-slate-900 dark:text-slate-100'
@@ -621,22 +601,20 @@ export function TeacherCalendarView({
                 </div>
 
                 {/* Scannable Classroom Rows */}
-                <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                <div className="divide-y divide-slate-300 dark:divide-slate-700">
                   {dailySessions.map((session) => {
                     const theme = CLASSROOM_THEMES[session.jenjang] ?? DEFAULT_CLASSROOM_THEME;
                     const isCancelled = session.statusSesi === 'dibatalkan';
-                    const isFilled = session.presensiCount > 0;
-                    const hasTasks = session.tugasList.length > 0;
 
                     return (
                       <div
                         key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
                         onClick={() => setSelectedSession(session)}
-                        className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-l-4 ${theme.cardBorder} ${
-                          isCancelled ? 'opacity-70' : ''
+                        className={`group relative flex items-center justify-between gap-3 px-4 py-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-l-4 ${theme.cardBorder} ${
+                          isCancelled ? 'opacity-70 line-through' : ''
                         }`}
                       >
-                        {/* Left: Time + Full Class Display Name (No Pill) */}
+                        {/* Time + Full Class Display Name */}
                         <div className="flex items-center gap-3 min-w-0">
                           <span className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400 shrink-0">
                             {session.jamMulai} – {session.jamSelesai}
@@ -646,25 +624,6 @@ export function TeacherCalendarView({
                               {session.kelasDisplayName}
                             </p>
                           </div>
-                          {hasTasks && (
-                            <span className="hidden md:inline-flex rounded bg-amber-100/90 dark:bg-amber-950/60 px-2 py-0.5 text-[10px] font-bold text-amber-900 dark:text-amber-200 shrink-0">
-                              {session.tugasList.length} Tugas
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Right: Participant Count + Status + Action Link */}
-                        <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-                          <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
-                            {isCancelled
-                              ? 'Dibatalkan'
-                              : isFilled
-                              ? `${session.presensiCount}/${session.pesertaCount} hadir`
-                              : 'Belum presensi'}
-                          </span>
-                          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">
-                            Rincian Sesi →
-                          </span>
                         </div>
                       </div>
                     );
@@ -676,216 +635,66 @@ export function TeacherCalendarView({
         )}
 
         {/* ========================================================= */}
-        {/* 2. MODE B: WEEKLY TIMETABLE GRID (CLASSROOM SCHEDULE)     */}
+        {/* 2. MODE B: GOOGLE CLASSROOM WEEKLY GRID (7-COLUMN CANVAS) */}
         {/* ========================================================= */}
         {viewMode === 'weekly' && (
-          <div>
-            {/* Desktop 7-Column Timetable Grid (lg+) */}
-            <div className="hidden lg:block">
-              {/* Header: 7 Days (Senin - Minggu) */}
-              <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 divide-x divide-slate-100 dark:divide-slate-800/70 bg-slate-50/80 dark:bg-slate-800/50">
-                {weekDays.map((d) => (
+          <div className="overflow-x-auto scrollbar-thin">
+            <div className="grid grid-cols-7 min-w-[700px] divide-x divide-slate-300 dark:divide-slate-700 min-h-[520px] bg-white dark:bg-slate-900">
+              {weekDays.map((d) => {
+                const daySessions = sessionsByWeekDay.get(d.dateStr) ?? [];
+                return (
                   <div
                     key={d.dateStr}
-                    className={`p-3 text-center transition-colors ${
-                      d.isToday ? 'bg-blue-50/80 dark:bg-blue-950/40' : ''
+                    className={`flex flex-col transition-colors ${
+                      d.isToday ? 'bg-blue-50/15 dark:bg-blue-950/20' : ''
                     }`}
                   >
-                    <p
-                      className={`text-[11px] font-semibold uppercase tracking-wider ${
-                        d.isToday ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-slate-500 dark:text-slate-400'
-                      }`}
-                    >
-                      {d.dayName}
-                    </p>
-                    <div className="mt-1 flex items-center justify-center">
-                      <span
-                        className={`size-8 rounded-full flex items-center justify-center text-sm font-bold tabular-nums transition-all ${
-                          d.isToday
-                            ? 'bg-blue-600 text-white shadow-xs ring-2 ring-blue-600/20'
-                            : 'text-slate-900 dark:text-slate-100'
-                        }`}
-                      >
-                        {d.dayNum}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Body: 7 Day Columns */}
-              <div className="grid grid-cols-7 divide-x divide-slate-100 dark:divide-slate-800/70 min-h-[480px] bg-slate-50/20 dark:bg-slate-950/20">
-                {weekDays.map((d) => {
-                  const daySessions = sessionsByWeekDay.get(d.dateStr) ?? [];
-                  return (
-                    <div
-                      key={d.dateStr}
-                      className={`p-2 space-y-2.5 transition-colors ${
-                        d.isToday ? 'bg-blue-50/20 dark:bg-blue-950/20' : ''
-                      }`}
-                    >
-                      {daySessions.length === 0 ? (
-                        <div className="flex h-24 items-center justify-center rounded-xl border border-dashed border-slate-200/80 dark:border-slate-800 p-2 text-center">
-                          <span className="text-xs text-slate-400 dark:text-slate-600">-</span>
-                        </div>
-                      ) : (
-                        daySessions.map((session) => {
-                          const theme = CLASSROOM_THEMES[session.jenjang] ?? DEFAULT_CLASSROOM_THEME;
-                          const isCancelled = session.statusSesi === 'dibatalkan';
-                          const isFilled = session.presensiCount > 0;
-                          const hasTasks = session.tugasList.length > 0;
-
-                          return (
-                            <div
-                              key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
-                              onClick={() => setSelectedSession(session)}
-                              className={`group relative flex flex-col justify-between rounded-xl border border-l-4 border-slate-200/80 dark:border-slate-800 p-3 shadow-2xs transition-all duration-150 hover:shadow-xs cursor-pointer ${theme.cardBorder} ${theme.cardBg} ${
-                                session.isToday && !isCancelled ? 'ring-1 ring-blue-500/20 dark:ring-blue-500/30' : ''
-                              } ${isCancelled ? 'opacity-70' : ''}`}
-                            >
-                              <div>
-                                {/* Time without Pill Badge */}
-                                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                                  <span className="tabular-nums">
-                                    {session.jamMulai} – {session.jamSelesai}
-                                  </span>
-                                </div>
-
-                                {/* Class Title: Nama Mapel · Jenjang (Tingkat) */}
-                                <h4 className="mt-1 font-display text-xs font-bold leading-snug text-slate-950 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-                                  {session.kelasDisplayName}
-                                </h4>
-
-                                {/* Classroom Task indicator if present */}
-                                {hasTasks && (
-                                  <div className="mt-1.5 inline-flex items-center gap-1 rounded bg-amber-100/90 dark:bg-amber-950/60 px-1.5 py-0.5 text-[9px] font-bold text-amber-900 dark:text-amber-200">
-                                    <span>{session.tugasList.length} Tugas Diberikan</span>
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Attendance status */}
-                              <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800/80 flex items-center justify-between text-[10px]">
-                                <span className="font-semibold text-slate-600 dark:text-slate-400">
-                                  {isCancelled
-                                    ? 'Dibatalkan'
-                                    : isFilled
-                                    ? `${session.presensiCount}/${session.pesertaCount} hadir`
-                                    : 'Belum presensi'}
-                                </span>
-                                <span className="font-bold text-blue-600 dark:text-blue-400 opacity-90 group-hover:opacity-100">
-                                  Buka →
-                                </span>
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Mobile / Tablet Day Carousel (<lg) */}
-            <div className="lg:hidden p-3 sm:p-4 space-y-3">
-              {/* Day Selector Tabs */}
-              <div className="flex overflow-x-auto pb-1 gap-2 scrollbar-hide">
-                {weekDays.map((d) => {
-                  const daySessions = sessionsByWeekDay.get(d.dateStr) ?? [];
-                  const isSelected = d.dateStr === mobileSelectedDate;
-                  return (
-                    <button
-                      key={d.dateStr}
-                      type="button"
-                      onClick={() => setMobileSelectedDate(d.dateStr)}
-                      className={`flex-shrink-0 flex flex-col items-center justify-center rounded-xl px-3 py-2 text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
-                        isSelected
-                          ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/30'
-                          : d.isToday
-                          ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
-                          : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
-                      }`}
-                    >
-                      <span className="text-[10px] uppercase font-bold">{d.dayName.slice(0, 3)}</span>
-                      <span className="text-sm font-extrabold tabular-nums">{d.dayNum}</span>
-                      {daySessions.length > 0 && (
-                        <span
-                          className={`mt-0.5 rounded-full px-2 py-0.5 text-[9px] font-bold ${
-                            isSelected ? 'bg-white/20 text-white' : 'bg-blue-100 dark:bg-blue-900/60 text-blue-800 dark:text-blue-300'
-                          }`}
-                        >
-                          {daySessions.length}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Selected Day Session Cards on Mobile */}
-              <div className="space-y-3">
-                {(() => {
-                  const activeSessions = sessionsByWeekDay.get(mobileSelectedDate) ?? [];
-                  if (activeSessions.length === 0) {
-                    return (
-                      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center shadow-2xs">
-                        <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                          {t('noScheduleToday') || 'Tidak ada jadwal pada tanggal ini'}
-                        </p>
+                    {/* Date Header: Abbreviated Day Name + Big Date Number (with Circle on Today) */}
+                    <div className="pt-4 pb-3 px-2 flex flex-col items-center justify-center text-center select-none">
+                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                        {d.dayNameShort}
+                      </p>
+                      <div className="mt-1 flex items-center justify-center min-h-[44px]">
+                        {d.isToday ? (
+                          <span className="flex size-10 sm:size-11 items-center justify-center rounded-full bg-blue-600 text-white font-bold text-2xl sm:text-3xl tabular-nums shadow-sm ring-2 ring-blue-600/20">
+                            {d.dayNum}
+                          </span>
+                        ) : (
+                          <span className="text-3xl sm:text-4xl font-normal text-slate-800 dark:text-slate-100 tabular-nums">
+                            {d.dayNum}
+                          </span>
+                        )}
                       </div>
-                    );
-                  }
-                  return activeSessions.map((session) => {
-                    const theme = CLASSROOM_THEMES[session.jenjang] ?? DEFAULT_CLASSROOM_THEME;
-                    const isCancelled = session.statusSesi === 'dibatalkan';
-                    const isFilled = session.presensiCount > 0;
-                    const hasTasks = session.tugasList.length > 0;
+                    </div>
 
-                    return (
-                      <div
-                        key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
-                        onClick={() => setSelectedSession(session)}
-                        className={`group relative flex flex-col justify-between rounded-2xl border border-l-4 border-slate-200/90 dark:border-slate-800 p-4 shadow-2xs transition-all hover:shadow-xs cursor-pointer ${theme.cardBorder} ${theme.cardBg} ${
-                          session.isToday && !isCancelled ? 'ring-1 ring-blue-500/20 dark:ring-blue-500/30' : ''
-                        } ${isCancelled ? 'opacity-70' : ''}`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0 flex-1">
-                            <span className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400">
-                              {session.jamMulai} – {session.jamSelesai}
-                            </span>
-                            <h4 className="mt-1 font-display text-sm font-bold text-slate-950 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {/* Column Content: Stacked Solid Color Cards (Empty if no sessions) */}
+                    <div className="flex-1 p-2 space-y-2">
+                      {daySessions.map((session) => {
+                        const solidColor =
+                          CLASSROOM_SOLID_COLORS[session.jenjang] ?? DEFAULT_SOLID_COLOR;
+                        const isCancelled = session.statusSesi === 'dibatalkan';
+
+                        return (
+                          <div
+                            key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
+                            onClick={() => setSelectedSession(session)}
+                            className={`w-full rounded-md p-2.5 text-left text-white shadow-2xs transition-all duration-150 cursor-pointer hover:brightness-105 active:scale-[0.98] ${solidColor} ${
+                              isCancelled ? 'opacity-60 line-through' : ''
+                            }`}
+                          >
+                            <h4 className="font-display text-xs font-semibold text-white leading-tight line-clamp-2">
                               {session.kelasDisplayName}
                             </h4>
-                            {hasTasks && (
-                              <div className="mt-2 inline-flex items-center gap-1 rounded bg-amber-100/90 dark:bg-amber-950/60 px-2 py-0.5 text-[10px] font-bold text-amber-900 dark:text-amber-200">
-                                <span>{session.tugasList.length} Tugas Diberikan</span>
-                              </div>
-                            )}
+                            <p className="mt-1 text-[11px] font-medium text-white/90 tabular-nums">
+                              {session.jamMulai} – {session.jamSelesai}
+                            </p>
                           </div>
-                          <span className="shrink-0 text-xs font-semibold text-slate-600 dark:text-slate-400">
-                            {isCancelled
-                              ? 'Batal'
-                              : isFilled
-                              ? `${session.presensiCount}/${session.pesertaCount} hadir`
-                              : 'Belum presensi'}
-                          </span>
-                        </div>
-
-                        <div className="mt-3.5 pt-2.5 border-t border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-xs">
-                          <span className="text-slate-500 dark:text-slate-400 font-medium">
-                            {session.pesertaCount} siswa terdaftar
-                          </span>
-                          <span className="font-bold text-blue-600 dark:text-blue-400">
-                            Buka Sesi →
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  });
-                })()}
-              </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -895,18 +704,18 @@ export function TeacherCalendarView({
         {/* ========================================================= */}
         {viewMode === 'monthly' && (
           <div>
-            {/* Day Headers (Mon - Sun) */}
-            <div className="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 divide-x divide-slate-100 dark:divide-slate-800/70 bg-slate-50/80 dark:bg-slate-800/50 text-center">
-              {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map((day) => (
-                <div key={day} className="py-3 text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+            {/* Day Headers (Sun - Sat) */}
+            <div className="grid grid-cols-7 border-b border-slate-300 dark:border-slate-700 divide-x divide-slate-300 dark:divide-slate-700 bg-slate-50/90 dark:bg-slate-800/60 text-center">
+              {['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'].map((day) => (
+                <div key={day} className="py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
                   <span className="hidden sm:inline">{day}</span>
                   <span className="sm:hidden">{day.slice(0, 3)}</span>
                 </div>
               ))}
             </div>
 
-            {/* 35 / 42 Day Grid */}
-            <div className="grid grid-cols-7 divide-x divide-y divide-slate-100 dark:divide-slate-800/70 bg-slate-50/20 dark:bg-slate-950/20">
+            {/* 35 / 42 Day Grid with Firm Borders */}
+            <div className="grid grid-cols-7 divide-x divide-y divide-slate-300 dark:divide-slate-700 bg-white dark:bg-slate-900">
               {monthGridDays.map((day, idx) => {
                 const daySessions = sessionsByAnyDate.get(day.dateStr) ?? [];
                 const hasSessions = daySessions.length > 0;
@@ -915,15 +724,17 @@ export function TeacherCalendarView({
                   <div
                     key={`${day.dateStr}-${idx}`}
                     className={`min-h-[95px] sm:min-h-[120px] p-2 transition-colors flex flex-col justify-between ${
-                      day.isCurrentMonth ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/60 dark:bg-slate-950/50 text-slate-400 dark:text-slate-600'
+                      day.isCurrentMonth
+                        ? 'bg-white dark:bg-slate-900'
+                        : 'bg-slate-50/70 dark:bg-slate-950/60 text-slate-400 dark:text-slate-600'
                     } ${day.isToday ? 'bg-blue-50/30 dark:bg-blue-950/30' : ''}`}
                   >
-                    {/* Top Bar: Date Number + Sesi Count */}
+                    {/* Top Bar: Date Number (Circle on Today) + Sesi Count */}
                     <div className="flex items-center justify-between">
                       <span
-                        className={`size-6 rounded-full flex items-center justify-center text-xs font-bold tabular-nums ${
+                        className={`size-7 rounded-full flex items-center justify-center text-xs font-bold tabular-nums ${
                           day.isToday
-                            ? 'bg-blue-600 text-white shadow-2xs'
+                            ? 'bg-blue-600 text-white shadow-xs ring-1 ring-blue-600/30'
                             : day.isCurrentMonth
                             ? 'text-slate-900 dark:text-slate-100'
                             : 'text-slate-400 dark:text-slate-600'
@@ -938,27 +749,21 @@ export function TeacherCalendarView({
                       )}
                     </div>
 
-                    {/* Scheduled Sessions Chips (Google Classroom signature chips) */}
+                    {/* Scheduled Sessions Chips: SOLID COLOR WITH WHITE TEXT */}
                     <div className="mt-1.5 space-y-1 overflow-hidden flex-1">
                       {daySessions.slice(0, 2).map((s) => {
-                        const theme = CLASSROOM_THEMES[s.jenjang] ?? DEFAULT_CLASSROOM_THEME;
-                        const hasTasks = s.tugasList.length > 0;
+                        const solidColor =
+                          CLASSROOM_SOLID_COLORS[s.jenjang] ?? DEFAULT_SOLID_COLOR;
 
                         return (
                           <div
                             key={`${s.jadwalItemId}-${s.tanggalPertemuan}`}
                             onClick={() => setSelectedSession(s)}
-                            title={`${s.jamMulai} ${s.kelasDisplayName}${hasTasks ? ` (${s.tugasList.length} Tugas)` : ''}`}
-                            className={`hidden sm:flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold truncate border cursor-pointer hover:shadow-2xs transition-all ${theme.monthlyChip}`}
+                            title={`${s.jamMulai} ${s.kelasDisplayName}`}
+                            className={`hidden sm:flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-semibold truncate cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all text-white shadow-2xs ${solidColor}`}
                           >
-                            <span className={`size-1.5 rounded-full shrink-0 ${theme.dot}`} />
                             <span className="tabular-nums font-bold shrink-0">{s.jamMulai}</span>
                             <span className="truncate">{s.kelasDisplayName}</span>
-                            {hasTasks && (
-                              <span className="text-[9px] font-bold text-amber-700 dark:text-amber-300 shrink-0">
-                                • T
-                              </span>
-                            )}
                           </div>
                         );
                       })}

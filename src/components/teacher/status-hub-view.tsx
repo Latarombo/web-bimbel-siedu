@@ -1,8 +1,12 @@
 'use client';
 
-import { useState, useTransition, useRef } from 'react';
+import { useState, useTransition, useRef, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { hapusStatusPembelajaran } from '@/app/actions/teacher';
+import {
+  hapusStatusPembelajaran,
+  getStatusViewers,
+  type StatusViewerItem,
+} from '@/app/actions/teacher';
 import type { ClassOption, ExistingStatus } from '@/components/teacher/status-form';
 import { WhatsappStoryCreatorModal } from '@/components/teacher/whatsapp-story-creator-modal';
 import { WhatsAppStoryRing } from '@/components/common/whatsapp-story-ring';
@@ -27,6 +31,9 @@ import {
   Image as ImageIcon,
   Pencil,
   ChevronDown,
+  Eye,
+  X,
+  Loader2,
 } from 'lucide-react';
 
 interface Props {
@@ -39,7 +46,9 @@ function buildSlidesFromStatuses(items: ExistingStatus[], authorFallback: string
   const slides: StorySlide[] = [];
 
   for (const item of items) {
-    const isTextOnly = !item.mediaUrls || item.mediaUrls.length === 0;
+    const bgToken = item.mediaUrls?.find((u) => typeof u === 'string' && u.startsWith('bg:'));
+    const photoUrls = item.mediaUrls?.filter((u) => typeof u === 'string' && !u.startsWith('bg:')) || [];
+    const isTextOnly = photoUrls.length === 0;
 
     if (isTextOnly) {
       slides.push({
@@ -50,11 +59,12 @@ function buildSlidesFromStatuses(items: ExistingStatus[], authorFallback: string
         timestampFormatted: formatWhatsAppTime(item.diterbitkanPada),
         text: item.kontenTeks,
         isTextOnly: true,
-        bgGradient: 'bg-gradient-to-br from-amber-600 via-yellow-700 to-amber-900',
+        bgGradient: bgToken ? bgToken.slice(3) : 'bg-gradient-to-br from-amber-600 via-yellow-700 to-amber-900',
         recipientCount: item.penerimaCount,
+        viewCount: item.viewCount ?? 0,
       });
     } else {
-      item.mediaUrls.forEach((photoUrl, pIdx) => {
+      photoUrls.forEach((photoUrl, pIdx) => {
         slides.push({
           statusId: item.id,
           authorName: authorFallback,
@@ -65,6 +75,7 @@ function buildSlidesFromStatuses(items: ExistingStatus[], authorFallback: string
           imageUrl: photoUrl,
           isTextOnly: false,
           recipientCount: item.penerimaCount,
+          viewCount: item.viewCount ?? 0,
         });
       });
     }
@@ -88,16 +99,102 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
   const [viewerSlides, setViewerSlides] = useState<StorySlide[]>([]);
   const [viewerInitialIdx, setViewerInitialIdx] = useState(0);
 
+  // Status yang sudah dilihat (disimpan di localStorage agar persisten)
+  const [viewedStatusIds, setViewedStatusIds] = useState<Set<number>>(new Set());
+
+  // State untuk dialog daftar penonton status
+  const [viewersModalStatusId, setViewersModalStatusId] = useState<number | null>(null);
+  const [viewersModalClassName, setViewersModalClassName] = useState<string>('');
+  const [viewersList, setViewersList] = useState<StatusViewerItem[]>([]);
+  const [isLoadingViewers, setIsLoadingViewers] = useState(false);
+
+  const handleOpenViewersModal = async (statusId: number, kelasNama: string) => {
+    setViewersModalStatusId(statusId);
+    setViewersModalClassName(kelasNama);
+    setIsLoadingViewers(true);
+    setViewersList([]);
+    try {
+      const res = await getStatusViewers(statusId);
+      if (res.viewers) {
+        setViewersList(res.viewers);
+      }
+    } catch (err) {
+      console.error('Gagal memuat penonton status:', err);
+    } finally {
+      setIsLoadingViewers(false);
+    }
+  };
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('siedu_viewed_teacher_status_ids');
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) {
+          setViewedStatusIds(new Set(arr));
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const markStatusAsViewed = useCallback((statusId: number) => {
+    setViewedStatusIds((prev) => {
+      if (prev.has(statusId)) return prev;
+      const updated = new Set(prev);
+      updated.add(statusId);
+      try {
+        localStorage.setItem(
+          'siedu_viewed_teacher_status_ids',
+          JSON.stringify(Array.from(updated)),
+        );
+      } catch {
+        // ignore
+      }
+      return updated;
+    });
+  }, []);
+
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [deletedStatusIds, setDeletedStatusIds] = useState<Set<number>>(new Set());
 
+  // Filter status yang belum dihapus oleh guru
+  const nonDeletedStatuses = pastStatuses.filter(
+    (s) => !deletedStatusIds.has(s.id) && s.status !== 'dihapus_guru'
+  );
+
+  const nowIso = new Date().toISOString();
   // Status aktif (< 24 jam dan status = aktif)
-  const activeStatuses = pastStatuses.filter((s) => s.status === 'aktif');
+  const activeStatuses = nonDeletedStatuses.filter(
+    (s) => s.status === 'aktif' && s.kadaluarsaPada > nowIso
+  );
   const latestActiveStatus = activeStatuses[0];
 
-  // Status riwayat (kedaluwarsa atau dihapus)
-  const archivedStatuses = pastStatuses.filter((s) => s.status !== 'aktif');
+  // Status riwayat (kedaluwarsa > 24 jam atau berstatus diarsipkan)
+  const archivedStatuses = nonDeletedStatuses.filter(
+    (s) => s.status === 'diarsipkan' || (s.status === 'aktif' && s.kadaluarsaPada <= nowIso)
+  );
+
+  // Status aktif diurutkan secara kronologis (dari yang terbit paling awal hari ini ke yang terbaru)
+  const orderedActiveStatuses = [...activeStatuses].sort(
+    (a, b) => new Date(a.diterbitkanPada).getTime() - new Date(b.diterbitkanPada).getTime(),
+  );
+
+  // Status riwayat diurutkan dari yang paling baru kedaluwarsa ke yang lebih lama
+  const orderedArchivedStatuses = [...archivedStatuses].sort(
+    (a, b) => new Date(b.diterbitkanPada).getTime() - new Date(a.diterbitkanPada).getTime(),
+  );
+
+  // Jumlah status aktif yang sudah dilihat
+  const myViewedCount = activeStatuses.filter((s) => viewedStatusIds.has(s.id)).length;
+
+  // Status saya dianggap sudah dilihat jika semua status aktif telah dilihat
+  const isMyStatusViewed =
+    activeStatuses.length > 0 &&
+    myViewedCount === activeStatuses.length;
 
   // Buka dialog pemilihan file langsung untuk opsi foto
   const handleOpenPhotoCreator = () => {
@@ -131,19 +228,38 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
     setIsCreatorOpen(true);
   };
 
+  // Buka penampil untuk Status Saya (HANYA status terbaru aktif secara urut, tanpa riwayat)
   const handleOpenMyStatus = () => {
-    if (activeStatuses.length === 0) {
+    if (orderedActiveStatuses.length === 0) {
       handleOpenPhotoCreator();
       return;
     }
-    const slides = buildSlidesFromStatuses(activeStatuses, guruName);
+    const slides = buildSlidesFromStatuses(orderedActiveStatuses, guruName);
+    if (slides.length === 0) return;
+
+    // Mulai dari status pertama yang belum dilihat, atau dari awal jika sudah dilihat semua
+    const firstUnviewedIdx = slides.findIndex((s) => !viewedStatusIds.has(s.statusId));
     setViewerSlides(slides);
-    setViewerInitialIdx(0);
+    setViewerInitialIdx(firstUnviewedIdx >= 0 ? firstUnviewedIdx : 0);
     setIsViewerOpen(true);
   };
 
-  const handleOpenViewerForStatus = (targetStatusId: number) => {
-    const slides = buildSlidesFromStatuses(pastStatuses, guruName);
+  // Buka penampil untuk item di seksi TERBARU (HANYA status terbaru aktif, tanpa riwayat)
+  const handleOpenActiveStatus = (targetStatusId: number) => {
+    markStatusAsViewed(targetStatusId);
+    const slides = buildSlidesFromStatuses(orderedActiveStatuses, guruName);
+    if (slides.length === 0) return;
+
+    const foundIdx = slides.findIndex((s) => s.statusId === targetStatusId);
+    setViewerSlides(slides);
+    setViewerInitialIdx(foundIdx >= 0 ? foundIdx : 0);
+    setIsViewerOpen(true);
+  };
+
+  // Buka penampil untuk item di seksi RIWAYAT (HANYA status riwayat kedaluwarsa, tanpa status aktif)
+  const handleOpenArchivedStatus = (targetStatusId: number) => {
+    markStatusAsViewed(targetStatusId);
+    const slides = buildSlidesFromStatuses(orderedArchivedStatuses, guruName);
     if (slides.length === 0) return;
 
     const foundIdx = slides.findIndex((s) => s.statusId === targetStatusId);
@@ -156,9 +272,15 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
     if (!window.confirm(t('deleteStatusConfirm') || 'Apakah Anda yakin ingin menghapus status ini?')) return;
     startTransition(async () => {
       setErrorMsg(null);
+      setDeletedStatusIds((prev) => new Set(prev).add(statusId));
       const res = await hapusStatusPembelajaran({ statusId });
       if (res.error) {
         setErrorMsg(res.error);
+        setDeletedStatusIds((prev) => {
+          const next = new Set(prev);
+          next.delete(statusId);
+          return next;
+        });
       } else {
         setSuccessMsg(t('statusDeletedSuccess') || 'Status berhasil dihapus.');
         // If viewer is currently viewing this deleted status, close it
@@ -173,10 +295,25 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
 
     startTransition(async () => {
       setErrorMsg(null);
+      const toDelete = archivedStatuses.map((s) => s.id);
+      setDeletedStatusIds((prev) => {
+        const next = new Set(prev);
+        toDelete.forEach((id) => next.add(id));
+        return next;
+      });
+
+      let failed = false;
       for (const item of archivedStatuses) {
-        await hapusStatusPembelajaran({ statusId: item.id });
+        const res = await hapusStatusPembelajaran({ statusId: item.id });
+        if (res.error) {
+          setErrorMsg(res.error);
+          failed = true;
+          break;
+        }
       }
-      setSuccessMsg('Seluruh riwayat status berhasil dibersihkan.');
+      if (!failed) {
+        setSuccessMsg('Seluruh riwayat status berhasil dibersihkan.');
+      }
     });
   };
 
@@ -219,6 +356,8 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
               >
                 <WhatsAppStoryRing
                   count={activeStatuses.length}
+                  viewedCount={myViewedCount}
+                  viewedSegments={orderedActiveStatuses.map((s) => viewedStatusIds.has(s.id))}
                   size={58}
                   strokeWidth={2.5}
                   gap={3}
@@ -234,7 +373,7 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className="absolute -bottom-0.5 -right-0.5 grid size-5.5 place-items-center rounded-full bg-emerald-500 text-white shadow-sm hover:bg-emerald-400 hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                    className="absolute -bottom-0.5 -right-0.5 z-20 grid size-5.5 place-items-center rounded-full bg-emerald-500 text-white shadow-sm hover:bg-emerald-400 hover:scale-110 active:scale-95 transition-all cursor-pointer"
                     title="Buat Pembaruan Status"
                     aria-label="Buat pembaruan status"
                   >
@@ -337,35 +476,56 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
 
           <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800 overflow-hidden shadow-2xs">
             {activeStatuses.map((item) => {
-              const photoCount = item.mediaUrls.length;
+              const photoUrls = item.mediaUrls?.filter((u) => typeof u === 'string' && !u.startsWith('bg:')) || [];
+              const bgToken = item.mediaUrls?.find((u) => typeof u === 'string' && u.startsWith('bg:'));
+              const isTextOnly = photoUrls.length === 0;
+              const photoCount = photoUrls.length;
+              const isThisStatusViewed = viewedStatusIds.has(item.id);
+              const rawBg = bgToken ? bgToken.slice(3) : '#00a884';
+              const isInlineBg = rawBg.startsWith('#') || rawBg.includes('(');
               return (
                 <div
                   key={item.id}
                   className="flex items-center justify-between gap-4 p-4 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors group/row cursor-pointer"
-                  onClick={() => handleOpenViewerForStatus(item.id)}
+                  onClick={() => handleOpenActiveStatus(item.id)}
                   title="Klik untuk melihat status ini"
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
-                    {/* Segmented Ring Avatar */}
+                    {/* Segmented Ring Avatar (Hijau jika baru, Abu-abu jika sudah dilihat) */}
                     <div className="shrink-0">
                       <WhatsAppStoryRing
                         count={photoCount > 0 ? photoCount : 1}
+                        viewedCount={isThisStatusViewed ? (photoCount > 0 ? photoCount : 1) : 0}
                         size={52}
                         strokeWidth={2.5}
                         gap={3}
                       >
-                        {photoCount > 0 ? (
-                          <div className="size-10 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        {!isTextOnly ? (
+                          <div className={`size-10 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 border ${
+                            isThisStatusViewed ? 'border-slate-300 dark:border-slate-700 opacity-80' : 'border-slate-200 dark:border-slate-700'
+                          }`}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
-                              src={item.mediaUrls[0]}
+                              src={photoUrls[0]}
                               alt={item.kelasNama}
                               className="size-full object-cover"
                             />
                           </div>
                         ) : (
-                          <div className="flex size-10 items-center justify-center rounded-full bg-emerald-600 text-xs font-bold text-white">
-                            <Pencil className="size-4" />
+                          <div
+                            style={isInlineBg ? { background: rawBg } : undefined}
+                            className={`flex size-10 items-center justify-center rounded-full p-1 overflow-hidden border shadow-inner select-none transition-transform ${
+                              !isInlineBg ? rawBg : ''
+                            } ${
+                              isThisStatusViewed
+                                ? 'border-slate-300 dark:border-slate-700 opacity-80'
+                                : 'border-white/20'
+                            }`}
+                            title={item.kontenTeks}
+                          >
+                            <span className="text-[9px] font-bold text-white text-center line-clamp-2 leading-tight break-words px-0.5">
+                              {item.kontenTeks || 'Status'}
+                            </span>
                           </div>
                         )}
                       </WhatsAppStoryRing>
@@ -379,23 +539,26 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         {formatWhatsAppTime(item.diterbitkanPada)}
                       </p>
-                      {item.kontenTeks && (
-                        <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 line-clamp-1 italic">
-                          &ldquo;{item.kontenTeks}&rdquo;
-                        </p>
-                      )}
                     </div>
                   </div>
 
-                  {/* Actions (Delete button) */}
+                  {/* Actions (Viewers & Delete button) */}
                   <div
                     className="flex items-center gap-2 shrink-0"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500">
-                      <Users className="size-3" />
-                      {item.penerimaCount} Murid
-                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenViewersModal(item.id, item.kelasNama);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      title="Lihat siapa saja yang telah melihat status ini"
+                    >
+                      <Eye className="size-3.5 text-slate-400 dark:text-slate-500 shrink-0" aria-hidden="true" />
+                      <span>Dilihat oleh {item.viewCount ?? 0}</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(item.id)}
@@ -458,7 +621,7 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
                 <div
                   key={item.id}
                   className="flex items-center justify-between gap-4 p-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors opacity-80 hover:opacity-100 cursor-pointer group/hist"
-                  onClick={() => handleOpenViewerForStatus(item.id)}
+                  onClick={() => handleOpenArchivedStatus(item.id)}
                   title="Klik untuk melihat status riwayat ini"
                 >
                   <div className="flex items-center gap-3.5 min-w-0">
@@ -472,11 +635,6 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         {formatWhatsAppTime(item.diterbitkanPada)} · Kedaluwarsa (&gt; 24 jam)
                       </p>
-                      {item.kontenTeks && (
-                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 line-clamp-1 italic">
-                          &ldquo;{item.kontenTeks}&rdquo;
-                        </p>
-                      )}
                     </div>
                   </div>
 
@@ -484,6 +642,18 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
                     className="flex items-center gap-2 shrink-0"
                     onClick={(e) => e.stopPropagation()}
                   >
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenViewersModal(item.id, item.kelasNama);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                      title="Lihat siapa saja yang telah melihat status ini"
+                    >
+                      <Eye className="size-3.5 text-slate-400 dark:text-slate-500 shrink-0" aria-hidden="true" />
+                      <span>Dilihat oleh {item.viewCount ?? 0}</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleDelete(item.id)}
@@ -534,8 +704,93 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
         slides={viewerSlides}
         initialSlideIdx={viewerInitialIdx}
         onDeleteStatus={handleDelete}
+        onSlideViewed={markStatusAsViewed}
         isViewerParent={false}
       />
+
+      {/* Modal Dialog Daftar Penonton Status */}
+      {viewersModalStatusId !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+            <header className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                  <Eye className="size-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>Dilihat oleh ({viewersList.length})</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate max-w-[220px]">
+                  {viewersModalClassName}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewersModalStatusId(null)}
+                className="grid size-8 place-items-center rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Tutup"
+                aria-label="Tutup"
+              >
+                <X className="size-4" />
+              </button>
+            </header>
+
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {isLoadingViewers ? (
+                <div className="py-8 flex flex-col items-center justify-center text-slate-400 space-y-2">
+                  <Loader2 className="size-6 animate-spin text-emerald-500" />
+                  <p className="text-xs">Memuat daftar penonton...</p>
+                </div>
+              ) : viewersList.length === 0 ? (
+                <div className="py-8 text-center text-slate-400 text-xs">
+                  <Eye className="size-8 mx-auto mb-2 opacity-30" />
+                  <p className="font-medium text-slate-600 dark:text-slate-400">Belum ada yang melihat</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Orang tua murid yang membuka status ini akan tercatat di sini.</p>
+                </div>
+              ) : (
+                viewersList.map((viewer) => {
+                  const initial = viewer.userName?.slice(0, 2).toUpperCase() || 'WM';
+                  return (
+                    <div
+                      key={viewer.userId}
+                      className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="size-8 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center justify-center shrink-0">
+                          {initial}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                            {viewer.userName}
+                          </p>
+                          <p className="text-[10px] text-slate-400">
+                            Wali Murid
+                          </p>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-slate-400 shrink-0 font-medium">
+                        {formatWhatsAppTime(viewer.viewedAt)}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <footer className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 text-right">
+              <button
+                type="button"
+                onClick={() => setViewersModalStatusId(null)}
+                className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+              >
+                Tutup
+              </button>
+            </footer>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

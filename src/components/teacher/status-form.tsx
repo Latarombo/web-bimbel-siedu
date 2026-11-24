@@ -69,6 +69,7 @@ export interface ExistingStatus {
   diterbitkanPada: string;
   kadaluarsaPada: string;
   penerimaCount: number;
+  viewCount?: number;
 }
 
 interface StatusFormProps {
@@ -399,13 +400,13 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                 {photos.map((url, idx) => (
                   <div
                     key={idx}
-                    className="group relative rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-slate-100 dark:bg-slate-800 aspect-square"
+                    className="group relative rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-slate-900/5 dark:bg-slate-800/80 aspect-4/3 flex items-center justify-center p-1"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={url}
                       alt={`Foto kegiatan ${idx + 1}`}
-                      className="size-full object-cover"
+                      className="size-full object-contain rounded-lg"
                     />
                     <button
                       type="button"
@@ -433,20 +434,33 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                   <p className="mt-2 text-sm whitespace-pre-line text-slate-800 dark:text-slate-200">{kontenTeks}</p>
                 )}
                 {photos.length > 0 && (
-                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
-                    {photos.map((url, i) => (
-                      <div
-                        key={i}
-                        className="relative h-24 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
-                      >
+                  <div className="mt-3">
+                    {photos.length === 1 ? (
+                      <div className="relative max-h-72 w-full flex items-center justify-center rounded-xl overflow-hidden bg-slate-950/5 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 p-2">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={url}
-                          alt={`Pratinjau foto ${i + 1}`}
-                          className="size-full object-cover"
+                          src={photos[0]}
+                          alt="Pratinjau foto dokumentasi"
+                          className="max-h-68 w-auto max-w-full object-contain rounded-lg shadow-xs"
                         />
                       </div>
-                    ))}
+                    ) : (
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {photos.map((url, i) => (
+                          <div
+                            key={i}
+                            className="relative aspect-4/3 rounded-lg overflow-hidden bg-slate-950/5 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 p-1 flex items-center justify-center"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={url}
+                              alt={`Pratinjau foto ${i + 1}`}
+                              className="size-full object-contain rounded-md"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

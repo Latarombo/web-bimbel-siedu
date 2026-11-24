@@ -311,18 +311,34 @@ export function LearningStatusInlineStory({ statuses }: Props) {
         </div>
 
         {/* Main Canvas: Image or WhatsApp Text Status */}
-        <div className="relative flex aspect-[16/10] sm:aspect-[16/9] min-h-[380px] sm:min-h-[460px] max-h-[540px] w-full items-center justify-center overflow-hidden bg-slate-900">
+        <div className="relative flex aspect-[16/10] sm:aspect-[16/9] min-h-[380px] sm:min-h-[460px] max-h-[540px] w-full items-center justify-center overflow-hidden bg-slate-950">
           {currentMediaUrl ? (
             // Photo Status
             currentMediaUrl.startsWith('http') ||
             currentMediaUrl.startsWith('/') ||
             currentMediaUrl.startsWith('data:') ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={currentMediaUrl}
-                alt={currentStatus.kontenTeks || t("activityDocsAlt")}
-                className="h-full w-full object-cover select-none"
-              />
+              <>
+                {/* Ambient Blurred Backdrop */}
+                <div
+                  className="absolute inset-0 size-full overflow-hidden pointer-events-none select-none -z-0"
+                  aria-hidden="true"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={currentMediaUrl}
+                    alt=""
+                    className="size-full object-cover scale-125 blur-3xl opacity-35"
+                  />
+                  <div className="absolute inset-0 bg-black/40" />
+                </div>
+                {/* Main Intact Image (object-contain) */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={currentMediaUrl}
+                  alt={currentStatus.kontenTeks || t("activityDocsAlt")}
+                  className="relative z-10 max-h-full max-w-full object-contain select-none shadow-2xl"
+                />
+              </>
             ) : (
               // If placeholder string or token
               <div className="flex flex-col items-center justify-center p-8 text-center">

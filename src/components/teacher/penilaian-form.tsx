@@ -340,94 +340,8 @@ export function PenilaianForm({
         });
     };
 
-    const persenDinilai =
-        counts.total > 0
-            ? Math.round((counts.dinilai / counts.total) * 100)
-            : 0;
-    const isComplete = counts.total > 0 && counts.dinilai === counts.total;
-
     return (
         <div className="space-y-6">
-            {/* 1. Canonical 4-Stat Strip (Matching SessionStatStrip) */}
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-                {/* Card 1: Total Siswa */}
-                <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                            {t('students')}
-                        </p>
-                        <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white tabular-nums">
-                            {counts.total}
-                        </p>
-                    </div>
-                    <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
-                        Total murid terdaftar di kelas
-                    </p>
-                </div>
-
-                {/* Card 2: Sudah Dinilai */}
-                <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                            Sudah Dinilai
-                        </p>
-                        <div className="mt-2 flex items-baseline gap-2">
-                            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white tabular-nums tracking-tight">
-                                {counts.dinilai}
-                            </span>
-                            <span className="text-xs font-medium text-slate-400 dark:text-slate-500 tabular-nums">
-                                / {counts.total}
-                            </span>
-                        </div>
-                    </div>
-                    <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
-                        {isComplete
-                            ? 'Penilaian telah lengkap'
-                            : 'Entri nilai sedang berjalan'}
-                    </p>
-                </div>
-
-                {/* Card 3: Belum Dinilai */}
-                <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                            Belum Dinilai
-                        </p>
-                        <p
-                            className={`mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums ${
-                                counts.belumDinilai > 0
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : 'text-slate-950 dark:text-white'
-                            }`}
-                        >
-                            {counts.belumDinilai}
-                        </p>
-                    </div>
-                    <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
-                        {counts.belumDinilai > 0
-                            ? `${counts.belumDinilai} murid menunggu penilaian`
-                            : 'Semua murid telah dinilai'}
-                    </p>
-                </div>
-
-                {/* Card 4: Rata-rata Skor */}
-                <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                            Rata-rata Skor
-                        </p>
-                        <p className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-slate-950 dark:text-white">
-                            {counts.averageScore !== null
-                                ? counts.averageScore
-                                : '—'}
-                        </p>
-                    </div>
-                    <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 truncate">
-                        Rata-rata capaian kelas
-                    </p>
-                </div>
-            </div>
-
             {/* State Feedback Alerts */}
             {errorMsg ? (
                 <div
@@ -481,108 +395,107 @@ export function PenilaianForm({
 
             {/* 3. Tab Panels */}
             {activeTab === 'grading' ? (
-                <section aria-label="Lembar Nilai Siswa" className="space-y-6">
-                    {/* Main Spreadsheet Table Container with Integrated Toolbar & Footer */}
-                    <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
-                        {/* Integrated Control Toolbar: Quick Actions + Search Bar */}
-                        <div className="flex flex-col gap-3 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="flex flex-wrap items-center gap-2">
+                <section aria-label="Lembar Nilai Siswa" className="space-y-4">
+                    {/* Standalone Control Toolbar: Quick Actions + Status Pills + Search Bar */}
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={handleMarkAllRated}
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white cursor-pointer"
+                            >
+                                <span>Beri Nilai Maks Semua</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleClearAllScores}
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white cursor-pointer"
+                            >
+                                <span>Reset Nilai</span>
+                            </button>
+
+                            {/* Filter Status Pills */}
+                            <div className="inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 text-xs font-medium sm:ml-2">
                                 <button
                                     type="button"
-                                    onClick={handleMarkAllRated}
-                                    className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white cursor-pointer"
+                                    onClick={() => setFilterStatus('all')}
+                                    className={`rounded-md px-3 py-1 text-xs transition-colors cursor-pointer ${
+                                        filterStatus === 'all'
+                                            ? 'bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-2xs font-bold'
+                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                                    }`}
                                 >
-                                    <span>Beri Nilai Maks Semua</span>
+                                    Semua ({initialSiswa.length})
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={handleClearAllScores}
-                                    className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white cursor-pointer"
+                                    onClick={() => setFilterStatus('belum')}
+                                    className={`rounded-md px-3 py-1 text-xs transition-colors cursor-pointer ${
+                                        filterStatus === 'belum'
+                                            ? 'bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-2xs font-bold'
+                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                                    }`}
                                 >
-                                    <span>Reset Nilai</span>
+                                    Belum ({counts.belumDinilai})
                                 </button>
-
-                                {/* Filter Status Pills */}
-                                <div className="inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 text-xs font-medium sm:ml-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setFilterStatus('all')}
-                                        className={`rounded-md px-3 py-1 text-xs transition-colors cursor-pointer ${
-                                            filterStatus === 'all'
-                                                ? 'bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-2xs font-bold'
-                                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                                        }`}
-                                    >
-                                        Semua ({initialSiswa.length})
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setFilterStatus('belum')}
-                                        className={`rounded-md px-3 py-1 text-xs transition-colors cursor-pointer ${
-                                            filterStatus === 'belum'
-                                                ? 'bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-2xs font-bold'
-                                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                                        }`}
-                                    >
-                                        Belum ({counts.belumDinilai})
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setFilterStatus('dinilai')
-                                        }
-                                        className={`rounded-md px-3 py-1 text-xs transition-colors cursor-pointer ${
-                                            filterStatus === 'dinilai'
-                                                ? 'bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-2xs font-bold'
-                                                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                                        }`}
-                                    >
-                                        Dinilai ({counts.dinilai})
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Live Search Input */}
-                            <div className="relative w-full sm:w-64">
-                                <label
-                                    htmlFor="search-student"
-                                    className="sr-only"
-                                >
-                                    Cari siswa
-                                </label>
-                                <Search
-                                    className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
-                                    aria-hidden="true"
-                                />
-                                <input
-                                    id="search-student"
-                                    type="search"
-                                    maxLength={100}
-                                    autoComplete="off"
-                                    value={searchQuery}
-                                    onChange={(e) =>
-                                        setSearchQuery(e.target.value)
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setFilterStatus('dinilai')
                                     }
-                                    placeholder="Cari nama siswa…"
-                                    className="h-10 sm:h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-8 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
-                                />
-                                {searchQuery && (
-                                    <button
-                                        type="button"
-                                        onClick={() => setSearchQuery('')}
-                                        aria-label="Hapus kata kunci pencarian"
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20"
-                                    >
-                                        <X
-                                            className="size-4"
-                                            aria-hidden="true"
-                                        />
-                                    </button>
-                                )}
+                                    className={`rounded-md px-3 py-1 text-xs transition-colors cursor-pointer ${
+                                        filterStatus === 'dinilai'
+                                            ? 'bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-2xs font-bold'
+                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                                    }`}
+                                >
+                                    Dinilai ({counts.dinilai})
+                                </button>
                             </div>
                         </div>
 
-                        {/* Table Spreadsheet */}
+                        {/* Live Search Input */}
+                        <div className="relative w-full sm:w-64">
+                            <label
+                                htmlFor="search-student"
+                                className="sr-only"
+                            >
+                                Cari siswa
+                            </label>
+                            <Search
+                                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
+                                aria-hidden="true"
+                            />
+                            <input
+                                id="search-student"
+                                type="search"
+                                maxLength={100}
+                                autoComplete="off"
+                                value={searchQuery}
+                                onChange={(e) =>
+                                    setSearchQuery(e.target.value)
+                                }
+                                placeholder="Cari nama siswa…"
+                                className="h-10 sm:h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-8 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                            />
+                            {searchQuery && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchQuery('')}
+                                    aria-label="Hapus kata kunci pencarian"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20"
+                                >
+                                    <X
+                                        className="size-4"
+                                        aria-hidden="true"
+                                    />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Table Spreadsheet Container (Separated) */}
+                    <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
                         <div
                             tabIndex={0}
                             role="region"
@@ -787,177 +700,86 @@ export function PenilaianForm({
                                 </tbody>
                             </table>
                         </div>
-
-                        {/* Integrated Form Footer (Matching attendance-table.tsx) */}
-                        <div className="flex flex-col gap-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-4 sm:flex-row sm:items-center sm:justify-between">
-                            <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                                {counts.belumDinilai > 0 ? (
-                                    <span className="text-amber-600 dark:text-amber-400 font-semibold">
-                                        {t('studentsUngradedCount', {
-                                            count: counts.belumDinilai,
-                                            total: initialSiswa.length,
-                                        })}
-                                    </span>
-                                ) : (
-                                    <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
-                                        {t('allStudentsGraded', {
-                                            total: initialSiswa.length,
-                                        })}
-                                    </span>
-                                )}
-                                <span className="mx-2 text-slate-300 dark:text-slate-600 hidden sm:inline">
-                                    ·
-                                </span>
-                                <span className="text-slate-500 dark:text-slate-400 block sm:inline mt-0.5 sm:mt-0">
-                                    {t('gradedSummary', {
-                                        count: counts.dinilai,
-                                    })}
-                                    {counts.averageScore !== null
-                                        ? counts.averageScore
-                                        : '—'}{' '}
-                                    · Absen: {counts.tidakIkut}
-                                </span>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                <button
-                                    type="button"
-                                    disabled={isPending}
-                                    onClick={() => handleSubmit('simpan_draf')}
-                                    className="inline-flex min-h-10 w-full sm:w-auto items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer disabled:opacity-50"
-                                >
-                                    {isPending ? (
-                                        <span className="inline-flex items-center gap-2">
-                                            <Loader2 className="size-4 animate-spin" />
-                                            <span>Menyimpan...</span>
-                                        </span>
-                                    ) : (
-                                        <span>{t('saveDraft')}</span>
-                                    )}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    disabled={isPending}
-                                    onClick={() => handleSubmit('terbitkan')}
-                                    className="inline-flex min-h-10 w-full sm:w-auto items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                                >
-                                    {isPending ? (
-                                        <span className="inline-flex items-center gap-2">
-                                            <Loader2 className="size-4 animate-spin" />
-                                            <span>Menyimpan...</span>
-                                        </span>
-                                    ) : (
-                                        <span>
-                                            {isDraf
-                                                ? t('publishToParents')
-                                                : t('saveChanges')}
-                                        </span>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
                     </div>
 
-                    {/* Sticky Floating Action Bar (Matching AttendanceStickyBar) */}
-                    <div className="sticky bottom-4 z-30 mt-6 transition-all">
-                        <div className="mx-auto rounded-lg border border-slate-200/90 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 p-4 shadow-lg backdrop-blur-md">
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                {/* Real-time Status Counts */}
-                                <div className="flex flex-wrap items-center gap-2 text-xs font-medium">
-                                    <span className="inline-flex items-center gap-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-3 py-1 text-emerald-700 dark:text-emerald-300">
-                                        <span
-                                            className="size-2 rounded-full bg-emerald-500"
-                                            aria-hidden="true"
-                                        />
-                                        Dinilai:{' '}
-                                        <span className="font-bold tabular-nums">
-                                            {counts.dinilai}
-                                        </span>
+                    {/* Standalone Action & Summary Footer (Separated from Table) */}
+                    <div className="flex flex-col gap-3 py-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
+                            {counts.belumDinilai > 0 ? (
+                                <span className="text-amber-600 dark:text-amber-400 font-semibold">
+                                    {t('studentsUngradedCount', {
+                                        count: counts.belumDinilai,
+                                        total: initialSiswa.length,
+                                    })}
+                                </span>
+                            ) : (
+                                <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
+                                    {t('allStudentsGraded', {
+                                        total: initialSiswa.length,
+                                    })}
+                                </span>
+                            )}
+                            <span className="mx-2 text-slate-300 dark:text-slate-600 hidden sm:inline">
+                                ·
+                            </span>
+                            <span className="text-slate-500 dark:text-slate-400 block sm:inline mt-0.5 sm:mt-0">
+                                {t('gradedSummary', {
+                                    count: counts.dinilai,
+                                })}
+                                {counts.averageScore !== null
+                                    ? counts.averageScore
+                                    : '—'}{' '}
+                                · Absen: {counts.tidakIkut}
+                            </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3">
+                            {!isDraf && penilaianId ? (
+                                <button
+                                    type="button"
+                                    disabled={isPending}
+                                    onClick={handleWithdraw}
+                                    className="inline-flex min-h-10 w-full sm:w-auto items-center justify-center rounded-lg border border-amber-300 dark:border-amber-800 px-4 py-2 text-xs sm:text-sm font-semibold text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors disabled:opacity-50 cursor-pointer"
+                                >
+                                    {t('withdrawToDraft')}
+                                </button>
+                            ) : null}
+
+                            <button
+                                type="button"
+                                disabled={isPending}
+                                onClick={() => handleSubmit('simpan_draf')}
+                                className="inline-flex min-h-10 w-full sm:w-auto items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer disabled:opacity-50"
+                            >
+                                {isPending ? (
+                                    <span className="inline-flex items-center gap-2">
+                                        <Loader2 className="size-4 animate-spin" />
+                                        <span>Menyimpan...</span>
                                     </span>
-                                    <span className="inline-flex items-center gap-2 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-3 py-1 text-amber-700 dark:text-amber-300">
-                                        <span
-                                            className="size-2 rounded-full bg-amber-500"
-                                            aria-hidden="true"
-                                        />
-                                        Belum Dinilai:{' '}
-                                        <span className="font-bold tabular-nums">
-                                            {counts.belumDinilai}
-                                        </span>
+                                ) : (
+                                    <span>{t('saveDraft')}</span>
+                                )}
+                            </button>
+
+                            <button
+                                type="button"
+                                disabled={isPending}
+                                onClick={() => handleSubmit('terbitkan')}
+                                className="inline-flex min-h-10 w-full sm:w-auto items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+                            >
+                                {isPending ? (
+                                    <span className="inline-flex items-center gap-2">
+                                        <Loader2 className="size-4 animate-spin" />
+                                        <span>Menyimpan...</span>
                                     </span>
-                                    {counts.tidakIkut > 0 && (
-                                        <span className="inline-flex items-center gap-2 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 px-3 py-1 text-rose-700 dark:text-rose-300">
-                                            <span
-                                                className="size-2 rounded-full bg-rose-500"
-                                                aria-hidden="true"
-                                            />
-                                            Absen:{' '}
-                                            <span className="font-bold tabular-nums">
-                                                {counts.tidakIkut}
-                                            </span>
-                                        </span>
-                                    )}
-                                    <span className="hidden sm:inline-flex items-center rounded-md border border-slate-200 dark:border-slate-700 px-2 py-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                                ) : (
+                                    <span>
                                         {isDraf
-                                            ? 'Status: Draf'
-                                            : 'Status: Diterbitkan'}
+                                            ? t('publishToParents')
+                                            : t('saveChanges')}
                                     </span>
-                                </div>
-
-                                {/* Action Buttons */}
-                                <div className="flex flex-wrap items-center justify-end gap-3">
-                                    {!isDraf && penilaianId ? (
-                                        <button
-                                            type="button"
-                                            disabled={isPending}
-                                            onClick={handleWithdraw}
-                                            className="inline-flex min-h-10 items-center justify-center rounded-lg border border-amber-300 dark:border-amber-800 px-4 py-2 text-xs sm:text-sm font-semibold text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 transition-colors disabled:opacity-50 cursor-pointer"
-                                        >
-                                            {t('withdrawToDraft')}
-                                        </button>
-                                    ) : null}
-
-                                    <button
-                                        type="button"
-                                        disabled={isPending}
-                                        onClick={() =>
-                                            handleSubmit('simpan_draf')
-                                        }
-                                        className="inline-flex min-h-10 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer disabled:opacity-50"
-                                    >
-                                        {isPending ? (
-                                            <span className="inline-flex items-center gap-2">
-                                                <Loader2 className="size-4 animate-spin" />
-                                                <span>Menyimpan...</span>
-                                            </span>
-                                        ) : (
-                                            <span>{t('saveDraft')}</span>
-                                        )}
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        disabled={isPending}
-                                        onClick={() =>
-                                            handleSubmit('terbitkan')
-                                        }
-                                        className="inline-flex min-h-10 items-center justify-center rounded-lg bg-blue-600 hover:bg-blue-700 px-5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors cursor-pointer disabled:opacity-50"
-                                    >
-                                        {isPending ? (
-                                            <span className="inline-flex items-center gap-2">
-                                                <Loader2 className="size-4 animate-spin" />
-                                                <span>Menyimpan...</span>
-                                            </span>
-                                        ) : (
-                                            <span>
-                                                {isDraf
-                                                    ? t('publishToParents')
-                                                    : t('saveChanges')}
-                                            </span>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </section>
