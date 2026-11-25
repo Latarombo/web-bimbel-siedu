@@ -4,7 +4,8 @@ import { useState, useMemo } from "react";
 import { Link } from "@/i18n/navigation";
 import { UnderlineTabs } from "@/components/ui/underline-tabs";
 import { FilterDropdown } from "@/components/ui/filter-dropdown";
-import { Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { TablePagination } from "@/components/ui/table-pagination";
+import { Search, X } from "lucide-react";
 import { useSetTeacherHeaderAction } from "@/components/teacher/teacher-header-action-context";
 
 export interface StudentAttendanceRow {
@@ -432,35 +433,14 @@ export function TeacherAttendanceOverview({
               </div>
 
               {/* Pagination */}
-              {totalStudentPages > 1 ? (
-                <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 px-4 py-3">
-                  <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
-                    Halaman {studentPage} dari {totalStudentPages}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      disabled={studentPage <= 1}
-                      onClick={() => setStudentPage((p) => Math.max(1, p - 1))}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-transparent transition-colors cursor-pointer"
-                      aria-label="Halaman Sebelumnya"
-                    >
-                      <ChevronLeft className="size-4" />
-                      <span className="hidden sm:inline">Sebelumnya</span>
-                    </button>
-                    <button
-                      type="button"
-                      disabled={studentPage >= totalStudentPages}
-                      onClick={() => setStudentPage((p) => Math.min(totalStudentPages, p + 1))}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-transparent transition-colors cursor-pointer"
-                      aria-label="Halaman Berikutnya"
-                    >
-                      <span className="hidden sm:inline">Berikutnya</span>
-                      <ChevronRight className="size-4" />
-                    </button>
-                  </div>
-                </div>
-              ) : null}
+              <TablePagination
+                currentPage={studentPage}
+                totalPages={totalStudentPages}
+                totalItems={filteredStudents.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                itemLabel="murid"
+                onPageChange={setStudentPage}
+              />
             </div>
           )}
         </div>
@@ -636,35 +616,14 @@ export function TeacherAttendanceOverview({
               </div>
 
               {/* Pagination */}
-              {totalSessionPages > 1 ? (
-                <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-800 px-4 py-3">
-                  <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
-                    Halaman {sessionPage} dari {totalSessionPages}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      disabled={sessionPage <= 1}
-                      onClick={() => setSessionPage((p) => Math.max(1, p - 1))}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-transparent transition-colors cursor-pointer"
-                      aria-label="Halaman Sebelumnya"
-                    >
-                      <ChevronLeft className="size-4" />
-                      <span className="hidden sm:inline">Sebelumnya</span>
-                    </button>
-                    <button
-                      type="button"
-                      disabled={sessionPage >= totalSessionPages}
-                      onClick={() => setSessionPage((p) => Math.min(totalSessionPages, p + 1))}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-transparent transition-colors cursor-pointer"
-                      aria-label="Halaman Berikutnya"
-                    >
-                      <span className="hidden sm:inline">Berikutnya</span>
-                      <ChevronRight className="size-4" />
-                    </button>
-                  </div>
-                </div>
-              ) : null}
+              <TablePagination
+                currentPage={sessionPage}
+                totalPages={totalSessionPages}
+                totalItems={filteredSessions.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                itemLabel="sesi"
+                onPageChange={setSessionPage}
+              />
             </div>
           )}
         </div>

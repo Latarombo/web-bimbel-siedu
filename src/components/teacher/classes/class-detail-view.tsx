@@ -6,8 +6,6 @@ import { hapusPenilaian } from "@/app/actions/teacher";
 import { useSetTeacherHeaderAction } from "@/components/teacher/teacher-header-action-context";
 import {
   Search,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   Pencil,
   Clock,
@@ -32,6 +30,7 @@ import { WhatsappStoryCreatorModal } from "@/components/teacher/whatsapp-story-c
 import { compressImageFile } from "@/lib/image-compress";
 import { UnderlineTabs } from "@/components/ui/underline-tabs";
 import { FilterDropdown } from "@/components/ui/filter-dropdown";
+import { TablePagination } from "@/components/ui/table-pagination";
 import {
   TeacherCalendarView,
   type TeacherCalendarSessionItem,
@@ -913,45 +912,14 @@ export function ClassDetailView({
               </div>
 
               {/* Pagination Bar */}
-              {totalPages > 1 && (
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} -{" "}
-                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredStudents.length)}{" "}
-                    dari {filteredStudents.length} siswa
-                  </p>
-
-                  <div className="inline-flex items-center gap-1">
-                    <button
-                      type="button"
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
-                      aria-label="Halaman Siswa Sebelumnya"
-                    >
-                      <ChevronLeft className="size-4" />
-                      <span>Sebelumnya</span>
-                    </button>
-
-                    <span className="px-2 text-xs font-medium text-slate-600 dark:text-slate-400 tabular-nums">
-                      Halaman {currentPage} dari {totalPages}
-                    </span>
-
-                    <button
-                      type="button"
-                      disabled={currentPage === totalPages}
-                      onClick={() =>
-                        setCurrentPage((p) => Math.min(totalPages, p + 1))
-                      }
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
-                      aria-label="Halaman Siswa Berikutnya"
-                    >
-                      <span>Berikutnya</span>
-                      <ChevronRight className="size-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
+              <TablePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={filteredStudents.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                itemLabel="siswa"
+                onPageChange={setCurrentPage}
+              />
             </div>
           )}
         </div>
@@ -1337,50 +1305,14 @@ export function ClassDetailView({
               </div>
 
               {/* Pagination Bar */}
-              {totalAttendancePages > 1 && (
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Menampilkan {(currentAttendancePage - 1) * ITEMS_PER_PAGE + 1} -{" "}
-                    {Math.min(
-                      currentAttendancePage * ITEMS_PER_PAGE,
-                      filteredAttendanceSessions.length,
-                    )}{" "}
-                    dari {filteredAttendanceSessions.length} sesi pertemuan
-                  </p>
-
-                  <div className="inline-flex items-center gap-1">
-                    <button
-                      type="button"
-                      disabled={currentAttendancePage === 1}
-                      onClick={() => setAttendancePage((p) => Math.max(1, p - 1))}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
-                      aria-label="Halaman Presensi Sebelumnya"
-                    >
-                      <ChevronLeft className="size-4" />
-                      <span>Sebelumnya</span>
-                    </button>
-
-                    <span className="px-2 text-xs font-medium text-slate-600 dark:text-slate-400 tabular-nums">
-                      Halaman {currentAttendancePage} dari {totalAttendancePages}
-                    </span>
-
-                    <button
-                      type="button"
-                      disabled={currentAttendancePage === totalAttendancePages}
-                      onClick={() =>
-                        setAttendancePage((p) =>
-                          Math.min(totalAttendancePages, p + 1),
-                        )
-                      }
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
-                      aria-label="Halaman Presensi Berikutnya"
-                    >
-                      <span>Berikutnya</span>
-                      <ChevronRight className="size-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
+              <TablePagination
+                currentPage={currentAttendancePage}
+                totalPages={totalAttendancePages}
+                totalItems={filteredAttendanceSessions.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                itemLabel="sesi pertemuan"
+                onPageChange={setAttendancePage}
+              />
             </div>
           )}
         </div>
@@ -1786,50 +1718,14 @@ export function ClassDetailView({
               </div>
 
               {/* Pagination Bar */}
-              {totalAssessmentPages > 1 && (
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50">
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Menampilkan {(currentAssessmentPage - 1) * ITEMS_PER_PAGE + 1} -{" "}
-                    {Math.min(
-                      currentAssessmentPage * ITEMS_PER_PAGE,
-                      filteredAssessments.length,
-                    )}{" "}
-                    dari {filteredAssessments.length} tugas
-                  </p>
-
-                  <div className="inline-flex items-center gap-1">
-                    <button
-                      type="button"
-                      disabled={currentAssessmentPage === 1}
-                      onClick={() => setAssessmentPage((p) => Math.max(1, p - 1))}
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer transition-colors"
-                      aria-label="Halaman Tugas Sebelumnya"
-                    >
-                      <ChevronLeft className="size-4" />
-                      <span>Sebelumnya</span>
-                    </button>
-
-                    <span className="px-2 text-xs font-medium text-slate-600 dark:text-slate-400 tabular-nums">
-                      Halaman {currentAssessmentPage} dari {totalAssessmentPages}
-                    </span>
-
-                    <button
-                      type="button"
-                      disabled={currentAssessmentPage === totalAssessmentPages}
-                      onClick={() =>
-                        setAssessmentPage((p) =>
-                          Math.min(totalAssessmentPages, p + 1),
-                        )
-                      }
-                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer transition-colors"
-                      aria-label="Halaman Tugas Berikutnya"
-                    >
-                      <span>Berikutnya</span>
-                      <ChevronRight className="size-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
+              <TablePagination
+                currentPage={currentAssessmentPage}
+                totalPages={totalAssessmentPages}
+                totalItems={filteredAssessments.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                itemLabel="tugas"
+                onPageChange={setAssessmentPage}
+              />
             </div>
           )}
         </div>

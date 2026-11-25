@@ -8,12 +8,11 @@ import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import {
   Search,
   FileEdit,
-  ChevronLeft,
-  ChevronRight,
   BookOpen,
   X,
 } from "lucide-react";
 import { UnderlineTabs } from "@/components/ui/underline-tabs";
+import { TablePagination } from "@/components/ui/table-pagination";
 
 export interface AssessmentItem {
   id: number;
@@ -505,43 +504,14 @@ export function TeacherGradesView({
             </div>
 
             {/* Table Pagination Footer */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 px-4 py-3 sm:px-6 text-xs text-slate-600 dark:text-slate-400">
-              <div>
-                Menampilkan{" "}
-                <span className="font-semibold text-slate-950 dark:text-slate-100">
-                  {filteredAssessments.length > 0 ? (assessmentPage - 1) * ITEMS_PER_PAGE + 1 : 0}
-                </span>{" "}
-                sampai{" "}
-                <span className="font-semibold text-slate-950 dark:text-slate-100">
-                  {Math.min(assessmentPage * ITEMS_PER_PAGE, filteredAssessments.length)}
-                </span>{" "}
-                dari <span className="font-semibold text-slate-950 dark:text-slate-100">{filteredAssessments.length}</span> asesmen
-              </div>
-
-              <div className="inline-flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={assessmentPage <= 1}
-                  onClick={() => setAssessmentPage((p) => Math.max(p - 1, 1))}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
-                >
-                  <ChevronLeft className="size-4" />
-                  <span>Sebelumnya</span>
-                </button>
-                <span className="px-2 font-medium text-slate-800 dark:text-slate-200">
-                  {assessmentPage} / {totalAssessmentPages}
-                </span>
-                <button
-                  type="button"
-                  disabled={assessmentPage >= totalAssessmentPages}
-                  onClick={() => setAssessmentPage((p) => Math.min(p + 1, totalAssessmentPages))}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
-                >
-                  <span>Berikutnya</span>
-                  <ChevronRight className="size-4" />
-                </button>
-              </div>
-            </div>
+            <TablePagination
+              currentPage={assessmentPage}
+              totalPages={totalAssessmentPages}
+              totalItems={filteredAssessments.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+              itemLabel="asesmen"
+              onPageChange={setAssessmentPage}
+            />
           </div>
         </div>
       )}
@@ -792,43 +762,14 @@ export function TeacherGradesView({
             </div>
 
             {/* Table Pagination Footer */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60 px-4 py-3 sm:px-6 text-xs text-slate-600 dark:text-slate-400">
-              <div>
-                Menampilkan{" "}
-                <span className="font-semibold text-slate-950 dark:text-slate-100">
-                  {filteredStudents.length > 0 ? (studentPage - 1) * ITEMS_PER_PAGE + 1 : 0}
-                </span>{" "}
-                sampai{" "}
-                <span className="font-semibold text-slate-950 dark:text-slate-100">
-                  {Math.min(studentPage * ITEMS_PER_PAGE, filteredStudents.length)}
-                </span>{" "}
-                dari <span className="font-semibold text-slate-950 dark:text-slate-100">{filteredStudents.length}</span> siswa
-              </div>
-
-              <div className="inline-flex items-center gap-2">
-                <button
-                  type="button"
-                  disabled={studentPage <= 1}
-                  onClick={() => setStudentPage((p) => Math.max(p - 1, 1))}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
-                >
-                  <ChevronLeft className="size-4" />
-                  <span>Sebelumnya</span>
-                </button>
-                <span className="px-2 font-medium text-slate-800 dark:text-slate-200">
-                  {studentPage} / {totalStudentPages}
-                </span>
-                <button
-                  type="button"
-                  disabled={studentPage >= totalStudentPages}
-                  onClick={() => setStudentPage((p) => Math.min(p + 1, totalStudentPages))}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
-                >
-                  <span>Berikutnya</span>
-                  <ChevronRight className="size-4" />
-                </button>
-              </div>
-            </div>
+            <TablePagination
+              currentPage={studentPage}
+              totalPages={totalStudentPages}
+              totalItems={filteredStudents.length}
+              itemsPerPage={ITEMS_PER_PAGE}
+              itemLabel="siswa"
+              onPageChange={setStudentPage}
+            />
           </div>
         </div>
       )}
