@@ -20,6 +20,7 @@ export interface UnderlineTabsProps<T extends string = string> {
   className?: string;
   navClassName?: string;
   tabClassName?: string;
+  indicatorClassName?: string;
 }
 
 export function UnderlineTabs<T extends string = string>({
@@ -31,6 +32,7 @@ export function UnderlineTabs<T extends string = string>({
   className = "",
   navClassName = "",
   tabClassName = "",
+  indicatorClassName = "",
 }: UnderlineTabsProps<T>) {
   const autoId = useId();
   const groupId = layoutId ?? `underline-tabs-${autoId}`;
@@ -81,7 +83,7 @@ export function UnderlineTabs<T extends string = string>({
                 {isActive && (
                   <motion.div
                     layoutId={`${groupId}-active-indicator`}
-                    className="absolute -bottom-px left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 z-10 rounded-full"
+                    className={`absolute -bottom-px left-0 right-0 h-[3px] bg-blue-600 dark:bg-blue-400 z-10 rounded-full ${indicatorClassName}`}
                     transition={
                       shouldReduceMotion
                         ? { duration: 0 }

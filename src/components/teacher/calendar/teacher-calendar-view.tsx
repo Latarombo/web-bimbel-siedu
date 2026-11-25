@@ -8,7 +8,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { FilterDropdown } from '@/components/ui/filter-dropdown';
-import { CalendarSessionDrawer } from './calendar-session-drawer';
+import { Link } from '@/i18n/navigation';
 
 export interface CalendarTugasItem {
   id: number;
@@ -165,9 +165,6 @@ export function TeacherCalendarView({
 
   // Mobile selected day in weekly view
   const [mobileSelectedDate, setMobileSelectedDate] = useState<string>(todayStr);
-
-  // Drawer state for selected session
-  const [selectedSession, setSelectedSession] = useState<TeacherCalendarSessionItem | null>(null);
 
   const anchorDate = useMemo(() => parseDate(anchorDateStr), [anchorDateStr]);
 
@@ -605,27 +602,40 @@ export function TeacherCalendarView({
                   {dailySessions.map((session) => {
                     const theme = CLASSROOM_THEMES[session.jenjang] ?? DEFAULT_CLASSROOM_THEME;
                     const isCancelled = session.statusSesi === 'dibatalkan';
+                    const sessionUrl = `/teacher/classes/${session.kelasId}/sessions/${session.tanggalPertemuan}/attendance?sesi=${session.jadwalItemId}`;
 
-                    return (
-                      <div
-                        key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
-                        onClick={() => setSelectedSession(session)}
-                        className={`group relative flex items-center justify-between gap-3 px-4 py-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-l-4 ${theme.cardBorder} ${
-                          isCancelled ? 'opacity-70 line-through' : ''
-                        }`}
-                      >
-                        {/* Time + Full Class Display Name */}
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400 shrink-0">
-                            {session.jamMulai} – {session.jamSelesai}
-                          </span>
-                          <div className="min-w-0">
-                            <p className="font-display text-sm font-bold text-slate-950 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
-                              {session.kelasDisplayName}
-                            </p>
-                          </div>
+                    const content = (
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400 shrink-0">
+                          {session.jamMulai} – {session.jamSelesai}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="font-display text-sm font-bold text-slate-950 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                            {session.kelasDisplayName}
+                          </p>
                         </div>
                       </div>
+                    );
+
+                    if (isCancelled) {
+                      return (
+                        <div
+                          key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
+                          className={`group relative flex items-center justify-between gap-3 px-4 py-3.5 border-l-4 ${theme.cardBorder} opacity-60 line-through cursor-not-allowed`}
+                        >
+                          {content}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <Link
+                        key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
+                        href={sessionUrl}
+                        className={`group relative flex items-center justify-between gap-3 px-4 py-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-l-4 ${theme.cardBorder}`}
+                      >
+                        {content}
+                      </Link>
                     );
                   })}
                 </div>
@@ -673,22 +683,38 @@ export function TeacherCalendarView({
                         const solidColor =
                           CLASSROOM_SOLID_COLORS[session.jenjang] ?? DEFAULT_SOLID_COLOR;
                         const isCancelled = session.statusSesi === 'dibatalkan';
+                        const sessionUrl = `/teacher/classes/${session.kelasId}/sessions/${session.tanggalPertemuan}/attendance?sesi=${session.jadwalItemId}`;
 
-                        return (
-                          <div
-                            key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
-                            onClick={() => setSelectedSession(session)}
-                            className={`w-full rounded-md p-2.5 text-left text-white shadow-2xs transition-all duration-150 cursor-pointer hover:brightness-105 active:scale-[0.98] ${solidColor} ${
-                              isCancelled ? 'opacity-60 line-through' : ''
-                            }`}
-                          >
+                        const cardInner = (
+                          <>
                             <h4 className="font-display text-xs font-semibold text-white leading-tight line-clamp-2">
                               {session.kelasDisplayName}
                             </h4>
                             <p className="mt-1 text-[11px] font-medium text-white/90 tabular-nums">
                               {session.jamMulai} – {session.jamSelesai}
                             </p>
-                          </div>
+                          </>
+                        );
+
+                        if (isCancelled) {
+                          return (
+                            <div
+                              key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
+                              className={`w-full rounded-md p-2.5 text-left text-white shadow-2xs opacity-60 line-through cursor-not-allowed ${solidColor}`}
+                            >
+                              {cardInner}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <Link
+                            key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
+                            href={sessionUrl}
+                            className={`block w-full rounded-md p-2.5 text-left text-white shadow-2xs transition-all duration-150 cursor-pointer hover:brightness-105 active:scale-[0.98] ${solidColor}`}
+                          >
+                            {cardInner}
+                          </Link>
                         );
                       })}
                     </div>
@@ -754,17 +780,37 @@ export function TeacherCalendarView({
                       {daySessions.slice(0, 2).map((s) => {
                         const solidColor =
                           CLASSROOM_SOLID_COLORS[s.jenjang] ?? DEFAULT_SOLID_COLOR;
+                        const isCancelled = s.statusSesi === 'dibatalkan';
+                        const sessionUrl = `/teacher/classes/${s.kelasId}/sessions/${s.tanggalPertemuan}/attendance?sesi=${s.jadwalItemId}`;
+
+                        const chipInner = (
+                          <>
+                            <span className="tabular-nums font-bold shrink-0">{s.jamMulai}</span>
+                            <span className="truncate">{s.kelasDisplayName}</span>
+                          </>
+                        );
+
+                        if (isCancelled) {
+                          return (
+                            <div
+                              key={`${s.jadwalItemId}-${s.tanggalPertemuan}`}
+                              title={`${s.jamMulai} ${s.kelasDisplayName} (Dibatalkan)`}
+                              className={`hidden sm:flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-semibold truncate opacity-60 line-through cursor-not-allowed text-white shadow-2xs ${solidColor}`}
+                            >
+                              {chipInner}
+                            </div>
+                          );
+                        }
 
                         return (
-                          <div
+                          <Link
                             key={`${s.jadwalItemId}-${s.tanggalPertemuan}`}
-                            onClick={() => setSelectedSession(s)}
+                            href={sessionUrl}
                             title={`${s.jamMulai} ${s.kelasDisplayName}`}
                             className={`hidden sm:flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-semibold truncate cursor-pointer hover:brightness-105 active:scale-[0.98] transition-all text-white shadow-2xs ${solidColor}`}
                           >
-                            <span className="tabular-nums font-bold shrink-0">{s.jamMulai}</span>
-                            <span className="truncate">{s.kelasDisplayName}</span>
-                          </div>
+                            {chipInner}
+                          </Link>
                         );
                       })}
 
@@ -849,15 +895,10 @@ export function TeacherCalendarView({
                           const isCancelled = session.statusSesi === 'dibatalkan';
                           const isFilled = session.presensiCount > 0;
                           const hasTasks = session.tugasList.length > 0;
+                          const sessionUrl = `/teacher/classes/${session.kelasId}/sessions/${session.tanggalPertemuan}/attendance?sesi=${session.jadwalItemId}`;
 
-                          return (
-                            <div
-                              key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
-                              onClick={() => setSelectedSession(session)}
-                              className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-l-4 ${theme.cardBorder} ${
-                                isCancelled ? 'opacity-70' : ''
-                              }`}
-                            >
+                          const rowContent = (
+                            <>
                               {/* Left: Time + Full Class Display Name (No Pill) */}
                               <div className="flex items-center gap-3 min-w-0">
                                 <span className="text-xs font-semibold tabular-nums text-slate-500 dark:text-slate-400 shrink-0">
@@ -884,11 +925,34 @@ export function TeacherCalendarView({
                                     ? `${session.presensiCount}/${session.pesertaCount} hadir`
                                     : 'Belum presensi'}
                                 </span>
-                                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">
-                                  Rincian Sesi →
-                                </span>
+                                {!isCancelled && (
+                                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform">
+                                    Buka Sesi →
+                                  </span>
+                                )}
                               </div>
-                            </div>
+                            </>
+                          );
+
+                          if (isCancelled) {
+                            return (
+                              <div
+                                key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
+                                className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3.5 border-l-4 ${theme.cardBorder} opacity-60 line-through cursor-not-allowed`}
+                              >
+                                {rowContent}
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <Link
+                              key={`${session.jadwalItemId}-${session.tanggalPertemuan}`}
+                              href={sessionUrl}
+                              className={`group relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3.5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-l-4 ${theme.cardBorder}`}
+                            >
+                              {rowContent}
+                            </Link>
                           );
                         })}
                       </div>
@@ -900,16 +964,6 @@ export function TeacherCalendarView({
           </div>
         )}
       </div>
-
-      {/* ========================================================= */}
-      {/* 5. SLIDE-OVER SESSION DETAIL DRAWER                       */}
-      {/* ========================================================= */}
-      <CalendarSessionDrawer
-        isOpen={selectedSession !== null}
-        onClose={() => setSelectedSession(null)}
-        session={selectedSession}
-        locale={locale}
-      />
     </>
   );
 }

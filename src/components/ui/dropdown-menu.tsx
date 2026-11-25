@@ -11,7 +11,12 @@ const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 const DropdownMenuPortal = DropdownMenuPrimitive.Portal;
 const DropdownMenuSub = DropdownMenuPrimitive.Sub;
-const DropdownMenuRadioGroup = DropdownMenuPrimitive.RadioGroup;
+
+function DropdownMenuRadioGroup(
+  props: React.ComponentProps<typeof DropdownMenuPrimitive.RadioGroup>
+) {
+  return <DropdownMenuPrimitive.RadioGroup data-lenis-prevent {...props} />;
+}
 
 function DropdownMenuSubTrigger({
   className,
@@ -44,8 +49,9 @@ function DropdownMenuSubContent({
   return (
     <DropdownMenuPrimitive.SubContent
       data-slot="dropdown-menu-sub-content"
+      data-lenis-prevent
       className={cn(
-        "z-50 min-w-[8rem] overflow-hidden rounded-2xl border border-slate-100 bg-white p-1.5 text-slate-800 shadow-xl ring-1 ring-slate-900/5 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        "z-50 min-w-[8rem] max-h-[var(--radix-dropdown-menu-content-available-height,calc(100dvh-2rem))] overflow-y-auto overscroll-contain rounded-2xl border border-slate-100 bg-white p-1.5 text-slate-800 shadow-xl ring-1 ring-slate-900/5 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         className
       )}
       {...props}
@@ -74,9 +80,10 @@ function DropdownMenuContent({
   const content = (
     <DropdownMenuPrimitive.Content
       data-slot="dropdown-menu-content"
+      data-lenis-prevent
       sideOffset={sideOffset}
       className={cn(
-        "z-50 min-w-[11rem] overflow-hidden rounded-2xl border border-slate-100 bg-white p-1.5 text-slate-800 shadow-xl ring-1 ring-slate-900/5 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+        "z-50 min-w-[11rem] max-h-[var(--radix-dropdown-menu-content-available-height,calc(100dvh-2rem))] overflow-y-auto overscroll-contain rounded-2xl border border-slate-100 bg-white p-1.5 text-slate-800 shadow-xl ring-1 ring-slate-900/5 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
         className
       )}
       {...props}

@@ -267,7 +267,7 @@ export default async function AdminClassDetail({
                     label="Tab Navigasi Detail Kelas"
                     tabs={[
                         {
-                            label: `Roster Siswa`,
+                            label: `Daftar Siswa`,
                             href: `/admin/classes/${kelas.id}?tab=roster`,
                             count: pendaftaranAll.length,
                             aktif: tab === 'roster',

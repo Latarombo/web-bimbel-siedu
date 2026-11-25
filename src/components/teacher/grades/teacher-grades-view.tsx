@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   BookOpen,
+  X,
 } from "lucide-react";
 import { UnderlineTabs } from "@/components/ui/underline-tabs";
 
@@ -265,8 +266,21 @@ export function TeacherGradesView({
                     setAssessmentSearch(e.target.value);
                     setAssessmentPage(1);
                   }}
-                  className="h-10 sm:h-9 w-48 sm:w-64 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 pl-9 pr-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                  className="h-10 sm:h-9 w-48 sm:w-64 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-8 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors shadow-2xs"
                 />
+                {assessmentSearch ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAssessmentSearch("");
+                      setAssessmentPage(1);
+                    }}
+                    aria-label="Hapus filter tugas atau kelas"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    <X className="size-3.5" aria-hidden="true" />
+                  </button>
+                ) : null}
               </div>
 
               {/* Class Filter Dropdown */}
@@ -375,7 +389,7 @@ export function TeacherGradesView({
                             <div className="inline-flex items-center gap-2 opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
                               <Link
                                 href={`/teacher/classes/${a.kelasId}`}
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-950 dark:hover:text-white transition-colors"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 shadow-2xs transition-colors cursor-pointer"
                                 title="Buka Detail Kelas"
                               >
                                 <BookOpen className="size-3.5" aria-hidden="true" />
@@ -384,7 +398,7 @@ export function TeacherGradesView({
 
                               <Link
                                 href={`/teacher/grades/assessment/${a.id}`}
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 hover:border-slate-400 dark:hover:border-slate-600 shadow-2xs transition-colors cursor-pointer"
                                 title="Input Nilai Asesmen"
                               >
                                 <FileEdit className="size-3.5" aria-hidden="true" />
@@ -471,14 +485,14 @@ export function TeacherGradesView({
                       <div className="flex items-center gap-2">
                         <Link
                           href={`/teacher/classes/${a.kelasId}`}
-                          className="flex-1 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs transition-colors"
+                          className="flex-1 h-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors"
                         >
                           <BookOpen className="size-4" aria-hidden="true" />
                           <span>Detail</span>
                         </Link>
                         <Link
                           href={`/teacher/grades/assessment/${a.id}`}
-                          className="flex-1 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                          className="flex-1 h-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 flex items-center justify-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors"
                         >
                           <FileEdit className="size-4" aria-hidden="true" />
                           <span>Input Nilai</span>
@@ -509,7 +523,7 @@ export function TeacherGradesView({
                   type="button"
                   disabled={assessmentPage <= 1}
                   onClick={() => setAssessmentPage((p) => Math.max(p - 1, 1))}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
                 >
                   <ChevronLeft className="size-4" />
                   <span>Sebelumnya</span>
@@ -521,7 +535,7 @@ export function TeacherGradesView({
                   type="button"
                   disabled={assessmentPage >= totalAssessmentPages}
                   onClick={() => setAssessmentPage((p) => Math.min(p + 1, totalAssessmentPages))}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
                 >
                   <span>Berikutnya</span>
                   <ChevronRight className="size-4" />
@@ -565,8 +579,21 @@ export function TeacherGradesView({
                     setStudentSearch(e.target.value);
                     setStudentPage(1);
                   }}
-                  className="h-10 sm:h-9 w-48 sm:w-64 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 pl-9 pr-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                  className="h-10 sm:h-9 w-48 sm:w-64 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-8 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors shadow-2xs"
                 />
+                {studentSearch ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStudentSearch("");
+                      setStudentPage(1);
+                    }}
+                    aria-label="Hapus filter nama siswa atau kelas"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    <X className="size-3.5" aria-hidden="true" />
+                  </button>
+                ) : null}
               </div>
 
               {/* Class Filter Dropdown */}
@@ -678,7 +705,7 @@ export function TeacherGradesView({
                             <div className="flex items-center justify-end opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
                               <Link
                                 href={`/teacher/grades/${s.id}`}
-                                className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors shadow-2xs"
+                                className="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 hover:border-slate-400 dark:hover:border-slate-600 transition-colors shadow-2xs cursor-pointer"
                               >
                                 <span>{s.jumlahNilai === 0 ? "Input Nilai" : "Kelola"}</span>
                               </Link>
@@ -754,7 +781,7 @@ export function TeacherGradesView({
                       {/* Action Button */}
                       <Link
                         href={`/teacher/grades/${s.id}`}
-                        className="w-full h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                        className="w-full h-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 flex items-center justify-center text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors"
                       >
                         <span>{s.jumlahNilai === 0 ? "Input Nilai" : "Kelola"}</span>
                       </Link>
@@ -783,7 +810,7 @@ export function TeacherGradesView({
                   type="button"
                   disabled={studentPage <= 1}
                   onClick={() => setStudentPage((p) => Math.max(p - 1, 1))}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
                 >
                   <ChevronLeft className="size-4" />
                   <span>Sebelumnya</span>
@@ -795,7 +822,7 @@ export function TeacherGradesView({
                   type="button"
                   disabled={studentPage >= totalStudentPages}
                   onClick={() => setStudentPage((p) => Math.min(p + 1, totalStudentPages))}
-                  className="inline-flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:pointer-events-none transition-colors cursor-pointer"
                 >
                   <span>Berikutnya</span>
                   <ChevronRight className="size-4" />

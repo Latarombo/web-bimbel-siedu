@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
-import { Link } from '@/i18n/navigation';
+import { Link, usePathname } from '@/i18n/navigation';
 import { LanguageSwitcher } from '@/components/common/language-switcher';
+import { useTeacherHeaderAction, type HeaderActionType } from './teacher-header-action-context';
 import {
   Bell,
   Menu,
@@ -15,6 +16,9 @@ import {
   Calendar,
   AlertCircle,
   FileCheck,
+  Plus,
+  Camera,
+  ClipboardCheck,
 } from 'lucide-react';
 
 export interface NotificationItem {
@@ -73,6 +77,95 @@ export function TeacherHeader({
   const profileRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
+
+  const { action } = useTeacherHeaderAction();
+  const pathname = usePathname();
+
+  const isClassDetail =
+    pathname.includes('/teacher/classes/') &&
+    !pathname.includes('/reports') &&
+    !pathname.includes('/attendance');
+  const isStatusPage = pathname.includes('/teacher/status');
+  const isAttendancePage =
+    pathname.includes('/teacher/attendance') ||
+    (pathname.includes('/classes/') && pathname.includes('/attendance'));
+
+  let effectiveType: HeaderActionType | null = null;
+  let effectiveLabel = '';
+
+  if (action?.type) {
+    effectiveType = action.type;
+    effectiveLabel = action.label;
+  } else if (isClassDetail) {
+    effectiveType = 'create';
+    effectiveLabel = 'Buat Tugas Baru';
+  } else if (isStatusPage) {
+    effectiveType = 'camera';
+    effectiveLabel = 'Bagikan Status Belajar';
+  } else if (isAttendancePage) {
+    effectiveType = 'attendance';
+    effectiveLabel = 'Isi Presensi';
+  }
+
+  const handleActionClick = () => {
+    if (action?.onClick) {
+      action.onClick();
+      return;
+    }
+    if (effectiveType === 'create') {
+      window.dispatchEvent(new CustomEvent('teacher:create-task'));
+    } else if (effectiveType === 'camera') {
+      window.dispatchEvent(new CustomEvent('teacher:create-status'));
+    } else if (effectiveType === 'attendance') {
+      window.dispatchEvent(new CustomEvent('teacher:attendance-action'));
+    }
+  };
+
+  const renderActionButton = () => {
+    if (!effectiveType) return null;
+
+    const baseClasses =
+      'inline-flex size-9 shrink-0 items-center justify-center rounded-full text-white shadow-xs transition-all duration-150 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-95';
+
+    let iconElement: React.ReactNode = null;
+    let colorClass = '';
+
+    if (effectiveType === 'create') {
+      iconElement = <Plus className="size-4" aria-hidden="true" />;
+      colorClass = 'bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-500';
+    } else if (effectiveType === 'camera') {
+      iconElement = <Camera className="size-4" aria-hidden="true" />;
+      colorClass = 'bg-emerald-600 hover:bg-emerald-700 focus-visible:ring-emerald-500';
+    } else if (effectiveType === 'attendance') {
+      iconElement = <ClipboardCheck className="size-4" aria-hidden="true" />;
+      colorClass = 'bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-500';
+    }
+
+    if (action?.href) {
+      return (
+        <Link
+          href={action.href}
+          className={`${baseClasses} ${colorClass}`}
+          aria-label={effectiveLabel}
+          title={effectiveLabel}
+        >
+          {iconElement}
+        </Link>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={handleActionClick}
+        className={`${baseClasses} ${colorClass}`}
+        aria-label={effectiveLabel}
+        title={effectiveLabel}
+      >
+        {iconElement}
+      </button>
+    );
+  };
 
   const initials = userName
     .split(' ')
@@ -185,11 +278,14 @@ export function TeacherHeader({
         </div>
       </div>
 
-      {/* Sisi Kanan: Switcher Bahasa + Icon Lonceng Notifikasi + Foto Profil Lingkaran */}
+      {/* Sisi Kanan: Action Button Dinamis + Switcher Bahasa + Icon Lonceng Notifikasi + Foto Profil Lingkaran */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {/* Tombol Pengubah Bahasa (ID - EN) */}
+        {/* Dynamic Page Action Button (Create di Kelas, Kamera di Status, Presensi di Presensi) */}
+        {renderActionButton()}
+
+        {/* Tombol Pengubah Bahasa (Icon dropdown) */}
         <div className="flex items-center">
-          <LanguageSwitcher variant="toggle" />
+          <LanguageSwitcher variant="icon" placement="bottom" align="right" />
         </div>
 
         {/* Popover Notifikasi */}

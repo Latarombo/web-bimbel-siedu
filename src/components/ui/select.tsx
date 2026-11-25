@@ -164,6 +164,7 @@ export function Select<T extends string = string>({
 
           {/* Option List */}
           <DropdownMenuRadioGroup
+            data-lenis-prevent
             value={value}
             onValueChange={(val) => onChange(val as T)}
             className="max-h-60 overflow-y-auto overscroll-contain space-y-0.5"

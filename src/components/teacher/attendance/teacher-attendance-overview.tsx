@@ -4,7 +4,8 @@ import { useState, useMemo } from "react";
 import { Link } from "@/i18n/navigation";
 import { UnderlineTabs } from "@/components/ui/underline-tabs";
 import { FilterDropdown } from "@/components/ui/filter-dropdown";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useSetTeacherHeaderAction } from "@/components/teacher/teacher-header-action-context";
 
 export interface StudentAttendanceRow {
   pendaftaranId: number;
@@ -80,6 +81,25 @@ export function TeacherAttendanceOverview({
   const [sessionSearch, setSessionSearch] = useState<string>("");
   const [studentPage, setStudentPage] = useState<number>(1);
   const [sessionPage, setSessionPage] = useState<number>(1);
+
+  const targetAttendanceSession = useMemo(() => {
+    return (
+      sessions.find(
+        (s) => s.statusSesi !== "dibatalkan" && s.terisiCount === 0
+      ) ?? sessions[0]
+    );
+  }, [sessions]);
+
+  useSetTeacherHeaderAction(
+    useMemo(
+      () => ({
+        type: "attendance",
+        label: "Isi Presensi Sesi Terdekat",
+        href: targetAttendanceSession?.attendanceUrl,
+      }),
+      [targetAttendanceSession]
+    )
+  );
 
   // Dropdown options
   const classOptions = useMemo(() => {
@@ -311,8 +331,21 @@ export function TeacherAttendanceOverview({
                     setStudentSearch(e.target.value);
                     setStudentPage(1);
                   }}
-                  className="h-9 w-44 sm:w-56 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 pl-9 pr-3 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                  className="h-9 w-44 sm:w-56 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-8 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors shadow-2xs"
                 />
+                {studentSearch ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStudentSearch("");
+                      setStudentPage(1);
+                    }}
+                    aria-label="Hapus filter murid"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    <X className="size-3.5" aria-hidden="true" />
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>
@@ -404,23 +437,25 @@ export function TeacherAttendanceOverview({
                   <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
                     Halaman {studentPage} dari {totalStudentPages}
                   </span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       disabled={studentPage <= 1}
                       onClick={() => setStudentPage((p) => Math.max(1, p - 1))}
-                      className="rounded p-1 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-transparent transition-colors cursor-pointer"
                       aria-label="Halaman Sebelumnya"
                     >
                       <ChevronLeft className="size-4" />
+                      <span className="hidden sm:inline">Sebelumnya</span>
                     </button>
                     <button
                       type="button"
                       disabled={studentPage >= totalStudentPages}
                       onClick={() => setStudentPage((p) => Math.min(totalStudentPages, p + 1))}
-                      className="rounded p-1 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-transparent transition-colors cursor-pointer"
                       aria-label="Halaman Berikutnya"
                     >
+                      <span className="hidden sm:inline">Berikutnya</span>
                       <ChevronRight className="size-4" />
                     </button>
                   </div>
@@ -479,8 +514,21 @@ export function TeacherAttendanceOverview({
                     setSessionSearch(e.target.value);
                     setSessionPage(1);
                   }}
-                  className="h-9 w-52 sm:w-64 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 pl-9 pr-3 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                  className="h-9 w-52 sm:w-64 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-8 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors shadow-2xs"
                 />
+                {sessionSearch ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSessionSearch("");
+                      setSessionPage(1);
+                    }}
+                    aria-label="Hapus filter sesi"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    <X className="size-3.5" aria-hidden="true" />
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>
@@ -570,10 +618,10 @@ export function TeacherAttendanceOverview({
                             ) : (
                               <Link
                                 href={sess.attendanceUrl}
-                                className={`inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+                                className={`inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer shadow-2xs ${
                                   sess.terisiCount > 0
-                                    ? "border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700"
-                                    : "bg-blue-600 text-white hover:bg-blue-700 shadow-2xs"
+                                    ? "border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600"
+                                    : "bg-blue-600 text-white hover:bg-blue-700"
                                 }`}
                               >
                                 <span>{sess.terisiCount > 0 ? "Edit Presensi" : "Catat Presensi"}</span>
@@ -593,23 +641,25 @@ export function TeacherAttendanceOverview({
                   <span className="text-xs text-slate-600 dark:text-slate-400 tabular-nums">
                     Halaman {sessionPage} dari {totalSessionPages}
                   </span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1.5">
                     <button
                       type="button"
                       disabled={sessionPage <= 1}
                       onClick={() => setSessionPage((p) => Math.max(1, p - 1))}
-                      className="rounded p-1 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-transparent transition-colors cursor-pointer"
                       aria-label="Halaman Sebelumnya"
                     >
                       <ChevronLeft className="size-4" />
+                      <span className="hidden sm:inline">Sebelumnya</span>
                     </button>
                     <button
                       type="button"
                       disabled={sessionPage >= totalSessionPages}
                       onClick={() => setSessionPage((p) => Math.min(totalSessionPages, p + 1))}
-                      className="rounded p-1 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-transparent transition-colors cursor-pointer"
                       aria-label="Halaman Berikutnya"
                     >
+                      <span className="hidden sm:inline">Berikutnya</span>
                       <ChevronRight className="size-4" />
                     </button>
                   </div>

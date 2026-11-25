@@ -2,12 +2,10 @@
 
 import { useTranslations } from 'next-intl';
 import { useActionState, useState, useMemo } from 'react';
-import { Link } from '@/i18n/navigation';
 import { savePresensi, type GuruState } from '@/app/actions/teacher';
 import { StudentAvatar } from '@/components/parent/student-avatar';
 import {
   Search,
-  Lock,
   CheckCircle2,
   AlertCircle,
   X,
@@ -178,14 +176,14 @@ export function AttendanceTable({
             <button
               type="button"
               onClick={handleMarkAllPresent}
-              className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white cursor-pointer"
+              className="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 cursor-pointer"
             >
               <span>{t('markAllPresent')}</span>
             </button>
             <button
               type="button"
               onClick={handleClearAll}
-              className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white cursor-pointer"
+              className="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 cursor-pointer"
             >
               <span>{t('clearAll')}</span>
             </button>
@@ -204,7 +202,7 @@ export function AttendanceTable({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari nama siswa…"
-              className="h-10 sm:h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-8 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+              className="h-10 sm:h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-8 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors shadow-2xs"
             />
             {search && (
               <button
@@ -341,24 +339,7 @@ export function AttendanceTable({
 
                     {/* 5. Status Indicator (Sticky Right 0) */}
                     <td className="sticky right-0 z-10 w-32 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 text-center border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
-                      {s.terkunci ? (
-                        <div className="flex flex-col items-center gap-1">
-                          <span className="inline-flex items-center gap-1 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
-                            <Lock className="size-3" />
-                            Kunci
-                          </span>
-                          {s.presensiId ? (
-                            <div className="opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity max-sm:opacity-100">
-                              <Link
-                                href={`/teacher/corrections?entitas=presensi&id=${s.presensiId}`}
-                                className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                              >
-                                Ajukan Koreksi
-                              </Link>
-                            </div>
-                          ) : null}
-                        </div>
-                      ) : currentStatus ? (
+                      {currentStatus ? (
                         <span className="inline-flex items-center gap-2 text-xs font-semibold capitalize text-slate-800 dark:text-slate-200">
                           <span
                             className={`size-2 rounded-full ${
@@ -427,12 +408,7 @@ export function AttendanceTable({
 
                   {/* Status Indicator */}
                   <div>
-                    {s.terkunci ? (
-                      <span className="inline-flex items-center gap-1 rounded bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
-                        <Lock className="size-3" />
-                        Terkunci
-                      </span>
-                    ) : currentStatus ? (
+                    {currentStatus ? (
                       <span className="inline-flex items-center gap-2 text-xs font-semibold capitalize text-slate-800 dark:text-slate-200">
                         <span
                           className={`size-2 rounded-full ${
@@ -506,22 +482,11 @@ export function AttendanceTable({
                         [s.pendaftaranId]: e.target.value,
                       }))
                     }
-                    disabled={s.terkunci}
+                    disabled={false}
                     placeholder={t('notesPlaceholder')}
                     className="w-full h-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-base sm:text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 disabled:bg-slate-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed transition-colors"
                   />
                 </div>
-
-                {s.terkunci && s.presensiId ? (
-                  <div className="pt-1 text-right">
-                    <Link
-                      href={`/teacher/corrections?entitas=presensi&id=${s.presensiId}`}
-                      className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      Ajukan Koreksi Presensi →
-                    </Link>
-                  </div>
-                ) : null}
               </div>
             );
           })
@@ -564,10 +529,6 @@ export function AttendanceTable({
           </div>
         </div>
       </div>
-
-      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed px-1">
-        {t('attendanceFormHelp')}
-      </p>
     </form>
   );
 }

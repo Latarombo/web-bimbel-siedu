@@ -92,6 +92,7 @@ export function NativeDialog({
     <NativeDialogContext.Provider value={{ inNativeDialog: true, dialogRef }}>
       <dialog
         ref={dialogRef}
+        data-lenis-prevent
         onCancel={handleCancel}
         onClick={handleClick}
         aria-labelledby={ariaLabelledBy}

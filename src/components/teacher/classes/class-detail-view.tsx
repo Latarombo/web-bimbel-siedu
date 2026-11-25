@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useMemo, useTransition, useRef } from "react";
+import { useState, useMemo, useTransition, useRef, useEffect } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { hapusPenilaian } from "@/app/actions/teacher";
+import { useSetTeacherHeaderAction } from "@/components/teacher/teacher-header-action-context";
 import {
   Search,
   ChevronLeft,
   ChevronRight,
   Eye,
   Pencil,
-  MoreVertical,
   Clock,
   ArrowUpDown,
   ArrowUp,
@@ -21,18 +21,9 @@ import {
   FileSpreadsheet,
   Download,
   ClipboardCheck,
-  Image as ImageIcon,
   BarChart3,
-  CheckCircle2,
-  AlertCircle,
-  ChevronDown,
+  X,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
 import { ExportClassModal, type ExportType } from "./export-class-modal";
 import { QuickAssessmentModal } from "./quick-assessment-modal";
 import { QuickGradeDrawer } from "./quick-grade-drawer";
@@ -86,6 +77,7 @@ export interface ClassAssessmentItem {
   totalSiswa: number;
   sesiPertemuanId?: number | null;
   sesiLabel?: string | null;
+  tanggalPertemuan?: string | null;
   catatan?: string | null;
 }
 
@@ -101,7 +93,7 @@ export interface ClassDetailViewProps {
   students: StudentRosterItem[];
   schedules: ScheduleSlotItem[];
   assessments: ClassAssessmentItem[];
-  sessions?: { id: number; label: string }[];
+  sessions?: { id: number; label: string; tanggalPertemuan?: string }[];
   firstTodaySession?: {
     jadwalItemId: number;
     jamMulai: string;
@@ -192,19 +184,6 @@ export function ClassDetailView({
     "roster" | "schedule" | "attendance" | "assessments" | "summary"
   >("roster");
 
-  const [attendanceFilter, setAttendanceFilter] = useState<"all" | "unrecorded" | "completed">("all");
-
-  const filteredAttendanceSessions = useMemo(() => {
-    const list = calendarSessions ?? [];
-    if (attendanceFilter === "unrecorded") {
-      return list.filter((s) => (s.isPast || s.isToday) && s.presensiCount === 0 && s.statusSesi !== "dibatalkan");
-    }
-    if (attendanceFilter === "completed") {
-      return list.filter((s) => s.presensiCount > 0);
-    }
-    return list;
-  }, [calendarSessions, attendanceFilter]);
-
   // Local student state synced with incoming server props on router.refresh()
   const [students, setStudents] = useState<StudentRosterItem[]>(initialStudents);
   const [prevInitialStudents, setPrevInitialStudents] = useState(initialStudents);
@@ -257,7 +236,6 @@ export function ClassDetailView({
 
   // Search, sort & pagination state for roster
   const [searchQuery, setSearchQuery] = useState("");
-  const [studentStatusFilter, setStudentStatusFilter] = useState<"all" | "terdaftar" | "tertunggak">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortState, setSortState] = useState<{
     key: "nama" | "kehadiran" | "tugas" | "nilai";
@@ -270,6 +248,43 @@ export function ClassDetailView({
   const [assessmentSessionFilter, setAssessmentSessionFilter] = useState<string>("all");
   const [assessmentCompletionFilter, setAssessmentCompletionFilter] = useState<"all" | "lengkap" | "belum">("all");
   const [assessmentPage, setAssessmentPage] = useState(1);
+  const [assessmentSortState, setAssessmentSortState] = useState<{
+    key: "nama" | "pertemuan" | "tanggalPertemuan" | "tanggal" | "dinilai" | "status";
+    dir: "asc" | "desc";
+  } | null>(null);
+
+  const toggleAssessmentSort = (
+    key: "nama" | "pertemuan" | "tanggalPertemuan" | "tanggal" | "dinilai" | "status",
+  ) => {
+    setAssessmentSortState((prev) => {
+      if (prev?.key === key) {
+        return prev.dir === "asc" ? { key, dir: "desc" } : null;
+      }
+      return { key, dir: "asc" };
+    });
+  };
+
+  // Search, filter & sort state for attendance tab
+  const [attendanceSearch, setAttendanceSearch] = useState("");
+  const [attendanceFilter, setAttendanceFilter] = useState<
+    "all" | "unrecorded" | "completed" | "dibatalkan"
+  >("all");
+  const [attendancePage, setAttendancePage] = useState(1);
+  const [attendanceSortState, setAttendanceSortState] = useState<{
+    key: "tanggal" | "waktu" | "status" | "presensi";
+    dir: "asc" | "desc";
+  } | null>(null);
+
+  const toggleAttendanceSort = (
+    key: "tanggal" | "waktu" | "status" | "presensi",
+  ) => {
+    setAttendanceSortState((prev) => {
+      if (prev?.key === key) {
+        return prev.dir === "asc" ? { key, dir: "desc" } : null;
+      }
+      return { key, dir: "asc" };
+    });
+  };
 
   // Filter state for schedule/calendar tab
   const [scheduleStatusFilter, setScheduleStatusFilter] = useState<
@@ -288,10 +303,6 @@ export function ClassDetailView({
   // Filtered & sorted students
   const filteredStudents = useMemo(() => {
     let res = [...students];
-
-    if (studentStatusFilter !== "all") {
-      res = res.filter((s) => s.status === studentStatusFilter);
-    }
 
     const q = searchQuery.toLowerCase().trim();
     if (q) {
@@ -320,7 +331,7 @@ export function ClassDetailView({
     }
 
     return res;
-  }, [students, studentStatusFilter, searchQuery, sortState]);
+  }, [students, searchQuery, sortState]);
 
   // Options for session filter dropdown
   const sessionFilterOptions = useMemo(() => {
@@ -338,7 +349,7 @@ export function ClassDetailView({
 
   // Filtered assessments
   const filteredAssessments = useMemo(() => {
-    return assessments.filter((a) => {
+    let list = assessments.filter((a) => {
       // 1. Status Filter (Terbit / Draf)
       if (assessmentStatusFilter === "terbit" && a.draf) return false;
       if (assessmentStatusFilter === "draf" && !a.draf) return false;
@@ -365,26 +376,65 @@ export function ClassDetailView({
 
       return true;
     });
+
+    if (assessmentSortState) {
+      const { key, dir } = assessmentSortState;
+      list = [...list].sort((a, b) => {
+        let cmp = 0;
+        if (key === "nama") {
+          cmp = a.nama.localeCompare(b.nama, "id");
+        } else if (key === "pertemuan") {
+          const sesA = a.sesiLabel ?? "";
+          const sesB = b.sesiLabel ?? "";
+          cmp = sesA.localeCompare(sesB, "id", { numeric: true });
+        } else if (key === "tanggalPertemuan") {
+          const tA = a.tanggalPertemuan ?? "";
+          const tB = b.tanggalPertemuan ?? "";
+          cmp = tA.localeCompare(tB);
+        } else if (key === "tanggal") {
+          cmp = a.tanggal.localeCompare(b.tanggal);
+        } else if (key === "dinilai") {
+          const pctA = a.totalSiswa > 0 ? a.countDinilai / a.totalSiswa : 0;
+          const pctB = b.totalSiswa > 0 ? b.countDinilai / b.totalSiswa : 0;
+          cmp = pctA - pctB || a.countDinilai - b.countDinilai;
+        } else if (key === "status") {
+          const statA = a.draf ? 0 : 1;
+          const statB = b.draf ? 0 : 1;
+          cmp = statA - statB;
+        }
+        return dir === "asc" ? cmp : -cmp;
+      });
+    }
+
+    return list;
   }, [
     assessments,
     assessmentSearch,
     assessmentStatusFilter,
     assessmentSessionFilter,
     assessmentCompletionFilter,
+    assessmentSortState,
   ]);
 
   // Filtered calendar sessions
   const filteredCalendarSessions = useMemo(() => {
     return calendarSessions.filter((s) => {
+      const isCompleted =
+        s.statusSesi === "selesai" ||
+        (s.presensiCount > 0 && s.statusSesi !== "dibatalkan");
+      const isCancelled = s.statusSesi === "dibatalkan";
+
       if (scheduleStatusFilter === "all") return true;
-      if (scheduleStatusFilter === "terjadwal") return s.statusSesi === "terjadwal";
+      if (scheduleStatusFilter === "terjadwal") {
+        return s.statusSesi === "terjadwal" && !isCompleted && !isCancelled;
+      }
       if (scheduleStatusFilter === "selesai") {
-        return s.statusSesi === "selesai" || (s.presensiCount > 0 && s.statusSesi !== "dibatalkan");
+        return isCompleted;
       }
       if (scheduleStatusFilter === "belum_presensi") {
-        return s.presensiCount === 0 && s.statusSesi !== "dibatalkan";
+        return s.presensiCount === 0 && !isCancelled;
       }
-      if (scheduleStatusFilter === "dibatalkan") return s.statusSesi === "dibatalkan";
+      if (scheduleStatusFilter === "dibatalkan") return isCancelled;
       return true;
     });
   }, [calendarSessions, scheduleStatusFilter]);
@@ -407,6 +457,98 @@ export function ClassDetailView({
     const start = (currentAssessmentPage - 1) * ITEMS_PER_PAGE;
     return filteredAssessments.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredAssessments, currentAssessmentPage]);
+
+  // Filtered & sorted attendance sessions
+  const filteredAttendanceSessions = useMemo(() => {
+    let list = calendarSessions ?? [];
+
+    if (attendanceFilter === "unrecorded") {
+      list = list.filter(
+        (s) =>
+          (s.isPast || s.isToday) &&
+          s.presensiCount === 0 &&
+          s.statusSesi !== "dibatalkan",
+      );
+    } else if (attendanceFilter === "completed") {
+      list = list.filter((s) => s.presensiCount > 0);
+    } else if (attendanceFilter === "dibatalkan") {
+      list = list.filter((s) => s.statusSesi === "dibatalkan");
+    }
+
+    const q = attendanceSearch.toLowerCase().trim();
+    if (q) {
+      list = list.filter(
+        (s) =>
+          s.tanggalPertemuan.toLowerCase().includes(q) ||
+          `${s.jamMulai}-${s.jamSelesai}`.includes(q) ||
+          s.statusSesi.toLowerCase().includes(q),
+      );
+    }
+
+    if (attendanceSortState) {
+      const { key, dir } = attendanceSortState;
+      list = [...list].sort((a, b) => {
+        let cmp = 0;
+        if (key === "tanggal") {
+          cmp =
+            a.tanggalPertemuan.localeCompare(b.tanggalPertemuan) ||
+            a.jamMulai.localeCompare(b.jamMulai);
+        } else if (key === "waktu") {
+          cmp =
+            a.jamMulai.localeCompare(b.jamMulai) ||
+            a.tanggalPertemuan.localeCompare(b.tanggalPertemuan);
+        } else if (key === "status") {
+          const statA =
+            a.statusSesi === "dibatalkan"
+              ? 0
+              : a.presensiCount > 0
+              ? 3
+              : a.isPast || a.isToday
+              ? 1
+              : 2;
+          const statB =
+            b.statusSesi === "dibatalkan"
+              ? 0
+              : b.presensiCount > 0
+              ? 3
+              : b.isPast || b.isToday
+              ? 1
+              : 2;
+          cmp = statA - statB;
+        } else if (key === "presensi") {
+          const pctA = a.pesertaCount > 0 ? a.presensiCount / a.pesertaCount : 0;
+          const pctB = b.pesertaCount > 0 ? b.presensiCount / b.pesertaCount : 0;
+          cmp = pctA - pctB || a.presensiCount - b.presensiCount;
+        }
+        return dir === "asc" ? cmp : -cmp;
+      });
+    }
+
+    return list;
+  }, [calendarSessions, attendanceFilter, attendanceSearch, attendanceSortState]);
+
+  // Session label mapping for meeting names
+  const sessionLabelMap = useMemo(() => {
+    const map = new Map<number, string>();
+    if (sessions && sessions.length > 0) {
+      sessions.forEach((s) => {
+        map.set(s.id, s.label);
+      });
+    }
+    return map;
+  }, [sessions]);
+
+  // Pagination calculations for attendance
+  const totalAttendancePages =
+    Math.ceil(filteredAttendanceSessions.length / ITEMS_PER_PAGE) || 1;
+  const currentAttendancePage = Math.min(
+    Math.max(1, attendancePage),
+    totalAttendancePages,
+  );
+  const paginatedAttendanceSessions = useMemo(() => {
+    const start = (currentAttendancePage - 1) * ITEMS_PER_PAGE;
+    return filteredAttendanceSessions.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredAttendanceSessions, currentAttendancePage]);
 
   const capacityPct =
     kuotaMaksimum > 0
@@ -438,124 +580,36 @@ export function ClassDetailView({
     router.refresh();
   };
 
+  useSetTeacherHeaderAction(
+    useMemo(
+      () => ({
+        type: 'create',
+        label: 'Buat Tugas Baru',
+        onClick: () => setIsAssessmentModalOpen(true),
+      }),
+      []
+    )
+  );
+
+  useEffect(() => {
+    const handleCreateTask = () => setIsAssessmentModalOpen(true);
+    window.addEventListener('teacher:create-task', handleCreateTask);
+    return () => window.removeEventListener('teacher:create-task', handleCreateTask);
+  }, []);
+
   return (
     <div className="space-y-6">
-      {/* Page Header Row + Actions */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
-            {className} · {jenjang}{tingkat ? ` (${tingkat})` : ""}
-          </h1>
-        </div>
-
-        {/* Header Actions: Bagikan Status, Presensi & Buat Tugas */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Dropdown Menu Presensi */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-all duration-150 cursor-pointer"
-                title="Aksi presensi kelas"
-              >
-                <ClipboardCheck className="size-4 shrink-0 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                <span>Presensi</span>
-                <ChevronDown className="size-3.5 text-slate-400" aria-hidden="true" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-64 p-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl"
-            >
-              {targetAttendanceUrl ? (
-                <DropdownMenuItem asChild>
-                  <Link
-                    href={targetAttendanceUrl}
-                    className="flex flex-col items-start gap-1 w-full cursor-pointer rounded-lg px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                  >
-                    <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
-                      <UserCheck className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                      <span>Isi Presensi Sesi Terdekat</span>
-                    </div>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400 pl-6">
-                      {attendanceTarget?.tanggalPertemuan ? `${attendanceTarget.tanggalPertemuan} (${attendanceTarget.jamMulai} - ${attendanceTarget.jamSelesai})` : "Sesi aktif"}
-                    </span>
-                  </Link>
-                </DropdownMenuItem>
-              ) : (
-                <div className="px-3 py-2 text-[11px] text-slate-400">
-                  Tidak ada sesi terdekat yang memerlukan presensi
-                </div>
-              )}
-
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/teacher/attendance?classId=${classId}`}
-                  className="flex flex-col items-start gap-1 w-full cursor-pointer rounded-lg px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                >
-                  <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
-                    <BarChart3 className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span>Lihat Rekap Presensi</span>
-                  </div>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400 pl-6">
-                    Matriks kehadiran & persentase seluruh sesi
-                  </span>
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-emerald-300 dark:border-emerald-800 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/60 active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-semibold text-emerald-800 dark:text-emerald-300 shadow-2xs transition-all duration-150 cursor-pointer"
-                title="Bagikan status pembelajaran kelas ke orang tua murid (Aktif 24 jam)"
-              >
-                <Camera className="size-4 shrink-0" aria-hidden="true" />
-                <span>Bagikan Status</span>
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-48 p-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl"
-            >
-              <DropdownMenuItem
-                onClick={handleOpenPhotoCreator}
-                className="w-full cursor-pointer rounded-lg px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <div className="flex items-center gap-2.5 w-full text-left">
-                  <ImageIcon className="size-4 text-slate-500 dark:text-slate-400 shrink-0" aria-hidden="true" />
-                  <span>Foto & Video</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleOpenTextCreator}
-                className="w-full cursor-pointer rounded-lg px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                <div className="flex items-center gap-2.5 w-full text-left">
-                  <Pencil className="size-4 text-slate-500 dark:text-slate-400 shrink-0" aria-hidden="true" />
-                  <span>Teks</span>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <button
-            type="button"
-            onClick={() => setIsAssessmentModalOpen(true)}
-            className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-all duration-150 cursor-pointer"
-          >
-            <Plus className="size-4 shrink-0" aria-hidden="true" />
-            <span>Buat Tugas</span>
-          </button>
-        </div>
+      {/* Page Header Row */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
+          {className} · {jenjang}{tingkat ? ` (${tingkat})` : ""}
+        </h1>
       </div>
 
       {/* 3. Sleek Horizontal Underline Tabs Bar with sliding indicator */}
       <UnderlineTabs
         tabs={[
-          { id: "roster", label: "Roster Siswa" },
+          { id: "roster", label: "Daftar Siswa" },
           { id: "schedule", label: "Jadwal & Sesi" },
           { id: "attendance", label: "Presensi" },
           { id: "assessments", label: "Tugas & Asesmen" },
@@ -569,7 +623,7 @@ export function ClassDetailView({
 
       {/* 4. Tab Panels */}
 
-      {/* TAB 1: ROSTER SISWA */}
+      {/* TAB 1: DAFTAR SISWA */}
       {activeTab === "roster" && (
         <div className="space-y-4">
           {/* Section Toolbar: Search & Filter left, Actions right */}
@@ -590,32 +644,29 @@ export function ClassDetailView({
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-8 pr-3 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                  className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-8 pr-8 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors shadow-2xs"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setCurrentPage(1);
+                    }}
+                    aria-label="Hapus kata kunci pencarian"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/20"
+                  >
+                    <X className="size-3.5" aria-hidden="true" />
+                  </button>
+                )}
               </div>
-
-              <FilterDropdown
-                value={studentStatusFilter}
-                onChange={(val) => {
-                  setStudentStatusFilter(val as "all" | "terdaftar" | "tertunggak");
-                  setCurrentPage(1);
-                }}
-                options={[
-                  { value: "all", label: "Semua Status" },
-                  { value: "terdaftar", label: "Terdaftar Aktif" },
-                  { value: "tertunggak", label: "Tertunggak" },
-                ]}
-                placeholder="Status Siswa"
-                size="sm"
-                className="w-full sm:w-auto"
-              />
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
 
               <Link
                 href={`/teacher/classes/${classId}/reports`}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 shadow-2xs transition-all duration-150"
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-950 dark:hover:text-white active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-all duration-150"
               >
                 <FileSpreadsheet className="size-4 text-slate-500 dark:text-slate-400 shrink-0" aria-hidden="true" />
                 <span>Rapor Semester</span>
@@ -628,7 +679,7 @@ export function ClassDetailView({
                   setIsExportModalOpen(true);
                 }}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 shadow-2xs transition-all duration-150 cursor-pointer"
-                title="Ekspor data rombel (CSV)"
+                title="Ekspor data siswa (CSV)"
               >
                 <Download className="size-4 text-slate-500 dark:text-slate-400 shrink-0" aria-hidden="true" />
                 <span>Ekspor</span>
@@ -636,122 +687,145 @@ export function ClassDetailView({
             </div>
           </div>
 
-          {/* Table & Mobile Card Container */}
-          <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
-            {/* Desktop Table View (>= md) */}
-            <div
-              tabIndex={0}
-              role="region"
-              aria-label="Tabel daftar rombel siswa"
-              className="hidden md:block overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-brand/30"
-            >
-              <table className="w-full text-left text-sm border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                    <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">No</th>
-                    <th
-                      scope="col"
-                      aria-sort={sortState?.key === "nama" ? (sortState.dir === "asc" ? "ascending" : "descending") : undefined}
-                      className="sticky left-12 z-20 min-w-[170px] max-w-[240px] bg-slate-50 dark:bg-slate-800 p-0 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => toggleSort("nama")}
-                        className="flex w-full items-center justify-between gap-1.5 py-3 px-4 sm:px-6 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+          {students.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-8 sm:p-12 text-center">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Belum ada siswa di kelas ini
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                Siswa yang terdaftar dalam rombel ini akan tampil di sini.
+              </p>
+            </div>
+          ) : filteredStudents.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-8 sm:p-12 text-center">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Tidak ada siswa yang cocok
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                Tidak ditemukan siswa dengan kata kunci pencarian yang dimasukkan.
+              </p>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setCurrentPage(1);
+                  }}
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                >
+                  Reset Pencarian
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+              {/* Responsive Scrollable Table (Desktop & Mobile) */}
+              <div
+                tabIndex={0}
+                role="region"
+                aria-label="Tabel daftar siswa"
+                className="w-full overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-blue-600/30 touch-pan-x"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                <table className="w-full min-w-[760px] text-left text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                      <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">No</th>
+                      <th
+                        scope="col"
+                        aria-sort={sortState?.key === "nama" ? (sortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="sticky left-12 z-20 min-w-[170px] max-w-[240px] bg-slate-50 dark:bg-slate-800 p-0 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]"
                       >
-                        <span>Siswa</span>
-                        {sortState?.key === "nama" ? (
-                          sortState.dir === "asc" ? (
-                            <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                        <button
+                          type="button"
+                          onClick={() => toggleSort("nama")}
+                          className="flex w-full items-center justify-between gap-1.5 py-3 px-4 sm:px-6 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Siswa</span>
+                          {sortState?.key === "nama" ? (
+                            sortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
                           ) : (
-                            <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
-                          )
-                        ) : (
-                          <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
-                        )}
-                      </button>
-                    </th>
-                    <th
-                      scope="col"
-                      aria-sort={sortState?.key === "kehadiran" ? (sortState.dir === "asc" ? "ascending" : "descending") : undefined}
-                      className="p-0 text-right whitespace-nowrap"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => toggleSort("kehadiran")}
-                        className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={sortState?.key === "kehadiran" ? (sortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-right whitespace-nowrap"
                       >
-                        <span>Kehadiran</span>
-                        {sortState?.key === "kehadiran" ? (
-                          sortState.dir === "asc" ? (
-                            <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                        <button
+                          type="button"
+                          onClick={() => toggleSort("kehadiran")}
+                          className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Kehadiran</span>
+                          {sortState?.key === "kehadiran" ? (
+                            sortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
                           ) : (
-                            <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
-                          )
-                        ) : (
-                          <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
-                        )}
-                      </button>
-                    </th>
-                    <th
-                      scope="col"
-                      aria-sort={sortState?.key === "tugas" ? (sortState.dir === "asc" ? "ascending" : "descending") : undefined}
-                      className="p-0 text-right whitespace-nowrap"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => toggleSort("tugas")}
-                        className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={sortState?.key === "tugas" ? (sortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-right whitespace-nowrap"
                       >
-                        <span>Tugas Dinilai</span>
-                        {sortState?.key === "tugas" ? (
-                          sortState.dir === "asc" ? (
-                            <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                        <button
+                          type="button"
+                          onClick={() => toggleSort("tugas")}
+                          className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Tugas Dinilai</span>
+                          {sortState?.key === "tugas" ? (
+                            sortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
                           ) : (
-                            <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
-                          )
-                        ) : (
-                          <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
-                        )}
-                      </button>
-                    </th>
-                    <th
-                      scope="col"
-                      aria-sort={sortState?.key === "nilai" ? (sortState.dir === "asc" ? "ascending" : "descending") : undefined}
-                      className="p-0 text-right whitespace-nowrap"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => toggleSort("nilai")}
-                        className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={sortState?.key === "nilai" ? (sortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-right whitespace-nowrap"
                       >
-                        <span>Nilai Rata-rata</span>
-                        {sortState?.key === "nilai" ? (
-                          sortState.dir === "asc" ? (
-                            <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                        <button
+                          type="button"
+                          onClick={() => toggleSort("nilai")}
+                          className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Nilai Rata-rata</span>
+                          {sortState?.key === "nilai" ? (
+                            sortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
                           ) : (
-                            <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
-                          )
-                        ) : (
-                          <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
-                        )}
-                      </button>
-                    </th>
-                    <th scope="col" className="sticky right-0 z-20 py-3 px-4 sm:px-6 text-right bg-slate-50 dark:bg-slate-800 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {paginatedStudents.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={6}
-                        className="py-12 text-center text-xs sm:text-sm text-slate-500 dark:text-slate-400"
-                      >
-                        Tidak ada siswa yang sesuai dengan filter pencarian.
-                      </td>
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th scope="col" className="md:sticky md:right-0 md:z-20 py-3 px-4 sm:px-6 text-right bg-slate-50 dark:bg-slate-800 md:border-l md:border-slate-200/80 md:dark:border-slate-800/80 md:shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]">
+                        Aksi
+                      </th>
                     </tr>
-                  ) : (
-                    paginatedStudents.map((s, idx) => {
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {paginatedStudents.map((s, idx) => {
                       const initial = (s.nama?.[0] || "S").toUpperCase();
                       const attendancePct =
                         s.tercatat > 0
@@ -785,9 +859,9 @@ export function ClassDetailView({
                             </div>
                           </td>
 
-                          {/* 3. Kehadiran Terpadu (1 Data) */}
+                          {/* 3. Kehadiran */}
                           <td className="py-3 px-4 text-right whitespace-nowrap">
-                            <span className="font-medium text-slate-900 dark:text-slate-100 tabular-nums text-sm">
+                            <span className="font-medium text-slate-900 dark:text-slate-100 tabular-nums text-xs sm:text-sm">
                               {s.tercatat > 0 ? `${s.hadir}/${s.tercatat}` : "—"}
                             </span>
                             {s.tercatat > 0 ? (
@@ -797,270 +871,89 @@ export function ClassDetailView({
                             ) : null}
                           </td>
 
-                          {/* 4. Tugas Dinilai (1 Data) */}
-                          <td className="py-3 px-4 text-right font-medium text-slate-900 dark:text-slate-100 tabular-nums text-sm whitespace-nowrap">
+                          {/* 4. Tugas Dinilai */}
+                          <td className="py-3 px-4 text-right font-medium text-slate-900 dark:text-slate-100 tabular-nums text-xs sm:text-sm whitespace-nowrap">
                             {s.nNilai > 0 ? `${s.nNilai} tugas` : "0 tugas"}
                           </td>
 
-                          {/* 5. Nilai Rata-rata (1 Data) */}
-                          <td className="py-3 px-4 text-right font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-sm whitespace-nowrap">
+                          {/* 5. Nilai Rata-rata */}
+                          <td className="py-3 px-4 text-right font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-xs sm:text-sm whitespace-nowrap">
                             {s.rata != null ? s.rata : "—"}
                           </td>
 
-                          {/* 6. Aksi: [Eye] + [Pencil] + [MoreVertical] (Sticky Right 0) */}
-                          <td className="sticky right-0 z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
-                            <div className="flex items-center justify-end gap-1 opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
-                              {/* Ikon Profil Siswa */}
+                          {/* 6. Aksi (Sticky Right on Desktop, Scrolls on Mobile) */}
+                          <td className="md:sticky md:right-0 md:z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 md:border-l md:border-slate-200/80 md:dark:border-slate-800/80 md:shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                            <div className="flex items-center justify-end gap-1.5 sm:gap-2 opacity-90 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
                               <button
                                 type="button"
                                 onClick={() => setProfileStudentId(s.id)}
                                 aria-label={`Rincian profil ${s.nama}`}
                                 title="Profil Lengkap Siswa"
-                                className="grid size-8 place-items-center rounded-lg border border-transparent text-slate-500 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors cursor-pointer"
+                                className="size-8 sm:size-7.5 inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white p-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-400 dark:hover:border-slate-600 transition-colors cursor-pointer"
                               >
-                                <Eye className="size-4" aria-hidden="true" />
+                                <Eye className="size-3.5" aria-hidden="true" />
                               </button>
 
-                              {/* Ikon Input Nilai Cepat */}
                               <button
                                 type="button"
                                 onClick={() => setGradingStudentId(s.id)}
                                 aria-label={`Input nilai cepat untuk ${s.nama}`}
                                 title="Input Nilai Cepat"
-                                className="grid size-8 place-items-center rounded-lg border border-transparent text-slate-500 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 dark:text-slate-400 dark:hover:border-blue-900 dark:hover:bg-blue-950/40 dark:hover:text-blue-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors cursor-pointer"
+                                className="size-8 sm:size-7.5 inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 p-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-400 dark:hover:border-slate-600 transition-colors cursor-pointer"
                               >
-                                <Pencil className="size-4" aria-hidden="true" />
+                                <Pencil className="size-3.5" aria-hidden="true" />
                               </button>
-
-                              {/* Dropdown Menu Aksi Lainnya */}
-                              <DropdownMenu>
-                                <DropdownMenuTrigger
-                                  aria-label={`Menu aksi lainnya untuk ${s.nama}`}
-                                  title="Aksi Lainnya"
-                                  className="grid size-8 place-items-center rounded-lg border border-transparent text-slate-500 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:border-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors cursor-pointer"
-                                >
-                                  <MoreVertical className="size-4" aria-hidden="true" />
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md rounded-lg p-1 text-xs">
-                                  <DropdownMenuItem
-                                    onClick={() => setProfileStudentId(s.id)}
-                                    className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
-                                  >
-                                    <Eye className="size-3.5 text-slate-400" aria-hidden="true" />
-                                    <span>Profil Lengkap</span>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem asChild>
-                                    <Link
-                                      href={`/teacher/classes/${classId}/reports/${s.id}`}
-                                      className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
-                                    >
-                                      <Clock className="size-3.5 text-slate-400" aria-hidden="true" />
-                                      <span>Rapor Siswa</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem asChild>
-                                    <Link
-                                      href={`/teacher/grades/${s.id}`}
-                                      className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
-                                    >
-                                      <Pencil className="size-3.5 text-slate-400" aria-hidden="true" />
-                                      <span>Riwayat Nilai</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem asChild>
-                                    <Link
-                                      href={`/teacher/corrections?entitas=siswa&id=${s.id}`}
-                                      className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
-                                    >
-                                      <Clock className="size-3.5 text-slate-400" aria-hidden="true" />
-                                      <span>Riwayat Presensi</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
                             </div>
                           </td>
                         </tr>
                       );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    })}
+                  </tbody>
+                </table>
+              </div>
 
-            {/* Mobile Card View (< md) */}
-            <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-              {paginatedStudents.length === 0 ? (
-                <div className="py-12 text-center text-xs text-slate-500 dark:text-slate-400 px-4">
-                  Tidak ada siswa yang sesuai dengan filter pencarian.
-                </div>
-              ) : (
-                paginatedStudents.map((s, idx) => {
-                  const initial = (s.nama?.[0] || "S").toUpperCase();
-                  const attendancePct =
-                    s.tercatat > 0
-                      ? Math.round((s.hadir / s.tercatat) * 100)
-                      : 0;
+              {/* Pagination Bar */}
+              {totalPages > 1 && (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} -{" "}
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredStudents.length)}{" "}
+                    dari {filteredStudents.length} siswa
+                  </p>
 
-                  return (
-                    <div
-                      key={s.id}
-                      className="p-4 space-y-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                  <div className="inline-flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={currentPage === 1}
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
+                      aria-label="Halaman Siswa Sebelumnya"
                     >
-                      {/* Top: Student Header with Number + Avatar + Pure Name + Menu Dropdown */}
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="size-6 shrink-0 grid place-items-center rounded bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 tabular-nums">
-                            {(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
-                          </span>
-                          <div className="grid size-9 shrink-0 place-items-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold">
-                            {initial}
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setProfileStudentId(s.id)}
-                            className="font-semibold text-slate-950 dark:text-slate-50 hover:text-blue-600 dark:hover:text-blue-400 truncate text-sm text-left cursor-pointer transition-colors"
-                          >
-                            {s.nama}
-                          </button>
-                        </div>
+                      <ChevronLeft className="size-4" />
+                      <span>Sebelumnya</span>
+                    </button>
 
-                        {/* Menu Dropdown di Sudut Kanan Atas Kartu */}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger
-                            aria-label={`Menu aksi lainnya untuk ${s.nama}`}
-                            title="Aksi Lainnya"
-                            className="grid size-8 shrink-0 place-items-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 transition-colors cursor-pointer"
-                          >
-                            <MoreVertical className="size-4" aria-hidden="true" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-md rounded-lg p-1 text-xs">
-                            <DropdownMenuItem
-                              onClick={() => setProfileStudentId(s.id)}
-                              className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
-                            >
-                              <Eye className="size-3.5 text-slate-400" aria-hidden="true" />
-                              <span>Profil Lengkap</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link
-                                href={`/teacher/classes/${classId}/reports/${s.id}`}
-                                className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
-                              >
-                                <Clock className="size-3.5 text-slate-400" aria-hidden="true" />
-                                <span>Rapor Siswa</span>
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link
-                                href={`/teacher/grades/${s.id}`}
-                                className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
-                              >
-                                <Pencil className="size-3.5 text-slate-400" aria-hidden="true" />
-                                <span>Riwayat Nilai</span>
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link
-                                href={`/teacher/corrections?entitas=siswa&id=${s.id}`}
-                                className="flex items-center gap-2 px-2.5 py-1.5 font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md cursor-pointer"
-                              >
-                                <Clock className="size-3.5 text-slate-400" aria-hidden="true" />
-                                <span>Riwayat Presensi</span>
-                              </Link>
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                    <span className="px-2 text-xs font-medium text-slate-600 dark:text-slate-400 tabular-nums">
+                      Halaman {currentPage} dari {totalPages}
+                    </span>
 
-                      {/* Middle: 2-Column Metrics */}
-                      <div className="grid grid-cols-2 gap-2 rounded-lg border border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-800/30 p-3 text-center">
-                        <div className="border-r border-slate-200/60 dark:border-slate-800/80 pr-2">
-                          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
-                            Kehadiran
-                          </span>
-                          <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-sm">
-                            {s.tercatat > 0 ? `${s.hadir}/${s.tercatat}` : "—"}
-                          </span>
-                          <span className="text-[10px] text-slate-500 dark:text-slate-400 block tabular-nums">
-                            {s.tercatat > 0 ? `${attendancePct}%` : "Belum ada sesi"}
-                          </span>
-                        </div>
-
-                        <div className="pl-2">
-                          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">
-                            Nilai Rata-rata
-                          </span>
-                          <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums text-sm">
-                            {s.rata != null ? s.rata : "—"}
-                          </span>
-                          <span className="text-[10px] text-slate-500 dark:text-slate-400 block tabular-nums">
-                            {s.nNilai} tugas
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Bottom Action: Ergonomic Dual Buttons */}
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        <Link
-                          href={`/teacher/grades/${s.id}`}
-                          className="h-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 flex items-center justify-center text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs hover:border-slate-400 dark:hover:border-slate-600 transition-colors"
-                        >
-                          <span>Rincian Siswa</span>
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => setGradingStudentId(s.id)}
-                          className="h-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-400 dark:hover:border-slate-600 transition-colors cursor-pointer"
-                        >
-                          <span>Input Nilai</span>
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })
+                    <button
+                      type="button"
+                      disabled={currentPage === totalPages}
+                      onClick={() =>
+                        setCurrentPage((p) => Math.min(totalPages, p + 1))
+                      }
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
+                      aria-label="Halaman Siswa Berikutnya"
+                    >
+                      <span>Berikutnya</span>
+                      <ChevronRight className="size-4" />
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
-
-            {/* Pagination Bar */}
-            {totalPages > 1 && (
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50">
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} -{" "}
-                  {Math.min(currentPage * ITEMS_PER_PAGE, filteredStudents.length)}{" "}
-                  dari {filteredStudents.length} siswa
-                </p>
-
-                <div className="inline-flex items-center gap-1">
-                  <button
-                    type="button"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
-                  >
-                    <ChevronLeft className="size-4" />
-                    <span>Sebelumnya</span>
-                  </button>
-
-                  <span className="px-2 text-xs font-medium text-slate-600 dark:text-slate-400 tabular-nums">
-                    Halaman {currentPage} dari {totalPages}
-                  </span>
-
-                  <button
-                    type="button"
-                    disabled={currentPage === totalPages}
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
-                    }
-                    className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
-                  >
-                    <span>Berikutnya</span>
-                    <ChevronRight className="size-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       )}
 
@@ -1110,15 +1003,54 @@ export function ClassDetailView({
       {activeTab === "attendance" && (
         <div className="space-y-4">
           {/* Action & Filter Toolbar */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-2">
+              <div className="relative w-full sm:w-60">
+                <label htmlFor="search-attendance" className="sr-only">
+                  Cari tanggal atau waktu sesi
+                </label>
+                <Search
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none"
+                  aria-hidden="true"
+                />
+                <input
+                  id="search-attendance"
+                  type="search"
+                  autoComplete="off"
+                  placeholder="Cari tanggal atau waktu..."
+                  value={attendanceSearch}
+                  onChange={(e) => {
+                    setAttendanceSearch(e.target.value);
+                    setAttendancePage(1);
+                  }}
+                  className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-8 pr-8 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors shadow-2xs"
+                />
+                {attendanceSearch && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAttendanceSearch("");
+                      setAttendancePage(1);
+                    }}
+                    aria-label="Hapus filter pencarian presensi"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/20"
+                  >
+                    <X className="size-3.5" aria-hidden="true" />
+                  </button>
+                )}
+              </div>
+
               <FilterDropdown
                 value={attendanceFilter}
-                onChange={(val) => setAttendanceFilter(val as typeof attendanceFilter)}
+                onChange={(val) => {
+                  setAttendanceFilter(val as typeof attendanceFilter);
+                  setAttendancePage(1);
+                }}
                 options={[
                   { value: "all", label: "Semua Sesi" },
                   { value: "unrecorded", label: "Belum Presensi" },
                   { value: "completed", label: "Selesai Terisi" },
+                  { value: "dibatalkan", label: "Dibatalkan" },
                 ]}
                 placeholder="Filter Presensi"
                 size="sm"
@@ -1138,7 +1070,7 @@ export function ClassDetailView({
               )}
               <Link
                 href={`/teacher/attendance?classId=${classId}`}
-                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.98] px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-all duration-150 cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-950 dark:hover:text-white active:scale-[0.98] px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-all duration-150 cursor-pointer"
               >
                 <BarChart3 className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
                 <span>Lihat Rekap Presensi Lengkap</span>
@@ -1146,112 +1078,311 @@ export function ClassDetailView({
             </div>
           </div>
 
-          {/* Sesi List Table */}
-          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-200 bg-slate-50/75 dark:border-slate-800 dark:bg-slate-800/50">
-                  <tr>
-                    <th scope="col" className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
-                      Tanggal & Waktu
-                    </th>
-                    <th scope="col" className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
-                      Status Sesi
-                    </th>
-                    <th scope="col" className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
-                      Pencatatan Kehadiran
-                    </th>
-                    <th scope="col" className="px-4 py-3 text-right font-semibold text-slate-900 dark:text-slate-100">
-                      Aksi
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
-                  {filteredAttendanceSessions.length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="py-8 text-center text-slate-500 dark:text-slate-400">
-                        Tidak ada sesi pertemuan yang sesuai dengan filter.
-                      </td>
+          {calendarSessions.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-8 sm:p-12 text-center">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Belum ada sesi pertemuan untuk kelas ini
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                Jadwal dan sesi pertemuan yang diagendakan akan tampil di sini untuk pencatatan presensi.
+              </p>
+            </div>
+          ) : filteredAttendanceSessions.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-8 sm:p-12 text-center">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Tidak ada sesi yang cocok
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                Tidak ditemukan sesi pertemuan dengan filter atau kata kunci pencarian yang dipilih.
+              </p>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAttendanceSearch("");
+                    setAttendanceFilter("all");
+                    setAttendancePage(1);
+                  }}
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                >
+                  Reset Filter
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+              {/* Responsive Scrollable Table (Desktop & Mobile) */}
+              <div
+                tabIndex={0}
+                role="region"
+                aria-label="Tabel daftar presensi dan sesi pertemuan"
+                className="w-full overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-blue-600/30 touch-pan-x"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                <table className="w-full min-w-[760px] text-left text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                      <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">No</th>
+                      <th
+                        scope="col"
+                        aria-sort={attendanceSortState?.key === "tanggal" ? (attendanceSortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="sticky left-12 z-20 min-w-[170px] max-w-[240px] bg-slate-50 dark:bg-slate-800 p-0 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleAttendanceSort("tanggal")}
+                          className="flex w-full items-center justify-between gap-1.5 py-3 px-4 sm:px-6 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Tanggal Pertemuan</span>
+                          {attendanceSortState?.key === "tanggal" ? (
+                            attendanceSortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={attendanceSortState?.key === "waktu" ? (attendanceSortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-left whitespace-nowrap"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleAttendanceSort("waktu")}
+                          className="inline-flex w-full items-center justify-between gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Waktu Sesi</span>
+                          {attendanceSortState?.key === "waktu" ? (
+                            attendanceSortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={attendanceSortState?.key === "status" ? (attendanceSortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-center whitespace-nowrap"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleAttendanceSort("status")}
+                          className="inline-flex w-full items-center justify-center gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Status Sesi</span>
+                          {attendanceSortState?.key === "status" ? (
+                            attendanceSortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={attendanceSortState?.key === "presensi" ? (attendanceSortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-right whitespace-nowrap"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleAttendanceSort("presensi")}
+                          className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Kehadiran Siswa</span>
+                          {attendanceSortState?.key === "presensi" ? (
+                            attendanceSortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th scope="col" className="md:sticky md:right-0 md:z-20 py-3 px-4 sm:px-6 text-right bg-slate-50 dark:bg-slate-800 md:border-l md:border-slate-200/80 md:dark:border-slate-800/80 md:shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]">
+                        Aksi
+                      </th>
                     </tr>
-                  ) : (
-                    filteredAttendanceSessions.map((session) => {
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {paginatedAttendanceSessions.map((session, idx) => {
                       const sessionUrl = `/teacher/classes/${classId}/sessions/${session.tanggalPertemuan}/attendance?sesi=${session.jadwalItemId}`;
-                      const isUnrecorded = (session.isPast || session.isToday) && session.presensiCount === 0;
+                      const isUnrecorded =
+                        (session.isPast || session.isToday) && session.presensiCount === 0;
                       const isCompleted = session.presensiCount > 0;
+                      const sesiLabel = session.sesiPertemuanId
+                        ? sessionLabelMap.get(session.sesiPertemuanId)
+                        : null;
+                      const shortMeetingName = sesiLabel
+                        ? sesiLabel.match(/^(Pertemuan\s*#\d+)/i)?.[1]
+                        : null;
 
                       return (
                         <tr
                           key={`${session.jadwalItemId}:${session.tanggalPertemuan}`}
-                          className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
+                          className="group/row relative border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                         >
-                          <td className="px-4 py-3">
-                            <p className="font-semibold text-slate-900 dark:text-slate-100">
-                              {session.tanggalPertemuan}
-                            </p>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                              {session.jamMulai} - {session.jamSelesai} WIB
-                            </p>
+                          {/* 1. Nomor Urut (Sticky Left 0) */}
+                          <td className="sticky left-0 z-10 w-12 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 text-center font-medium text-slate-500 dark:text-slate-400 tabular-nums text-xs transition-colors">
+                            {(currentAttendancePage - 1) * ITEMS_PER_PAGE + idx + 1}
                           </td>
-                          <td className="px-4 py-3">
-                            {session.statusSesi === "dibatalkan" ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-rose-600 dark:text-rose-400">
-                                <AlertCircle className="size-3" />
-                                <span>Dibatalkan</span>
+
+                          {/* 2. Tanggal Pertemuan (Sticky Left 12) */}
+                          <td className="sticky left-12 z-10 min-w-[170px] max-w-[240px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                            <div className="min-w-0">
+                              <span
+                                className="font-medium text-slate-950 dark:text-slate-50 text-sm truncate block"
+                                title={session.tanggalPertemuan}
+                              >
+                                {session.tanggalPertemuan}
                               </span>
-                            ) : isCompleted ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                                <CheckCircle2 className="size-3" />
-                                <span>Terisi</span>
-                              </span>
-                            ) : isUnrecorded ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 dark:text-amber-400">
-                                <AlertCircle className="size-3" />
-                                <span>Belum Presensi</span>
-                              </span>
-                            ) : (
-                              <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                Sesi Terjadwal
-                              </span>
-                            )}
+                              {shortMeetingName ? (
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400 block truncate">
+                                  {shortMeetingName}
+                                </span>
+                              ) : null}
+                            </div>
                           </td>
-                          <td className="px-4 py-3">
+
+                          {/* 3. Waktu Pelaksanaan */}
+                          <td className="py-3 px-4 whitespace-nowrap text-xs text-slate-600 dark:text-slate-400 tabular-nums">
+                            {session.jamMulai} - {session.jamSelesai} WIB
+                          </td>
+
+                          {/* 4. Status Sesi */}
+                          <td className="py-3 px-4 text-center whitespace-nowrap">
+                            <span className="inline-flex items-center gap-2 text-xs font-medium">
+                              <span
+                                className={`size-1.5 rounded-full ${
+                                  session.statusSesi === "dibatalkan"
+                                    ? "bg-rose-500"
+                                    : isCompleted
+                                    ? "bg-emerald-500"
+                                    : isUnrecorded
+                                    ? "bg-amber-500"
+                                    : "bg-slate-400"
+                                }`}
+                              />
+                              <span className="text-slate-700 dark:text-slate-300">
+                                {session.statusSesi === "dibatalkan"
+                                  ? "Dibatalkan"
+                                  : isCompleted
+                                  ? "Terisi"
+                                  : isUnrecorded
+                                  ? "Belum Presensi"
+                                  : "Terjadwal"}
+                              </span>
+                            </span>
+                          </td>
+
+                          {/* 5. Pencatatan Kehadiran */}
+                          <td className="py-3 px-4 text-right tabular-nums font-medium text-slate-900 dark:text-slate-100 text-xs sm:text-sm whitespace-nowrap">
                             {isCompleted ? (
-                              <span className="font-medium text-slate-900 dark:text-slate-100 tabular-nums">
-                                {session.presensiCount} / {session.pesertaCount} Siswa
+                              <span>
+                                {session.presensiCount}/{session.pesertaCount}{" "}
+                                <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">
+                                  ({session.pesertaCount > 0 ? Math.round((session.presensiCount / session.pesertaCount) * 100) : 0}%)
+                                </span>
                               </span>
                             ) : isUnrecorded ? (
-                              <span className="text-amber-600 dark:text-amber-400 font-medium">
-                                0 / {session.pesertaCount} Siswa
+                              <span className="text-amber-600 dark:text-amber-400">
+                                0/{session.pesertaCount}{" "}
+                                <span className="text-xs text-amber-600/70 dark:text-amber-400/70 font-normal">(0%)</span>
                               </span>
                             ) : (
-                              <span className="text-slate-400">
+                              <span className="text-slate-400 dark:text-slate-500 font-normal text-xs">
                                 Belum berlangsung
                               </span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-right">
-                            {session.statusSesi !== "dibatalkan" && (
-                              <Link
-                                href={sessionUrl}
-                                className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                                  isCompleted
-                                    ? "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
-                                    : "bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900 font-semibold"
-                                }`}
-                              >
-                                <span>{isCompleted ? "Ubah" : "Isi Presensi"}</span>
-                                <ChevronRight className="size-3" />
-                              </Link>
-                            )}
+
+                          {/* 6. Aksi (Sticky Right on Desktop, Scrolls on Mobile) */}
+                          <td className="md:sticky md:right-0 md:z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 md:border-l md:border-slate-200/80 md:dark:border-slate-800/80 md:shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                            <div className="flex items-center justify-end gap-1.5 sm:gap-2 opacity-90 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
+                              {session.statusSesi !== "dibatalkan" ? (
+                                <Link
+                                  href={sessionUrl}
+                                  className="size-8 sm:size-7.5 inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 p-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-400 dark:hover:border-slate-600 transition-colors cursor-pointer"
+                                  title={isCompleted ? "Ubah Presensi Siswa" : "Isi Presensi Siswa"}
+                                  aria-label={`${isCompleted ? "Ubah" : "Isi"} presensi sesi ${session.tanggalPertemuan}`}
+                                >
+                                  {isCompleted ? (
+                                    <Pencil className="size-3.5" aria-hidden="true" />
+                                  ) : (
+                                    <ClipboardCheck className="size-3.5" aria-hidden="true" />
+                                  )}
+                                </Link>
+                              ) : (
+                                <span className="text-xs text-slate-400 dark:text-slate-600 px-2">—</span>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );
-                    })
-                  )}
-                </tbody>
-              </table>
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Bar */}
+              {totalAttendancePages > 1 && (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Menampilkan {(currentAttendancePage - 1) * ITEMS_PER_PAGE + 1} -{" "}
+                    {Math.min(
+                      currentAttendancePage * ITEMS_PER_PAGE,
+                      filteredAttendanceSessions.length,
+                    )}{" "}
+                    dari {filteredAttendanceSessions.length} sesi pertemuan
+                  </p>
+
+                  <div className="inline-flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={currentAttendancePage === 1}
+                      onClick={() => setAttendancePage((p) => Math.max(1, p - 1))}
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
+                      aria-label="Halaman Presensi Sebelumnya"
+                    >
+                      <ChevronLeft className="size-4" />
+                      <span>Sebelumnya</span>
+                    </button>
+
+                    <span className="px-2 text-xs font-medium text-slate-600 dark:text-slate-400 tabular-nums">
+                      Halaman {currentAttendancePage} dari {totalAttendancePages}
+                    </span>
+
+                    <button
+                      type="button"
+                      disabled={currentAttendancePage === totalAttendancePages}
+                      onClick={() =>
+                        setAttendancePage((p) =>
+                          Math.min(totalAttendancePages, p + 1),
+                        )
+                      }
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-white cursor-pointer"
+                      aria-label="Halaman Presensi Berikutnya"
+                    >
+                      <span>Berikutnya</span>
+                      <ChevronRight className="size-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -1279,8 +1410,21 @@ export function ClassDetailView({
                     setAssessmentSearch(e.target.value);
                     setAssessmentPage(1);
                   }}
-                  className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-8 pr-3 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                  className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-8 pr-8 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors shadow-2xs"
                 />
+                {assessmentSearch ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAssessmentSearch("");
+                      setAssessmentPage(1);
+                    }}
+                    aria-label="Hapus pencarian tugas"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    <X className="size-3.5" aria-hidden="true" />
+                  </button>
+                ) : null}
               </div>
 
               <FilterDropdown
@@ -1388,23 +1532,151 @@ export function ClassDetailView({
             </div>
           ) : (
             <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
-              {/* Desktop Table View (>= md) */}
+              {/* Responsive Scrollable Table (Desktop & Mobile) */}
               <div
                 tabIndex={0}
                 role="region"
                 aria-label="Tabel daftar tugas dan asesmen"
-                className="hidden md:block overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-brand/30"
+                className="w-full overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-blue-600/30 touch-pan-x"
+                style={{ WebkitOverflowScrolling: "touch" }}
               >
-                <table className="w-full text-left text-sm border-collapse">
+                <table className="w-full min-w-[760px] text-left text-sm border-collapse">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs font-semibold text-slate-600 dark:text-slate-300">
                       <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">No</th>
-                      <th scope="col" className="sticky left-12 z-20 min-w-[160px] max-w-[240px] bg-slate-50 dark:bg-slate-800 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]">Nama Tugas</th>
-                      <th scope="col" className="py-3 px-4 whitespace-nowrap">Pertemuan</th>
-                      <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Tanggal</th>
-                      <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Siswa Dinilai</th>
-                      <th scope="col" className="py-3 px-4 text-center whitespace-nowrap">Status</th>
-                      <th scope="col" className="sticky right-0 z-20 py-3 px-4 sm:px-6 text-right bg-slate-50 dark:bg-slate-800 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]">Aksi</th>
+                      <th
+                        scope="col"
+                        aria-sort={assessmentSortState?.key === "nama" ? (assessmentSortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="sticky left-12 z-20 min-w-[160px] max-w-[240px] bg-slate-50 dark:bg-slate-800 p-0 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleAssessmentSort("nama")}
+                          className="flex w-full items-center justify-between gap-1.5 py-3 px-4 sm:px-6 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Nama Tugas</span>
+                          {assessmentSortState?.key === "nama" ? (
+                            assessmentSortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={assessmentSortState?.key === "dinilai" ? (assessmentSortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-right whitespace-nowrap"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleAssessmentSort("dinilai")}
+                          className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Dinilai</span>
+                          {assessmentSortState?.key === "dinilai" ? (
+                            assessmentSortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={assessmentSortState?.key === "status" ? (assessmentSortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-center whitespace-nowrap"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleAssessmentSort("status")}
+                          className="inline-flex w-full items-center justify-center gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Status</span>
+                          {assessmentSortState?.key === "status" ? (
+                            assessmentSortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={assessmentSortState?.key === "pertemuan" ? (assessmentSortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 whitespace-nowrap text-left"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleAssessmentSort("pertemuan")}
+                          className="inline-flex w-full items-center justify-between gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Pertemuan</span>
+                          {assessmentSortState?.key === "pertemuan" ? (
+                            assessmentSortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={assessmentSortState?.key === "tanggalPertemuan" ? (assessmentSortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 whitespace-nowrap text-left"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleAssessmentSort("tanggalPertemuan")}
+                          className="inline-flex w-full items-center justify-between gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Tanggal Pertemuan</span>
+                          {assessmentSortState?.key === "tanggalPertemuan" ? (
+                            assessmentSortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={assessmentSortState?.key === "tanggal" ? (assessmentSortState.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 whitespace-nowrap text-left"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleAssessmentSort("tanggal")}
+                          className="inline-flex w-full items-center justify-between gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Tanggal Penilaian</span>
+                          {assessmentSortState?.key === "tanggal" ? (
+                            assessmentSortState.dir === "asc" ? (
+                              <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            ) : (
+                              <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+                            )
+                          ) : (
+                            <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+                          )}
+                        </button>
+                      </th>
+                      <th scope="col" className="md:sticky md:right-0 md:z-20 py-3 px-4 sm:px-6 text-right bg-slate-50 dark:bg-slate-800 md:border-l md:border-slate-200/80 md:dark:border-slate-800/80 md:shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]">Aksi</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1418,42 +1690,22 @@ export function ClassDetailView({
                           {(currentAssessmentPage - 1) * ITEMS_PER_PAGE + idx + 1}
                         </td>
 
-                        {/* 2. Nama Tugas (Sticky Left 12, Truncate, Title) */}
+                        {/* 2. Nama Tugas (Sticky Left 12, Truncate, Plain Text) */}
                         <td className="sticky left-12 z-10 min-w-[160px] max-w-[240px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
-                          <Link
-                            href={`/teacher/grades/assessment/${a.id}?from=class`}
-                            className="font-medium text-slate-950 dark:text-slate-50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm truncate block"
+                          <span
+                            className="font-medium text-slate-950 dark:text-slate-50 text-sm truncate block"
                             title={a.nama}
                           >
                             {a.nama}
-                          </Link>
+                          </span>
                         </td>
 
-                        {/* 3. Pertemuan */}
-                        <td className="py-3 px-4 whitespace-nowrap text-xs text-slate-700 dark:text-slate-300">
-                          {a.sesiLabel ? (
-                            <span
-                              className="inline-flex items-center rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-medium text-slate-700 dark:text-slate-300 cursor-default"
-                              title={a.sesiLabel}
-                            >
-                              {a.sesiLabel.match(/^(Pertemuan\s*#\d+)/i)?.[1] ?? a.sesiLabel}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 dark:text-slate-600">-</span>
-                          )}
-                        </td>
-
-                        {/* 4. Tanggal (1 Data) */}
-                        <td className="py-3 px-4 text-right tabular-nums text-slate-600 dark:text-slate-400 text-xs sm:text-sm whitespace-nowrap">
-                          {a.tanggal}
-                        </td>
-
-                        {/* 5. Siswa Dinilai (1 Data) */}
+                        {/* 3. Dinilai */}
                         <td className="py-3 px-4 text-right tabular-nums font-medium text-slate-900 dark:text-slate-100 text-xs sm:text-sm whitespace-nowrap">
                           {a.countDinilai}/{a.totalSiswa}
                         </td>
 
-                        {/* 6. Status (1 Data) */}
+                        {/* 4. Status */}
                         <td className="py-3 px-4 text-center whitespace-nowrap">
                           <span className="inline-flex items-center gap-2 text-xs font-medium">
                             <span
@@ -1467,13 +1719,41 @@ export function ClassDetailView({
                           </span>
                         </td>
 
-                        {/* 7. Aksi (Sticky Right 0) */}
-                        <td className="sticky right-0 z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
-                          <div className="flex items-center justify-end gap-2 opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
+                        {/* 5. Pertemuan */}
+                        <td className="py-3 px-4 whitespace-nowrap text-xs text-slate-700 dark:text-slate-300">
+                          {a.sesiLabel ? (
+                            <span
+                              className="inline-flex items-center rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-medium text-slate-700 dark:text-slate-300 cursor-default"
+                              title={a.sesiLabel}
+                            >
+                              {a.sesiLabel.match(/^(Pertemuan\s*#\d+)/i)?.[1] ?? a.sesiLabel}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 dark:text-slate-600">-</span>
+                          )}
+                        </td>
+
+                        {/* 6. Tanggal Pertemuan */}
+                        <td className="py-3 px-4 whitespace-nowrap text-xs text-slate-600 dark:text-slate-400 tabular-nums">
+                          {a.tanggalPertemuan ? (
+                            <span>{a.tanggalPertemuan}</span>
+                          ) : (
+                            <span className="text-slate-400 dark:text-slate-600">-</span>
+                          )}
+                        </td>
+
+                        {/* 7. Tanggal Penilaian */}
+                        <td className="py-3 px-4 whitespace-nowrap text-xs text-slate-600 dark:text-slate-400 tabular-nums">
+                          {a.tanggal}
+                        </td>
+
+                        {/* 7. Aksi (Sticky Right on Desktop, Scrolls on Mobile) */}
+                        <td className="md:sticky md:right-0 md:z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 md:border-l md:border-slate-200/80 md:dark:border-slate-800/80 md:shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                          <div className="flex items-center justify-end gap-1.5 sm:gap-2 opacity-90 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150">
                             <button
                               type="button"
                               onClick={() => setEditingAssessment(a)}
-                              className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 p-2 text-xs font-semibold text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+                              className="size-8 sm:size-7.5 inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 p-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors cursor-pointer"
                               title="Ubah Rincian Tugas"
                               aria-label={`Ubah rincian tugas ${a.nama}`}
                             >
@@ -1481,7 +1761,7 @@ export function ClassDetailView({
                             </button>
                             <Link
                               href={`/teacher/grades/assessment/${a.id}?from=class`}
-                              className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 p-2 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors cursor-pointer"
+                              className="size-8 sm:size-7.5 inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 hover:border-slate-400 dark:hover:border-slate-600 p-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors cursor-pointer"
                               title="Nilai Siswa"
                               aria-label={`Nilai siswa untuk tugas ${a.nama}`}
                             >
@@ -1491,7 +1771,7 @@ export function ClassDetailView({
                               type="button"
                               disabled={isDeletingAssessmentId === a.id || isPendingDelete}
                               onClick={() => handleDeleteAssessment(a.id, a.nama)}
-                              className="inline-flex items-center justify-center rounded-lg border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-950/30 p-2 text-xs font-semibold text-rose-600 dark:text-rose-400 transition-colors cursor-pointer disabled:opacity-50"
+                              className="size-8 sm:size-7.5 inline-flex items-center justify-center rounded-lg border border-rose-300 dark:border-rose-900/60 bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-950/30 hover:border-rose-400 p-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
                               title="Hapus Tugas"
                               aria-label={`Hapus tugas ${a.nama}`}
                             >
@@ -1503,93 +1783,6 @@ export function ClassDetailView({
                     ))}
                   </tbody>
                 </table>
-              </div>
-
-              {/* Mobile Card View (< md) */}
-              <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-                {paginatedAssessments.map((a, idx) => (
-                  <div
-                    key={a.id}
-                    className="p-4 space-y-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-2 min-w-0">
-                        <span className="size-6 shrink-0 grid place-items-center rounded bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 tabular-nums mt-0.5">
-                          {(currentAssessmentPage - 1) * ITEMS_PER_PAGE + idx + 1}
-                        </span>
-                        <div>
-                          <Link
-                            href={`/teacher/grades/assessment/${a.id}?from=class`}
-                            className="font-semibold text-slate-950 dark:text-slate-50 hover:text-blue-600 dark:hover:text-blue-400 text-sm line-clamp-1"
-                          >
-                            {a.nama}
-                          </Link>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 tabular-nums">
-                            {a.tanggal}
-                          </p>
-                        </div>
-                      </div>
-
-                      <span className="inline-flex items-center gap-2 text-xs font-medium shrink-0 pt-0.5">
-                        <span
-                          className={`size-2 rounded-full ${
-                            a.draf ? "bg-amber-500" : "bg-emerald-500"
-                          }`}
-                        />
-                        <span className="text-slate-700 dark:text-slate-300">
-                          {a.draf ? "Draf" : "Terbit"}
-                        </span>
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs rounded-md bg-slate-50 dark:bg-slate-800/40 px-3 py-2 border border-slate-100 dark:border-slate-800">
-                      <span className="text-slate-600 dark:text-slate-400">Progres Penilaian:</span>
-                      <span className="font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
-                        {a.countDinilai}/{a.totalSiswa} Siswa
-                        {a.countBelum > 0 ? ` (${a.countBelum} belum)` : ""}
-                      </span>
-                    </div>
-
-                    {a.sesiLabel ? (
-                      <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
-                        <span className="font-medium text-slate-500 dark:text-slate-500">Pertemuan:</span>
-                        <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[11px] font-medium text-slate-700 dark:text-slate-300">
-                          {a.sesiLabel.match(/^(Pertemuan\s*#\d+)/i)?.[1] ?? a.sesiLabel}
-                        </span>
-                      </div>
-                    ) : null}
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setEditingAssessment(a)}
-                        className="size-10 grid place-items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors cursor-pointer shrink-0"
-                        title="Ubah Rincian Tugas"
-                        aria-label={`Ubah rincian tugas ${a.nama}`}
-                      >
-                        <Pencil className="size-4" />
-                      </button>
-                      <Link
-                        href={`/teacher/grades/assessment/${a.id}?from=class`}
-                        className="flex-1 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 flex items-center justify-center transition-colors cursor-pointer shadow-2xs hover:border-slate-300 dark:hover:border-slate-600"
-                        title="Nilai Siswa"
-                        aria-label={`Nilai siswa untuk tugas ${a.nama}`}
-                      >
-                        <ClipboardCheck className="size-4" />
-                      </Link>
-                      <button
-                        type="button"
-                        disabled={isDeletingAssessmentId === a.id || isPendingDelete}
-                        onClick={() => handleDeleteAssessment(a.id, a.nama)}
-                        className="size-10 grid place-items-center rounded-lg border border-rose-200 dark:border-rose-900/60 bg-white dark:bg-slate-900 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer disabled:opacity-50 shrink-0"
-                        title="Hapus Tugas"
-                        aria-label={`Hapus tugas ${a.nama}`}
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
               </div>
 
               {/* Pagination Bar */}
@@ -1609,7 +1802,7 @@ export function ClassDetailView({
                       type="button"
                       disabled={currentAssessmentPage === 1}
                       onClick={() => setAssessmentPage((p) => Math.max(1, p - 1))}
-                      className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer transition-colors"
                       aria-label="Halaman Tugas Sebelumnya"
                     >
                       <ChevronLeft className="size-4" />
@@ -1628,7 +1821,7 @@ export function ClassDetailView({
                           Math.min(totalAssessmentPages, p + 1),
                         )
                       }
-                      className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
+                      className="inline-flex items-center gap-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-400 dark:hover:border-slate-600 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer transition-colors"
                       aria-label="Halaman Tugas Berikutnya"
                     >
                       <span>Berikutnya</span>
@@ -1721,7 +1914,7 @@ export function ClassDetailView({
             <div className="space-y-2">
               <Link
                 href={`/teacher/classes/${classId}/reports`}
-                className="flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 active:scale-[0.99] transition-all"
+                className="flex items-center justify-between rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-slate-400 dark:hover:border-slate-600 shadow-2xs active:scale-[0.99] transition-all"
               >
                 <div className="flex items-start gap-2.5">
                   <FileSpreadsheet className="size-4 text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" aria-hidden="true" />
@@ -1741,7 +1934,7 @@ export function ClassDetailView({
 
               <Link
                 href="/teacher/status"
-                className="flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 active:scale-[0.99] transition-all"
+                className="flex items-center justify-between rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-slate-400 dark:hover:border-slate-600 shadow-2xs active:scale-[0.99] transition-all"
               >
                 <div className="flex items-start gap-2.5">
                   <Camera className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" />
@@ -1765,7 +1958,7 @@ export function ClassDetailView({
                   setExportInitialType("attendance");
                   setIsExportModalOpen(true);
                 }}
-                className="w-full flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 active:scale-[0.99] transition-all text-left cursor-pointer"
+                className="w-full flex items-center justify-between rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-slate-400 dark:hover:border-slate-600 shadow-2xs active:scale-[0.99] transition-all text-left cursor-pointer"
               >
                 <div className="flex items-start gap-2.5">
                   <Download className="size-4 text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" aria-hidden="true" />
@@ -1789,7 +1982,7 @@ export function ClassDetailView({
                   setExportInitialType("grades");
                   setIsExportModalOpen(true);
                 }}
-                className="w-full flex items-center justify-between rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 active:scale-[0.99] transition-all text-left cursor-pointer"
+                className="w-full flex items-center justify-between rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:border-slate-400 dark:hover:border-slate-600 shadow-2xs active:scale-[0.99] transition-all text-left cursor-pointer"
               >
                 <div className="flex items-start gap-2.5">
                   <Download className="size-4 text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" aria-hidden="true" />

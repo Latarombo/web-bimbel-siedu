@@ -202,10 +202,6 @@ export default function PresensiForm({
           {pending ? t("saving") : t("saveAttendance")}
         </Button>
       </div>
-
-      <p className="text-xs text-muted leading-relaxed">
-        {t("attendanceFormHelp")}
-      </p>
     </form>
   );
 }

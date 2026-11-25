@@ -34,18 +34,20 @@ interface PenilaianFormProps {
     siswa: StudentAssessmentRow[];
 }
 
+const MAX_SCORE = 100;
+
 export function PenilaianForm({
     kelasId,
     penilaianId,
+    nama: _ignoredNama,
     initialNama = '',
     initialTanggal,
-    initialNilaiMaksimum = 100,
     initialDraf = true,
     diterbitkanPada,
     initialSesiId = null,
     sessions = [],
     siswa: initialSiswa,
-}: PenilaianFormProps) {
+}: PenilaianFormProps & { nama?: string }) {
     const t = useTranslations('teacher');
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'grading' | 'settings'>(
@@ -55,9 +57,6 @@ export function PenilaianForm({
     const [nama, setNama] = useState(initialNama);
     const [tanggal, setTanggal] = useState(
         initialTanggal ?? new Date().toISOString().slice(0, 10),
-    );
-    const [nilaiMaksimum, setNilaiMaksimum] = useState(
-        String(initialNilaiMaksimum),
     );
     const [isDraf, setIsDraf] = useState(initialDraf);
     const [publishedAt, setPublishedAt] = useState<string | null>(
@@ -147,7 +146,7 @@ export function PenilaianForm({
     };
 
     const handleMarkAllRated = () => {
-        const maxVal = String(Number(nilaiMaksimum) || 100);
+        const maxVal = '100';
         setStudentRows((prev) => {
             const next = { ...prev };
             for (const s of initialSiswa) {
@@ -184,12 +183,6 @@ export function PenilaianForm({
             return;
         }
 
-        const maxScoreNum = Number(nilaiMaksimum);
-        if (isNaN(maxScoreNum) || maxScoreNum <= 0) {
-            setErrorMsg(t('invalidMaxScore'));
-            return;
-        }
-
         for (const s of initialSiswa) {
             const cur = studentRows[s.pendaftaranId];
             if (
@@ -198,9 +191,9 @@ export function PenilaianForm({
                 cur.nilai.trim() !== ''
             ) {
                 const valNum = Number(cur.nilai);
-                if (isNaN(valNum) || valNum < 0 || valNum > maxScoreNum) {
+                if (isNaN(valNum) || valNum < 0 || valNum > MAX_SCORE) {
                     setErrorMsg(
-                        `${s.nama}: ${t('scoreOutOfRange', { max: maxScoreNum })}`,
+                        `${s.nama}: ${t('scoreOutOfRange', { max: MAX_SCORE })}`,
                     );
                     return;
                 }
@@ -217,7 +210,7 @@ export function PenilaianForm({
         }
         formData.append('nama', nama.trim());
         formData.append('tanggal', tanggal);
-        formData.append('nilai_maksimum', String(maxScoreNum));
+        formData.append('nilai_maksimum', '100');
         formData.append('aksi', aksi);
 
         for (const s of initialSiswa) {
@@ -349,26 +342,9 @@ export function PenilaianForm({
             {/* 3. Tab Panels */}
             {activeTab === 'grading' ? (
                 <section aria-label="Lembar Nilai Siswa" className="space-y-4">
-                    {/* Standalone Control Toolbar: Quick Actions + Status Pills + Search Bar */}
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex flex-wrap items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={handleMarkAllRated}
-                                className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white cursor-pointer"
-                            >
-                                <span>Beri Nilai Maks Semua</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleClearAllScores}
-                                className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white cursor-pointer"
-                            >
-                                <span>Reset Nilai</span>
-                            </button>
-                        </div>
-
-                        {/* Live Search Input */}
+                    {/* Standalone Control Toolbar: Search Bar on Left, Quick Actions on Right */}
+                    <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+                        {/* Live Search Input (Left) */}
                         <div className="relative w-full sm:w-64">
                             <label
                                 htmlFor="search-student"
@@ -377,7 +353,7 @@ export function PenilaianForm({
                                 Cari siswa
                             </label>
                             <Search
-                                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"
+                                className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-slate-400"
                                 aria-hidden="true"
                             />
                             <input
@@ -390,14 +366,14 @@ export function PenilaianForm({
                                     setSearchQuery(e.target.value)
                                 }
                                 placeholder="Cari nama siswa…"
-                                className="h-10 sm:h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-9 pr-8 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                                className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-8 pr-8 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
                             />
                             {searchQuery && (
                                 <button
                                     type="button"
                                     onClick={() => setSearchQuery('')}
                                     aria-label="Hapus kata kunci pencarian"
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/20"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600/20"
                                 >
                                     <X
                                         className="size-4"
@@ -406,19 +382,38 @@ export function PenilaianForm({
                                 </button>
                             )}
                         </div>
+
+                        {/* Quick Actions (Right) */}
+                        <div className="flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={handleMarkAllRated}
+                                className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 cursor-pointer"
+                            >
+                                <span>Beri Nilai Maks Semua</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleClearAllScores}
+                                className="inline-flex h-9 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 text-xs font-semibold text-rose-600 dark:text-rose-400 shadow-2xs transition-colors hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 dark:hover:text-rose-300 hover:border-rose-300 dark:hover:border-rose-800 cursor-pointer"
+                            >
+                                <span>Reset</span>
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Table Spreadsheet Container (Separated) */}
-                    <div className="overflow-hidden rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xs">
+                    {/* Table Spreadsheet Container (Matching class-detail-view style) */}
+                    <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
                         <div
                             tabIndex={0}
                             role="region"
                             aria-label="Tabel spreadsheet penilaian siswa"
-                            className="overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-brand/30"
+                            className="w-full overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-blue-600/30 touch-pan-x"
+                            style={{ WebkitOverflowScrolling: 'touch' }}
                         >
-                            <table className="w-full min-w-[700px] border-collapse text-left">
+                            <table className="w-full min-w-[700px] text-left text-sm border-collapse">
                                 <thead>
-                                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs font-semibold text-slate-600 dark:text-slate-300">
                                         <th
                                             scope="col"
                                             className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center"
@@ -427,19 +422,19 @@ export function PenilaianForm({
                                         </th>
                                         <th
                                             scope="col"
-                                            className="sticky left-12 z-20 min-w-[150px] max-w-[220px] bg-slate-50 dark:bg-slate-800 px-4 py-3 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]"
+                                            className="sticky left-12 z-20 min-w-[150px] max-w-[220px] bg-slate-50 dark:bg-slate-800 py-3 px-4 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]"
                                         >
                                             Siswa
                                         </th>
                                         <th
                                             scope="col"
-                                            className="w-56 px-4 py-3 text-center"
+                                            className="w-56 px-4 py-3 text-center whitespace-nowrap"
                                         >
                                             Status Penilaian
                                         </th>
                                         <th
                                             scope="col"
-                                            className="w-28 px-4 py-3 text-right"
+                                            className="w-28 px-4 py-3 text-right whitespace-nowrap"
                                         >
                                             Nilai
                                         </th>
@@ -448,7 +443,7 @@ export function PenilaianForm({
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-xs">
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {filteredStudents.length === 0 ? (
                                         <tr>
                                             <td
@@ -473,102 +468,83 @@ export function PenilaianForm({
                                             return (
                                                 <tr
                                                     key={s.pendaftaranId}
-                                                    className="group/row relative border-b border-slate-100 dark:border-slate-800/60 transition-colors hover:bg-slate-50/70 dark:hover:bg-slate-800/40"
+                                                    className="group/row relative border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                                                 >
                                                     {/* 1. Nomor (Sticky Left 0) */}
-                                                    <td className="sticky left-0 z-10 w-12 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 text-center font-medium text-slate-600 dark:text-slate-400 tabular-nums transition-colors">
+                                                    <td className="sticky left-0 z-10 w-12 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 text-center font-medium text-slate-500 dark:text-slate-400 tabular-nums text-xs transition-colors">
                                                         {idx + 1}
                                                     </td>
 
                                                     {/* 2. Nama Siswa (Sticky Left 12) */}
-                                                    <td className="sticky left-12 z-10 min-w-[150px] max-w-[220px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
-                                                        <p
-                                                            className="font-semibold text-slate-950 dark:text-slate-50 truncate block"
+                                                    <td className="sticky left-12 z-10 min-w-[150px] max-w-[220px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 py-3 px-4 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                                                        <span
+                                                            className="font-medium text-slate-950 dark:text-slate-50 text-sm truncate block"
                                                             title={s.nama}
                                                         >
                                                             {s.nama}
-                                                        </p>
+                                                        </span>
                                                     </td>
 
-                                                    {/* 3. Segmented Status Button Toggles (Dinilai, Belum, Absen) */}
-                                                    <td className="px-4 py-3">
-                                                        <div className="flex items-center justify-center">
-                                                            <div className="inline-flex items-center rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-0.5 text-xs">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
+                                                    {/* 3. Status Penilaian (Radio Button: Dinilai & Tidak Ikut) */}
+                                                    <td className="py-3 px-4 whitespace-nowrap text-center">
+                                                        <div className="inline-flex items-center justify-center gap-4 text-xs font-medium">
+                                                            <label className="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white transition-colors">
+                                                                <input
+                                                                    type="radio"
+                                                                    name={`status_penilaian_${s.pendaftaranId}`}
+                                                                    value="dinilai"
+                                                                    checked={
+                                                                        cur.statusHasil ===
+                                                                        'dinilai'
+                                                                    }
+                                                                    onChange={() =>
                                                                         handleStatusChange(
                                                                             s.pendaftaranId,
                                                                             'dinilai',
                                                                         )
                                                                     }
-                                                                    className={`rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer ${
+                                                                    className="size-4 text-blue-600 focus:ring-blue-500 border-slate-300 dark:border-slate-600 cursor-pointer"
+                                                                />
+                                                                <span>
+                                                                    Dinilai
+                                                                </span>
+                                                            </label>
+
+                                                            <label className="inline-flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white transition-colors">
+                                                                <input
+                                                                    type="radio"
+                                                                    name={`status_penilaian_${s.pendaftaranId}`}
+                                                                    value="tidak_ikut"
+                                                                    checked={
                                                                         cur.statusHasil ===
-                                                                        'dinilai'
-                                                                            ? 'bg-emerald-600 text-white shadow-xs'
-                                                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                                                                    }`}
-                                                                >
-                                                                    {t(
-                                                                        'statusDinilai',
-                                                                    )}
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        handleStatusChange(
-                                                                            s.pendaftaranId,
-                                                                            'belum_dinilai',
-                                                                        )
+                                                                        'tidak_ikut'
                                                                     }
-                                                                    className={`rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer ${
-                                                                        cur.statusHasil ===
-                                                                        'belum_dinilai'
-                                                                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-bold'
-                                                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                                                                    }`}
-                                                                >
-                                                                    {t(
-                                                                        'statusBelumShort',
-                                                                    )}
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
+                                                                    onChange={() =>
                                                                         handleStatusChange(
                                                                             s.pendaftaranId,
                                                                             'tidak_ikut',
                                                                         )
                                                                     }
-                                                                    className={`rounded-md px-3 py-1 text-xs font-semibold transition-all cursor-pointer ${
-                                                                        cur.statusHasil ===
-                                                                        'tidak_ikut'
-                                                                            ? 'bg-rose-600 text-white shadow-xs'
-                                                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                                                                    }`}
-                                                                >
-                                                                    {t(
-                                                                        'statusTidakIkutShort',
-                                                                    )}
-                                                                </button>
-                                                            </div>
+                                                                    className="size-4 text-rose-600 focus:ring-rose-500 border-slate-300 dark:border-slate-600 cursor-pointer"
+                                                                />
+                                                                <span>
+                                                                    Tidak Ikut
+                                                                </span>
+                                                            </label>
                                                         </div>
                                                     </td>
 
-                                                    {/* 4. Nilai (Skor) */}
-                                                    <td className="px-4 py-3 text-right">
-                                                        <div className="flex items-center justify-end gap-2">
+                                                    {/* 4. Nilai (Clean inline input) */}
+                                                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                                                        <div className="flex items-center justify-end">
                                                             <input
                                                                 type="number"
                                                                 inputMode="decimal"
                                                                 min="0"
-                                                                max={
-                                                                    nilaiMaksimum ||
-                                                                    100
-                                                                }
+                                                                max={MAX_SCORE}
                                                                 disabled={
-                                                                    cur.statusHasil !==
-                                                                    'dinilai'
+                                                                    cur.statusHasil ===
+                                                                    'tidak_ikut'
                                                                 }
                                                                 value={
                                                                     cur.nilai
@@ -581,14 +557,14 @@ export function PenilaianForm({
                                                                     )
                                                                 }
                                                                 aria-label={`Nilai untuk ${s.nama}`}
-                                                                placeholder="0"
-                                                                className="w-16 h-9 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 text-right text-base sm:text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100 disabled:bg-slate-100 dark:disabled:bg-slate-800/60 disabled:text-slate-400 dark:disabled:text-slate-500 hover:border-slate-400 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                                                                placeholder="-"
+                                                                className="w-16 py-1 px-1.5 text-right font-medium text-slate-900 dark:text-slate-100 tabular-nums text-xs sm:text-sm bg-transparent rounded border border-transparent hover:border-slate-300 dark:hover:border-slate-700 focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none transition-colors disabled:text-slate-400 dark:disabled:text-slate-600 disabled:cursor-not-allowed placeholder:text-slate-400 dark:placeholder:text-slate-600"
                                                             />
                                                         </div>
                                                     </td>
 
-                                                    {/* 5. Catatan & Umpan Balik */}
-                                                    <td className="px-4 py-3">
+                                                    {/* 5. Catatan & Umpan Balik Guru (Clean inline input) */}
+                                                    <td className="py-3 px-4">
                                                         <input
                                                             type="text"
                                                             maxLength={1000}
@@ -601,10 +577,13 @@ export function PenilaianForm({
                                                                 )
                                                             }
                                                             aria-label={`Catatan untuk ${s.nama}`}
-                                                            placeholder={t(
-                                                                'notesPlaceholder',
-                                                            )}
-                                                            className="w-full h-9 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-base sm:text-xs text-slate-800 dark:text-slate-100 placeholder:text-slate-400 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                                                            placeholder={
+                                                                t(
+                                                                    'notesPlaceholder',
+                                                                ) ||
+                                                                'Tambah catatan...'
+                                                            }
+                                                            className="w-full py-1 px-2 text-xs sm:text-sm text-slate-800 dark:text-slate-200 bg-transparent rounded border border-transparent hover:border-slate-300 dark:hover:border-slate-700 focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-slate-800 focus:outline-none transition-colors placeholder:text-slate-400/80 dark:placeholder:text-slate-500"
                                                         />
                                                     </td>
                                                 </tr>
@@ -752,34 +731,6 @@ export function PenilaianForm({
                                         onChange={setTanggal}
                                         required
                                     />
-                                </div>
-
-                                <div>
-                                    <label
-                                        htmlFor="assessment-max"
-                                        className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2"
-                                    >
-                                        {t('maxScore')}{' '}
-                                        <span className="text-rose-500 font-bold ml-0.5">
-                                            *
-                                        </span>
-                                    </label>
-                                    <input
-                                        id="assessment-max"
-                                        type="number"
-                                        inputMode="numeric"
-                                        min="1"
-                                        max="1000"
-                                        required
-                                        value={nilaiMaksimum}
-                                        onChange={(e) =>
-                                            setNilaiMaksimum(e.target.value)
-                                        }
-                                        className="w-full h-11 sm:h-10 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 sm:px-4 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 tabular-nums hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
-                                    />
-                                    <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                                        {t('maxScoreHelp')}
-                                    </p>
                                 </div>
                             </div>
 

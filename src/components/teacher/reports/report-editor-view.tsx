@@ -89,7 +89,7 @@ export function ReportEditorView({ data, classId }: ReportEditorViewProps) {
           <button
             type="button"
             onClick={handlePrint}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 transition-colors cursor-pointer"
           >
             <Printer className="size-4" />
             <span>Cetak / Unduh PDF</span>
@@ -100,7 +100,7 @@ export function ReportEditorView({ data, classId }: ReportEditorViewProps) {
               type="button"
               disabled={isPending}
               onClick={handleUnpublish}
-              className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-3.5 py-2 text-xs font-semibold text-amber-800 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-50 cursor-pointer"
+              className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/40 px-3.5 py-2 text-xs font-semibold text-amber-800 dark:text-amber-200 shadow-2xs hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors disabled:opacity-50 cursor-pointer"
             >
               <span>Tarik Jadi Draf</span>
             </button>
@@ -110,7 +110,7 @@ export function ReportEditorView({ data, classId }: ReportEditorViewProps) {
             type="button"
             disabled={isPending}
             onClick={() => handleSave(false)}
-            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 cursor-pointer"
+            className="rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isPending ? "Menyimpan..." : "Simpan Draf"}
           </button>

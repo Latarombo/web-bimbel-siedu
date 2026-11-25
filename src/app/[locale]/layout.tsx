@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import Script from "next/script";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { Inter, Plus_Jakarta_Sans, Geist } from "next/font/google";
@@ -105,8 +106,13 @@ export default async function RootLayout({
       )}
       suppressHydrationWarning
     >
-      <head>
-        <script
+      <body
+        className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-150"
+        suppressHydrationWarning
+      >
+        <Script
+          id="theme-initializer"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               try {
@@ -121,11 +127,6 @@ export default async function RootLayout({
             `,
           }}
         />
-      </head>
-      <body
-        className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-150"
-        suppressHydrationWarning
-      >
         <SmoothScroll />
         <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 bg-brand text-white px-4 py-2 rounded-lg text-sm">
           {t("skipToContent")}

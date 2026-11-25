@@ -83,6 +83,22 @@ export default async function EditClassAssessment({
   const anakById = new Map(anakRows.map((a) => [a.id, a]));
   const hasilByPendaftaran = new Map(hasilRows.map((h) => [h.pendaftaranId, h]));
 
+  const activeSesi = assessment.sesiPertemuanId
+    ? sesiRows.find((s) => s.id === assessment.sesiPertemuanId)
+    : sesiRows.find((s) => s.tanggalPertemuan === assessment.tanggal) ?? null;
+
+  const activeSesiIndex = activeSesi
+    ? sesiRows.findIndex((s) => s.id === activeSesi.id)
+    : -1;
+
+  const sesiLabel = activeSesi
+    ? `Pertemuan #${activeSesiIndex + 1}`
+    : "-";
+
+  const tanggalPertemuanLabel = activeSesi
+    ? activeSesi.tanggalPertemuan
+    : "-";
+
   const activePendaftaran = pendaftaranRows.filter(
     (p) => p.status === "terdaftar" || p.status === "tertunggak" || hasilByPendaftaran.has(p.id),
   );
@@ -116,46 +132,81 @@ export default async function EditClassAssessment({
         </span>
       </nav>
 
-      {/* Title & Metadata */}
-      <div className="space-y-3">
-        <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
-          {assessment.nama}
-        </h1>
+      {/* Ringkasan Informasi Tugas (Daftar Vertikal Rata Tanpa Kartu) */}
+      <h1 className="sr-only">
+        {assessment.nama}
+      </h1>
+      <div className="text-sm sm:text-base leading-relaxed text-slate-800 dark:text-slate-200">
+        <div className="grid grid-cols-[max-content_auto_1fr] items-baseline gap-x-2.5 sm:gap-x-3 gap-y-1.5 sm:gap-y-2">
+          <span className="font-semibold text-slate-700 dark:text-slate-300">
+            Nama Tugas
+          </span>
+          <span className="font-semibold text-slate-400 dark:text-slate-500 select-none" aria-hidden="true">
+            :
+          </span>
+          <span className="font-medium text-slate-950 dark:text-slate-50">
+            {assessment.nama}
+          </span>
 
-        {/* Structured Metadata Panel */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 sm:p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-xs">
-          <div>
-            <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">
-              {t("subjectDefault") || "Mata Pelajaran"}
-            </span>
-            <span className="mt-0.5 block font-semibold text-slate-900 dark:text-slate-100">
-              {mapelName}
-            </span>
-          </div>
-          <div>
-            <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">
-              {t("class") || "Kelas"}
-            </span>
-            <span className="mt-0.5 block font-semibold text-slate-900 dark:text-slate-100">
-              {kelas ? `${kelas.jenjang}${kelas.tingkat ? ` (${kelas.tingkat})` : ""}` : "-"}
-            </span>
-          </div>
-          <div>
-            <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">
-              {t("assessmentDate") || "Tanggal Penilaian"}
-            </span>
-            <span className="mt-0.5 block font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
-              {assessment.tanggal}
-            </span>
-          </div>
-          <div>
-            <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">
-              Nilai Maksimum
-            </span>
-            <span className="mt-0.5 block font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
-              {assessment.nilaiMaksimum ?? 100}
-            </span>
-          </div>
+          <span className="font-semibold text-slate-700 dark:text-slate-300">
+            Mata Pelajaran
+          </span>
+          <span className="font-semibold text-slate-400 dark:text-slate-500 select-none" aria-hidden="true">
+            :
+          </span>
+          <span className="font-medium text-slate-950 dark:text-slate-50">
+            {mapelName}
+          </span>
+
+          <span className="font-semibold text-slate-700 dark:text-slate-300">
+            Kelas
+          </span>
+          <span className="font-semibold text-slate-400 dark:text-slate-500 select-none" aria-hidden="true">
+            :
+          </span>
+          <span className="font-medium text-slate-950 dark:text-slate-50">
+            {kelas ? `${kelas.jenjang}${kelas.tingkat ? ` (${kelas.tingkat})` : ""}` : "-"}
+          </span>
+
+          <span className="font-semibold text-slate-700 dark:text-slate-300">
+            Sesi Pertemuan
+          </span>
+          <span className="font-semibold text-slate-400 dark:text-slate-500 select-none" aria-hidden="true">
+            :
+          </span>
+          <span className="font-medium text-slate-950 dark:text-slate-50">
+            {sesiLabel}
+          </span>
+
+          <span className="font-semibold text-slate-700 dark:text-slate-300">
+            Tanggal Pertemuan
+          </span>
+          <span className="font-semibold text-slate-400 dark:text-slate-500 select-none" aria-hidden="true">
+            :
+          </span>
+          <span className="font-medium text-slate-950 dark:text-slate-50 tabular-nums">
+            {tanggalPertemuanLabel}
+          </span>
+
+          <span className="font-semibold text-slate-700 dark:text-slate-300">
+            Tanggal Penilaian
+          </span>
+          <span className="font-semibold text-slate-400 dark:text-slate-500 select-none" aria-hidden="true">
+            :
+          </span>
+          <span className="font-medium text-slate-950 dark:text-slate-50 tabular-nums">
+            {assessment.tanggal}
+          </span>
+
+          <span className="font-semibold text-slate-700 dark:text-slate-300">
+            Jumlah Siswa
+          </span>
+          <span className="font-semibold text-slate-400 dark:text-slate-500 select-none" aria-hidden="true">
+            :
+          </span>
+          <span className="font-medium text-slate-950 dark:text-slate-50 tabular-nums">
+            {siswa.length}
+          </span>
         </div>
       </div>
 
@@ -164,7 +215,6 @@ export default async function EditClassAssessment({
         penilaianId={assessment.id}
         initialNama={assessment.nama}
         initialTanggal={assessment.tanggal}
-        initialNilaiMaksimum={assessment.nilaiMaksimum}
         initialDraf={assessment.draf}
         diterbitkanPada={assessment.diterbitkanPada}
         initialSesiId={assessment.sesiPertemuanId}

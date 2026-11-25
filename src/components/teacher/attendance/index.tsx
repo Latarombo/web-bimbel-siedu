@@ -177,7 +177,7 @@ export function TeacherAttendanceManager({
           onClose={() => setIsAssessmentModalOpen(false)}
           classId={kelasId}
           defaultSesiId={sesiId}
-          sessions={[{ id: sesiId, label: `Sesi ${tanggal}` }]}
+          sessions={[{ id: sesiId, label: `Sesi ${tanggal}`, tanggalPertemuan: tanggal }]}
           onSuccess={() => {
             router.refresh();
           }}

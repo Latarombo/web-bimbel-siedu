@@ -217,7 +217,7 @@ export function KatalogFilterBar({
                   <div className="bg-slate-50 px-4 py-2 text-xs font-semibold text-muted">
                     Pilihan Kelas
                   </div>
-                  <div className="max-h-72 overflow-y-auto overscroll-contain py-1 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
+                  <div data-lenis-prevent className="max-h-72 overflow-y-auto overscroll-contain py-1 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-300 hover:[&::-webkit-scrollbar-thumb]:bg-slate-400">
                     {suggestions.map((item) => (
                       <button
                         key={item.id}

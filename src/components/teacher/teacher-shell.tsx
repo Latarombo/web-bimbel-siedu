@@ -8,6 +8,7 @@ import {
   type QuickSearchClassItem,
   type QuickSearchStudentItem,
 } from './teacher-quick-search';
+import { TeacherHeaderActionProvider } from './teacher-header-action-context';
 import LogoutDialog from '@/components/common/logout-dialog';
 
 interface TeacherShellProps {
@@ -74,55 +75,57 @@ export function TeacherShell({
   };
 
   return (
-    <div className="min-h-dvh bg-white dark:bg-slate-950 flex flex-col text-slate-900 dark:text-slate-100 transition-colors duration-200">
-      <TeacherSidebar
-        role={role}
-        userName={userName}
-        userEmail={userEmail}
-        accountRole={accountRole}
-        isCollapsed={isCollapsed}
-        onToggleCollapse={handleToggleCollapse}
-        isDrawerOpen={isDrawerOpen}
-        onCloseDrawer={() => setIsDrawerOpen(false)}
-        onOpenLogout={() => setIsLogoutOpen(true)}
-        teacherClasses={searchClasses}
-      />
-
-      <div
-        className={`flex min-h-dvh flex-col transition-[padding-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
-          isCollapsed ? 'lg:pl-[72px]' : 'lg:pl-[260px]'
-        }`}
-      >
-        <TeacherHeader
+    <TeacherHeaderActionProvider>
+      <div className="min-h-dvh bg-white dark:bg-slate-950 flex flex-col text-slate-900 dark:text-slate-100 transition-colors duration-200">
+        <TeacherSidebar
+          role={role}
           userName={userName}
           userEmail={userEmail}
-          userImage={userImage}
-          role={role}
-          initialNotifications={notifications}
-          onOpenMobileDrawer={() => setIsDrawerOpen(true)}
+          accountRole={accountRole}
+          isCollapsed={isCollapsed}
+          onToggleCollapse={handleToggleCollapse}
+          isDrawerOpen={isDrawerOpen}
+          onCloseDrawer={() => setIsDrawerOpen(false)}
           onOpenLogout={() => setIsLogoutOpen(true)}
+          teacherClasses={searchClasses}
         />
 
-        <main id="main" className="flex-1">
-          {children}
-        </main>
+        <div
+          className={`flex min-h-dvh flex-col transition-[padding-left] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+            isCollapsed ? 'lg:pl-[72px]' : 'lg:pl-[260px]'
+          }`}
+        >
+          <TeacherHeader
+            userName={userName}
+            userEmail={userEmail}
+            userImage={userImage}
+            role={role}
+            initialNotifications={notifications}
+            onOpenMobileDrawer={() => setIsDrawerOpen(true)}
+            onOpenLogout={() => setIsLogoutOpen(true)}
+          />
+
+          <main id="main" className="flex-1">
+            {children}
+          </main>
+        </div>
+
+        <TeacherQuickSearch
+          isOpen={isSearchOpen}
+          onClose={() => setIsSearchOpen(false)}
+          classes={searchClasses}
+          students={searchStudents}
+        />
+
+        <LogoutDialog
+          open={isLogoutOpen}
+          onOpenChange={setIsLogoutOpen}
+          userName={userName}
+          userEmail={userEmail}
+          role={role}
+          accountRole={accountRole}
+        />
       </div>
-
-      <TeacherQuickSearch
-        isOpen={isSearchOpen}
-        onClose={() => setIsSearchOpen(false)}
-        classes={searchClasses}
-        students={searchStudents}
-      />
-
-      <LogoutDialog
-        open={isLogoutOpen}
-        onOpenChange={setIsLogoutOpen}
-        userName={userName}
-        userEmail={userEmail}
-        role={role}
-        accountRole={accountRole}
-      />
-    </div>
+    </TeacherHeaderActionProvider>
   );
 }

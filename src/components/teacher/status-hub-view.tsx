@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useTransition, useRef, useEffect, useCallback } from 'react';
+import { useState, useTransition, useRef, useEffect, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSetTeacherHeaderAction } from '@/components/teacher/teacher-header-action-context';
 import {
   hapusStatusPembelajaran,
   getStatusViewers,
@@ -200,6 +201,23 @@ export function StatusHubView({ classes, pastStatuses, guruName }: Props) {
   const handleOpenPhotoCreator = () => {
     photoFileInputRef.current?.click();
   };
+
+  useSetTeacherHeaderAction(
+    useMemo(
+      () => ({
+        type: 'camera',
+        label: 'Bagikan Status Belajar',
+        onClick: handleOpenPhotoCreator,
+      }),
+      []
+    )
+  );
+
+  useEffect(() => {
+    const handleCreateStatus = () => handleOpenPhotoCreator();
+    window.addEventListener('teacher:create-status', handleCreateStatus);
+    return () => window.removeEventListener('teacher:create-status', handleCreateStatus);
+  }, []);
 
   // Handler saat file foto dipilih dari folder / file picker native
   const handlePhotoFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {

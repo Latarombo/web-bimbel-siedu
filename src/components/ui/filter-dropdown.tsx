@@ -80,8 +80,8 @@ export function FilterDropdown<T extends string = string>({
             type="button"
             aria-label={ariaLabel ?? (prefixLabel ? `${prefixLabel} ${displayLabel}` : displayLabel)}
             className={cn(
-              "group inline-flex items-center justify-between gap-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-800 dark:text-slate-200 font-semibold transition-colors select-none cursor-pointer shadow-2xs disabled:opacity-50 disabled:pointer-events-none",
-              "hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50/70 dark:hover:bg-slate-800/60",
+              "group inline-flex items-center justify-between gap-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-semibold transition-colors select-none cursor-pointer shadow-2xs disabled:opacity-50 disabled:pointer-events-none",
+              "hover:border-slate-400 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white",
               "focus-visible:outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20",
               isSm
                 ? "h-9 px-3 text-xs sm:text-sm rounded-lg"
@@ -136,6 +136,7 @@ export function FilterDropdown<T extends string = string>({
           ) : null}
 
           <DropdownMenuRadioGroup
+            data-lenis-prevent
             value={value}
             onValueChange={(val) => onChange(val as T)}
             className="max-h-60 overflow-y-auto overscroll-contain space-y-0.5"

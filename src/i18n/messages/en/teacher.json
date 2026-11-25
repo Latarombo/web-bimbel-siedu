@@ -42,7 +42,6 @@
   "summaryAbsent": "Absent",
   "summaryUnfilled": "Unfilled",
   "unfilledWarning": "There are {count} students without an attendance status.",
-  "attendanceFormHelp": "Student progress notes are recorded on the grades page. Entries older than 7 days can only be modified through an administrator.",
   "assignedClasses": "Assigned classes",
   "activeStudents": "Active students",
   "noTeachingSchedule": "no teaching sessions scheduled",

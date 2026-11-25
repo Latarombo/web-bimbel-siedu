@@ -352,10 +352,13 @@
 }
 
 /*
- * Modern Web Guidance: Native Dialog & Overscroll Containment
+ * Modern Web Guidance & Lenis: Native Dialog & Overscroll Containment
  * Stops page scroll chaining and prevents layout shift without dirty overflow:hidden on body.
  */
-dialog:modal {
+dialog:modal,
+[data-lenis-prevent],
+[data-slot="dropdown-menu-content"],
+[data-radix-popper-content-wrapper] {
     overscroll-behavior: contain;
 }
 

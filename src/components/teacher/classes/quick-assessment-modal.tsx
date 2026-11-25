@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { X, Loader2 } from "lucide-react";
 import { savePenilaianBatch } from "@/app/actions/teacher";
 import { NativeDialog } from "@/components/common/native-dialog";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Select, type SelectOption } from "@/components/ui/select";
+import { tanggalWIB } from "@/lib/format/hari";
 
 export interface AssessmentInitialData {
   id: number;
@@ -16,15 +18,45 @@ export interface AssessmentInitialData {
   catatan?: string | null;
 }
 
+export interface AssessmentSessionOption {
+  id: number;
+  label: string;
+  tanggalPertemuan?: string;
+}
+
 interface QuickAssessmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   classId?: number;
   classes?: { id: number; nama: string; jenjang: string }[];
-  sessions?: { id: number; label: string }[];
+  sessions?: AssessmentSessionOption[];
   defaultSesiId?: number;
   initialData?: AssessmentInitialData | null;
   onSuccess: () => void;
+}
+
+function resolveDefaultSessionId(
+  sessionsList: AssessmentSessionOption[],
+  preferredSesiId?: number
+): number | null {
+  if (!sessionsList || sessionsList.length === 0) return null;
+  if (preferredSesiId && sessionsList.some((s) => s.id === preferredSesiId)) {
+    return preferredSesiId;
+  }
+  const todayStr = tanggalWIB();
+
+  // 1. Cek sesi yang tanggalnya persis hari ini
+  const todaySession = sessionsList.find((s) => s.tanggalPertemuan === todayStr);
+  if (todaySession) return todaySession.id;
+
+  // 2. Jika tidak ada sesi hari ini, pilih sesi terdekat berikutnya
+  const upcomingSession = sessionsList.find(
+    (s) => s.tanggalPertemuan && s.tanggalPertemuan > todayStr
+  );
+  if (upcomingSession) return upcomingSession.id;
+
+  // 3. Jika semua sesi sudah terlewat, pilih sesi terakhir
+  return sessionsList[sessionsList.length - 1].id;
 }
 
 export function QuickAssessmentModal({
@@ -42,10 +74,12 @@ export function QuickAssessmentModal({
   });
   const [nama, setNama] = useState("");
   const [tanggal, setTanggal] = useState("");
-  const [nilaiMaksimum, setNilaiMaksimum] = useState("100");
   const [catatan, setCatatan] = useState("");
   const [isDraft, setIsDraft] = useState(false);
-  const [sesiId, setSesiId] = useState<number | null>(defaultSesiId ?? null);
+  const [sesiId, setSesiId] = useState<number | null>(() => {
+    if (initialData?.sesiPertemuanId) return initialData.sesiPertemuanId;
+    return resolveDefaultSessionId(sessions, defaultSesiId);
+  });
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -55,20 +89,20 @@ export function QuickAssessmentModal({
   if (isOpen !== prevIsOpen) {
     setPrevIsOpen(isOpen);
     if (isOpen) {
+      const resolvedDefault = resolveDefaultSessionId(sessions, defaultSesiId);
       if (initialData) {
         setNama(initialData.nama);
         setTanggal(initialData.tanggal);
-        setNilaiMaksimum(String(initialData.nilaiMaksimum));
         setCatatan(initialData.catatan ?? "");
         setIsDraft(initialData.draf);
-        setSesiId(initialData.sesiPertemuanId ?? null);
+        // Pertahankan sesi tersimpan jika ada; jika belum punya sesi (null), default ke sesi hari ini / terdekat
+        setSesiId(initialData.sesiPertemuanId ?? resolvedDefault);
       } else {
         setNama("");
-        setTanggal(new Date().toISOString().slice(0, 10));
-        setNilaiMaksimum("100");
+        setTanggal(tanggalWIB());
         setCatatan("");
         setIsDraft(false);
-        setSesiId(defaultSesiId ?? null);
+        setSesiId(resolvedDefault);
       }
       setErrorMsg(null);
       if (classId) {
@@ -78,6 +112,24 @@ export function QuickAssessmentModal({
       }
     }
   }
+
+  const sessionSelectOptions = useMemo<SelectOption[]>(() => {
+    const todayStr = tanggalWIB();
+    return sessions.map((s) => {
+      const isToday = s.tanggalPertemuan === todayStr;
+      return {
+        value: String(s.id),
+        label: isToday ? `${s.label} · Hari ini` : s.label,
+      };
+    });
+  }, [sessions]);
+
+  const classSelectOptions = useMemo<SelectOption[]>(() => {
+    return (classes ?? []).map((c) => ({
+      value: String(c.id),
+      label: `${c.nama} · ${c.jenjang}`,
+    }));
+  }, [classes]);
 
   if (!isOpen) return null;
 
@@ -92,9 +144,8 @@ export function QuickAssessmentModal({
       setErrorMsg("Nama tugas wajib diisi.");
       return;
     }
-    const maxScore = Number(nilaiMaksimum);
-    if (isNaN(maxScore) || maxScore <= 0) {
-      setErrorMsg("Nilai maksimum harus berupa angka lebih besar dari 0.");
+    if (sessions.length > 0 && !sesiId) {
+      setErrorMsg("Pilih sesi pertemuan terlebih dahulu.");
       return;
     }
 
@@ -111,7 +162,7 @@ export function QuickAssessmentModal({
       formData.append("nama", nama.trim());
       formData.append("tanggal", tanggal);
       formData.append("catatan_tugas", catatan.trim());
-      formData.append("nilai_maksimum", String(maxScore));
+      formData.append("nilai_maksimum", "100");
       formData.append("aksi", isDraft ? "simpan_draf" : "terbitkan");
 
       const res = await savePenilaianBatch(formData);
@@ -131,9 +182,9 @@ export function QuickAssessmentModal({
       ariaLabelledBy="quick-assessment-title"
       preventClose={isPending}
     >
-      <div className="w-full max-w-lg rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
+      <div className="w-full max-w-lg rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl overflow-visible">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800 rounded-t-xl bg-white dark:bg-slate-900">
           <div>
             <h3
               id="quick-assessment-title"
@@ -179,19 +230,16 @@ export function QuickAssessmentModal({
                 >
                   Kelas / Rombongan Belajar <span className="text-red-500">*</span>
                 </label>
-                <select
+                <Select
                   id="assessment-class-select"
-                  value={selectedClassId}
-                  onChange={(e) => setSelectedClassId(Number(e.target.value))}
+                  value={String(selectedClassId)}
+                  onChange={(val) => setSelectedClassId(Number(val))}
+                  options={classSelectOptions}
                   disabled={isPending}
-                  className="w-full h-11 sm:h-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 hover:border-slate-400 dark:hover:border-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
-                >
-                  {classes.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nama} · {c.jenjang}
-                    </option>
-                  ))}
-                </select>
+                  ariaLabel="Pilih kelas atau rombongan belajar"
+                  portal={false}
+                  contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] max-w-lg"
+                />
               </div>
             ) : null}
 
@@ -233,29 +281,26 @@ export function QuickAssessmentModal({
               />
             </div>
 
-            {/* Sesi Pertemuan Terkait (Opsional) */}
+            {/* Sesi Pertemuan Terkait (Wajib jika ada sesi) */}
             {sessions.length > 0 && (
               <div className="space-y-2">
                 <label
                   htmlFor="assessment-sesi"
                   className="block text-xs font-semibold text-slate-700 dark:text-slate-300"
                 >
-                  Terkait Sesi Pertemuan (Opsional)
+                  Sesi Pertemuan <span className="text-red-500">*</span>
                 </label>
-                <select
+                <Select
                   id="assessment-sesi"
-                  value={sesiId ?? ""}
-                  onChange={(e) => setSesiId(e.target.value ? Number(e.target.value) : null)}
+                  value={sesiId ? String(sesiId) : ""}
+                  onChange={(val) => setSesiId(val ? Number(val) : null)}
+                  options={sessionSelectOptions}
+                  placeholder="Pilih sesi pertemuan…"
+                  ariaLabel="Pilih sesi pertemuan terkait tugas"
                   disabled={isPending}
-                  className="w-full h-11 sm:h-10 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 hover:border-slate-400 dark:hover:border-slate-500 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors cursor-pointer"
-                >
-                  <option value="">Umum (Tanpa Sesi Tertentu)</option>
-                  {sessions.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
+                  portal={false}
+                  contentClassName="w-[var(--radix-dropdown-menu-trigger-width)] max-w-lg"
+                />
               </div>
             )}
 
@@ -296,12 +341,12 @@ export function QuickAssessmentModal({
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-slate-50/70 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 rounded-b-xl">
             <button
               type="button"
               disabled={isPending}
               onClick={onClose}
-              className="px-4 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 rounded-lg transition-colors disabled:opacity-40 cursor-pointer"
+              className="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white hover:border-slate-400 dark:hover:border-slate-600 transition-colors disabled:opacity-40 cursor-pointer"
             >
               <span>Batal</span>
             </button>

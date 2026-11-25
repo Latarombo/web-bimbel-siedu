@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache';
 import { db } from '@/prisma/db';
 import { auth } from '@/lib/auth';
 import { collect } from '@/lib/collect';
-import { hariDariTanggal, dalamJendela7Hari, tanggalValid } from '@/lib/format/hari';
+import { hariDariTanggal, tanggalValid } from '@/lib/format/hari';
 
 export type GuruState = { ok?: boolean; error?: string; fieldErrors?: Record<string, string> };
 
@@ -614,8 +614,7 @@ export async function savePenilaianBatch(
   const nama = String(formData.get("nama") ?? "").trim();
   const tanggal = String(formData.get("tanggal") ?? "").trim();
   const catatanTugas = String(formData.get("catatan_tugas") ?? "").trim() || null;
-  const nilaiMaksimumRaw = formData.get("nilai_maksimum");
-  const nilaiMaksimum = nilaiMaksimumRaw ? Number(nilaiMaksimumRaw) : 100;
+  const nilaiMaksimum = 100;
   const aksi = String(formData.get("aksi") ?? "simpan_draf"); // 'simpan_draf' | 'terbitkan'
 
   if (!Number.isInteger(kelasId) || kelasId <= 0) return { error: t("invalidParameters") };
@@ -623,7 +622,6 @@ export async function savePenilaianBatch(
   if (nama.length > 100) return { error: t("assessmentNameMax") };
   if (catatanTugas && catatanTugas.length > 1000) return { error: t("notesMax") };
   if (!tanggalValid(tanggal)) return { error: t("invalidDate") };
-  if (isNaN(nilaiMaksimum) || nilaiMaksimum <= 0) return { error: t("invalidMaxScore") };
 
   // Guard kepemilikan kelas & status
   const [kelas] = await collect(

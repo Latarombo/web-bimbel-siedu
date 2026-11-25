@@ -21,7 +21,7 @@ export function LanguageSwitcher({
 }: {
     placement?: 'top' | 'bottom';
     compact?: boolean;
-    variant?: 'default' | 'auth' | 'toggle';
+    variant?: 'default' | 'auth' | 'toggle' | 'icon';
     align?: 'left' | 'right';
 }) {
     const [open, setOpen] = useState(false);
@@ -125,11 +125,23 @@ export function LanguageSwitcher({
         );
     }
 
+    // Escape key listener untuk menutup dropdown
+    useEffect(() => {
+        if (!open) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setOpen(false);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [open]);
+
+    const isIconButton = variant === 'icon';
+
     const menuClasses = `absolute ${
         placement === 'top' ? 'bottom-full mb-2' : 'top-full mt-2'
     } ${
         align === 'right' ? 'right-0' : 'left-0'
-    } z-30 min-w-48 rounded-2xl border border-slate-100 bg-white p-1.5 shadow-xl ring-1 ring-slate-900/5 animate-in fade-in-0 zoom-in-95 duration-150`;
+    } z-30 min-w-44 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5 shadow-xl ring-1 ring-slate-900/5 dark:ring-white/10 animate-in fade-in-0 zoom-in-95 duration-150`;
 
     return (
         <div className="relative inline-block text-left">
@@ -142,27 +154,44 @@ export function LanguageSwitcher({
                     onClick={() => setOpen(false)}
                 />
             )}
-            <button
-                type="button"
-                aria-haspopup="listbox"
-                aria-expanded={open}
-                aria-label={t('label')}
-                onClick={() => {
-                    setSuffix(window.location.search + window.location.hash);
-                    setOpen((v) => !v);
-                }}
-                className="relative z-20 flex items-center space-x-1.5 rounded-xl px-2.5 py-1 text-slate-700 hover:bg-slate-100/70 hover:text-slate-900 transition-colors duration-200 cursor-pointer"
-            >
-                <Languages className="w-4 h-4 shrink-0 stroke-[1.8] text-slate-500" />
-                <span className="text-sm font-medium">
-                    {compact ? locale.toUpperCase() : t(locale)}
-                </span>
-                <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform duration-200 text-slate-400 ${
-                        open ? 'rotate-180 text-blue-600' : ''
-                    }`}
-                />
-            </button>
+            {isIconButton ? (
+                <button
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={open}
+                    aria-label={t('label')}
+                    title={t('label')}
+                    onClick={() => {
+                        setSuffix(window.location.search + window.location.hash);
+                        setOpen((v) => !v);
+                    }}
+                    className="relative z-20 grid size-9 place-items-center rounded-full border border-slate-200 text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white cursor-pointer"
+                >
+                    <Languages className="size-4 shrink-0 stroke-[1.8]" />
+                </button>
+            ) : (
+                <button
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={open}
+                    aria-label={t('label')}
+                    onClick={() => {
+                        setSuffix(window.location.search + window.location.hash);
+                        setOpen((v) => !v);
+                    }}
+                    className="relative z-20 flex items-center space-x-1.5 rounded-xl px-2.5 py-1 text-slate-700 hover:bg-slate-100/70 hover:text-slate-900 transition-colors duration-200 cursor-pointer"
+                >
+                    <Languages className="w-4 h-4 shrink-0 stroke-[1.8] text-slate-500" />
+                    <span className="text-sm font-medium">
+                        {compact ? locale.toUpperCase() : t(locale)}
+                    </span>
+                    <ChevronDown
+                        className={`w-3.5 h-3.5 transition-transform duration-200 text-slate-400 ${
+                            open ? 'rotate-180 text-blue-600' : ''
+                        }`}
+                    />
+                </button>
+            )}
 
             {open && (
                 <ul
@@ -180,20 +209,20 @@ export function LanguageSwitcher({
                                     setOpen(false);
                                     handleLocaleChange(l);
                                 }}
-                                className={`flex w-full items-center justify-between rounded-xl px-3.5 py-2.5 text-sm transition-colors cursor-pointer ${
+                                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs transition-colors cursor-pointer ${
                                     l === locale
-                                        ? 'bg-blue-50/90 font-semibold text-blue-600'
-                                        : 'font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                                        ? 'bg-blue-50/90 dark:bg-blue-950/60 font-semibold text-blue-600 dark:text-blue-400'
+                                        : 'font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
                                 }`}
                             >
                                 <div className="flex items-center gap-2">
                                     <Languages
-                                        className={`size-4 ${l === locale ? 'text-blue-600' : 'text-slate-400'}`}
+                                        className={`size-3.5 ${l === locale ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`}
                                     />
                                     <span>{t(l)}</span>
                                 </div>
                                 {l === locale && (
-                                    <Check className="size-4 text-blue-600 stroke-[2.5]" />
+                                    <Check className="size-3.5 text-blue-600 dark:text-blue-400 stroke-[2.5]" />
                                 )}
                             </button>
                         </li>

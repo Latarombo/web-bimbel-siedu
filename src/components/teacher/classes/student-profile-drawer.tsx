@@ -220,6 +220,27 @@ export function StudentProfileDrawer({
                         </div>
                     </div>
                 </div>
+
+                {/* Tautan Cepat Riwayat */}
+                <div className="space-y-3">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        Riwayat Belajar & Presensi
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2">
+                        <Link
+                            href={`/teacher/grades/${student.id}`}
+                            className="flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center shadow-2xs"
+                        >
+                            Riwayat Nilai
+                        </Link>
+                        <Link
+                            href={`/teacher/corrections?entitas=siswa&id=${student.id}`}
+                            className="flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-center shadow-2xs"
+                        >
+                            Riwayat Presensi
+                        </Link>
+                    </div>
+                </div>
             </div>
 
             {/* Footer Aksi */}

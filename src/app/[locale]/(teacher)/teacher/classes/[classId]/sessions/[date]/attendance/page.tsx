@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { hariDariTanggal, dalamJendela7Hari, tanggalValid } from "@/lib/format/hari";
+import { hariDariTanggal, tanggalValid } from "@/lib/format/hari";
 import { ArrowLeft } from "lucide-react";
 import { SessionStatStrip, TeacherAttendanceManager } from "@/components/teacher/attendance";
 
@@ -140,7 +140,6 @@ export default async function AttendancePage({
 
   const terisi = existing.length;
   const perluPerhatian = existing.filter((x) => STATUS_WARN.has(x.status)).length;
-  const terkunciN = anakList.filter((a) => a.terkunci).length;
 
   const jamMulaiText = (sesiTersimpan?.jamMulai ?? item.jamMulai).slice(0, 5);
   const jamSelesaiText = (sesiTersimpan?.jamSelesai ?? item.jamSelesai).slice(0, 5);
@@ -195,12 +194,11 @@ export default async function AttendancePage({
         ) : null}
       </div>
 
-      {/* 4-Stat Strip */}
+      {/* 3-Stat Strip */}
       <SessionStatStrip
         totalSiswa={siswa.length}
         terisi={terisi}
         perluPerhatian={perluPerhatian}
-        terkunciN={terkunciN}
       />
 
       {/* Attendance & Session Notes Dual-Tab Manager */}

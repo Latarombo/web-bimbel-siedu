@@ -72,6 +72,7 @@ export default async function TeacherClassDetail({
   const sessionOptions = semuaSesiKelas.map((s, idx) => ({
     id: s.id,
     label: `Pertemuan #${idx + 1} (${s.tanggalPertemuan} · ${s.jamMulai.slice(0, 5)}-${s.jamSelesai.slice(0, 5)})`,
+    tanggalPertemuan: s.tanggalPertemuan,
   }));
 
   const hasilByPenilaian = new Map<number, typeof hasilPenilaianList>();
@@ -98,9 +99,10 @@ export default async function TeacherClassDetail({
       countDinilai,
       countTidakIkut,
       countBelum,
-      totalSiswa: hList.length,
+      totalSiswa: pendaftaran.length > 0 ? pendaftaran.length : hList.length,
       sesiPertemuanId: p.sesiPertemuanId,
       sesiLabel: sesiInfo ? sesiInfo.label : null,
+      tanggalPertemuan: sesiInfo ? sesiInfo.tanggalPertemuan : null,
       catatan: p.catatan ?? null,
     };
   });
