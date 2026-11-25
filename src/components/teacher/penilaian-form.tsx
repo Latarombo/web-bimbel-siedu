@@ -94,53 +94,10 @@ export function PenilaianForm({
     });
 
     const [searchQuery, setSearchQuery] = useState('');
-    const [filterStatus, setFilterStatus] = useState<
-        'all' | 'belum' | 'dinilai'
-    >('all');
 
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
-
-    // Real-time KPI Counts & Averages
-    const counts = useMemo(() => {
-        let dinilai = 0;
-        let belumDinilai = 0;
-        let tidakIkut = 0;
-        let sumScore = 0;
-        let countScore = 0;
-
-        for (const s of initialSiswa) {
-            const cur = studentRows[s.pendaftaranId];
-            const status = cur?.statusHasil ?? 'belum_dinilai';
-            if (status === 'belum_dinilai') {
-                belumDinilai++;
-            } else if (status === 'tidak_ikut') {
-                tidakIkut++;
-            } else if (status === 'dinilai') {
-                dinilai++;
-                if (cur && cur.nilai.trim() !== '') {
-                    const num = Number(cur.nilai);
-                    if (!isNaN(num)) {
-                        sumScore += num;
-                        countScore++;
-                    }
-                }
-            }
-        }
-
-        const averageScore =
-            countScore > 0
-                ? Math.round((sumScore / countScore) * 10) / 10
-                : null;
-        return {
-            total: initialSiswa.length,
-            dinilai,
-            belumDinilai,
-            tidakIkut,
-            averageScore,
-        };
-    }, [initialSiswa, studentRows]);
 
     // Filtered Students List
     const filteredStudents = useMemo(() => {
@@ -149,13 +106,9 @@ export function PenilaianForm({
                 const q = searchQuery.toLowerCase().trim();
                 if (!s.nama.toLowerCase().includes(q)) return false;
             }
-            const cur = studentRows[s.pendaftaranId];
-            const status = cur?.statusHasil ?? 'belum_dinilai';
-            if (filterStatus === 'belum') return status === 'belum_dinilai';
-            if (filterStatus === 'dinilai') return status === 'dinilai';
             return true;
         });
-    }, [initialSiswa, studentRows, searchQuery, filterStatus]);
+    }, [initialSiswa, searchQuery]);
 
     const handleStatusChange = (
         pId: number,
@@ -413,45 +366,6 @@ export function PenilaianForm({
                             >
                                 <span>Reset Nilai</span>
                             </button>
-
-                            {/* Filter Status Pills */}
-                            <div className="inline-flex rounded-lg bg-slate-100 dark:bg-slate-800 p-0.5 text-xs font-medium sm:ml-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setFilterStatus('all')}
-                                    className={`rounded-md px-3 py-1 text-xs transition-colors cursor-pointer ${
-                                        filterStatus === 'all'
-                                            ? 'bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-2xs font-bold'
-                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                                    }`}
-                                >
-                                    Semua ({initialSiswa.length})
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setFilterStatus('belum')}
-                                    className={`rounded-md px-3 py-1 text-xs transition-colors cursor-pointer ${
-                                        filterStatus === 'belum'
-                                            ? 'bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-2xs font-bold'
-                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                                    }`}
-                                >
-                                    Belum ({counts.belumDinilai})
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() =>
-                                        setFilterStatus('dinilai')
-                                    }
-                                    className={`rounded-md px-3 py-1 text-xs transition-colors cursor-pointer ${
-                                        filterStatus === 'dinilai'
-                                            ? 'bg-white dark:bg-slate-700 text-slate-950 dark:text-white shadow-2xs font-bold'
-                                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                                    }`}
-                                >
-                                    Dinilai ({counts.dinilai})
-                                </button>
-                            </div>
                         </div>
 
                         {/* Live Search Input */}
@@ -702,39 +616,9 @@ export function PenilaianForm({
                         </div>
                     </div>
 
-                    {/* Standalone Action & Summary Footer (Separated from Table) */}
-                    <div className="flex flex-col gap-3 py-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                            {counts.belumDinilai > 0 ? (
-                                <span className="text-amber-600 dark:text-amber-400 font-semibold">
-                                    {t('studentsUngradedCount', {
-                                        count: counts.belumDinilai,
-                                        total: initialSiswa.length,
-                                    })}
-                                </span>
-                            ) : (
-                                <span className="text-emerald-700 dark:text-emerald-400 font-semibold">
-                                    {t('allStudentsGraded', {
-                                        total: initialSiswa.length,
-                                    })}
-                                </span>
-                            )}
-                            <span className="mx-2 text-slate-300 dark:text-slate-600 hidden sm:inline">
-                                ·
-                            </span>
-                            <span className="text-slate-500 dark:text-slate-400 block sm:inline mt-0.5 sm:mt-0">
-                                {t('gradedSummary', {
-                                    count: counts.dinilai,
-                                })}
-                                {counts.averageScore !== null
-                                    ? counts.averageScore
-                                    : '—'}{' '}
-                                · Absen: {counts.tidakIkut}
-                            </span>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-3">
-                            {!isDraf && penilaianId ? (
+                    {/* Standalone Action Footer */}
+                    <div className="flex flex-wrap items-center justify-end gap-3 py-2">
+                        {!isDraf && penilaianId ? (
                                 <button
                                     type="button"
                                     disabled={isPending}
@@ -781,7 +665,6 @@ export function PenilaianForm({
                                 )}
                             </button>
                         </div>
-                    </div>
                 </section>
             ) : (
                 <section aria-label="Pengaturan Asesmen">

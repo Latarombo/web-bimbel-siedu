@@ -1,18 +1,21 @@
 import { getTranslations, getLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { redirect, Link } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import { ArrowLeft } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { PenilaianForm, type StudentAssessmentRow } from "@/components/teacher/penilaian-form";
 
 export const dynamic = "force-dynamic";
 
 export default async function EditClassAssessment({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ from?: string; back?: string; classId?: string }>;
 }) {
   const t = await getTranslations("teacher");
   const locale = await getLocale();
@@ -32,6 +35,23 @@ export default async function EditClassAssessment({
   if (!assessment) {
     notFound();
   }
+
+  const search = (await searchParams) ?? {};
+  const reqHeaders = await headers();
+  const referer = reqHeaders.get("referer") || "";
+
+  const isFromClass =
+    search.from === "class" ||
+    search.from === "kelas" ||
+    Boolean(search.classId) ||
+    referer.includes("/teacher/classes");
+
+  const parentHref = isFromClass
+    ? `/teacher/classes/${assessment.kelasId}`
+    : "/teacher/grades";
+  const parentLabel = isFromClass
+    ? (t("class") || "Kelas")
+    : (t("grades") || "Nilai");
 
   const [kelas] = await collect(
     db.orm.public.Kelas.where({ id: assessment.kelasId }).all(),
@@ -81,25 +101,62 @@ export default async function EditClassAssessment({
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
-      {/* Top back navigation */}
-      <div>
+      {/* Top breadcrumb navigation */}
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
         <Link
-          href="/teacher/grades"
-          className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
+          href={parentHref}
+          title={isFromClass ? (kelasLabel || undefined) : undefined}
+          className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors font-medium"
         >
-          <ArrowLeft className="size-4" />
-          <span>Kembali ke Nilai & Penilaian</span>
+          {parentLabel}
         </Link>
-      </div>
+        <ChevronRight className="size-3.5 text-slate-400 dark:text-slate-600 shrink-0" aria-hidden="true" />
+        <span className="font-semibold text-slate-900 dark:text-slate-100">
+          Input
+        </span>
+      </nav>
 
       {/* Title & Metadata */}
-      <div className="border-b border-slate-200 dark:border-slate-800 pb-6">
+      <div className="space-y-3">
         <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
           {assessment.nama}
         </h1>
-        <p className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-          {kelasLabel} · {t("assessmentDate")}: {assessment.tanggal}
-        </p>
+
+        {/* Structured Metadata Panel */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 sm:p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 text-xs">
+          <div>
+            <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              {t("subjectDefault") || "Mata Pelajaran"}
+            </span>
+            <span className="mt-0.5 block font-semibold text-slate-900 dark:text-slate-100">
+              {mapelName}
+            </span>
+          </div>
+          <div>
+            <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              {t("class") || "Kelas"}
+            </span>
+            <span className="mt-0.5 block font-semibold text-slate-900 dark:text-slate-100">
+              {kelas ? `${kelas.jenjang}${kelas.tingkat ? ` (${kelas.tingkat})` : ""}` : "-"}
+            </span>
+          </div>
+          <div>
+            <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              {t("assessmentDate") || "Tanggal Penilaian"}
+            </span>
+            <span className="mt-0.5 block font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+              {assessment.tanggal}
+            </span>
+          </div>
+          <div>
+            <span className="block text-[11px] font-medium text-slate-500 dark:text-slate-400">
+              Nilai Maksimum
+            </span>
+            <span className="mt-0.5 block font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+              {assessment.nilaiMaksimum ?? 100}
+            </span>
+          </div>
+        </div>
       </div>
 
       <PenilaianForm

@@ -96,22 +96,7 @@ export default async function GradeInputPage({
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
-      {/* 1. Breadcrumbs */}
-      <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-        <Link href="/teacher/dashboard" className="hover:text-slate-950 dark:hover:text-slate-100 transition-colors">
-          Dashboard
-        </Link>
-        <span>/</span>
-        <Link href="/teacher/grades" className="hover:text-slate-950 dark:hover:text-slate-100 transition-colors">
-          Nilai
-        </Link>
-        <span>/</span>
-        <span className="font-semibold text-slate-900 dark:text-slate-200 truncate">
-          {nama}
-        </span>
-      </nav>
-
-      {/* 2. Page Header Row */}
+      {/* Page Header Row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
         <div>
           <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">

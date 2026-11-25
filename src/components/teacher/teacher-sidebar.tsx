@@ -9,9 +9,9 @@ import { TeacherThemeSwitch } from './teacher-theme-switch';
 import {
   LayoutGrid,
   Calendar,
+  ClipboardCheck,
   Award,
   Camera,
-  LogOut,
   X,
   ChevronsLeft,
   ChevronsRight,
@@ -55,7 +55,6 @@ export function TeacherSidebar({
   teacherClasses = [],
 }: TeacherSidebarProps) {
   const t = useTranslations('teacher');
-  const tAdmin = useTranslations('shared.admin');
   const pathname = usePathname();
 
   const [internalDrawerOpen, setInternalDrawerOpen] = useState(false);
@@ -86,14 +85,6 @@ export function TeacherSidebar({
     }
   };
 
-  const initials = userName
-    .split(' ')
-    .filter(Boolean)
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase() || 'GU';
-
   // Grouped Navigation for Siedu Teacher Portal
   interface NavSectionDef {
     id: string;
@@ -117,6 +108,12 @@ export function TeacherSidebar({
           name: t('navSchedule') || 'Jadwal',
           href: '/teacher/calendar',
           icon: Calendar,
+        },
+        {
+          id: 'attendance',
+          name: t('navAttendance') || 'Presensi',
+          href: '/teacher/attendance',
+          icon: ClipboardCheck,
         },
       ],
     },
@@ -160,22 +157,22 @@ export function TeacherSidebar({
   return (
     <>
       {/* ========================================================= */}
-      {/* DESKTOP SIDEBAR (CLEAN SAAS ATTACHED STYLE, ROUNDED-TR)  */}
+      {/* DESKTOP SIDEBAR (CLEAN SAAS SQUARED/BOX STYLE)             */}
       {/* ========================================================= */}
       <aside
         data-lenis-prevent
         onWheel={(e) => e.stopPropagation()}
-        className={`fixed inset-y-0 left-0 z-40 hidden flex-col rounded-tr-[36px] rounded-tl-none rounded-b-none border-r border-t border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 shadow-md shadow-slate-900/5 dark:shadow-none transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:flex ${
+        className={`fixed inset-y-0 left-0 z-40 hidden flex-col rounded-none border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 shadow-xs dark:shadow-none transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:flex ${
           isCollapsed ? 'w-[72px]' : 'w-[260px]'
         }`}
       >
-        {/* Medtbank-style Circular Toggle Button straddling the right border */}
+        {/* Circular Toggle Button straddling the right border */}
         <button
           type="button"
           onClick={onToggleCollapse}
           aria-label={isCollapsed ? "Buka sidebar" : t("sidebarClose")}
           title={isCollapsed ? "Buka sidebar" : t("sidebarClose")}
-          className="absolute -right-3 top-9 z-50 grid size-7 place-items-center rounded-full border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-md transition-all duration-200 hover:scale-110 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+          className="absolute -right-3 top-5 z-50 grid size-7 place-items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-md transition-all duration-200 hover:scale-110 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
         >
           {isCollapsed ? (
             <ChevronsRight className="size-4 stroke-[2.2]" />
@@ -187,7 +184,7 @@ export function TeacherSidebar({
         {/* Top Header / Brand Logo */}
         <div
           onWheel={handleHeaderOrFooterWheel}
-          className="relative flex h-20 shrink-0 items-center border-b border-slate-300/80 dark:border-slate-800 px-3 rounded-tr-[36px] rounded-tl-none"
+          className="relative flex h-16 shrink-0 items-center border-b border-slate-200 dark:border-slate-800 px-3 rounded-none"
         >
           {/* Collapsed Mode: Centered Official Symbol */}
           <div
@@ -197,21 +194,21 @@ export function TeacherSidebar({
           >
             <Link
               href="/teacher/dashboard"
-              className="flex size-11 items-center justify-center rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              className="flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
               title="Siedu Portal Guru"
             >
               <Image
                 src="/svg/symbol_siedu.svg"
                 alt="Siedu"
-                width={36}
-                height={36}
-                className="size-8.5 object-contain"
+                width={32}
+                height={32}
+                className="size-7 object-contain"
                 priority
               />
             </Link>
           </div>
 
-          {/* Expanded Mode: Full Logo */}
+          {/* Expanded Mode: Full Logo (Identical size with Guest Landing Page) */}
           <div
             className={`flex items-center w-full pl-2 transition-opacity duration-250 ${
               !isCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none absolute'
@@ -225,17 +222,17 @@ export function TeacherSidebar({
               <Image
                 src="/images/Logo.png"
                 alt="Siedu"
-                width={136}
-                height={38}
-                className="h-8.5 sm:h-9 w-auto object-contain dark:hidden"
+                width={120}
+                height={36}
+                className="h-7 sm:h-7.5 w-auto object-contain dark:hidden"
                 priority
               />
               <Image
                 src="/images/Logo-white.png"
                 alt="Siedu"
-                width={136}
-                height={38}
-                className="h-8.5 sm:h-9 w-auto object-contain hidden dark:block"
+                width={120}
+                height={36}
+                className="h-7 sm:h-7.5 w-auto object-contain hidden dark:block"
                 priority
               />
             </Link>
@@ -369,71 +366,12 @@ export function TeacherSidebar({
           </nav>
         </div>
 
-        {/* Bottom Section: Theme Switch + User Profile & Direct Logout (Clean SaaS style) */}
+        {/* Bottom Section: Theme Switcher Only */}
         <div
           onWheel={handleHeaderOrFooterWheel}
-          className="relative border-t border-slate-300/80 dark:border-slate-800 p-3 shrink-0 rounded-none space-y-3"
+          className="relative border-t border-slate-200 dark:border-slate-800 p-3 shrink-0 rounded-none"
         >
-          {/* Theme Switcher */}
           <TeacherThemeSwitch isCollapsed={isCollapsed} />
-
-          {!isCollapsed ? (
-            /* Expanded State: Clean Profile Card with Direct Logout Button */
-            <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/90 p-2 transition-colors">
-              <Link
-                href="/teacher/profile"
-                className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-85 transition-opacity"
-                title="Lihat Profil Guru"
-              >
-                <div className="grid size-9 shrink-0 place-items-center rounded-full bg-amber-400 text-xs font-black text-amber-950 shadow-2xs">
-                  {initials}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-xs font-semibold text-slate-900 dark:text-slate-100">
-                    {userName}
-                  </p>
-                  <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
-                    {role || "Guru"}
-                  </p>
-                </div>
-              </Link>
-              <button
-                type="button"
-                onClick={handleOpenLogout}
-                className="grid size-8 shrink-0 place-items-center rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors cursor-pointer"
-                title={tAdmin('logout')}
-                aria-label={tAdmin('logout')}
-              >
-                <LogOut className="size-4" />
-              </button>
-            </div>
-          ) : (
-            /* Collapsed State: Centered Avatar + Logout Icon */
-            <div className="flex flex-col items-center gap-2">
-              <Link
-                href="/teacher/profile"
-                className="group relative flex size-10 shrink-0 items-center justify-center rounded-full bg-amber-400 text-xs font-black text-amber-950 shadow-2xs hover:opacity-90 transition-opacity"
-                aria-label="Profil Guru"
-              >
-                {initials}
-                <div className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-900 dark:text-white opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
-                  {userName} · Profil
-                </div>
-              </Link>
-              <button
-                type="button"
-                onClick={handleOpenLogout}
-                className="group relative flex size-9 shrink-0 items-center justify-center rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors cursor-pointer"
-                title={tAdmin('logout')}
-                aria-label={tAdmin('logout')}
-              >
-                <LogOut className="size-4" />
-                <div className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-rose-500 dark:text-rose-400 opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
-                  {tAdmin('logout')}
-                </div>
-              </button>
-            </div>
-          )}
         </div>
       </aside>
 
@@ -447,21 +385,23 @@ export function TeacherSidebar({
             onClick={handleCloseDrawer}
           />
           <div className="fixed inset-y-0 left-0 flex w-[280px] max-w-[85vw] flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 shadow-2xl animate-in slide-in-from-left duration-250">
-            <div className="flex h-14 sm:h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 px-4">
+            <div className="flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 px-4">
               <Link href="/teacher/dashboard" onClick={handleCloseDrawer} className="flex items-center">
                 <Image
                   src="/images/Logo.png"
                   alt="Siedu"
-                  width={110}
-                  height={30}
-                  className="h-6 w-auto object-contain dark:hidden"
+                  width={120}
+                  height={36}
+                  className="h-7 sm:h-7.5 w-auto object-contain dark:hidden"
+                  priority
                 />
                 <Image
                   src="/images/Logo-white.png"
                   alt="Siedu"
-                  width={110}
-                  height={30}
-                  className="h-6 w-auto object-contain hidden dark:block"
+                  width={120}
+                  height={36}
+                  className="h-7 sm:h-7.5 w-auto object-contain hidden dark:block"
+                  priority
                 />
               </Link>
               <button
@@ -575,44 +515,24 @@ export function TeacherSidebar({
               </nav>
             </div>
 
-            {/* Mobile Drawer Bottom Section */}
-            <div className="border-t border-slate-200 dark:border-slate-800 p-3 space-y-3">
+            {/* Mobile Drawer Bottom Section: Theme Switcher Only */}
+            <div className="border-t border-slate-200 dark:border-slate-800 p-3">
               <TeacherThemeSwitch isCollapsed={false} />
-
-              <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60 p-2">
-                <Link
-                  href="/teacher/profile"
-                  onClick={handleCloseDrawer}
-                  className="flex items-center gap-2 min-w-0 flex-1 hover:opacity-85 transition-opacity"
-                >
-                  <div className="grid size-9 shrink-0 place-items-center rounded-full bg-amber-400 text-xs font-black text-amber-950 shadow-2xs">
-                    {initials}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-semibold text-slate-900 dark:text-slate-100">
-                      {userName}
-                    </p>
-                    <p className="truncate text-[11px] text-slate-500 dark:text-slate-400">
-                      {role || "Guru"}
-                    </p>
-                  </div>
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleCloseDrawer();
-                    handleOpenLogout();
-                  }}
-                  className="grid size-8 shrink-0 place-items-center rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 transition-colors cursor-pointer"
-                  title={tAdmin('logout')}
-                  aria-label={tAdmin('logout')}
-                >
-                  <LogOut className="size-4" />
-                </button>
-              </div>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Fallback Logout Confirmation Dialog if not controlled by parent */}
+      {onOpenLogoutProp === undefined && (
+        <LogoutDialog
+          open={internalLogoutOpen}
+          onOpenChange={setInternalLogoutOpen}
+          userName={userName}
+          userEmail={userEmail}
+          role={role}
+          accountRole={accountRole}
+        />
       )}
 
       {/* Fallback Logout Confirmation Dialog if not controlled by parent */}

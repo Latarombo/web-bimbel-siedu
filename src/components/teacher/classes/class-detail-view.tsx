@@ -20,7 +20,12 @@ import {
   UserCheck,
   FileSpreadsheet,
   Download,
+  ClipboardCheck,
   Image as ImageIcon,
+  BarChart3,
+  CheckCircle2,
+  AlertCircle,
+  ChevronDown,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -35,6 +40,7 @@ import { StudentProfileDrawer } from "./student-profile-drawer";
 import { WhatsappStoryCreatorModal } from "@/components/teacher/whatsapp-story-creator-modal";
 import { compressImageFile } from "@/lib/image-compress";
 import { UnderlineTabs } from "@/components/ui/underline-tabs";
+import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import {
   TeacherCalendarView,
   type TeacherCalendarSessionItem,
@@ -56,7 +62,6 @@ export interface StudentRosterItem {
   namaWali?: string | null;
   teleponWali?: string | null;
   alamatWali?: string | null;
-  persetujuanFoto?: boolean;
 }
 
 export interface ScheduleSlotItem {
@@ -178,10 +183,27 @@ export function ClassDetailView({
         }
       : null);
 
-  // Tabs: "roster" | "schedule" | "assessments" | "summary"
+  const targetAttendanceUrl = attendanceTarget
+    ? `/teacher/classes/${classId}/sessions/${attendanceTarget.tanggalPertemuan}/attendance?sesi=${attendanceTarget.jadwalItemId}`
+    : null;
+
+  // Tabs: "roster" | "schedule" | "attendance" | "assessments" | "summary"
   const [activeTab, setActiveTab] = useState<
-    "roster" | "schedule" | "assessments" | "summary"
+    "roster" | "schedule" | "attendance" | "assessments" | "summary"
   >("roster");
+
+  const [attendanceFilter, setAttendanceFilter] = useState<"all" | "unrecorded" | "completed">("all");
+
+  const filteredAttendanceSessions = useMemo(() => {
+    const list = calendarSessions ?? [];
+    if (attendanceFilter === "unrecorded") {
+      return list.filter((s) => (s.isPast || s.isToday) && s.presensiCount === 0 && s.statusSesi !== "dibatalkan");
+    }
+    if (attendanceFilter === "completed") {
+      return list.filter((s) => s.presensiCount > 0);
+    }
+    return list;
+  }, [calendarSessions, attendanceFilter]);
 
   // Local student state synced with incoming server props on router.refresh()
   const [students, setStudents] = useState<StudentRosterItem[]>(initialStudents);
@@ -235,11 +257,24 @@ export function ClassDetailView({
 
   // Search, sort & pagination state for roster
   const [searchQuery, setSearchQuery] = useState("");
+  const [studentStatusFilter, setStudentStatusFilter] = useState<"all" | "terdaftar" | "tertunggak">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortState, setSortState] = useState<{
     key: "nama" | "kehadiran" | "tugas" | "nilai";
     dir: "asc" | "desc";
   } | null>(null);
+
+  // Search & filter state for assessments tab
+  const [assessmentSearch, setAssessmentSearch] = useState("");
+  const [assessmentStatusFilter, setAssessmentStatusFilter] = useState<"all" | "terbit" | "draf">("all");
+  const [assessmentSessionFilter, setAssessmentSessionFilter] = useState<string>("all");
+  const [assessmentCompletionFilter, setAssessmentCompletionFilter] = useState<"all" | "lengkap" | "belum">("all");
+  const [assessmentPage, setAssessmentPage] = useState(1);
+
+  // Filter state for schedule/calendar tab
+  const [scheduleStatusFilter, setScheduleStatusFilter] = useState<
+    "all" | "terjadwal" | "selesai" | "belum_presensi" | "dibatalkan"
+  >("all");
 
   const toggleSort = (key: "nama" | "kehadiran" | "tugas" | "nilai") => {
     setSortState((prev) => {
@@ -252,8 +287,16 @@ export function ClassDetailView({
 
   // Filtered & sorted students
   const filteredStudents = useMemo(() => {
+    let res = [...students];
+
+    if (studentStatusFilter !== "all") {
+      res = res.filter((s) => s.status === studentStatusFilter);
+    }
+
     const q = searchQuery.toLowerCase().trim();
-    let res = q ? students.filter((s) => s.nama.toLowerCase().includes(q)) : [...students];
+    if (q) {
+      res = res.filter((s) => s.nama.toLowerCase().includes(q));
+    }
 
     if (sortState) {
       const { key, dir } = sortState;
@@ -277,14 +320,93 @@ export function ClassDetailView({
     }
 
     return res;
-  }, [students, searchQuery, sortState]);
+  }, [students, studentStatusFilter, searchQuery, sortState]);
 
-  // Pagination calculations
+  // Options for session filter dropdown
+  const sessionFilterOptions = useMemo(() => {
+    const opts = [{ value: "all", label: "Semua Pertemuan" }];
+    if (sessions && sessions.length > 0) {
+      sessions.forEach((s) => {
+        const shortMatch = s.label.match(/^(Pertemuan\s*#\d+)/i);
+        const label = shortMatch ? shortMatch[1] : s.label;
+        opts.push({ value: String(s.id), label });
+      });
+    }
+    opts.push({ value: "none", label: "Tanpa Sesi" });
+    return opts;
+  }, [sessions]);
+
+  // Filtered assessments
+  const filteredAssessments = useMemo(() => {
+    return assessments.filter((a) => {
+      // 1. Status Filter (Terbit / Draf)
+      if (assessmentStatusFilter === "terbit" && a.draf) return false;
+      if (assessmentStatusFilter === "draf" && !a.draf) return false;
+
+      // 2. Search Query (Nama Tugas)
+      if (assessmentSearch.trim()) {
+        const q = assessmentSearch.toLowerCase().trim();
+        if (!a.nama.toLowerCase().includes(q)) return false;
+      }
+
+      // 3. Session Filter
+      if (assessmentSessionFilter === "none") {
+        if (a.sesiPertemuanId != null) return false;
+      } else if (assessmentSessionFilter !== "all") {
+        if (String(a.sesiPertemuanId) !== assessmentSessionFilter) return false;
+      }
+
+      // 4. Completion Filter (Lengkap / Belum)
+      if (assessmentCompletionFilter === "lengkap") {
+        if (a.countBelum > 0 || a.countDinilai === 0) return false;
+      } else if (assessmentCompletionFilter === "belum") {
+        if (a.countBelum === 0 && a.countDinilai > 0) return false;
+      }
+
+      return true;
+    });
+  }, [
+    assessments,
+    assessmentSearch,
+    assessmentStatusFilter,
+    assessmentSessionFilter,
+    assessmentCompletionFilter,
+  ]);
+
+  // Filtered calendar sessions
+  const filteredCalendarSessions = useMemo(() => {
+    return calendarSessions.filter((s) => {
+      if (scheduleStatusFilter === "all") return true;
+      if (scheduleStatusFilter === "terjadwal") return s.statusSesi === "terjadwal";
+      if (scheduleStatusFilter === "selesai") {
+        return s.statusSesi === "selesai" || (s.presensiCount > 0 && s.statusSesi !== "dibatalkan");
+      }
+      if (scheduleStatusFilter === "belum_presensi") {
+        return s.presensiCount === 0 && s.statusSesi !== "dibatalkan";
+      }
+      if (scheduleStatusFilter === "dibatalkan") return s.statusSesi === "dibatalkan";
+      return true;
+    });
+  }, [calendarSessions, scheduleStatusFilter]);
+
+  // Pagination calculations for roster
   const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE) || 1;
   const paginatedStudents = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE;
     return filteredStudents.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredStudents, currentPage]);
+
+  // Pagination calculations for assessments
+  const totalAssessmentPages =
+    Math.ceil(filteredAssessments.length / ITEMS_PER_PAGE) || 1;
+  const currentAssessmentPage = Math.min(
+    Math.max(1, assessmentPage),
+    totalAssessmentPages,
+  );
+  const paginatedAssessments = useMemo(() => {
+    const start = (currentAssessmentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAssessments.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredAssessments, currentAssessmentPage]);
 
   const capacityPct =
     kuotaMaksimum > 0
@@ -318,24 +440,7 @@ export function ClassDetailView({
 
   return (
     <div className="space-y-6">
-      {/* 1. Minimal Breadcrumb Navigation */}
-      <nav
-        aria-label="Breadcrumb"
-        className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400"
-      >
-        <Link
-          href="/teacher/dashboard"
-          className="hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-        >
-          Dashboard
-        </Link>
-        <span className="text-slate-400 dark:text-slate-600">/</span>
-        <span className="font-medium text-slate-800 dark:text-slate-200 truncate">
-          {className} {jenjang} {tingkat ? `· ${tingkat}` : ""}
-        </span>
-      </nav>
-
-      {/* 2. Page Header Row + Actions */}
+      {/* Page Header Row + Actions */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
@@ -343,8 +448,63 @@ export function ClassDetailView({
           </h1>
         </div>
 
-        {/* Header Actions: Hanya Bagikan Status & Buat Tugas */}
+        {/* Header Actions: Bagikan Status, Presensi & Buat Tugas */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Dropdown Menu Presensi */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-all duration-150 cursor-pointer"
+                title="Aksi presensi kelas"
+              >
+                <ClipboardCheck className="size-4 shrink-0 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+                <span>Presensi</span>
+                <ChevronDown className="size-3.5 text-slate-400" aria-hidden="true" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-64 p-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl"
+            >
+              {targetAttendanceUrl ? (
+                <DropdownMenuItem asChild>
+                  <Link
+                    href={targetAttendanceUrl}
+                    className="flex flex-col items-start gap-1 w-full cursor-pointer rounded-lg px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
+                      <UserCheck className="size-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                      <span>Isi Presensi Sesi Terdekat</span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 pl-6">
+                      {attendanceTarget?.tanggalPertemuan ? `${attendanceTarget.tanggalPertemuan} (${attendanceTarget.jamMulai} - ${attendanceTarget.jamSelesai})` : "Sesi aktif"}
+                    </span>
+                  </Link>
+                </DropdownMenuItem>
+              ) : (
+                <div className="px-3 py-2 text-[11px] text-slate-400">
+                  Tidak ada sesi terdekat yang memerlukan presensi
+                </div>
+              )}
+
+              <DropdownMenuItem asChild>
+                <Link
+                  href={`/teacher/attendance?classId=${classId}`}
+                  className="flex flex-col items-start gap-1 w-full cursor-pointer rounded-lg px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <div className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
+                    <BarChart3 className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>Lihat Rekap Presensi</span>
+                  </div>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 pl-6">
+                    Matriks kehadiran & persentase seluruh sesi
+                  </span>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -397,11 +557,12 @@ export function ClassDetailView({
         tabs={[
           { id: "roster", label: "Roster Siswa" },
           { id: "schedule", label: "Jadwal & Sesi" },
+          { id: "attendance", label: "Presensi" },
           { id: "assessments", label: "Tugas & Asesmen" },
           { id: "summary", label: "Ringkasan & Aksi" },
         ]}
         activeTab={activeTab}
-        onChange={setActiveTab}
+        onChange={(val) => setActiveTab(val as typeof activeTab)}
         ariaLabel="Tabs Detail Kelas"
         layoutId="teacher-class-detail-tabs"
       />
@@ -411,19 +572,10 @@ export function ClassDetailView({
       {/* TAB 1: ROSTER SISWA */}
       {activeTab === "roster" && (
         <div className="space-y-4">
-          {/* Section Toolbar: Header left, Search & Actions right */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-sm sm:text-base font-semibold text-slate-950 dark:text-slate-50">
-                Daftar Siswa
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Daftar murid terdaftar dalam rombongan belajar ini.
-              </p>
-            </div>
-
+          {/* Section Toolbar: Search & Filter left, Actions right */}
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap items-center gap-2">
-              <div className="relative w-full sm:w-56">
+              <div className="relative w-full sm:w-60">
                 <label htmlFor="search-student-roster" className="sr-only">
                   Cari nama siswa
                 </label>
@@ -438,9 +590,28 @@ export function ClassDetailView({
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="h-10 sm:h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-8 pr-3 text-base sm:text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                  className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-8 pr-3 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
                 />
               </div>
+
+              <FilterDropdown
+                value={studentStatusFilter}
+                onChange={(val) => {
+                  setStudentStatusFilter(val as "all" | "terdaftar" | "tertunggak");
+                  setCurrentPage(1);
+                }}
+                options={[
+                  { value: "all", label: "Semua Status" },
+                  { value: "terdaftar", label: "Terdaftar Aktif" },
+                  { value: "tertunggak", label: "Tertunggak" },
+                ]}
+                placeholder="Status Siswa"
+                size="sm"
+                className="w-full sm:w-auto"
+              />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
 
               <Link
                 href={`/teacher/classes/${classId}/reports`}
@@ -895,42 +1066,275 @@ export function ClassDetailView({
 
       {/* TAB 2: JADWAL & SESI PERTEMUAN */}
       {activeTab === "schedule" && (
-        <TeacherCalendarView
-          sessions={calendarSessions}
-          classes={[
-            {
-              id: classId,
-              name: className,
-              displayName: classDisplayName,
-              jenjang,
-              tingkat,
-            },
-          ]}
-          todayStr={todayStr}
-          locale={locale}
-          hideClassFilter={true}
-          allowedViews={["daily", "weekly", "monthly"]}
-          defaultView="weekly"
-        />
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2">
+              <FilterDropdown
+                value={scheduleStatusFilter}
+                onChange={(val) => setScheduleStatusFilter(val as typeof scheduleStatusFilter)}
+                options={[
+                  { value: "all", label: "Semua Sesi Pertemuan" },
+                  { value: "terjadwal", label: "Sesi Terjadwal" },
+                  { value: "selesai", label: "Selesai / Terisi" },
+                  { value: "belum_presensi", label: "Belum Presensi" },
+                  { value: "dibatalkan", label: "Sesi Dibatalkan" },
+                ]}
+                placeholder="Filter Sesi"
+                size="sm"
+                className="w-full sm:w-auto"
+              />
+            </div>
+          </div>
+
+          <TeacherCalendarView
+            sessions={filteredCalendarSessions}
+            classes={[
+              {
+                id: classId,
+                name: className,
+                displayName: classDisplayName,
+                jenjang,
+                tingkat,
+              },
+            ]}
+            todayStr={todayStr}
+            locale={locale}
+            hideClassFilter={true}
+            allowedViews={["daily", "weekly", "monthly"]}
+            defaultView="weekly"
+          />
+        </div>
       )}
 
-      {/* TAB 3: TUGAS & ASESMEN */}
-      {activeTab === "assessments" && (
+      {/* TAB 3: PRESENSI & KEHADIRAN KELAS */}
+      {activeTab === "attendance" && (
         <div className="space-y-4">
+          {/* Action & Filter Toolbar */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-sm sm:text-base font-semibold text-slate-950 dark:text-slate-50">
-                Tugas & Asesmen
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Daftar tugas, kuis, dan ujian terstruktur untuk kelas ini.
-              </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <FilterDropdown
+                value={attendanceFilter}
+                onChange={(val) => setAttendanceFilter(val as typeof attendanceFilter)}
+                options={[
+                  { value: "all", label: "Semua Sesi" },
+                  { value: "unrecorded", label: "Belum Presensi" },
+                  { value: "completed", label: "Selesai Terisi" },
+                ]}
+                placeholder="Filter Presensi"
+                size="sm"
+                className="w-full sm:w-auto"
+              />
             </div>
 
-            <div>
+            <div className="flex flex-wrap items-center gap-2">
+              {targetAttendanceUrl && (
+                <Link
+                  href={targetAttendanceUrl}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-[0.98] px-3.5 py-2 text-xs font-semibold text-white shadow-2xs transition-all duration-150 cursor-pointer"
+                >
+                  <UserCheck className="size-3.5 shrink-0" aria-hidden="true" />
+                  <span>Isi Presensi Sesi Terdekat</span>
+                </Link>
+              )}
+              <Link
+                href={`/teacher/attendance?classId=${classId}`}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 active:scale-[0.98] px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs transition-all duration-150 cursor-pointer"
+              >
+                <BarChart3 className="size-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                <span>Lihat Rekap Presensi Lengkap</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Sesi List Table */}
+          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-slate-200 bg-slate-50/75 dark:border-slate-800 dark:bg-slate-800/50">
+                  <tr>
+                    <th scope="col" className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
+                      Tanggal & Waktu
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
+                      Status Sesi
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-semibold text-slate-900 dark:text-slate-100">
+                      Pencatatan Kehadiran
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-right font-semibold text-slate-900 dark:text-slate-100">
+                      Aksi
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+                  {filteredAttendanceSessions.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="py-8 text-center text-slate-500 dark:text-slate-400">
+                        Tidak ada sesi pertemuan yang sesuai dengan filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredAttendanceSessions.map((session) => {
+                      const sessionUrl = `/teacher/classes/${classId}/sessions/${session.tanggalPertemuan}/attendance?sesi=${session.jadwalItemId}`;
+                      const isUnrecorded = (session.isPast || session.isToday) && session.presensiCount === 0;
+                      const isCompleted = session.presensiCount > 0;
+
+                      return (
+                        <tr
+                          key={`${session.jadwalItemId}:${session.tanggalPertemuan}`}
+                          className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
+                        >
+                          <td className="px-4 py-3">
+                            <p className="font-semibold text-slate-900 dark:text-slate-100">
+                              {session.tanggalPertemuan}
+                            </p>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                              {session.jamMulai} - {session.jamSelesai} WIB
+                            </p>
+                          </td>
+                          <td className="px-4 py-3">
+                            {session.statusSesi === "dibatalkan" ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-rose-600 dark:text-rose-400">
+                                <AlertCircle className="size-3" />
+                                <span>Dibatalkan</span>
+                              </span>
+                            ) : isCompleted ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                                <CheckCircle2 className="size-3" />
+                                <span>Terisi</span>
+                              </span>
+                            ) : isUnrecorded ? (
+                              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                                <AlertCircle className="size-3" />
+                                <span>Belum Presensi</span>
+                              </span>
+                            ) : (
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                Sesi Terjadwal
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {isCompleted ? (
+                              <span className="font-medium text-slate-900 dark:text-slate-100 tabular-nums">
+                                {session.presensiCount} / {session.pesertaCount} Siswa
+                              </span>
+                            ) : isUnrecorded ? (
+                              <span className="text-amber-600 dark:text-amber-400 font-medium">
+                                0 / {session.pesertaCount} Siswa
+                              </span>
+                            ) : (
+                              <span className="text-slate-400">
+                                Belum berlangsung
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            {session.statusSesi !== "dibatalkan" && (
+                              <Link
+                                href={sessionUrl}
+                                className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                                  isCompleted
+                                    ? "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                                    : "bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/60 dark:text-blue-300 dark:hover:bg-blue-900 font-semibold"
+                                }`}
+                              >
+                                <span>{isCompleted ? "Ubah" : "Isi Presensi"}</span>
+                                <ChevronRight className="size-3" />
+                              </Link>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: TUGAS & ASESMEN */}
+      {activeTab === "assessments" && (
+        <div className="space-y-4">
+          {/* Section Toolbar: Search & Filter left, Create Action right */}
+          <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative w-full sm:w-60">
+                <label htmlFor="search-assessment" className="sr-only">
+                  Cari nama tugas
+                </label>
+                <Search
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-slate-400 pointer-events-none"
+                  aria-hidden="true"
+                />
+                <input
+                  id="search-assessment"
+                  type="search"
+                  autoComplete="off"
+                  placeholder="Cari nama tugas..."
+                  value={assessmentSearch}
+                  onChange={(e) => {
+                    setAssessmentSearch(e.target.value);
+                    setAssessmentPage(1);
+                  }}
+                  className="h-9 w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 pl-8 pr-3 text-xs text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 hover:border-slate-400 dark:hover:border-slate-600 focus-visible:outline-none focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20 transition-colors"
+                />
+              </div>
+
+              <FilterDropdown
+                value={assessmentStatusFilter}
+                onChange={(val) => {
+                  setAssessmentStatusFilter(val as "all" | "terbit" | "draf");
+                  setAssessmentPage(1);
+                }}
+                options={[
+                  { value: "all", label: "Semua Status" },
+                  { value: "terbit", label: "Terbit" },
+                  { value: "draf", label: "Draf" },
+                ]}
+                placeholder="Status Tugas"
+                size="sm"
+                className="w-full sm:w-auto"
+              />
+
+              <FilterDropdown
+                value={assessmentSessionFilter}
+                onChange={(val) => {
+                  setAssessmentSessionFilter(val);
+                  setAssessmentPage(1);
+                }}
+                options={sessionFilterOptions}
+                placeholder="Pilih Pertemuan"
+                size="sm"
+                className="w-full sm:w-auto"
+              />
+
+              <FilterDropdown
+                value={assessmentCompletionFilter}
+                onChange={(val) => {
+                  setAssessmentCompletionFilter(val as "all" | "lengkap" | "belum");
+                  setAssessmentPage(1);
+                }}
+                options={[
+                  { value: "all", label: "Semua Nilai" },
+                  { value: "lengkap", label: "Sudah Lengkap" },
+                  { value: "belum", label: "Belum Lengkap" },
+                ]}
+                placeholder="Kelengkapan Nilai"
+                size="sm"
+                className="w-full sm:w-auto"
+              />
+            </div>
+
+            <div className="shrink-0">
               <button
                 type="button"
-                onClick={() => setIsAssessmentModalOpen(true)}
+                onClick={() => {
+                  setEditingAssessment(null);
+                  setIsAssessmentModalOpen(true);
+                }}
                 className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:scale-[0.98] px-3.5 py-2 text-xs sm:text-sm font-semibold text-white shadow-xs transition-all duration-150 cursor-pointer"
               >
                 <Plus className="size-4 shrink-0" aria-hidden="true" />
@@ -958,6 +1362,30 @@ export function ClassDetailView({
                 </button>
               </div>
             </div>
+          ) : filteredAssessments.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-8 sm:p-12 text-center">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Tidak ada tugas yang cocok
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+                Tidak ditemukan tugas dengan filter atau kata kunci pencarian yang dipilih.
+              </p>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAssessmentSearch("");
+                    setAssessmentStatusFilter("all");
+                    setAssessmentSessionFilter("all");
+                    setAssessmentCompletionFilter("all");
+                    setAssessmentPage(1);
+                  }}
+                  className="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                >
+                  Reset Filter
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
               {/* Desktop Table View (>= md) */}
@@ -972,6 +1400,7 @@ export function ClassDetailView({
                     <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs font-semibold text-slate-600 dark:text-slate-300">
                       <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">No</th>
                       <th scope="col" className="sticky left-12 z-20 min-w-[160px] max-w-[240px] bg-slate-50 dark:bg-slate-800 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]">Nama Tugas</th>
+                      <th scope="col" className="py-3 px-4 whitespace-nowrap">Pertemuan</th>
                       <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Tanggal</th>
                       <th scope="col" className="py-3 px-4 text-right whitespace-nowrap">Siswa Dinilai</th>
                       <th scope="col" className="py-3 px-4 text-center whitespace-nowrap">Status</th>
@@ -979,43 +1408,52 @@ export function ClassDetailView({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {assessments.map((a, idx) => (
+                    {paginatedAssessments.map((a, idx) => (
                       <tr
                         key={a.id}
                         className="group/row relative border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                       >
                         {/* 1. Nomor Urut (Sticky Left 0) */}
                         <td className="sticky left-0 z-10 w-12 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 text-center font-medium text-slate-500 dark:text-slate-400 tabular-nums text-xs transition-colors">
-                          {idx + 1}
+                          {(currentAssessmentPage - 1) * ITEMS_PER_PAGE + idx + 1}
                         </td>
 
                         {/* 2. Nama Tugas (Sticky Left 12, Truncate, Title) */}
                         <td className="sticky left-12 z-10 min-w-[160px] max-w-[240px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
                           <Link
-                            href={`/teacher/grades/assessment/${a.id}`}
+                            href={`/teacher/grades/assessment/${a.id}?from=class`}
                             className="font-medium text-slate-950 dark:text-slate-50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm truncate block"
                             title={a.nama}
                           >
                             {a.nama}
                           </Link>
-                          {a.sesiLabel && (
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5" title={a.sesiLabel}>
-                              {a.sesiLabel}
-                            </p>
+                        </td>
+
+                        {/* 3. Pertemuan */}
+                        <td className="py-3 px-4 whitespace-nowrap text-xs text-slate-700 dark:text-slate-300">
+                          {a.sesiLabel ? (
+                            <span
+                              className="inline-flex items-center rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 font-medium text-slate-700 dark:text-slate-300 cursor-default"
+                              title={a.sesiLabel}
+                            >
+                              {a.sesiLabel.match(/^(Pertemuan\s*#\d+)/i)?.[1] ?? a.sesiLabel}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 dark:text-slate-600">-</span>
                           )}
                         </td>
 
-                        {/* 3. Tanggal (1 Data) */}
+                        {/* 4. Tanggal (1 Data) */}
                         <td className="py-3 px-4 text-right tabular-nums text-slate-600 dark:text-slate-400 text-xs sm:text-sm whitespace-nowrap">
                           {a.tanggal}
                         </td>
 
-                        {/* 4. Siswa Dinilai (1 Data) */}
+                        {/* 5. Siswa Dinilai (1 Data) */}
                         <td className="py-3 px-4 text-right tabular-nums font-medium text-slate-900 dark:text-slate-100 text-xs sm:text-sm whitespace-nowrap">
                           {a.countDinilai}/{a.totalSiswa}
                         </td>
 
-                        {/* 5. Status (1 Data) */}
+                        {/* 6. Status (1 Data) */}
                         <td className="py-3 px-4 text-center whitespace-nowrap">
                           <span className="inline-flex items-center gap-2 text-xs font-medium">
                             <span
@@ -1029,7 +1467,7 @@ export function ClassDetailView({
                           </span>
                         </td>
 
-                        {/* 6. Aksi (Sticky Right 0) */}
+                        {/* 7. Aksi (Sticky Right 0) */}
                         <td className="sticky right-0 z-10 py-3 px-4 sm:px-6 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
                           <div className="flex items-center justify-end gap-2 opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
                             <button
@@ -1042,10 +1480,12 @@ export function ClassDetailView({
                               <Pencil className="size-3.5" />
                             </button>
                             <Link
-                              href={`/teacher/grades/assessment/${a.id}`}
-                              className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 px-3 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors cursor-pointer"
+                              href={`/teacher/grades/assessment/${a.id}?from=class`}
+                              className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-blue-600 dark:hover:text-blue-400 p-2 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors cursor-pointer"
+                              title="Nilai Siswa"
+                              aria-label={`Nilai siswa untuk tugas ${a.nama}`}
                             >
-                              <span>Nilai Siswa</span>
+                              <ClipboardCheck className="size-3.5" />
                             </Link>
                             <button
                               type="button"
@@ -1067,7 +1507,7 @@ export function ClassDetailView({
 
               {/* Mobile Card View (< md) */}
               <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-                {assessments.map((a, idx) => (
+                {paginatedAssessments.map((a, idx) => (
                   <div
                     key={a.id}
                     className="p-4 space-y-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
@@ -1075,11 +1515,11 @@ export function ClassDetailView({
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-2 min-w-0">
                         <span className="size-6 shrink-0 grid place-items-center rounded bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-400 tabular-nums mt-0.5">
-                          {idx + 1}
+                          {(currentAssessmentPage - 1) * ITEMS_PER_PAGE + idx + 1}
                         </span>
                         <div>
                           <Link
-                            href={`/teacher/grades/assessment/${a.id}`}
+                            href={`/teacher/grades/assessment/${a.id}?from=class`}
                             className="font-semibold text-slate-950 dark:text-slate-50 hover:text-blue-600 dark:hover:text-blue-400 text-sm line-clamp-1"
                           >
                             {a.nama}
@@ -1110,11 +1550,14 @@ export function ClassDetailView({
                       </span>
                     </div>
 
-                    {a.sesiLabel && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {a.sesiLabel}
-                      </p>
-                    )}
+                    {a.sesiLabel ? (
+                      <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                        <span className="font-medium text-slate-500 dark:text-slate-500">Pertemuan:</span>
+                        <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[11px] font-medium text-slate-700 dark:text-slate-300">
+                          {a.sesiLabel.match(/^(Pertemuan\s*#\d+)/i)?.[1] ?? a.sesiLabel}
+                        </span>
+                      </div>
+                    ) : null}
 
                     <div className="flex items-center gap-2">
                       <button
@@ -1127,10 +1570,12 @@ export function ClassDetailView({
                         <Pencil className="size-4" />
                       </button>
                       <Link
-                        href={`/teacher/grades/assessment/${a.id}`}
-                        className="flex-1 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+                        href={`/teacher/grades/assessment/${a.id}?from=class`}
+                        className="flex-1 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 flex items-center justify-center transition-colors cursor-pointer shadow-2xs hover:border-slate-300 dark:hover:border-slate-600"
+                        title="Nilai Siswa"
+                        aria-label={`Nilai siswa untuk tugas ${a.nama}`}
                       >
-                        <span>Nilai Siswa</span>
+                        <ClipboardCheck className="size-4" />
                       </Link>
                       <button
                         type="button"
@@ -1146,6 +1591,52 @@ export function ClassDetailView({
                   </div>
                 ))}
               </div>
+
+              {/* Pagination Bar */}
+              {totalAssessmentPages > 1 && (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50/50 dark:bg-slate-900/50">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Menampilkan {(currentAssessmentPage - 1) * ITEMS_PER_PAGE + 1} -{" "}
+                    {Math.min(
+                      currentAssessmentPage * ITEMS_PER_PAGE,
+                      filteredAssessments.length,
+                    )}{" "}
+                    dari {filteredAssessments.length} tugas
+                  </p>
+
+                  <div className="inline-flex items-center gap-1">
+                    <button
+                      type="button"
+                      disabled={currentAssessmentPage === 1}
+                      onClick={() => setAssessmentPage((p) => Math.max(1, p - 1))}
+                      className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
+                      aria-label="Halaman Tugas Sebelumnya"
+                    >
+                      <ChevronLeft className="size-4" />
+                      <span>Sebelumnya</span>
+                    </button>
+
+                    <span className="px-2 text-xs font-medium text-slate-600 dark:text-slate-400 tabular-nums">
+                      Halaman {currentAssessmentPage} dari {totalAssessmentPages}
+                    </span>
+
+                    <button
+                      type="button"
+                      disabled={currentAssessmentPage === totalAssessmentPages}
+                      onClick={() =>
+                        setAssessmentPage((p) =>
+                          Math.min(totalAssessmentPages, p + 1),
+                        )
+                      }
+                      className="inline-flex items-center gap-1 rounded border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800 disabled:opacity-40 disabled:hover:bg-transparent cursor-pointer"
+                      aria-label="Halaman Tugas Berikutnya"
+                    >
+                      <span>Berikutnya</span>
+                      <ChevronRight className="size-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1398,7 +1889,6 @@ export function ClassDetailView({
               pendaftaranId: s.id,
               anakId: s.anakId,
               namaAnak: s.nama,
-              persetujuanFoto: Boolean(s.persetujuanFoto),
             })),
           },
         ]}

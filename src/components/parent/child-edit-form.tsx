@@ -11,7 +11,7 @@ import {
     KELAS_OPTIONS,
     inferJenjangDanKelasFromBirthDate,
 } from '@/components/pendaftaran/child-info-form';
-import { BookOpen, Camera, Phone, Mail, Lock, User } from 'lucide-react';
+import { BookOpen, Phone, Mail, Lock, User } from 'lucide-react';
 
 export interface ChildEditData {
     id: number;
@@ -21,7 +21,6 @@ export interface ChildEditData {
     tingkat: string;
     emailNotifikasi: string;
     nomorTelepon: string;
-    persetujuanFoto: boolean;
 }
 
 interface ChildEditFormProps {
@@ -83,9 +82,6 @@ export function ChildEditForm({
         ),
     );
     const [emailValue, setEmailValue] = useState(anak.emailNotifikasi);
-    const [persetujuanFoto, setPersetujuanFoto] = useState(
-        anak.persetujuanFoto,
-    );
 
     const errors = state.fieldErrors || {};
 
@@ -178,19 +174,6 @@ export function ChildEditForm({
                                 </span>
                             </div>
                         )}
-                        <div className="flex items-center justify-between pt-1 border-t border-slate-200/60">
-                            <span className="text-slate-500 flex items-center gap-1.5">
-                                <Camera className="size-3.5 text-slate-400" />{' '}
-                                {tr('consentPhotoTitle')}
-                            </span>
-                            <span
-                                className={`font-semibold ${anak.persetujuanFoto ? 'text-emerald-700' : 'text-slate-600'}`}
-                            >
-                                {anak.persetujuanFoto
-                                    ? tr('consentActive')
-                                    : tr('consentRevoked')}
-                            </span>
-                        </div>
                     </div>
 
                     <div className="pt-2">
@@ -530,45 +513,6 @@ export function ChildEditForm({
                                     {errors.email_notifikasi}
                                 </p>
                             )}
-                        </div>
-
-                        {/* Persetujuan Publikasi Foto Dokumentasi Kegiatan */}
-                        <div className="rounded-2xl border border-slate-100 bg-slate-50/70 p-4 space-y-2">
-                            <div className="flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-2">
-                                    <Camera className="size-4 text-slate-500" />
-                                    <span className="text-xs sm:text-sm font-bold text-slate-800">
-                                        {tr('consentPhotoTitle')}
-                                    </span>
-                                </div>
-
-                                <label className="inline-flex items-center gap-2 cursor-pointer select-none">
-                                    <span
-                                        className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                                            persetujuanFoto
-                                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
-                                                : 'bg-slate-200/80 text-slate-600'
-                                        }`}
-                                    >
-                                        {persetujuanFoto
-                                            ? tr('consentActive')
-                                            : tr('consentRevoked')}
-                                    </span>
-                                    <input
-                                        type="checkbox"
-                                        name="persetujuan_foto"
-                                        checked={persetujuanFoto}
-                                        onChange={(e) =>
-                                            setPersetujuanFoto(e.target.checked)
-                                        }
-                                        className="sr-only peer"
-                                    />
-                                    <span className="w-7 h-4 rounded-full bg-slate-200 peer-checked:bg-emerald-500 relative transition-colors cursor-pointer shrink-0 after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:size-3 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-3" />
-                                </label>
-                            </div>
-                            <p className="text-xs text-slate-500 leading-relaxed">
-                                {tr('consentPhotoDesc')}
-                            </p>
                         </div>
                     </div>
 

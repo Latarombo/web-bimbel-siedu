@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { TeacherSidebar } from './teacher-sidebar';
+import { TeacherHeader, type NotificationItem } from './teacher-header';
 import {
   TeacherQuickSearch,
   type QuickSearchClassItem,
@@ -13,10 +14,12 @@ interface TeacherShellProps {
   role: string;
   userName: string;
   userEmail: string | null;
+  userImage?: string | null;
   accountRole: string;
   initialCollapsed?: boolean;
   searchClasses?: QuickSearchClassItem[];
   searchStudents?: QuickSearchStudentItem[];
+  notifications?: NotificationItem[];
   children: React.ReactNode;
 }
 
@@ -24,10 +27,12 @@ export function TeacherShell({
   role,
   userName,
   userEmail,
+  userImage,
   accountRole,
   initialCollapsed = false,
   searchClasses = [],
   searchStudents = [],
+  notifications,
   children,
 }: TeacherShellProps) {
   const [isCollapsed, setIsCollapsed] = useState(initialCollapsed);
@@ -69,7 +74,7 @@ export function TeacherShell({
   };
 
   return (
-    <div className="min-h-dvh bg-[#FAF9F9] dark:bg-[#090d16] flex flex-col text-slate-900 dark:text-slate-100 transition-colors duration-200">
+    <div className="min-h-dvh bg-white dark:bg-slate-950 flex flex-col text-slate-900 dark:text-slate-100 transition-colors duration-200">
       <TeacherSidebar
         role={role}
         userName={userName}
@@ -88,6 +93,16 @@ export function TeacherShell({
           isCollapsed ? 'lg:pl-[72px]' : 'lg:pl-[260px]'
         }`}
       >
+        <TeacherHeader
+          userName={userName}
+          userEmail={userEmail}
+          userImage={userImage}
+          role={role}
+          initialNotifications={notifications}
+          onOpenMobileDrawer={() => setIsDrawerOpen(true)}
+          onOpenLogout={() => setIsLogoutOpen(true)}
+        />
+
         <main id="main" className="flex-1">
           {children}
         </main>

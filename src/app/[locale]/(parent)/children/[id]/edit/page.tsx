@@ -72,7 +72,6 @@ export default async function EditChildPage({
                             tingkat: a.tingkat ?? '',
                             emailNotifikasi: a.emailNotifikasi ?? '',
                             nomorTelepon: a.nomorTelepon ?? '',
-                            persetujuanFoto: Boolean(a.persetujuanFoto),
                         }}
                     />
                 </div>

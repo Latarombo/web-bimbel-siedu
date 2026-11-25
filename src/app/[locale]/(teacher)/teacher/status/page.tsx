@@ -41,7 +41,6 @@ export default async function TeacherStatusPage() {
         pendaftaranId: p.id,
         anakId: p.anakId,
         namaAnak: anak?.nama ?? `Siswa #${p.anakId}`,
-        persetujuanFoto: Boolean(anak?.persetujuanFoto),
       };
     });
 

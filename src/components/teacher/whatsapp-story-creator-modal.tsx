@@ -79,6 +79,71 @@ const TEXT_PALETTE_COLORS = [
 // Pilihan Font Teks Toolbar WhatsApp
 const TEXT_FONT_OPTIONS = ['Sans Serif', 'Serif', 'Mono', 'Display'];
 
+// Pilihan Warna Stroke & Fill Shape
+const SHAPE_PALETTE_COLORS = [
+  '#000000',
+  '#ffffff',
+  '#25D366',
+  '#ff4a4a',
+  '#33ceff',
+  '#f49226',
+  '#cc5de8',
+  '#ffd43b',
+];
+
+// Pilihan Ukuran Coretan Pensil
+const PEN_STROKE_SIZES = [
+  { label: 'Tipis', size: 3 },
+  { label: 'Sedang', size: 6 },
+  { label: 'Tebal', size: 12 },
+  { label: 'Ekstra', size: 22 },
+];
+
+export type OverlayElement =
+  | {
+      id: string;
+      type: 'text';
+      text: string;
+      x: number; // percentage center (0-100)
+      y: number; // percentage center (0-100)
+      rotation: number; // degrees (0-360)
+      color: string;
+      fontName: string;
+      hasBackground: boolean;
+    }
+  | {
+      id: string;
+      type: 'shape';
+      shapeType: 'rect' | 'circle' | 'line' | 'arrow';
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+      rotation: number;
+      strokeColor: string;
+      fillColor: string; // 'transparent' or color hex
+      strokeWidth: number;
+    }
+  | {
+      id: string;
+      type: 'blur';
+      blurType: 'pixelate' | 'gaussian';
+      intensity: number; // 6 to 30
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }
+  | {
+      id: string;
+      type: 'emoji';
+      emoji: string;
+      x: number;
+      y: number;
+      size: number;
+      rotation: number;
+    };
+
 /**
  * Mini SVG Segmented Status Ring icon ala WhatsApp
  */
@@ -217,60 +282,19 @@ export function WhatsappStoryCreatorModal({
     initialRect: { x: 0, y: 0, width: 100, height: 100 },
   });
 
-  // In-place Draggable Text Overlay on Photo (Screenshot 2026-11-24 230655.png)
-  const [photoTextOverlay, setPhotoTextOverlay] = useState<{
-    text: string;
-    x: number;
-    y: number;
-    color: string;
-    fontName: string;
-    hasBackground: boolean;
-    isActive: boolean;
-  }>({
-    text: '',
-    x: 50,
-    y: 50,
-    color: '#212529',
-    fontName: 'Sans Serif',
-    hasBackground: true,
-    isActive: false,
-  });
+  // Overlay Elements Array (Persistent placed items on photo: Text, Shape, Blur, Emoji)
+  const [overlayElements, setOverlayElements] = useState<OverlayElement[]>([]);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [penStrokeSize, setPenStrokeSize] = useState<number>(6);
 
-  // Active Shape Overlay on Photo (Screenshot 2026-11-24 230459.png)
-  const [activeShape, setActiveShape] = useState<{
-    type: 'rect' | 'circle' | 'line' | 'arrow';
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    color: string;
-    strokeWidth: number;
-    isActive: boolean;
-  }>({
-    type: 'circle',
-    x: 50,
-    y: 50,
-    width: 35,
-    height: 35,
-    color: '#000000',
-    strokeWidth: 4,
-    isActive: false,
-  });
-  const isDraggingShapeRef = useRef<string | null>(null);
-  const shapeStartPosRef = useRef<{ startX: number; startY: number; initialShape: typeof activeShape }>({
-    startX: 0,
-    startY: 0,
-    initialShape: {
-      type: 'circle',
-      x: 50,
-      y: 50,
-      width: 35,
-      height: 35,
-      color: '#000000',
-      strokeWidth: 4,
-      isActive: false,
-    },
-  });
+  const isDraggingElementRef = useRef<{
+    mode: 'move' | 'resize' | 'rotate';
+    elementId: string;
+    handle?: string;
+    startX: number;
+    startY: number;
+    initialElem: OverlayElement;
+  } | null>(null);
 
   // Drawing Canvas History (for Undo / Redo)
   const [historyStack, setHistoryStack] = useState<ImageData[]>([]);
@@ -309,25 +333,9 @@ export function WhatsappStoryCreatorModal({
       setCropRect({ x: 0, y: 0, width: 100, height: 100 });
       setIsPenActive(false);
       setShowPenPalette(false);
-      setPhotoTextOverlay({
-        text: '',
-        x: 50,
-        y: 50,
-        color: '#212529',
-        fontName: 'Sans Serif',
-        hasBackground: true,
-        isActive: false,
-      });
-      setActiveShape({
-        type: 'circle',
-        x: 50,
-        y: 50,
-        width: 35,
-        height: 35,
-        color: '#000000',
-        strokeWidth: 4,
-        isActive: false,
-      });
+      setOverlayElements([]);
+      setSelectedElementId(null);
+      setPenStrokeSize(6);
       setHistoryStack([]);
       setRedoStack([]);
       if (defaultClassId) setSelectedClassId(defaultClassId);
@@ -336,6 +344,7 @@ export function WhatsappStoryCreatorModal({
 
   const activePhoto = photos[activePhotoIdx];
   const currentRotation = rotations[activePhotoIdx] ?? 0;
+  const selectedElement = overlayElements.find((el) => el.id === selectedElementId) ?? null;
 
   // Clear or resize drawing canvas when photo changes
   const initCanvas = useCallback(() => {
@@ -497,20 +506,54 @@ export function WhatsappStoryCreatorModal({
     window.addEventListener('pointerup', onPointerUp);
   };
 
-  // Handler seret posisi teks overlay di atas foto
-  const handleTextPointerDown = (e: React.PointerEvent) => {
+  // Helper manipulasi Overlay Elements
+  const updateElement = (id: string, updates: Partial<OverlayElement>) => {
+    setOverlayElements((prev) =>
+      prev.map((el) => (el.id === id ? ({ ...el, ...updates } as OverlayElement) : el))
+    );
+  };
+
+  const removeElement = (id: string) => {
+    setOverlayElements((prev) => prev.filter((el) => el.id !== id));
+    if (selectedElementId === id) {
+      setSelectedElementId(null);
+    }
+  };
+
+  // Seret (Move) posisi elemen di atas foto
+  const handleElementPointerDown = (id: string, e: React.PointerEvent) => {
     e.preventDefault();
-    const container = photoWrapperRef.current;
-    if (!container) return;
+    e.stopPropagation();
+    setSelectedElementId(id);
+    setIsPenActive(false);
+    setShowPenPalette(false);
+
+    const elem = overlayElements.find((el) => el.id === id);
+    if (!elem) return;
+
+    isDraggingElementRef.current = {
+      mode: 'move',
+      elementId: id,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialElem: { ...elem },
+    };
 
     const onPointerMove = (moveEvt: PointerEvent) => {
-      const rect = container.getBoundingClientRect();
-      const xPct = Math.max(10, Math.min(90, ((moveEvt.clientX - rect.left) / rect.width) * 100));
-      const yPct = Math.max(10, Math.min(90, ((moveEvt.clientY - rect.top) / rect.height) * 100));
-      setPhotoTextOverlay((prev) => ({ ...prev, x: Math.round(xPct), y: Math.round(yPct) }));
+      if (!isDraggingElementRef.current || !photoWrapperRef.current) return;
+      const { elementId, startX, startY, initialElem } = isDraggingElementRef.current;
+      const containerRect = photoWrapperRef.current.getBoundingClientRect();
+      const deltaXPct = ((moveEvt.clientX - startX) / containerRect.width) * 100;
+      const deltaYPct = ((moveEvt.clientY - startY) / containerRect.height) * 100;
+
+      updateElement(elementId, {
+        x: Math.max(5, Math.min(95, Math.round(initialElem.x + deltaXPct))),
+        y: Math.max(5, Math.min(95, Math.round(initialElem.y + deltaYPct))),
+      });
     };
 
     const onPointerUp = () => {
+      isDraggingElementRef.current = null;
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
@@ -519,33 +562,92 @@ export function WhatsappStoryCreatorModal({
     window.addEventListener('pointerup', onPointerUp);
   };
 
-  // Handler seret posisi bentuk (shape) di atas foto
-  const handleShapePointerDown = (handle: string, e: React.PointerEvent) => {
+  // Ubah ukuran (Resize) elemen via handle pembatas
+  const handleElementHandlePointerDown = (id: string, handle: string, e: React.PointerEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    isDraggingShapeRef.current = handle;
-    shapeStartPosRef.current = {
+    setSelectedElementId(id);
+
+    const elem = overlayElements.find((el) => el.id === id);
+    if (!elem) return;
+
+    isDraggingElementRef.current = {
+      mode: 'resize',
+      elementId: id,
+      handle,
       startX: e.clientX,
       startY: e.clientY,
-      initialShape: { ...activeShape },
+      initialElem: { ...elem },
     };
 
     const onPointerMove = (moveEvt: PointerEvent) => {
-      if (!isDraggingShapeRef.current || !photoWrapperRef.current) return;
+      if (!isDraggingElementRef.current || !photoWrapperRef.current) return;
+      const { elementId, handle: h, startX, startY, initialElem } = isDraggingElementRef.current;
       const containerRect = photoWrapperRef.current.getBoundingClientRect();
-      const deltaXPct = ((moveEvt.clientX - shapeStartPosRef.current.startX) / containerRect.width) * 100;
-      const deltaYPct = ((moveEvt.clientY - shapeStartPosRef.current.startY) / containerRect.height) * 100;
-      const init = shapeStartPosRef.current.initialShape;
+      const deltaXPct = ((moveEvt.clientX - startX) / containerRect.width) * 100;
+      const deltaYPct = ((moveEvt.clientY - startY) / containerRect.height) * 100;
 
-      setActiveShape((prev) => ({
-        ...prev,
-        x: Math.max(10, Math.min(90, init.x + deltaXPct)),
-        y: Math.max(10, Math.min(90, init.y + deltaYPct)),
-      }));
+      if (initialElem.type === 'shape' || initialElem.type === 'blur') {
+        let width = initialElem.width;
+        let height = initialElem.height;
+        if (h?.includes('r')) width = Math.max(8, Math.min(95, initialElem.width + deltaXPct * 2));
+        if (h?.includes('l')) width = Math.max(8, Math.min(95, initialElem.width - deltaXPct * 2));
+        if (h?.includes('b')) height = Math.max(6, Math.min(95, initialElem.height + deltaYPct * 2));
+        if (h?.includes('t')) height = Math.max(6, Math.min(95, initialElem.height - deltaYPct * 2));
+        updateElement(elementId, { width: Math.round(width), height: Math.round(height) });
+      } else if (initialElem.type === 'emoji') {
+        const deltaMax = Math.max(Math.abs(deltaXPct), Math.abs(deltaYPct));
+        const sign = deltaXPct > 0 || deltaYPct > 0 ? 1 : -1;
+        const newSize = Math.max(
+          24,
+          Math.min(180, Math.round(initialElem.size + sign * deltaMax * 1.5))
+        );
+        updateElement(elementId, { size: newSize });
+      }
     };
 
     const onPointerUp = () => {
-      isDraggingShapeRef.current = null;
+      isDraggingElementRef.current = null;
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+  };
+
+  // Putar (Rotate) elemen via handle tuas atas
+  const handleElementRotatePointerDown = (id: string, e: React.PointerEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedElementId(id);
+
+    const elem = overlayElements.find((el) => el.id === id);
+    if (!elem) return;
+
+    isDraggingElementRef.current = {
+      mode: 'rotate',
+      elementId: id,
+      startX: e.clientX,
+      startY: e.clientY,
+      initialElem: { ...elem },
+    };
+
+    const onPointerMove = (moveEvt: PointerEvent) => {
+      if (!isDraggingElementRef.current || !photoWrapperRef.current) return;
+      const { elementId, initialElem } = isDraggingElementRef.current;
+      const containerRect = photoWrapperRef.current.getBoundingClientRect();
+      const cx = containerRect.left + (initialElem.x / 100) * containerRect.width;
+      const cy = containerRect.top + (initialElem.y / 100) * containerRect.height;
+      const angleRad = Math.atan2(moveEvt.clientY - cy, moveEvt.clientX - cx);
+      let deg = Math.round((angleRad * 180) / Math.PI) + 90;
+      if (deg < 0) deg += 360;
+      if (deg >= 360) deg -= 360;
+      updateElement(elementId, { rotation: deg } as any);
+    };
+
+    const onPointerUp = () => {
+      isDraggingElementRef.current = null;
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
@@ -599,7 +701,7 @@ export function WhatsappStoryCreatorModal({
     ctx.beginPath();
     ctx.moveTo(x, y);
     ctx.strokeStyle = penColor;
-    ctx.lineWidth = penWidth;
+    ctx.lineWidth = penStrokeSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
   };
@@ -633,82 +735,110 @@ export function WhatsappStoryCreatorModal({
     setRedoStack([]);
   };
 
-  // Shape Tool: Pilih dan aktifkan bentuk penyorot interaktif (Screenshot 2026-11-24 230459.png)
-  const handleSelectShape = (type: 'rect' | 'circle' | 'line' | 'arrow') => {
-    setActiveShape({
-      type,
+  // Tool Action: Tambah / Aktifkan Teks
+  const handleAddTextElement = () => {
+    setIsPenActive(false);
+    setShowPenPalette(false);
+    setShowShapePicker(false);
+    setIsCropMode(false);
+    setShowFilterCarousel(false);
+    setShowEmojiPicker(false);
+
+    const newText: OverlayElement = {
+      id: `text-${Date.now()}`,
+      type: 'text',
+      text: '',
       x: 50,
       y: 50,
-      width: type === 'line' || type === 'arrow' ? 42 : 32,
-      height: type === 'line' || type === 'arrow' ? 24 : 32,
-      color: '#000000',
-      strokeWidth: 4,
-      isActive: true,
-    });
+      rotation: 0,
+      color: '#212529',
+      fontName: 'Sans Serif',
+      hasBackground: true,
+    };
+    setOverlayElements((prev) => [...prev, newText]);
+    setSelectedElementId(newText.id);
+  };
+
+  // Tool Action: Tambah / Ubah Bentuk Penyorot
+  const handleSelectShape = (shapeType: 'rect' | 'circle' | 'line' | 'arrow') => {
+    setIsPenActive(false);
+    setShowPenPalette(false);
     setShowShapePicker(false);
-    setPhotoTextOverlay((prev) => ({ ...prev, isActive: false }));
-  };
-
-  // Handler seret titik pembatas bentuk penyorot (Resize Shape)
-  const handleShapeHandlePointerDown = (handle: string, e: React.PointerEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    isDraggingShapeRef.current = handle;
-    shapeStartPosRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      initialShape: { ...activeShape },
-    };
-
-    const onPointerMove = (moveEvt: PointerEvent) => {
-      if (!isDraggingShapeRef.current || !photoWrapperRef.current) return;
-      const containerRect = photoWrapperRef.current.getBoundingClientRect();
-      const deltaXPct = ((moveEvt.clientX - shapeStartPosRef.current.startX) / containerRect.width) * 100;
-      const deltaYPct = ((moveEvt.clientY - shapeStartPosRef.current.startY) / containerRect.height) * 100;
-      const init = shapeStartPosRef.current.initialShape;
-      const mode = isDraggingShapeRef.current;
-
-      setActiveShape((prev) => {
-        let width = init.width;
-        let height = init.height;
-        if (mode.includes('r')) width = Math.max(10, Math.min(90, init.width + deltaXPct * 2));
-        if (mode.includes('l')) width = Math.max(10, Math.min(90, init.width - deltaXPct * 2));
-        if (mode.includes('b')) height = Math.max(8, Math.min(90, init.height + deltaYPct * 2));
-        if (mode.includes('t')) height = Math.max(8, Math.min(90, init.height - deltaYPct * 2));
-        return { ...prev, width: Math.round(width), height: Math.round(height) };
-      });
-    };
-
-    const onPointerUp = () => {
-      isDraggingShapeRef.current = null;
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerup', onPointerUp);
-    };
-
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp);
-  };
-
-  // Stamp sticker / emoji directly onto canvas
-  const handleStampEmoji = (emoji: string) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const w = canvas.width;
-    const h = canvas.height;
-    ctx.save();
-    ctx.font = '48px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(emoji, w / 2, h / 2);
-    ctx.restore();
-
-    const newState = ctx.getImageData(0, 0, w, h);
-    setHistoryStack((prev) => [...prev, newState]);
-    setRedoStack([]);
+    setIsCropMode(false);
+    setShowFilterCarousel(false);
     setShowEmojiPicker(false);
+
+    if (selectedElement && selectedElement.type === 'shape') {
+      updateElement(selectedElement.id, { shapeType });
+      return;
+    }
+
+    const newShape: OverlayElement = {
+      id: `shape-${Date.now()}`,
+      type: 'shape',
+      shapeType,
+      x: 50,
+      y: 50,
+      width: shapeType === 'line' || shapeType === 'arrow' ? 42 : 32,
+      height: shapeType === 'line' || shapeType === 'arrow' ? 24 : 32,
+      rotation: 0,
+      strokeColor: '#000000',
+      fillColor: 'transparent',
+      strokeWidth: 4,
+    };
+    setOverlayElements((prev) => [...prev, newShape]);
+    setSelectedElementId(newShape.id);
+  };
+
+  // Tool Action: Tambah / Aktifkan Sensor Blur
+  const handleToggleBlurTool = () => {
+    setIsPenActive(false);
+    setShowPenPalette(false);
+    setShowShapePicker(false);
+    setIsCropMode(false);
+    setShowFilterCarousel(false);
+    setShowEmojiPicker(false);
+
+    const existingBlur = overlayElements.find((el) => el.type === 'blur');
+    if (existingBlur) {
+      setSelectedElementId(existingBlur.id);
+      return;
+    }
+
+    const newBlur: OverlayElement = {
+      id: `blur-${Date.now()}`,
+      type: 'blur',
+      blurType: 'pixelate',
+      intensity: 14,
+      x: 50,
+      y: 50,
+      width: 30,
+      height: 25,
+    };
+    setOverlayElements((prev) => [...prev, newBlur]);
+    setSelectedElementId(newBlur.id);
+  };
+
+  // Tool Action: Tambah Emoji Interaktif
+  const handleStampEmoji = (emoji: string) => {
+    setIsPenActive(false);
+    setShowPenPalette(false);
+    setShowShapePicker(false);
+    setIsCropMode(false);
+    setShowFilterCarousel(false);
+    setShowEmojiPicker(false);
+
+    const newEmoji: OverlayElement = {
+      id: `emoji-${Date.now()}`,
+      type: 'emoji',
+      emoji,
+      x: 50,
+      y: 50,
+      size: 52,
+      rotation: 0,
+    };
+    setOverlayElements((prev) => [...prev, newEmoji]);
+    setSelectedElementId(newEmoji.id);
   };
 
   // Handler tambah foto tambahan ke filmstrip
@@ -772,91 +902,147 @@ export function WhatsappStoryCreatorModal({
           ctx.drawImage(canvas, 0, 0, offscreen.width, offscreen.height);
         }
 
-        // 3. Gambar Bentuk Penyorot (Shape) jika aktif
-        if (activeShape.isActive) {
-          const sx = (activeShape.x / 100) * offscreen.width;
-          const sy = (activeShape.y / 100) * offscreen.height;
-          const sw = (activeShape.width / 100) * offscreen.width;
-          const sh = (activeShape.height / 100) * offscreen.height;
+        // 3. Gambar semua Overlay Elements (Blur, Shape, Text, Emoji)
+        for (const el of overlayElements) {
+          const cx = (el.x / 100) * offscreen.width;
+          const cy = (el.y / 100) * offscreen.height;
 
-          ctx.save();
-          ctx.strokeStyle = activeShape.color || '#000000';
-          ctx.fillStyle = activeShape.color || '#000000';
-          ctx.lineWidth = Math.max(3, Math.round(offscreen.width * 0.008));
-          ctx.lineCap = 'round';
-          ctx.lineJoin = 'round';
+          if (el.type === 'blur') {
+            const bw = (el.width / 100) * offscreen.width;
+            const bh = (el.height / 100) * offscreen.height;
+            const bx = Math.max(0, Math.round(cx - bw / 2));
+            const by = Math.max(0, Math.round(cy - bh / 2));
+            const realW = Math.min(offscreen.width - bx, Math.round(bw));
+            const realH = Math.min(offscreen.height - by, Math.round(bh));
 
-          if (activeShape.type === 'circle') {
-            ctx.beginPath();
-            ctx.ellipse(sx, sy, sw / 2, sh / 2, 0, 0, 2 * Math.PI);
-            ctx.stroke();
-          } else if (activeShape.type === 'rect') {
-            ctx.strokeRect(sx - sw / 2, sy - sh / 2, sw, sh);
-          } else if (activeShape.type === 'line') {
-            ctx.beginPath();
-            ctx.moveTo(sx - sw / 2, sy + sh / 2);
-            ctx.lineTo(sx + sw / 2, sy - sh / 2);
-            ctx.stroke();
-          } else if (activeShape.type === 'arrow') {
-            const fromX = sx - sw / 2;
-            const fromY = sy + sh / 2;
-            const toX = sx + sw / 2;
-            const toY = sy - sh / 2;
-            const headLen = Math.max(16, offscreen.width * 0.035);
-            const angle = Math.atan2(toY - fromY, toX - fromX);
-
-            ctx.beginPath();
-            ctx.moveTo(fromX, fromY);
-            ctx.lineTo(toX, toY);
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(toX, toY);
-            ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
-            ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
-            ctx.closePath();
-            ctx.fill();
-          }
-          ctx.restore();
-        }
-
-        // 4. Gambar Teks Draggable dengan Card Latar Belakang
-        if (photoTextOverlay.isActive && photoTextOverlay.text.trim()) {
-          const tx = (photoTextOverlay.x / 100) * offscreen.width;
-          const ty = (photoTextOverlay.y / 100) * offscreen.height;
-          ctx.save();
-          const fontSize = Math.max(18, Math.round(offscreen.width * 0.05));
-          const fontFamily = photoTextOverlay.fontName === 'Serif'
-            ? 'serif'
-            : photoTextOverlay.fontName === 'Mono'
-            ? 'monospace'
-            : 'sans-serif';
-          ctx.font = `bold ${fontSize}px ${fontFamily}`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          const text = photoTextOverlay.text.trim();
-          const metrics = ctx.measureText(text);
-          const padX = Math.round(fontSize * 0.7);
-          const padY = Math.round(fontSize * 0.45);
-          const cardW = metrics.width + padX * 2;
-          const cardH = fontSize + padY * 2;
-
-          // Card latar belakang putih (jika hasBackground diaktifkan)
-          if (photoTextOverlay.hasBackground) {
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            if (typeof ctx.roundRect === 'function') {
-              ctx.roundRect(tx - cardW / 2, ty - cardH / 2, cardW, cardH, 12);
-            } else {
-              ctx.rect(tx - cardW / 2, ty - cardH / 2, cardW, cardH);
+            if (realW > 0 && realH > 0) {
+              if (el.blurType === 'pixelate') {
+                const blockSize = Math.max(6, Math.round(realW * (el.intensity / 100)));
+                const temp = document.createElement('canvas');
+                const tw = Math.max(1, Math.floor(realW / blockSize));
+                const th = Math.max(1, Math.floor(realH / blockSize));
+                temp.width = tw;
+                temp.height = th;
+                const tctx = temp.getContext('2d');
+                if (tctx) {
+                  tctx.imageSmoothingEnabled = false;
+                  tctx.drawImage(offscreen, bx, by, realW, realH, 0, 0, tw, th);
+                  ctx.imageSmoothingEnabled = false;
+                  ctx.drawImage(temp, 0, 0, tw, th, bx, by, realW, realH);
+                  ctx.imageSmoothingEnabled = true;
+                }
+              } else {
+                const temp = document.createElement('canvas');
+                temp.width = realW;
+                temp.height = realH;
+                const tctx = temp.getContext('2d');
+                if (tctx) {
+                  tctx.filter = `blur(${Math.max(4, el.intensity)}px)`;
+                  tctx.drawImage(offscreen, bx, by, realW, realH, 0, 0, realW, realH);
+                  ctx.drawImage(temp, bx, by, realW, realH);
+                }
+              }
             }
-            ctx.fill();
-          }
+          } else if (el.type === 'shape') {
+            const sw = (el.width / 100) * offscreen.width;
+            const sh = (el.height / 100) * offscreen.height;
 
-          // Teks di atas card
-          ctx.fillStyle = photoTextOverlay.color || '#212529';
-          ctx.fillText(text, tx, ty);
-          ctx.restore();
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate((el.rotation * Math.PI) / 180);
+
+            ctx.strokeStyle = el.strokeColor || '#000000';
+            ctx.fillStyle = el.fillColor === 'transparent' ? 'transparent' : el.fillColor || '#ffffff';
+            ctx.lineWidth = Math.max(2, Math.round(offscreen.width * (el.strokeWidth * 0.002)));
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (el.shapeType === 'rect') {
+              if (el.fillColor !== 'transparent') {
+                ctx.fillRect(-sw / 2, -sh / 2, sw, sh);
+              }
+              ctx.strokeRect(-sw / 2, -sh / 2, sw, sh);
+            } else if (el.shapeType === 'circle') {
+              ctx.beginPath();
+              ctx.ellipse(0, 0, sw / 2, sh / 2, 0, 0, 2 * Math.PI);
+              if (el.fillColor !== 'transparent') {
+                ctx.fill();
+              }
+              ctx.stroke();
+            } else if (el.shapeType === 'line') {
+              ctx.beginPath();
+              ctx.moveTo(-sw / 2, sh / 2);
+              ctx.lineTo(sw / 2, -sh / 2);
+              ctx.stroke();
+            } else if (el.shapeType === 'arrow') {
+              const fromX = -sw / 2;
+              const fromY = sh / 2;
+              const toX = sw / 2;
+              const toY = -sh / 2;
+              const headLen = Math.max(16, offscreen.width * 0.035);
+              const angle = Math.atan2(toY - fromY, toX - fromX);
+
+              ctx.beginPath();
+              ctx.moveTo(fromX, fromY);
+              ctx.lineTo(toX, toY);
+              ctx.stroke();
+
+              ctx.beginPath();
+              ctx.moveTo(toX, toY);
+              ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY - headLen * Math.sin(angle - Math.PI / 6));
+              ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+              ctx.closePath();
+              ctx.fillStyle = el.strokeColor || '#000000';
+              ctx.fill();
+            }
+            ctx.restore();
+          } else if (el.type === 'text' && el.text.trim()) {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate((el.rotation * Math.PI) / 180);
+
+            const fontSize = Math.max(18, Math.round(offscreen.width * 0.05));
+            const fontFamily =
+              el.fontName === 'Serif'
+                ? 'serif'
+                : el.fontName === 'Mono'
+                ? 'monospace'
+                : 'sans-serif';
+            ctx.font = `bold ${fontSize}px ${fontFamily}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            const text = el.text.trim();
+            const metrics = ctx.measureText(text);
+            const padX = Math.round(fontSize * 0.7);
+            const padY = Math.round(fontSize * 0.45);
+            const cardW = metrics.width + padX * 2;
+            const cardH = fontSize + padY * 2;
+
+            if (el.hasBackground) {
+              ctx.fillStyle = '#ffffff';
+              ctx.beginPath();
+              if (typeof ctx.roundRect === 'function') {
+                ctx.roundRect(-cardW / 2, -cardH / 2, cardW, cardH, 12);
+              } else {
+                ctx.rect(-cardW / 2, -cardH / 2, cardW, cardH);
+              }
+              ctx.fill();
+            }
+
+            ctx.fillStyle = el.color || '#212529';
+            ctx.fillText(text, 0, 0);
+            ctx.restore();
+          } else if (el.type === 'emoji' && el.emoji) {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate((el.rotation * Math.PI) / 180);
+            const fontSize = Math.max(24, Math.round(offscreen.width * (el.size / 600)));
+            ctx.font = `${fontSize}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(el.emoji, 0, 0);
+            ctx.restore();
+          }
         }
 
         resolve(offscreen.toDataURL('image/jpeg', 0.88));
@@ -941,8 +1127,6 @@ export function WhatsappStoryCreatorModal({
       }
     });
   };
-
-  const hasNoConsentStudents = currentClass?.students.some((s) => !s.persetujuanFoto);
 
   // =========================================================================
   // TAMPILAN 1: STATUS FOTO (PERSIS Screenshot 2026-11-24 203809.png)
@@ -1052,8 +1236,11 @@ export function WhatsappStoryCreatorModal({
               onClick={() => {
                 setIsPenActive(!isPenActive);
                 setShowPenPalette(!showPenPalette);
+                setSelectedElementId(null);
                 setShowFilterCarousel(false);
                 setShowShapePicker(false);
+                setIsCropMode(false);
+                setShowEmojiPicker(false);
               }}
               className={`grid size-10 place-items-center rounded-full transition-colors cursor-pointer ${
                 isPenActive
@@ -1069,20 +1256,9 @@ export function WhatsappStoryCreatorModal({
             {/* Text Overlay Tool (Aa) */}
             <button
               type="button"
-              onClick={() => {
-                setPhotoTextOverlay((prev) => ({
-                  ...prev,
-                  isActive: !prev.isActive,
-                  x: prev.isActive ? prev.x : 50,
-                  y: prev.isActive ? prev.y : 50,
-                }));
-                setActiveShape((prev) => ({ ...prev, isActive: false }));
-                setShowFilterCarousel(false);
-                setIsCropMode(false);
-                setShowShapePicker(false);
-              }}
+              onClick={handleAddTextElement}
               className={`grid size-10 place-items-center rounded-full transition-colors cursor-pointer ${
-                photoTextOverlay.isActive
+                selectedElement?.type === 'text'
                   ? 'text-white bg-[#00a884]'
                   : 'text-[#8696a0] hover:text-white hover:bg-white/10'
               }`}
@@ -1097,12 +1273,14 @@ export function WhatsappStoryCreatorModal({
               <button
                 type="button"
                 onClick={() => {
+                  setIsPenActive(false);
+                  setShowPenPalette(false);
                   setShowShapePicker(!showShapePicker);
                   setShowFilterCarousel(false);
                   setIsCropMode(false);
                 }}
                 className={`grid size-10 place-items-center rounded-full transition-colors cursor-pointer ${
-                  showShapePicker || activeShape.isActive
+                  showShapePicker || selectedElement?.type === 'shape'
                     ? 'text-white bg-[#00a884]'
                     : 'text-[#8696a0] hover:text-white hover:bg-white/10'
                 }`}
@@ -1156,16 +1334,16 @@ export function WhatsappStoryCreatorModal({
               ) : null}
             </div>
 
-            {/* Blur / Opacity Tool dengan WhatsApp Mosaic Icon */}
+            {/* Blur / Sensor Tool dengan WhatsApp Mosaic Icon */}
             <button
               type="button"
-              onClick={() => setIsPixelated(!isPixelated)}
+              onClick={handleToggleBlurTool}
               className={`grid size-10 place-items-center rounded-full transition-colors cursor-pointer ${
-                isPixelated
-                  ? 'text-[#00a884] bg-white/15'
+                selectedElement?.type === 'blur'
+                  ? 'text-white bg-[#00a884]'
                   : 'text-[#8696a0] hover:text-white hover:bg-white/10'
               }`}
-              title="Buramkan wajah / sensor"
+              title="Sensor / Buramkan area foto"
               aria-label="Sensor foto"
             >
               <WhatsAppBlurIcon className="size-5" />
@@ -1174,9 +1352,14 @@ export function WhatsappStoryCreatorModal({
             {/* Emoji Tool */}
             <button
               type="button"
-              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+              onClick={() => {
+                setIsPenActive(false);
+                setShowPenPalette(false);
+                setShowShapePicker(false);
+                setShowEmojiPicker(!showEmojiPicker);
+              }}
               className={`grid size-10 place-items-center rounded-full transition-colors cursor-pointer ${
-                showEmojiPicker
+                showEmojiPicker || selectedElement?.type === 'emoji'
                   ? 'text-[#00a884] bg-white/15'
                   : 'text-[#8696a0] hover:text-white hover:bg-white/10'
               }`}
@@ -1210,11 +1393,11 @@ export function WhatsappStoryCreatorModal({
         </header>
 
         {/* ------------------------------------------------------------- */}
-        {/* FLOATING SUB-TOOLBARS: PALET WARNA PENA & POTONG FOTO         */}
+        {/* FLOATING SUB-TOOLBARS: PALET WARNA & UKURAN PENA              */}
         {/* ------------------------------------------------------------- */}
         {showPenPalette ? (
-          <div className="z-40 flex items-center justify-center gap-2 py-2 bg-[#111b21] border-b border-white/10 animate-in fade-in slide-in-from-top-1">
-            <span className="text-[11px] text-[#8696a0] mr-2">Warna Pensil:</span>
+          <div className="z-40 flex flex-wrap items-center justify-center gap-2 sm:gap-3 py-2 px-4 bg-[#111b21] border-b border-white/10 animate-in fade-in slide-in-from-top-1">
+            <span className="text-[11px] text-[#8696a0] mr-1">Warna:</span>
             {PEN_COLORS.map((col) => (
               <button
                 key={col}
@@ -1226,6 +1409,23 @@ export function WhatsappStoryCreatorModal({
                 }`}
                 title={col}
               />
+            ))}
+
+            <div className="h-4 w-px bg-white/20 mx-1 hidden sm:block" />
+
+            <span className="text-[11px] text-[#8696a0] mr-1">Ukuran Coretan:</span>
+            {PEN_STROKE_SIZES.map((s) => (
+              <button
+                key={s.size}
+                type="button"
+                onClick={() => setPenStrokeSize(s.size)}
+                className={`px-2.5 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${
+                  penStrokeSize === s.size ? 'bg-[#00a884] text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'
+                }`}
+                title={`Ukuran ${s.label} (${s.size}px)`}
+              >
+                {s.label}
+              </button>
             ))}
           </div>
         ) : null}
@@ -1310,7 +1510,8 @@ export function WhatsappStoryCreatorModal({
               {/* Tight wrapper yang membungkus rendered foto secara presisi */}
               <div
                 ref={photoWrapperRef}
-                className="relative inline-flex items-center justify-center rounded-sm shadow-2xl overflow-hidden"
+                onClick={() => setSelectedElementId(null)}
+                className="relative inline-flex items-center justify-center rounded-sm shadow-2xl overflow-hidden cursor-default"
               >
                 {/* Foto Utama */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1410,194 +1611,358 @@ export function WhatsappStoryCreatorModal({
                   </div>
                 ) : null}
 
-                {/* Active Shape Overlay on Photo (Screenshot 2026-11-24 230459.png) */}
-                {activeShape.isActive && !isCropMode ? (
-                  <div
-                    style={{
-                      left: `${activeShape.x}%`,
-                      top: `${activeShape.y}%`,
-                      width: `${activeShape.width}%`,
-                      height: `${activeShape.height}%`,
-                      transform: 'translate(-50%, -50%)',
-                    }}
-                    className="absolute z-30 select-none cursor-move group"
-                    onPointerDown={(e) => handleShapePointerDown('move', e)}
-                  >
-                    {/* Shape SVG Graphic */}
-                    <svg
-                      className="size-full overflow-visible pointer-events-none"
-                      viewBox="0 0 100 100"
-                      preserveAspectRatio="none"
-                    >
-                      {activeShape.type === 'rect' ? (
-                        <rect
-                          x="4"
-                          y="4"
-                          width="92"
-                          height="92"
-                          fill="none"
-                          stroke={activeShape.color || '#000000'}
-                          strokeWidth="4"
-                          rx="6"
-                        />
-                      ) : activeShape.type === 'circle' ? (
-                        <ellipse
-                          cx="50"
-                          cy="50"
-                          rx="46"
-                          ry="46"
-                          fill="none"
-                          stroke={activeShape.color || '#000000'}
-                          strokeWidth="4"
-                        />
-                      ) : activeShape.type === 'line' ? (
-                        <line
-                          x1="6"
-                          y1="94"
-                          x2="94"
-                          y2="6"
-                          stroke={activeShape.color || '#000000'}
-                          strokeWidth="5"
-                          strokeLinecap="round"
-                        />
-                      ) : activeShape.type === 'arrow' ? (
-                        <>
-                          <defs>
-                            <marker
-                              id="shape-arrowhead"
-                              markerWidth="8"
-                              markerHeight="8"
-                              refX="6"
-                              refY="4"
-                              orient="auto"
-                            >
-                              <polygon
-                                points="0 0, 8 4, 0 8"
-                                fill={activeShape.color || '#000000'}
-                              />
-                            </marker>
-                          </defs>
-                          <line
-                            x1="8"
-                            y1="92"
-                            x2="90"
-                            y2="10"
-                            stroke={activeShape.color || '#000000'}
-                            strokeWidth="5"
-                            strokeLinecap="round"
-                            markerEnd="url(#shape-arrowhead)"
-                          />
-                        </>
-                      ) : null}
-                    </svg>
+                {/* Persistent Overlay Elements (Text, Shape, Blur, Emoji) */}
+                {overlayElements.map((item) => {
+                  const isSelected = item.id === selectedElementId && !isCropMode;
 
-                    {/* Neon Green Bounding Box Selection Frame (#25D366) */}
-                    <div className="absolute inset-0 border-2 border-[#25D366] pointer-events-none">
-                      {/* Top Rotation Handle Stem & Circle */}
-                      <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-auto">
-                        <div className="size-3 bg-white border-2 border-[#25D366] rounded-full shadow-md cursor-grab active:cursor-grabbing" />
-                        <div className="w-0.5 h-3 bg-[#25D366]" />
-                      </div>
-
-                      {/* 8 Circular White Handles */}
+                  if (item.type === 'text') {
+                    return (
                       <div
-                        onPointerDown={(e) => handleShapeHandlePointerDown('tl', e)}
-                        className="absolute -top-1.5 -left-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nwse-resize pointer-events-auto"
-                      />
-                      <div
-                        onPointerDown={(e) => handleShapeHandlePointerDown('t', e)}
-                        className="absolute -top-1.5 left-1/2 -translate-x-1/2 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-ns-resize pointer-events-auto"
-                      />
-                      <div
-                        onPointerDown={(e) => handleShapeHandlePointerDown('tr', e)}
-                        className="absolute -top-1.5 -right-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nesw-resize pointer-events-auto"
-                      />
-                      <div
-                        onPointerDown={(e) => handleShapeHandlePointerDown('r', e)}
-                        className="absolute top-1/2 -right-1.5 -translate-y-1/2 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-ew-resize pointer-events-auto"
-                      />
-                      <div
-                        onPointerDown={(e) => handleShapeHandlePointerDown('br', e)}
-                        className="absolute -bottom-1.5 -right-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nwse-resize pointer-events-auto"
-                      />
-                      <div
-                        onPointerDown={(e) => handleShapeHandlePointerDown('b', e)}
-                        className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-ns-resize pointer-events-auto"
-                      />
-                      <div
-                        onPointerDown={(e) => handleShapeHandlePointerDown('bl', e)}
-                        className="absolute -bottom-1.5 -left-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nesw-resize pointer-events-auto"
-                      />
-                      <div
-                        onPointerDown={(e) => handleShapeHandlePointerDown('l', e)}
-                        className="absolute top-1/2 -left-1.5 -translate-y-1/2 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-ew-resize pointer-events-auto"
-                      />
-                    </div>
-                  </div>
-                ) : null}
-
-                {/* Teks Draggable in-place dengan Card Latar Belakang (Screenshot 2026-11-24 230655.png) */}
-                {photoTextOverlay.isActive && !isCropMode ? (
-                  <div
-                    style={{
-                      left: `${photoTextOverlay.x}%`,
-                      top: `${photoTextOverlay.y}%`,
-                      transform: 'translate(-50%, -50%)',
-                    }}
-                    onPointerDown={handleTextPointerDown}
-                    className={`absolute z-30 select-none cursor-move animate-in fade-in zoom-in-95 max-w-[90%] border-2 border-[#25D366] rounded-2xl ${
-                      photoTextOverlay.hasBackground ? 'bg-white shadow-2xl' : 'bg-black/35 backdrop-blur-xs'
-                    }`}
-                  >
-                    {/* Attached Floating Top Smiley Button */}
-                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowEmojiPicker((prev) => !prev);
-                        }}
-                        className="grid size-8 place-items-center rounded-full bg-white text-[#54656f] hover:text-[#111b21] shadow-md border border-neutral-200 cursor-pointer transition-transform hover:scale-105 active:scale-95"
-                        title="Tambah stiker atau emoji"
-                        onPointerDown={(e) => e.stopPropagation()}
-                      >
-                        <Smile className="size-4" />
-                      </button>
-                    </div>
-
-                    <div className="px-3 py-2 flex items-center">
-                      <input
-                        ref={photoTextInputRef}
-                        type="text"
-                        autoFocus
-                        value={photoTextOverlay.text}
-                        onChange={(e) =>
-                          setPhotoTextOverlay((prev) => ({ ...prev, text: e.target.value }))
-                        }
-                        placeholder="Ketik sesuatu"
+                        key={item.id}
                         style={{
-                          color: photoTextOverlay.hasBackground
-                            ? photoTextOverlay.color
-                            : photoTextOverlay.color === '#ffffff'
-                            ? '#ffffff'
-                            : photoTextOverlay.color,
-                          fontFamily:
-                            photoTextOverlay.fontName === 'Serif'
-                              ? 'serif'
-                              : photoTextOverlay.fontName === 'Mono'
-                              ? 'monospace'
-                              : 'sans-serif',
+                          left: `${item.x}%`,
+                          top: `${item.y}%`,
+                          transform: `translate(-50%, -50%) rotate(${item.rotation}deg)`,
                         }}
-                        className={`bg-transparent border-0 outline-none text-center font-bold text-base sm:text-lg min-w-[150px] max-w-[260px] sm:max-w-[340px] ${
-                          photoTextOverlay.hasBackground
-                            ? 'placeholder:text-neutral-400'
-                            : 'text-white placeholder:text-white/60 drop-shadow-md'
-                        }`}
-                        onPointerDown={(e) => e.stopPropagation()}
-                      />
-                    </div>
-                  </div>
-                ) : null}
+                        onPointerDown={(e) => handleElementPointerDown(item.id, e)}
+                        onClick={(e) => e.stopPropagation()}
+                        className={`absolute z-30 select-none cursor-move animate-in fade-in zoom-in-95 max-w-[90%] rounded-2xl transition-shadow ${
+                          item.hasBackground ? 'bg-white shadow-2xl' : 'bg-transparent shadow-none'
+                        } ${isSelected ? 'border-2 border-[#25D366]' : 'border-2 border-transparent'}`}
+                      >
+                        {isSelected ? (
+                          <>
+                            {/* Attached Floating Top Smiley Button */}
+                            <div className="absolute -top-10 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowEmojiPicker((prev) => !prev);
+                                }}
+                                className="grid size-8 place-items-center rounded-full bg-white text-[#54656f] hover:text-[#111b21] shadow-md border border-neutral-200 cursor-pointer transition-transform hover:scale-105 active:scale-95"
+                                title="Tambah stiker atau emoji"
+                                onPointerDown={(e) => e.stopPropagation()}
+                              >
+                                <Smile className="size-4" />
+                              </button>
+                            </div>
+
+                            {/* Top Rotation Handle Stem */}
+                            <div
+                              onPointerDown={(e) => handleElementRotatePointerDown(item.id, e)}
+                              className="absolute -top-6 right-2 flex flex-col items-center pointer-events-auto cursor-grab active:cursor-grabbing"
+                              title="Putar teks"
+                            >
+                              <div className="size-3 bg-white border-2 border-[#25D366] rounded-full shadow-md" />
+                              <div className="w-0.5 h-3 bg-[#25D366]" />
+                            </div>
+                          </>
+                        ) : null}
+
+                        <div className="px-3 py-2 flex items-center">
+                          <input
+                            type="text"
+                            value={item.text}
+                            onChange={(e) => updateElement(item.id, { text: e.target.value })}
+                            placeholder="Ketik sesuatu"
+                            style={{
+                              color: item.hasBackground
+                                ? item.color
+                                : item.color === '#ffffff'
+                                ? '#ffffff'
+                                : item.color,
+                              fontFamily:
+                                item.fontName === 'Serif'
+                                  ? 'serif'
+                                  : item.fontName === 'Mono'
+                                  ? 'monospace'
+                                  : 'sans-serif',
+                              textShadow: item.hasBackground ? 'none' : '0 2px 6px rgba(0,0,0,0.85)',
+                            }}
+                            className={`bg-transparent border-0 outline-none text-center font-bold text-base sm:text-lg min-w-[150px] max-w-[260px] sm:max-w-[340px] ${
+                              item.hasBackground
+                                ? 'placeholder:text-neutral-400'
+                                : 'placeholder:text-white/70'
+                            }`}
+                            onPointerDown={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  if (item.type === 'shape') {
+                    return (
+                      <div
+                        key={item.id}
+                        style={{
+                          left: `${item.x}%`,
+                          top: `${item.y}%`,
+                          width: `${item.width}%`,
+                          height: `${item.height}%`,
+                          transform: `translate(-50%, -50%) rotate(${item.rotation}deg)`,
+                        }}
+                        className="absolute z-30 select-none cursor-move group"
+                        onPointerDown={(e) => handleElementPointerDown(item.id, e)}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {/* Shape SVG Graphic */}
+                        <svg
+                          className="size-full overflow-visible pointer-events-none"
+                          viewBox="0 0 100 100"
+                          preserveAspectRatio="none"
+                        >
+                          {item.shapeType === 'rect' ? (
+                            <rect
+                              x="4"
+                              y="4"
+                              width="92"
+                              height="92"
+                              fill={item.fillColor}
+                              stroke={item.strokeColor || '#000000'}
+                              strokeWidth={item.strokeWidth}
+                              rx="6"
+                            />
+                          ) : item.shapeType === 'circle' ? (
+                            <ellipse
+                              cx="50"
+                              cy="50"
+                              rx="46"
+                              ry="46"
+                              fill={item.fillColor}
+                              stroke={item.strokeColor || '#000000'}
+                              strokeWidth={item.strokeWidth}
+                            />
+                          ) : item.shapeType === 'line' ? (
+                            <line
+                              x1="6"
+                              y1="94"
+                              x2="94"
+                              y2="6"
+                              stroke={item.strokeColor || '#000000'}
+                              strokeWidth={item.strokeWidth * 1.2}
+                              strokeLinecap="round"
+                            />
+                          ) : item.shapeType === 'arrow' ? (
+                            <>
+                              <defs>
+                                <marker
+                                  id={`shape-arrow-${item.id}`}
+                                  markerWidth="8"
+                                  markerHeight="8"
+                                  refX="6"
+                                  refY="4"
+                                  orient="auto"
+                                >
+                                  <polygon
+                                    points="0 0, 8 4, 0 8"
+                                    fill={item.strokeColor || '#000000'}
+                                  />
+                                </marker>
+                              </defs>
+                              <line
+                                x1="8"
+                                y1="92"
+                                x2="90"
+                                y2="10"
+                                stroke={item.strokeColor || '#000000'}
+                                strokeWidth={item.strokeWidth * 1.2}
+                                strokeLinecap="round"
+                                markerEnd={`url(#shape-arrow-${item.id})`}
+                              />
+                            </>
+                          ) : null}
+                        </svg>
+
+                        {/* Selection Bounding Box & Handles when selected */}
+                        {isSelected ? (
+                          <div className="absolute inset-0 border-2 border-[#25D366] pointer-events-none">
+                            {/* Top Rotation Handle Stem & Circle */}
+                            <div
+                              onPointerDown={(e) => handleElementRotatePointerDown(item.id, e)}
+                              className="absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-auto cursor-grab active:cursor-grabbing"
+                              title="Putar bentuk"
+                            >
+                              <div className="size-3 bg-white border-2 border-[#25D366] rounded-full shadow-md" />
+                              <div className="w-0.5 h-3 bg-[#25D366]" />
+                            </div>
+
+                            {/* 8 Circular White Handles */}
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'tl', e)}
+                              className="absolute -top-1.5 -left-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nwse-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 't', e)}
+                              className="absolute -top-1.5 left-1/2 -translate-x-1/2 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-ns-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'tr', e)}
+                              className="absolute -top-1.5 -right-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nesw-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'r', e)}
+                              className="absolute top-1/2 -right-1.5 -translate-y-1/2 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-ew-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'br', e)}
+                              className="absolute -bottom-1.5 -right-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nwse-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'b', e)}
+                              className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-ns-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'bl', e)}
+                              className="absolute -bottom-1.5 -left-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nesw-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'l', e)}
+                              className="absolute top-1/2 -left-1.5 -translate-y-1/2 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-ew-resize pointer-events-auto"
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  }
+
+                  if (item.type === 'blur') {
+                    return (
+                      <div
+                        key={item.id}
+                        style={{
+                          left: `${item.x}%`,
+                          top: `${item.y}%`,
+                          width: `${item.width}%`,
+                          height: `${item.height}%`,
+                          transform: 'translate(-50%, -50%)',
+                        }}
+                        className="absolute z-30 select-none cursor-move group"
+                        onPointerDown={(e) => handleElementPointerDown(item.id, e)}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {/* Blur Visual Area */}
+                        <div
+                          style={{
+                            backdropFilter: `blur(${item.intensity}px)`,
+                            WebkitBackdropFilter: `blur(${item.intensity}px)`,
+                          }}
+                          className={`size-full rounded-lg overflow-hidden relative ${
+                            item.blurType === 'pixelate' ? 'bg-white/10' : 'bg-transparent'
+                          }`}
+                        >
+                          {item.blurType === 'pixelate' ? (
+                            <div
+                              className="absolute inset-0 opacity-40 pointer-events-none"
+                              style={{
+                                backgroundImage:
+                                  'radial-gradient(circle, #000 1.5px, transparent 1.5px), radial-gradient(circle, #fff 1px, transparent 1px)',
+                                backgroundSize: `${Math.max(6, Math.round(item.intensity * 0.8))}px ${Math.max(6, Math.round(item.intensity * 0.8))}px`,
+                              }}
+                            />
+                          ) : null}
+                        </div>
+
+                        {/* Selection Bounding Box & 8 Handles when selected */}
+                        {isSelected ? (
+                          <div className="absolute inset-0 border-2 border-[#25D366] pointer-events-none">
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'tl', e)}
+                              className="absolute -top-1.5 -left-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nwse-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 't', e)}
+                              className="absolute -top-1.5 left-1/2 -translate-x-1/2 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-ns-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'tr', e)}
+                              className="absolute -top-1.5 -right-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nesw-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'r', e)}
+                              className="absolute top-1/2 -right-1.5 -translate-y-1/2 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-ew-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'br', e)}
+                              className="absolute -bottom-1.5 -right-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nwse-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'b', e)}
+                              className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-ns-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'bl', e)}
+                              className="absolute -bottom-1.5 -left-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nesw-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'l', e)}
+                              className="absolute top-1/2 -left-1.5 -translate-y-1/2 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-ew-resize pointer-events-auto"
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  }
+
+                  if (item.type === 'emoji') {
+                    return (
+                      <div
+                        key={item.id}
+                        style={{
+                          left: `${item.x}%`,
+                          top: `${item.y}%`,
+                          transform: `translate(-50%, -50%) rotate(${item.rotation}deg)`,
+                        }}
+                        className="absolute z-30 select-none cursor-move group"
+                        onPointerDown={(e) => handleElementPointerDown(item.id, e)}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span
+                          style={{ fontSize: `${item.size}px`, lineHeight: 1 }}
+                          className="block drop-shadow-md"
+                        >
+                          {item.emoji}
+                        </span>
+
+                        {/* Selection Bounding Box & Rotate & Resize Handles when selected */}
+                        {isSelected ? (
+                          <div className="absolute inset-0 border-2 border-[#25D366] pointer-events-none -m-1">
+                            {/* Top Rotation Handle Stem */}
+                            <div
+                              onPointerDown={(e) => handleElementRotatePointerDown(item.id, e)}
+                              className="absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-auto cursor-grab active:cursor-grabbing"
+                              title="Putar emoji"
+                            >
+                              <div className="size-3 bg-white border-2 border-[#25D366] rounded-full shadow-md" />
+                              <div className="w-0.5 h-3 bg-[#25D366]" />
+                            </div>
+
+                            {/* Corner Resize Handles */}
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'tl', e)}
+                              className="absolute -top-1.5 -left-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nwse-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'tr', e)}
+                              className="absolute -top-1.5 -right-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nesw-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'br', e)}
+                              className="absolute -bottom-1.5 -right-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nwse-resize pointer-events-auto"
+                            />
+                            <div
+                              onPointerDown={(e) => handleElementHandlePointerDown(item.id, 'bl', e)}
+                              className="absolute -bottom-1.5 -left-1.5 size-3 bg-white border border-neutral-600 rounded-full shadow-md cursor-nesw-resize pointer-events-auto"
+                            />
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  }
+
+                  return null;
+                })}
               </div>
             </div>
           ) : (
@@ -1689,8 +2054,8 @@ export function WhatsappStoryCreatorModal({
         {/* BOTTOM AREA: ROW 1 KETERANGAN, ROW 2 TIGA KOLOM PERSIS SCREENSHOT */}
         {/* ------------------------------------------------------------- */}
         <footer className="w-full px-6 pb-6 pt-2 shrink-0 space-y-3">
-          {/* BARIS 1: TOOLBAR DINAMIS (Teks vs Bentuk vs Keterangan Standar) */}
-          {photoTextOverlay.isActive && !isCropMode ? (
+          {/* BARIS 1: TOOLBAR DINAMIS BERDASARKAN ELEMEN TERPILIH ATAU MODE PENA */}
+          {selectedElement?.type === 'text' && !isCropMode ? (
             /* TEXT BOTTOM TOOLBAR (Screenshot 2026-11-24 230655.png) */
             <div className="max-w-2xl mx-auto w-full flex items-center justify-between gap-2 sm:gap-3 py-2 px-3 sm:px-4 rounded-xl bg-[#202c33]/95 backdrop-blur-md border border-white/10 shadow-lg animate-in fade-in slide-in-from-bottom-2">
               {/* 8 Color Palette Dots */}
@@ -1699,10 +2064,10 @@ export function WhatsappStoryCreatorModal({
                   <button
                     key={col}
                     type="button"
-                    onClick={() => setPhotoTextOverlay((prev) => ({ ...prev, color: col }))}
+                    onClick={() => updateElement(selectedElement.id, { color: col })}
                     style={{ backgroundColor: col }}
                     className={`size-6 sm:size-7 rounded-full border-2 transition-transform cursor-pointer ${
-                      photoTextOverlay.color === col
+                      selectedElement.color === col
                         ? 'border-[#25D366] scale-110 ring-2 ring-[#25D366]/40'
                         : 'border-white/20 hover:scale-105'
                     }`}
@@ -1717,17 +2082,16 @@ export function WhatsappStoryCreatorModal({
                   type="button"
                   onClick={() => {
                     const nextIdx =
-                      (TEXT_FONT_OPTIONS.indexOf(photoTextOverlay.fontName) + 1) %
+                      (TEXT_FONT_OPTIONS.indexOf(selectedElement.fontName) + 1) %
                       TEXT_FONT_OPTIONS.length;
-                    setPhotoTextOverlay((prev) => ({
-                      ...prev,
+                    updateElement(selectedElement.id, {
                       fontName: TEXT_FONT_OPTIONS[nextIdx],
-                    }));
+                    });
                   }}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold cursor-pointer transition-colors"
                   title="Ubah Gaya Font"
                 >
-                  <span>A {photoTextOverlay.fontName}</span>
+                  <span>A {selectedElement.fontName}</span>
                   <ChevronDown className="size-3 text-white/70" />
                 </button>
 
@@ -1735,28 +2099,25 @@ export function WhatsappStoryCreatorModal({
                 <button
                   type="button"
                   onClick={() =>
-                    setPhotoTextOverlay((prev) => ({
-                      ...prev,
-                      hasBackground: !prev.hasBackground,
-                    }))
+                    updateElement(selectedElement.id, {
+                      hasBackground: !selectedElement.hasBackground,
+                    })
                   }
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
-                    photoTextOverlay.hasBackground
+                    selectedElement.hasBackground
                       ? 'bg-white text-black'
                       : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                   title="Aktifkan / nonaktifkan latar belakang teks"
                 >
-                  {photoTextOverlay.hasBackground ? <Check className="size-3.5 stroke-[3]" /> : null}
+                  {selectedElement.hasBackground ? <Check className="size-3.5 stroke-[3]" /> : null}
                   <span>Latar belakang</span>
                 </button>
 
                 {/* Trash Button */}
                 <button
                   type="button"
-                  onClick={() =>
-                    setPhotoTextOverlay((prev) => ({ ...prev, text: '', isActive: false }))
-                  }
+                  onClick={() => removeElement(selectedElement.id)}
                   className="grid size-8 place-items-center rounded-lg text-[#8696a0] hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer transition-colors"
                   title="Hapus Teks"
                   aria-label="Hapus teks"
@@ -1765,37 +2126,114 @@ export function WhatsappStoryCreatorModal({
                 </button>
               </div>
             </div>
-          ) : activeShape.isActive && !isCropMode ? (
+          ) : selectedElement?.type === 'shape' && !isCropMode ? (
             /* SHAPE BOTTOM TOOLBAR (Screenshot 2026-11-24 230459.png) */
-            <div className="max-w-2xl mx-auto w-full flex items-center justify-between gap-3 py-2 px-4 rounded-xl bg-[#202c33]/95 backdrop-blur-md border border-white/10 shadow-lg animate-in fade-in slide-in-from-bottom-2">
-              {/* Shape Color Palette Dots */}
+            <div className="max-w-2xl mx-auto w-full flex flex-wrap items-center justify-between gap-2 sm:gap-3 py-2 px-3 sm:px-4 rounded-xl bg-[#202c33]/95 backdrop-blur-md border border-white/10 shadow-lg animate-in fade-in slide-in-from-bottom-2">
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="text-xs text-[#8696a0] mr-1 hidden sm:inline">Warna:</span>
-                {['#000000', '#ffffff', '#25D366', '#ff4a4a', '#33ceff', '#f49226'].map((col) => (
+                {/* Shape Switcher (Kotak, Lingkaran, Garis, Panah) */}
+                <div className="flex items-center bg-white/10 rounded-lg p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => updateElement(selectedElement.id, { shapeType: 'rect' })}
+                    className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                      selectedElement.shapeType === 'rect'
+                        ? 'bg-[#00a884] text-white'
+                        : 'text-white/70 hover:text-white'
+                    }`}
+                    title="Ubah ke Kotak"
+                  >
+                    <Square className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateElement(selectedElement.id, { shapeType: 'circle' })}
+                    className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                      selectedElement.shapeType === 'circle'
+                        ? 'bg-[#00a884] text-white'
+                        : 'text-white/70 hover:text-white'
+                    }`}
+                    title="Ubah ke Lingkaran"
+                  >
+                    <Circle className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateElement(selectedElement.id, { shapeType: 'line' })}
+                    className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                      selectedElement.shapeType === 'line'
+                        ? 'bg-[#00a884] text-white'
+                        : 'text-white/70 hover:text-white'
+                    }`}
+                    title="Ubah ke Garis"
+                  >
+                    <Minus className="size-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateElement(selectedElement.id, { shapeType: 'arrow' })}
+                    className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                      selectedElement.shapeType === 'arrow'
+                        ? 'bg-[#00a884] text-white'
+                        : 'text-white/70 hover:text-white'
+                    }`}
+                    title="Ubah ke Panah"
+                  >
+                    <ArrowRight className="size-3.5" />
+                  </button>
+                </div>
+
+                {/* Warna Pinggir (Stroke) */}
+                <span className="text-[10px] text-[#8696a0] ml-1">Garis:</span>
+                {SHAPE_PALETTE_COLORS.slice(0, 5).map((col) => (
                   <button
                     key={col}
                     type="button"
-                    onClick={() => setActiveShape((prev) => ({ ...prev, color: col }))}
+                    onClick={() => updateElement(selectedElement.id, { strokeColor: col })}
                     style={{ backgroundColor: col }}
-                    className={`size-6 rounded-full border-2 transition-transform cursor-pointer ${
-                      activeShape.color === col
-                        ? 'border-[#25D366] scale-110 ring-2 ring-[#25D366]/40'
+                    className={`size-5 rounded-full border transition-transform cursor-pointer ${
+                      selectedElement.strokeColor === col
+                        ? 'border-[#25D366] scale-110 ring-1 ring-[#25D366]'
                         : 'border-white/20 hover:scale-105'
                     }`}
-                    title={`Warna: ${col}`}
+                    title={`Garis: ${col}`}
+                  />
+                ))}
+
+                {/* Warna Isi (Fill) */}
+                <span className="text-[10px] text-[#8696a0] ml-1">Isi:</span>
+                <button
+                  type="button"
+                  onClick={() => updateElement(selectedElement.id, { fillColor: 'transparent' })}
+                  className={`size-5 rounded-full border grid place-items-center text-[9px] cursor-pointer transition-transform ${
+                    selectedElement.fillColor === 'transparent'
+                      ? 'border-[#25D366] bg-white/20 text-[#25D366] ring-1 ring-[#25D366]'
+                      : 'border-white/30 text-white/60 hover:scale-105'
+                  }`}
+                  title="Isi: Transparan"
+                >
+                  ⊘
+                </button>
+                {['#ffffff', '#000000', '#25D366', '#ff4a4a'].map((col) => (
+                  <button
+                    key={col}
+                    type="button"
+                    onClick={() => updateElement(selectedElement.id, { fillColor: col })}
+                    style={{ backgroundColor: col }}
+                    className={`size-5 rounded-full border transition-transform cursor-pointer ${
+                      selectedElement.fillColor === col
+                        ? 'border-[#25D366] scale-110 ring-1 ring-[#25D366]'
+                        : 'border-white/20 hover:scale-105'
+                    }`}
+                    title={`Isi: ${col}`}
                   />
                 ))}
               </div>
 
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-white/80 font-medium capitalize">
-                  Bentuk: {activeShape.type === 'rect' ? 'Kotak' : activeShape.type === 'circle' ? 'Lingkaran' : activeShape.type === 'line' ? 'Garis' : 'Panah'}
-                </span>
-
+              <div className="flex items-center gap-2">
                 {/* Trash Button */}
                 <button
                   type="button"
-                  onClick={() => setActiveShape((prev) => ({ ...prev, isActive: false }))}
+                  onClick={() => removeElement(selectedElement.id)}
                   className="grid size-8 place-items-center rounded-lg text-[#8696a0] hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer transition-colors"
                   title="Hapus Bentuk Penyorot"
                   aria-label="Hapus bentuk"
@@ -1803,6 +2241,103 @@ export function WhatsappStoryCreatorModal({
                   <Trash2 className="size-4" />
                 </button>
               </div>
+            </div>
+          ) : selectedElement?.type === 'blur' && !isCropMode ? (
+            /* BLUR TOOLBAR */
+            <div className="max-w-2xl mx-auto w-full flex items-center justify-between gap-3 py-2 px-4 rounded-xl bg-[#202c33]/95 backdrop-blur-md border border-white/10 shadow-lg animate-in fade-in slide-in-from-bottom-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[#8696a0]">Jenis:</span>
+                <button
+                  type="button"
+                  onClick={() => updateElement(selectedElement.id, { blurType: 'pixelate' })}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                    selectedElement.blurType === 'pixelate'
+                      ? 'bg-[#00a884] text-white'
+                      : 'bg-white/10 text-white/70 hover:bg-white/20'
+                  }`}
+                >
+                  Mosaik
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateElement(selectedElement.id, { blurType: 'gaussian' })}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                    selectedElement.blurType === 'gaussian'
+                      ? 'bg-[#00a884] text-white'
+                      : 'bg-white/10 text-white/70 hover:bg-white/20'
+                  }`}
+                >
+                  Buram
+                </button>
+
+                <span className="text-xs text-[#8696a0] ml-2">Intensitas:</span>
+                {[
+                  { label: 'Halus', val: 8 },
+                  { label: 'Sedang', val: 16 },
+                  { label: 'Kuat', val: 26 },
+                ].map((item) => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => updateElement(selectedElement.id, { intensity: item.val })}
+                    className={`px-2 py-1 rounded text-xs font-semibold cursor-pointer transition-colors ${
+                      selectedElement.intensity === item.val
+                        ? 'bg-white text-black'
+                        : 'bg-white/10 text-white/70 hover:bg-white/20'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Trash Button */}
+              <button
+                type="button"
+                onClick={() => removeElement(selectedElement.id)}
+                className="grid size-8 place-items-center rounded-lg text-[#8696a0] hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer transition-colors"
+                title="Hapus Sensor Blur"
+                aria-label="Hapus blur"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            </div>
+          ) : selectedElement?.type === 'emoji' && !isCropMode ? (
+            /* EMOJI TOOLBAR */
+            <div className="max-w-2xl mx-auto w-full flex items-center justify-between gap-3 py-2 px-4 rounded-xl bg-[#202c33]/95 backdrop-blur-md border border-white/10 shadow-lg animate-in fade-in slide-in-from-bottom-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[#8696a0]">Ukuran:</span>
+                {[
+                  { label: 'Kecil', val: 36 },
+                  { label: 'Sedang', val: 52 },
+                  { label: 'Besar', val: 76 },
+                  { label: 'Ekstra', val: 108 },
+                ].map((s) => (
+                  <button
+                    key={s.label}
+                    type="button"
+                    onClick={() => updateElement(selectedElement.id, { size: s.val })}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-colors ${
+                      selectedElement.size === s.val
+                        ? 'bg-[#00a884] text-white'
+                        : 'bg-white/10 text-white/70 hover:bg-white/20'
+                    }`}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Trash Button */}
+              <button
+                type="button"
+                onClick={() => removeElement(selectedElement.id)}
+                className="grid size-8 place-items-center rounded-lg text-[#8696a0] hover:text-rose-400 hover:bg-rose-500/10 cursor-pointer transition-colors"
+                title="Hapus Emoji"
+                aria-label="Hapus emoji"
+              >
+                <Trash2 className="size-4" />
+              </button>
             </div>
           ) : (
             /* BARIS 1 STANDAR: Input Tambah Keterangan dengan tombol Emoji di kanan */
@@ -1876,19 +2411,23 @@ export function WhatsappStoryCreatorModal({
                       </button>
                     ))}
                   </div>
-
-                  {hasNoConsentStudents ? (
-                    <div className="pt-2 border-t border-[#2a3942] flex items-center gap-1.5 text-[10px] text-amber-300">
-                      <AlertTriangle className="size-3.5 shrink-0 text-amber-400" />
-                      <span>Sebagian murid belum menyetujui izin foto.</span>
-                    </div>
-                  ) : null}
                 </div>
               ) : null}
             </div>
 
-            {/* KOLOM TENGAH: Filmstrip Thumbnails & Kotak + Tambah Foto (Persis Screenshot) */}
+            {/* KOLOM TENGAH: Tombol Putar Cepat + Filmstrip Thumbnails & Kotak + Tambah Foto */}
             <div className="flex items-center justify-center gap-2 overflow-x-auto min-w-0">
+              {/* Tombol Putar Cepat Foto (+90°) Konsisten di Bawah */}
+              <button
+                type="button"
+                onClick={() => physicallyRotateActivePhoto('cw')}
+                className="grid size-11 sm:size-12 place-items-center rounded-md bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer shrink-0 border border-white/10"
+                title="Putar Foto (+90° searah jarum jam)"
+                aria-label="Putar Foto Kanan"
+              >
+                <RotateCw className="size-5" />
+              </button>
+
               {photos.map((url, idx) => (
                 <div
                   key={idx}

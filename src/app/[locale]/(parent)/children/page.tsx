@@ -60,7 +60,6 @@ export default async function ChildrenPage() {
       tingkat: a.tingkat,
       emailNotifikasi: a.emailNotifikasi,
       nomorTelepon: a.nomorTelepon,
-      persetujuanFoto: a.persetujuanFoto,
       jumlahKelasAktif: nAktif,
       isLocked: nAktif > 0,
       kelasAktif: dash?.kelas ?? null,

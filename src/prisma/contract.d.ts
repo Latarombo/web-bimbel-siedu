@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'a7f32ff1f735f9a39c37a05da35a875b685ae0616977e57e7bbbf50697306abd'>;
+  StorageHashBase<'3469d0712c58d96e339567963a2be40eea61c17aa264e9da36d0417ed6838ef4'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -251,7 +251,6 @@ export type FieldOutputTypes = {
       readonly nomorTelepon: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['output'];
-      readonly persetujuanFoto: CodecTypes['pg/bool@1']['output'];
     };
     readonly AuditPerubahan: {
       readonly id: CodecTypes['pg/int4@1']['output'];
@@ -462,7 +461,6 @@ export type FieldInputTypes = {
       readonly nomorTelepon: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
       readonly updatedAt: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly persetujuanFoto: CodecTypes['pg/bool@1']['input'];
     };
     readonly AuditPerubahan: {
       readonly id: CodecTypes['pg/int4@1']['input'];
@@ -670,7 +668,6 @@ export type StorageColumnTypes = {
       readonly nama: CodecTypes['pg/text@1']['output'];
       readonly nomor_telepon: CodecTypes['pg/text@1']['output'] | null;
       readonly orang_tua_id: CodecTypes['pg/int4@1']['output'];
-      readonly persetujuan_foto: CodecTypes['pg/bool@1']['output'];
       readonly tanggal_lahir: CodecTypes['pg/date-string@1']['output'];
       readonly tingkat: CodecTypes['pg/text@1']['output'] | null;
       readonly updated_at: CodecTypes['pg/timestamptz-string@1']['output'];
@@ -881,7 +878,6 @@ export type StorageColumnInputTypes = {
       readonly nama: CodecTypes['pg/text@1']['input'];
       readonly nomor_telepon: CodecTypes['pg/text@1']['input'] | null;
       readonly orang_tua_id: CodecTypes['pg/int4@1']['input'];
-      readonly persetujuan_foto: CodecTypes['pg/bool@1']['input'];
       readonly tanggal_lahir: CodecTypes['pg/date-string@1']['input'];
       readonly tingkat: CodecTypes['pg/text@1']['input'] | null;
       readonly updated_at: CodecTypes['pg/timestamptz-string@1']['input'];
@@ -1157,15 +1153,6 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-string@1';
                   readonly nullable: false;
                   readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-                readonly persetujuan_foto: {
-                  readonly nativeType: 'bool';
-                  readonly codecId: 'pg/bool@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'literal';
-                    readonly value: DefaultLiteralValue<'pg/bool@1', false>;
-                  };
                 };
               };
               primaryKey: { readonly columns: readonly ['id'] };
@@ -3010,10 +2997,6 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/timestamptz-string@1';
                 };
               };
-              readonly persetujuanFoto: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/bool@1' };
-              };
             };
             readonly relations: {
               readonly orangTua: {
@@ -3050,7 +3033,6 @@ type ContractBase = Omit<
                 readonly nomorTelepon: { readonly column: 'nomor_telepon' };
                 readonly createdAt: { readonly column: 'created_at' };
                 readonly updatedAt: { readonly column: 'updated_at' };
-                readonly persetujuanFoto: { readonly column: 'persetujuan_foto' };
               };
             };
           };

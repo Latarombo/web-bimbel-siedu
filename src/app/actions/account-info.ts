@@ -37,7 +37,6 @@ const schema = (t: Awaited<ReturnType<typeof getTranslations<'auth'>>>) =>
         // Consent PRD F1/BR#25 — wajib HANYA jika belum pernah disetujui
         // (akun Google melewati step 1, jadi consent ditagih di sini).
         consent_privasi: z.boolean().optional(),
-        consent_wali: z.boolean().optional(),
     });
 
 export async function validateStep1(
@@ -130,7 +129,6 @@ export async function saveAccountInfo(
         detail_alamat: detailAlamatKetik,
         nomor_telepon: teleponKetik,
         consent_privasi: formData.get('consent_privasi') === 'on',
-        consent_wali: formData.get('consent_wali') === 'on',
     });
     if (!parsed.success) {
         const fieldErrors: Record<string, string> = {};
@@ -151,7 +149,6 @@ export async function saveAccountInfo(
         detail_alamat,
         nomor_telepon,
         consent_privasi,
-        consent_wali,
     } = parsed.data;
 
     const phoneRes = validateIndonesianPhone(nomor_telepon);
@@ -188,7 +185,6 @@ export async function saveAccountInfo(
     if (needsConsent) {
         if (!consent_privasi)
             fieldErrors['consent_privasi'] = t('privacyRequired');
-        if (!consent_wali) fieldErrors['consent_wali'] = t('guardianRequired');
     }
     if (Object.keys(fieldErrors).length > 0)
         return {

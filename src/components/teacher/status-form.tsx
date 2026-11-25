@@ -49,7 +49,6 @@ export interface StudentRecipient {
   pendaftaranId: number;
   anakId: number;
   namaAnak: string;
-  persetujuanFoto: boolean;
 }
 
 export interface ClassOption {
@@ -164,12 +163,6 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
   const handleRemovePhoto = (index: number) => {
     setPhotos(photos.filter((_, i) => i !== index));
   };
-
-  const hasRecipientWithoutPhotoConsent =
-    photos.length > 0 &&
-    currentClass?.students.some(
-      (s) => selectedRecipients.includes(s.pendaftaranId) && !s.persetujuanFoto,
-    );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -297,24 +290,9 @@ export default function StatusForm({ classes, pastStatuses }: StatusFormProps) {
                           />
                           <span className="font-medium">{student.namaAnak}</span>
                         </div>
-                        {student.persetujuanFoto ? (
-                          <span className="rounded bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-                            {t('consentBadge')}
-                          </span>
-                        ) : (
-                          <span className="rounded bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-300">
-                            {t('noConsentBadge')}
-                          </span>
-                        )}
                       </label>
                     );
                   })}
-                </div>
-              )}
-
-              {hasRecipientWithoutPhotoConsent && (
-                <div className="mt-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 p-3 text-xs text-amber-800 dark:text-amber-300">
-                  {t('noConsentWarning')}
                 </div>
               )}
             </div>

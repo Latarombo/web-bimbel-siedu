@@ -259,7 +259,6 @@ export default async function TeacherClassDetail({
         namaWali: wali?.name ?? null,
         teleponWali: wali?.nomorTelepon ?? null,
         alamatWali: wali?.alamat ?? null,
-        persetujuanFoto: Boolean(anak?.persetujuanFoto),
       };
     },
   );

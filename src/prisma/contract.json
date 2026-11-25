@@ -440,13 +440,6 @@
                   "kind": "scalar"
                 }
               },
-              "persetujuanFoto": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/bool@1",
-                  "kind": "scalar"
-                }
-              },
               "tanggalLahir": {
                 "nullable": false,
                 "type": {
@@ -523,9 +516,6 @@
                 },
                 "orangTuaId": {
                   "column": "orang_tua_id"
-                },
-                "persetujuanFoto": {
-                  "column": "persetujuan_foto"
                 },
                 "tanggalLahir": {
                   "column": "tanggal_lahir"
@@ -3142,15 +3132,6 @@
                 "orang_tua_id": {
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
-                  "nullable": false
-                },
-                "persetujuan_foto": {
-                  "codecId": "pg/bool@1",
-                  "default": {
-                    "kind": "literal",
-                    "value": false
-                  },
-                  "nativeType": "bool",
                   "nullable": false
                 },
                 "tanggal_lahir": {
@@ -5792,7 +5773,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a7f32ff1f735f9a39c37a05da35a875b685ae0616977e57e7bbbf50697306abd"
+    "storageHash": "3469d0712c58d96e339567963a2be40eea61c17aa264e9da36d0417ed6838ef4"
   },
   "capabilities": {
     "postgres": {

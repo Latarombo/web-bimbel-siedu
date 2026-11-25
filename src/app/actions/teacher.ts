@@ -1111,66 +1111,6 @@ export async function laporkanFotoStatus(
   return { ok: true };
 }
 
-export async function updatePersetujuanFoto(
-  prevOrFormData: { anakId: number; persetujuan: boolean; alasan?: string } | FormData | Record<string, unknown>,
-  maybeFormData?: FormData,
-): Promise<{ ok?: boolean; error?: string }> {
-  const isDirectObject = typeof FormData !== "undefined" && !(prevOrFormData instanceof FormData) && !(maybeFormData instanceof FormData);
-  let anakId: number;
-  let persetujuan: boolean;
-  let alasan: string = "";
-
-  if (isDirectObject) {
-    const obj = prevOrFormData as Record<string, unknown>;
-    anakId = Number(obj.anakId);
-    persetujuan = Boolean(obj.persetujuan);
-    alasan = String(obj.alasan ?? "").trim();
-  } else {
-    const formData = (typeof FormData !== "undefined" && maybeFormData instanceof FormData)
-      ? maybeFormData
-      : (prevOrFormData as FormData);
-    anakId = Number(formData.get("anak_id"));
-    persetujuan = formData.get("persetujuan") === "true";
-    alasan = String(formData.get("alasan") ?? "").trim();
-  }
-
-  const user = await guardUser();
-  if (!user) return { error: "Sesi telah berakhir" };
-
-  if (!Number.isInteger(anakId) || anakId <= 0) {
-    return { error: "ID anak tidak valid" };
-  }
-
-  const [anak] = await collect(
-    db.orm.public.Anak.where({ id: anakId }).all()
-  );
-  if (!anak) return { error: "Data anak tidak ditemukan" };
-
-  if (user.role !== "admin" && anak.orangTuaId !== user.id) {
-    return { error: "Akses ditolak: bukan data anak Anda" };
-  }
-
-  const nowIso = new Date().toISOString();
-  await db.orm.public.Anak.where({ id: anakId }).update({
-    persetujuanFoto: persetujuan,
-  });
-
-  await db.orm.public.AuditPerubahan.create({
-    entitas: "anak_persetujuan_foto",
-    entitasId: anakId,
-    aksi: "update_persetujuan_foto",
-    sebelum: JSON.stringify({ persetujuanFoto: anak.persetujuanFoto }),
-    sesudah: JSON.stringify({ persetujuanFoto: persetujuan }),
-    alasan: alasan || "Pembaruan persetujuan foto anak",
-    aktorId: user.id,
-    createdAt: nowIso,
-  });
-
-  revalidatePath("/[locale]/child-info", "page");
-  revalidatePath("/[locale]/teacher/status", "page");
-  return { ok: true };
-}
-
 export async function bersihkanRetensiStatus({
   referensiWaktuIso,
   cronSecret,

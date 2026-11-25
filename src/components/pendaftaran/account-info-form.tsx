@@ -553,31 +553,9 @@ export default function AccountInfoForm({
                                         {t('consentSuffix')}
                                     </label>
                                 </div>
-                                <div className="flex items-start gap-2.5">
-                                    <input
-                                        id="consent_wali"
-                                        name="consent_wali"
-                                        type="checkbox"
-                                        required
-                                        aria-invalid={
-                                            errors.consent_wali
-                                                ? true
-                                                : undefined
-                                        }
-                                        className="mt-0.5 h-4 w-4 shrink-0 accent-brand cursor-pointer"
-                                    />
-                                    <label
-                                        htmlFor="consent_wali"
-                                        className="text-xs sm:text-sm text-slate-600 leading-snug cursor-pointer"
-                                    >
-                                        {t('guardianConsent')}
-                                    </label>
-                                </div>
-                                {errors.consent_privasi ||
-                                errors.consent_wali ? (
+                                {errors.consent_privasi ? (
                                     <p className="mt-1 text-xs text-rose-600 font-medium">
-                                        {errors.consent_privasi ??
-                                            errors.consent_wali}
+                                        {errors.consent_privasi}
                                     </p>
                                 ) : null}
                             </fieldset>

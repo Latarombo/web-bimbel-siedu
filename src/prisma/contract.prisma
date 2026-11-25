@@ -126,7 +126,6 @@ model Anak {
 
   orangTua        User                         @relation("OrangTuaAnak", fields: [orangTuaId], references: [id], onDelete: Cascade)
   pendaftaran     Pendaftaran[]
-  persetujuanFoto Boolean                      @default(false) @map("persetujuan_foto")
 
   @@index([orangTuaId])
   @@index([tanggalLahir])

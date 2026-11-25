@@ -200,7 +200,7 @@ export async function saveChildInfo(
 }
 
 // C10 — edit anak. Saat ada kelas aktif, identitas legal (nama, tanggal lahir, jenjang)
-// terlindungi dan tetap dipertahankan, sedangkan kontak & izin foto tetap dapat diperbarui.
+// terlindungi dan tetap dipertahankan, sedangkan kontak tetap dapat diperbarui.
 export async function updateChild(
     _prev: ChildInfoState,
     formData: FormData,
@@ -237,9 +237,6 @@ export async function updateChild(
 
     const emailKetik = String(formData.get('email_notifikasi') ?? '').trim();
     const teleponKetik = String(formData.get('nomor_telepon') ?? '').trim();
-    const persetujuanFotoKetik =
-        formData.get('persetujuan_foto') === 'on' ||
-        formData.get('persetujuan_foto') === 'true';
 
     // Validasi field kontak
     const contactSchema = z.object({
@@ -379,24 +376,7 @@ export async function updateChild(
         tingkat: finalTingkat,
         emailNotifikasi: emailKetik || null,
         nomorTelepon: normalizedHpAnak,
-        persetujuanFoto: persetujuanFotoKetik,
     });
-
-    // Jika status persetujuan foto berubah, catat ke audit log
-    if (currentAnak.persetujuanFoto !== persetujuanFotoKetik) {
-        await db.orm.public.AuditPerubahan.create({
-            entitas: 'anak_persetujuan_foto',
-            entitasId: anakId,
-            aksi: 'update_persetujuan_foto',
-            sebelum: JSON.stringify({
-                persetujuanFoto: currentAnak.persetujuanFoto,
-            }),
-            sesudah: JSON.stringify({ persetujuanFoto: persetujuanFotoKetik }),
-            alasan: 'Pembaruan profil anak oleh orang tua',
-            aktorId: ortuId,
-            createdAt: new Date().toISOString(),
-        });
-    }
 
     revalidatePath(getPathname({ href: '/children', locale }));
     return redirect({ href: '/children', locale });

@@ -135,12 +135,6 @@ export function ChildBentoCard({ child, onSelect }: ChildBentoCardProps) {
         {/* Biodata Singkat (kontras jelas & tajam) */}
         <div className="flex items-center justify-between text-xs text-slate-600 font-semibold px-0.5">
           <span>{umur} · {formatTanggalPendek(child.tanggalLahir, locale)}</span>
-          <span>
-            {t('bentoPhoto')}:{' '}
-            <span className={child.persetujuanFoto ? 'text-emerald-700 font-bold' : 'text-slate-500 font-semibold'}>
-              {child.persetujuanFoto ? t('photoAllowed') : t('photoOff')}
-            </span>
-          </span>
         </div>
       </div>
 

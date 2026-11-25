@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { daftarKelas, type DaftarState } from "@/app/actions/pendaftaran";
 import { rupiah } from "@/lib/format/format";
-import PersetujuanModal from "./persetujuan-modal";
 import { FASILITAS_KELAS } from "@/lib/kelas-konten";
 
 const initial: DaftarState = {};
@@ -88,8 +87,6 @@ export default function DaftarForm({
     ? Math.floor((biayaPeriode - biayaDp) / nCicilan)
     : 0;
 
-  const [isPersetujuanOpen, setIsPersetujuanOpen] = useState(false);
-
   // Price calculations
   const totalAkhirBayarSekarang = isDp ? (biayaDp ?? 0) : biayaPeriode;
 
@@ -111,13 +108,12 @@ export default function DaftarForm({
   useEffect(() => {
     if (state.ok && state.pendaftaranId && !diberitahu.current) {
       diberitahu.current = true;
-      setIsPersetujuanOpen(false);
       router.push(`/enrollments/${state.pendaftaranId}`);
     }
   }, [state, router]);
 
-  // Handler when user confirms on the Persetujuan Modal
-  const handleConfirmPersetujuan = () => {
+  // Handler when user submits registration
+  const handleSubmitRegistration = () => {
     if (!formRef.current) return;
     const formData = new FormData(formRef.current);
     startTransition(async () => {
@@ -377,7 +373,7 @@ export default function DaftarForm({
             <div className="pt-2">
               <button
                 type="button"
-                onClick={() => setIsPersetujuanOpen(true)}
+                onClick={handleSubmitRegistration}
                 disabled={isSubmitting || anak.length === 0 || !selectedAnakId}
                 className="flex min-h-12 w-full items-center justify-center rounded-xl py-3 text-sm font-bold text-white shadow-xs transition-all active:scale-[0.99] hover:brightness-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: "#c2410c" }}
@@ -396,15 +392,6 @@ export default function DaftarForm({
           </div>
         </div>
       </div>
-
-      {/* Modal Dialog Persetujuan Pembelian */}
-      <PersetujuanModal
-        isOpen={isPersetujuanOpen}
-        onClose={() => setIsPersetujuanOpen(false)}
-        onConfirm={handleConfirmPersetujuan}
-        isSubmitting={isSubmitting}
-        namaAnak={selectedChild?.nama}
-      />
     </div>
   );
 }

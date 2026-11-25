@@ -6,7 +6,6 @@ export type ChildData = {
   tingkat: string | null;
   emailNotifikasi: string | null;
   nomorTelepon: string | null;
-  persetujuanFoto: boolean;
   jumlahKelasAktif: number;
   isLocked: boolean;
   kelasAktif?: {

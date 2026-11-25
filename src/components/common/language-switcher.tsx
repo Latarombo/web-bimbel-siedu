@@ -82,12 +82,12 @@ export function LanguageSwitcher({
                 aria-label="Pilih bahasa / Select language"
                 onMouseEnter={refreshSuffix}
                 onTouchStart={refreshSuffix}
-                className="relative inline-flex h-7.5 w-[76px] items-center rounded-lg bg-slate-100/90 p-0.5 select-none"
+                className="relative inline-flex h-7.5 w-[76px] items-center rounded-lg bg-slate-100/90 dark:bg-slate-800/90 p-0.5 select-none border border-slate-200/60 dark:border-slate-700/60"
             >
                 {/* iOS-style Floating White Thumb */}
                 <div
                     aria-hidden="true"
-                    className={`absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded-md bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/5 transition-transform duration-200 ease-out pointer-events-none ${
+                    className={`absolute top-0.5 bottom-0.5 left-0.5 w-[calc(50%-2px)] rounded-md bg-white dark:bg-slate-700 shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10 transition-transform duration-200 ease-out pointer-events-none ${
                         activeLocale === 'id'
                             ? 'translate-x-0'
                             : 'translate-x-full'
@@ -101,8 +101,8 @@ export function LanguageSwitcher({
                     onClick={() => handleLocaleChange('id')}
                     className={`relative z-10 flex h-full flex-1 items-center justify-center text-[11px] tracking-wide transition-colors duration-150 cursor-pointer ${
                         activeLocale === 'id'
-                            ? 'font-bold text-slate-900'
-                            : 'font-medium text-slate-500 hover:text-slate-700'
+                            ? 'font-bold text-slate-900 dark:text-white'
+                            : 'font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                 >
                     ID
@@ -115,8 +115,8 @@ export function LanguageSwitcher({
                     onClick={() => handleLocaleChange('en')}
                     className={`relative z-10 flex h-full flex-1 items-center justify-center text-[11px] tracking-wide transition-colors duration-150 cursor-pointer ${
                         activeLocale === 'en'
-                            ? 'font-bold text-slate-900'
-                            : 'font-medium text-slate-500 hover:text-slate-700'
+                            ? 'font-bold text-slate-900 dark:text-white'
+                            : 'font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
                     }`}
                 >
                     EN

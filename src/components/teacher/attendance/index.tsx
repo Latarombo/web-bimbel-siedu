@@ -139,7 +139,7 @@ export function TeacherAttendanceManager({
                   <div key={task.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
                       <Link
-                        href={`/teacher/grades/assessment/${task.id}`}
+                        href={`/teacher/grades/assessment/${task.id}?from=class`}
                         className="text-sm font-semibold text-slate-950 dark:text-slate-50 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                       >
                         {task.nama}
@@ -156,7 +156,7 @@ export function TeacherAttendanceManager({
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <Link
-                        href={`/teacher/grades/assessment/${task.id}`}
+                        href={`/teacher/grades/assessment/${task.id}?from=class`}
                         className="inline-flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs transition-colors"
                       >
                         <span>Kelola & Nilai</span>
