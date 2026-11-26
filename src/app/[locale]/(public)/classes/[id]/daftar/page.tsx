@@ -41,7 +41,6 @@ export default async function DaftarKelasPage({
     collect(
       db.orm.public.Kelas.where((k) => k.id.eq(kelasId))
         .where((k) => k.status.eq("aktif"))
-        .include("mataPelajaran", (b) => b.select("id", "nama", "deskripsi"))
         .include("guru", (b) => b.select("id", "name"))
         .include("periode", (b) => b.select("id", "nama", "status", "tanggalMulai", "tanggalSelesai"))
         .include("jadwalItem", (b) => b.select("id", "hari", "jamMulai", "jamSelesai").orderBy((j) => j.hari.asc()))
@@ -129,7 +128,7 @@ export default async function DaftarKelasPage({
   const namaTingkat = targetTingkat
     ? (targetTingkat.toLowerCase().startsWith("kelas") ? targetTingkat : `Kelas ${targetTingkat}`)
     : "Kelas";
-  const judulKelas = `${target.mataPelajaran.nama} - ${target.jenjang} - ${namaTingkat}`;
+  const judulKelas = `${target.mapel} - ${target.jenjang} - ${namaTingkat}`;
 
   return (
     <div className="min-h-full bg-slate-50 pb-20">
@@ -217,7 +216,7 @@ export default async function DaftarKelasPage({
       <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 -mt-8 sm:-mt-12 lg:-mt-14 pb-20 lg:pb-16">
         <DaftarForm
           kelasId={target.id}
-          mapelNama={target.mataPelajaran.nama}
+          mapelNama={target.mapel}
           jadwal={jadwal}
           jadwalItems={jadwalItems}
           jenjang={target.jenjang}

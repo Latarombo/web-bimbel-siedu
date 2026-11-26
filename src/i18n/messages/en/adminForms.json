@@ -43,7 +43,7 @@
     "fee": "Fee per semester (Rp)",
     "deposit": "Down payment (blank = no installment plan)",
     "tenor": "Maximum term (blank = no installment plan)",
-    "schedule": "Weekly session schedule (1–3 rows)",
+    "schedule": "Weekly session schedule (1–7 days)",
     "day": "Day {number}",
     "start": "Start time",
     "end": "End time",

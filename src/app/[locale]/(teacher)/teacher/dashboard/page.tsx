@@ -53,8 +53,7 @@ export default async function TeacherDashboard() {
   const hari = hariDariTanggal(hariIniStr);
 
   // 2. Fetch dependent data
-  const [mapel, jadwal, pendaftaran, penilaian, hasilAll, presensiSesi, periode] = await Promise.all([
-    kelas.length ? collect(db.orm.public.MataPelajaran.all()) : Promise.resolve([]),
+  const [jadwal, pendaftaran, penilaian, hasilAll, presensiSesi, periode] = await Promise.all([
     kelas.length ? collect(db.orm.public.JadwalItem.where((j) => j.kelasId.in(kelasIds)).all()) : Promise.resolve([]),
     kelas.length
       ? collect(db.orm.public.Pendaftaran.where((p) => p.kelasId.in(kelasIds)).all())
@@ -67,7 +66,6 @@ export default async function TeacherDashboard() {
       : Promise.resolve([]),
   ]);
 
-  const mapelById = new Map(mapel.map((m) => [m.id, m]));
   const periodeById = new Map(periode.map((p) => [p.id, p]));
   const kelasById = new Map(kelas.map((k) => [k.id, k]));
 
@@ -105,7 +103,7 @@ export default async function TeacherDashboard() {
   for (const pen of penilaian) {
     const siswaKelas = siswaByKelas.get(pen.kelasId) ?? [];
     const k = kelasById.get(pen.kelasId);
-    const m = k ? mapelById.get(k.mataPelajaranId)?.nama : "Kelas";
+    const m = k ? (k.mapel || k.nama) : "Kelas";
 
     for (const s of siswaKelas) {
       const key = `${pen.id}:${s.id}`;
@@ -137,15 +135,14 @@ export default async function TeacherDashboard() {
     if (!k || k.status !== "aktif") continue;
     const p = periodeById.get(k.periodeId);
     if (!p) continue;
-    const m = mapelById.get(k.mataPelajaranId);
     const nSiswa = (siswaByKelas.get(k.id) ?? []).length;
     const nTerisi = terisiByItem.get(j.id) ?? 0;
 
     scheduleSessions.push({
       id: j.id,
       kelasId: k.id,
-      kelasNama: m?.nama ?? "Kelas",
-      mapel: m?.nama ?? "Mata Pelajaran",
+      kelasNama: k.nama || k.mapel || "Kelas",
+      mapel: k.mapel || "Mata Pelajaran",
       jenjang: k.jenjang,
       tingkat: k.tingkat,
       hari: j.hari,

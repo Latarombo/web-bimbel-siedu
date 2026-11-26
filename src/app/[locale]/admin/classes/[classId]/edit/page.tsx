@@ -21,9 +21,8 @@ export default async function AdminClassesEdit({ params }: { params: Promise<{ c
   const kelasId = Number(classId);
   if (!Number.isInteger(kelasId)) notFound();
 
-  const [kelasSemua, mapel, guru, periode, jadwal, pendaftaran] = await Promise.all([
+  const [kelasSemua, guru, periode, jadwal, pendaftaran] = await Promise.all([
     collect(db.orm.public.Kelas.where((k) => k.id.eq(kelasId)).all()),
-    collect(db.orm.public.MataPelajaran.all()),
     collect(db.orm.public.User.where((u) => u.role.eq("guru")).all()),
     collect(db.orm.public.PeriodePendaftaran.all()),
     collect(db.orm.public.JadwalItem.where((j) => j.kelasId.eq(kelasId)).all()),
@@ -31,7 +30,7 @@ export default async function AdminClassesEdit({ params }: { params: Promise<{ c
   ]);
   const kelas = kelasSemua[0];
   if (!kelas) notFound();
-  const mapelNama = mapel.find((m) => m.id === kelas.mataPelajaranId)?.nama ?? t("text11");
+  const mapelNama = kelas.nama || kelas.mapel || t("text11");
   const terisi = pendaftaran.filter(
     (p) => p.kelasId === kelas.id && ["terdaftar", "tertunggak", "menunggu_pembayaran"].includes(p.status),
   ).length;
@@ -46,17 +45,17 @@ export default async function AdminClassesEdit({ params }: { params: Promise<{ c
 
       <div className="mt-3 flex items-center gap-2">
         <Badge tone={kelas.status === "aktif" ? "emerald" : "slate"}>{labelKelas(kelas.status)}</Badge>
-        <span className="text-xs text-slate-500">{t("classLevelDetail", { level: kelas.jenjang, id: kelas.id })}</span>
+        <span className="text-xs text-slate-500 dark:text-slate-400">{t("classLevelDetail", { level: kelas.jenjang, id: kelas.id })}</span>
       </div>
 
       <Panel className="mt-5 p-6 sm:p-8">
         <KelasForm
           kelasId={kelas.id}
-          mapelOptions={mapel.map((m) => ({ id: m.id, nama: m.nama }))}
           guruOptions={guru.map((g) => ({ id: g.id, nama: g.name })).sort((a, b) => a.nama.localeCompare(b.nama))}
           periodeOptions={periode.map((p) => ({ id: p.id, nama: p.nama, status: p.status }))}
           defaults={{
-            mataPelajaranId: kelas.mataPelajaranId,
+            nama: kelas.nama,
+            mapel: kelas.mapel,
             guruId: kelas.guruId,
             periodeId: kelas.periodeId,
             jenjang: kelas.jenjang,
@@ -71,12 +70,12 @@ export default async function AdminClassesEdit({ params }: { params: Promise<{ c
           }}
           defaultJadwal={jadwal
             .sort((a, b) => a.hari.localeCompare(b.hari) || a.jamMulai.localeCompare(b.jamMulai))
-            .map((j) => ({ hari: j.hari, jamMulai: j.jamMulai.slice(0, 5), jamSelesai: j.jamSelesai.slice(0, 5) }))}
+            .map((j) => ({ hari: j.hari, jamMulai: j.jamMulai.slice(0, 5), jamSelesai: j.jamSelesai.slice(0, 5), tempat: j.tempat ?? "" }))}
         />
       </Panel>
 
-      <p className="mt-4 text-sm text-slate-500">
-        <Link href="/admin/classes" className="font-semibold text-blue-700 hover:underline">{t("text75")} </Link>
+      <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+        <Link href="/admin/classes" className="font-semibold text-blue-700 dark:text-blue-400 hover:underline">{t("text75")} </Link>
       </p>
     </PageShell>
   );

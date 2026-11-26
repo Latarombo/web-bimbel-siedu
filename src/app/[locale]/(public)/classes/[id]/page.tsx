@@ -101,7 +101,6 @@ export default async function ClassDetail({ params }: { params: Promise<{ id: st
         ? await collect(
             db.orm.public.Kelas
               .where((ok) => ok.id.in(otherClassIds))
-              .include("mataPelajaran", (m) => m.select("id", "nama"))
               .include("jadwalItem", (j) => j.select("id", "hari", "jamMulai", "jamSelesai"))
               .all()
           )
@@ -145,7 +144,7 @@ export default async function ClassDetail({ params }: { params: Promise<{ id: st
                     isOverlap(j1.jamMulai, j1.jamSelesai, j2.jamMulai, j2.jamSelesai)
                   ) {
                     bentrokKelasLain = {
-                      namaKelas: otherK.mataPelajaran.nama,
+                      namaKelas: otherK.nama,
                       hari: labelHari(j2.hari, locale),
                       jamMulai: String(j2.jamMulai).slice(0, 5),
                       jamSelesai: String(j2.jamSelesai).slice(0, 5),

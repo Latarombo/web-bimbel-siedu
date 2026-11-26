@@ -36,8 +36,7 @@ export default async function TeacherClassDetail({
   );
   if (!kelas) notFound();
 
-  const [mapel, jadwal, pendaftaran, semuaAnak, semuaWali, presensiByGuru, penilaianRaw] = await Promise.all([
-    collect(db.orm.public.MataPelajaran.all()),
+  const [jadwal, pendaftaran, semuaAnak, semuaWali, presensiByGuru, penilaianRaw] = await Promise.all([
     collect(db.orm.public.JadwalItem.where((j) => j.kelasId.eq(kid)).all()),
     collect(
       db.orm.public.Pendaftaran.where((p) => p.kelasId.eq(kid))
@@ -107,7 +106,6 @@ export default async function TeacherClassDetail({
     };
   });
 
-  const m = mapel.find((x) => x.id === kelas.mataPelajaranId);
   const anakById = new Map(semuaAnak.map((a) => [a.id, a]));
   const waliById = new Map(semuaWali.map((w) => [w.id, w]));
   const sesiIds = new Set(jadwal.map((j) => j.id));
@@ -257,10 +255,10 @@ export default async function TeacherClassDetail({
         tingkat: anak?.tingkat ?? null,
         tanggalLahir: anak?.tanggalLahir ?? null,
         nomorTelepon: anak?.nomorTelepon ?? null,
-        emailNotifikasi: anak?.emailNotifikasi ?? null,
+        emailNotifikasi: anak?.email ?? null,
         namaWali: wali?.name ?? null,
         teleponWali: wali?.nomorTelepon ?? null,
-        alamatWali: wali?.alamat ?? null,
+        alamatWali: anak?.alamat ?? wali?.alamat ?? null,
       };
     },
   );
@@ -320,7 +318,7 @@ export default async function TeacherClassDetail({
       })),
     ];
 
-    const namaMapel = m?.nama ?? "Kelas";
+    const namaMapel = kelas.mapel || kelas.nama || "Kelas";
     const formatTingkat = kelas.tingkat
       ? (kelas.tingkat.toLowerCase().startsWith("kelas") ? kelas.tingkat : `Kelas ${kelas.tingkat}`)
       : null;
@@ -379,7 +377,7 @@ export default async function TeacherClassDetail({
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <ClassDetailView
         classId={kid}
-        className={m?.nama ?? "Kelas"}
+        className={kelas.mapel || kelas.nama || "Kelas"}
         jenjang={kelas.jenjang}
         tingkat={kelas.tingkat}
         classStatus={kelas.status}

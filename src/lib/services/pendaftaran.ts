@@ -283,7 +283,6 @@ export async function memenuhiSyaratTerdaftar(
 export async function kelasTersediaUntukJenjang(jenjang: Jenjang) {
     const kelas = await db.orm.public.Kelas.where((k) => k.jenjang.eq(jenjang))
         .where((k) => k.status.eq('aktif'))
-        .include('mataPelajaran', (b) => b.select('id', 'nama', 'deskripsi'))
         .include('guru', (b) => b.select('id', 'name'))
         .include('periode', (b) => b.select('id', 'nama', 'status'))
         .include('jadwalItem', (b) =>

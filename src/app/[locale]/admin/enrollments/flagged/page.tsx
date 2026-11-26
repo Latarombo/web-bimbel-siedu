@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { redirect, getPathname } from "@/i18n/navigation";
+import { Link, redirect, getPathname } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
@@ -24,15 +24,13 @@ export default async function AdminFlagged({ searchParams }: { searchParams: Pro
   const { status } = await searchParams;
   const filter = status && STATUS_MASALAH.includes(status) ? status : "semua";
 
-  const [pendaftaran, anak, kelas, mapel] = await Promise.all([
+  const [pendaftaran, anak, kelas] = await Promise.all([
     collect(db.orm.public.Pendaftaran.all()),
     collect(db.orm.public.Anak.all()),
     collect(db.orm.public.Kelas.all()),
-    collect(db.orm.public.MataPelajaran.all()),
   ]);
   const anakById = new Map(anak.map((a) => [a.id, a]));
   const kelasById = new Map(kelas.map((k) => [k.id, k]));
-  const mapelById = new Map(mapel.map((m) => [m.id, m]));
 
   const masalah = pendaftaran.filter((p) => STATUS_MASALAH.includes(p.status));
   const daftar = filter === "semua" ? masalah : masalah.filter((p) => p.status === filter);
@@ -44,13 +42,14 @@ export default async function AdminFlagged({ searchParams }: { searchParams: Pro
     { key: "metode", header: t("text118"), align: "center" },
     { key: "updatedAt", header: t("text119"), align: "right" },
     { key: "createdAt", header: t("text120"), align: "right" },
+    { key: "aksi", header: "Aksi", align: "right", sortable: false },
   ];
 
   const rows: TableRowData[] = urut.map((p) => {
     const a = anakById.get(p.anakId);
     const k = kelasById.get(p.kelasId);
     const nama = a?.nama ?? t("childFallback", { id: p.anakId });
-    const kelasLabel = mapelById.get(k?.mataPelajaranId ?? 0)?.nama ?? t("classFallback", { id: p.kelasId });
+    const kelasLabel = k?.nama || k?.mapel || t("classFallback", { id: p.kelasId });
     return {
       id: p.id,
       values: {
@@ -63,16 +62,29 @@ export default async function AdminFlagged({ searchParams }: { searchParams: Pro
       cells: {
         anak: (
           <div>
-            <p className="font-semibold text-slate-900">{nama}</p>
-            <p className="text-xs text-slate-500">
+            <Link
+              href={`/admin/enrollments/${p.id}`}
+              className="font-semibold text-blue-700 dark:text-blue-400 hover:underline"
+            >
+              {nama}
+            </Link>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               {t("enrollmentDetail", { className: kelasLabel, level: k?.jenjang ?? "—", id: p.id })}
             </p>
           </div>
         ),
         status: <StatusBadge status={p.status as never} />,
-        metode: <span className="text-xs text-slate-600">{labelMetode(p.metodeBayar)}</span>,
-        updatedAt: <span className="tabular-nums text-xs text-slate-500">{fmtTanggal(p.updatedAt)}</span>,
-        createdAt: <span className="tabular-nums text-xs text-slate-500">{fmtTanggal(p.createdAt)}</span>,
+        metode: <span className="text-xs text-slate-600 dark:text-slate-300">{labelMetode(p.metodeBayar)}</span>,
+        updatedAt: <span className="tabular-nums text-xs text-slate-500 dark:text-slate-400">{fmtTanggal(p.updatedAt)}</span>,
+        createdAt: <span className="tabular-nums text-xs text-slate-500 dark:text-slate-400">{fmtTanggal(p.createdAt)}</span>,
+        aksi: (
+          <Link
+            href={`/admin/enrollments/${p.id}`}
+            className="text-xs font-semibold text-blue-700 dark:text-blue-400 hover:underline"
+          >
+            Rincian
+          </Link>
+        ),
       },
     };
   });
@@ -117,7 +129,7 @@ export default async function AdminFlagged({ searchParams }: { searchParams: Pro
       </div>
 
       <div className="mt-4">
-        <ButtonLink href={getPathname({ href: "/admin/dashboard", locale })} variant="ghost" size="sm" className="text-slate-500">{t("text130")} </ButtonLink>
+        <ButtonLink href={getPathname({ href: "/admin/dashboard", locale })} variant="ghost" size="sm" className="text-slate-500 dark:text-slate-400">{t("text130")} </ButtonLink>
       </div>
     </PageShell>
   );

@@ -19,9 +19,6 @@ export async function GET(request: NextRequest) {
         // Query rekomendasi kelas aktif yang cocok dengan query
         const rows = await collect(
             db.orm.public.Kelas.where((k) => k.status.eq('aktif'))
-                .include('mataPelajaran', (b) =>
-                    b.select('id', 'nama', 'deskripsi'),
-                )
                 .include('guru', (b) => b.select('id', 'name'))
                 .include('periode', (b) => b.select('id', 'nama'))
                 .limit(50)
@@ -31,7 +28,7 @@ export async function GET(request: NextRequest) {
         const queryLower = q.toLowerCase();
         const qWords = queryLower.split(/\s+/).filter(Boolean);
 
-        // Filter memori untuk mencocokkan jenjang, tingkat, mata pelajaran, deskripsi, atau guru
+        // Filter memori untuk mencocokkan jenjang, tingkat, nama kelas, mapel, atau guru
         const matches = rows
             .filter((k) => {
                 if (jenjang !== 'Semua' && k.jenjang !== jenjang) {
@@ -42,7 +39,7 @@ export async function GET(request: NextRequest) {
                 }
 
                 const searchable =
-                    `${k.mataPelajaran.nama} ${k.mataPelajaran.deskripsi || ''} ${k.jenjang} ${k.tingkat || ''} ${k.guru.name}`.toLowerCase();
+                    `${k.nama} ${k.mapel} ${k.jenjang} ${k.tingkat || ''} ${k.guru.name}`.toLowerCase();
 
                 // 1. Cek langsung kecocokan substring lengkap
                 if (searchable.includes(queryLower)) return true;
@@ -67,7 +64,7 @@ export async function GET(request: NextRequest) {
             .slice(0, 5)
             .map((k) => ({
                 id: k.id,
-                nama: k.mataPelajaran.nama,
+                nama: k.mapel,
                 jenjang: k.jenjang,
                 tingkat: k.tingkat || '',
                 guru: k.guru.name,

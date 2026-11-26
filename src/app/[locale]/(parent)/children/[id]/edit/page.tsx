@@ -70,7 +70,7 @@ export default async function EditChildPage({
                             tanggalLahir: a.tanggalLahir,
                             jenjangTerakhir: a.jenjangTerakhir ?? '',
                             tingkat: a.tingkat ?? '',
-                            emailNotifikasi: a.emailNotifikasi ?? '',
+                            emailNotifikasi: a.email ?? '',
                             nomorTelepon: a.nomorTelepon ?? '',
                         }}
                     />

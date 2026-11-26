@@ -119,7 +119,8 @@ model Anak {
   tanggalLahir    DateString        @map("tanggal_lahir")
   jenjangTerakhir Jenjang?          @map("jenjang_terakhir")
   tingkat         String?           @map("tingkat")
-  emailNotifikasi String?           @map("email_notifikasi")
+  email           String?           @map("email")
+  alamat          String?           @map("alamat")
   nomorTelepon    String?           @map("nomor_telepon")
   createdAt       TimestamptzString @default(now()) @map("created_at")
   updatedAt       TimestamptzString @default(now()) @map("updated_at")
@@ -132,24 +133,10 @@ model Anak {
   @@check(expression: "tanggal_lahir <= CURRENT_DATE", name: "anak_dob_not_future")
   @@check(expression: "length(nama) <= 100", name: "anak_nama_len")
   @@check(expression: "tingkat IS NULL OR length(tingkat) <= 30", name: "anak_tingkat_len")
-  @@check(expression: "email_notifikasi IS NULL OR length(email_notifikasi) <= 255", name: "anak_email_notif_len")
+  @@check(expression: "email IS NULL OR length(email) <= 255", name: "anak_email_len")
+  @@check(expression: "alamat IS NULL OR length(alamat) <= 500", name: "anak_alamat_len")
   @@check(expression: "nomor_telepon IS NULL OR length(nomor_telepon) <= 20", name: "anak_phone_len")
   @@map("anak")
-}
-
-model MataPelajaran {
-  id        Int               @id @default(autoincrement())
-  nama      String
-  deskripsi String?
-  createdAt TimestamptzString @default(now()) @map("created_at")
-  updatedAt TimestamptzString @default(now()) @map("updated_at")
-
-  kelas Kelas[]
-
-  @@unique([nama])
-  @@check(expression: "length(nama) <= 100", name: "mapel_nama_len")
-  @@check(expression: "deskripsi IS NULL OR length(deskripsi) <= 500", name: "mapel_deskripsi_len")
-  @@map("mata_pelajaran")
 }
 
 model PeriodePendaftaran {
@@ -174,7 +161,8 @@ model PeriodePendaftaran {
 
 model Kelas {
   id              Int               @id @default(autoincrement())
-  mataPelajaranId Int               @map("mata_pelajaran_id")
+  nama            String            @map("nama")
+  mapel           String            @map("mapel")
   guruId          Int               @map("guru_id")
   periodeId       Int               @map("periode_id")
   jenjang         Jenjang
@@ -190,7 +178,6 @@ model Kelas {
   createdAt       TimestamptzString @default(now()) @map("created_at")
   updatedAt       TimestamptzString @default(now()) @map("updated_at")
 
-  mataPelajaran MataPelajaran      @relation(fields: [mataPelajaranId], references: [id], onDelete: Restrict)
   guru          User               @relation("GuruKelas", fields: [guruId], references: [id], onDelete: Restrict)
   periode       PeriodePendaftaran @relation(fields: [periodeId], references: [id], onDelete: Restrict)
   jadwalItem         JadwalItem[]
@@ -199,7 +186,7 @@ model Kelas {
 
   @@index([guruId])
   @@index([periodeId, status])
-  @@index([mataPelajaranId])
+  @@index([mapel])
   @@index([jenjang])
   @@index([tingkat])
   @@check(expression: "kuota_minimum <= kuota_maksimum", name: "kelas_kuota_range")
@@ -209,6 +196,8 @@ model Kelas {
   @@check(expression: "tenor_maksimum IS NULL OR tenor_maksimum >= 2", name: "kelas_tenor_min")
   // BR#12: tenor cuma masuk akal untuk kelas yang menawarkan DP
   @@check(expression: "(biaya_dp IS NULL) = (tenor_maksimum IS NULL)", name: "kelas_tenor_butuh_dp")
+  @@check(expression: "length(nama) <= 120", name: "kelas_nama_len")
+  @@check(expression: "length(mapel) <= 100", name: "kelas_mapel_len")
   @@check(expression: "tingkat IS NULL OR length(tingkat) <= 30", name: "kelas_tingkat_len")
   @@check(expression: "ruangan IS NULL OR length(ruangan) <= 50", name: "kelas_ruangan_len")
   @@map("kelas")
@@ -216,11 +205,12 @@ model Kelas {
 
 // BR#27: jadwal 1:N — satu kelas bisa 1-3x pertemuan per minggu
 model JadwalItem {
-  id         Int      @id @default(autoincrement())
-  kelasId    Int      @map("kelas_id")
+  id         Int        @id @default(autoincrement())
+  kelasId    Int        @map("kelas_id")
   hari       Hari
   jamMulai   TimeString @map("jam_mulai")
   jamSelesai TimeString @map("jam_selesai")
+  tempat     String?    @map("tempat")
 
   kelas    Kelas      @relation(fields: [kelasId], references: [id], onDelete: Cascade)
   presensi Presensi[]
@@ -228,6 +218,7 @@ model JadwalItem {
   @@unique([kelasId, hari, jamMulai, jamSelesai])
   @@index([hari])
   @@check(expression: "jam_mulai < jam_selesai", name: "jadwal_item_jam_range")
+  @@check(expression: "tempat IS NULL OR length(tempat) <= 150", name: "jadwal_tempat_len")
   @@map("jadwal_item")
 }
 

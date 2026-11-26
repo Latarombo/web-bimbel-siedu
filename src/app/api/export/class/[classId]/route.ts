@@ -50,8 +50,7 @@ export async function GET(
   const url = new URL(req.url);
   const exportType = url.searchParams.get("type") || "summary"; // 'summary' | 'attendance' | 'grades'
 
-  const [mapelArr, periodeArr, pendaftaranList, semuaAnak] = await Promise.all([
-    collect(db.orm.public.MataPelajaran.where((m) => m.id.eq(kelas.mataPelajaranId)).all()),
+  const [periodeArr, pendaftaranList, semuaAnak] = await Promise.all([
     collect(db.orm.public.PeriodePendaftaran.where((p) => p.id.eq(kelas.periodeId)).all()),
     collect(
       db.orm.public.Pendaftaran.where((p) => p.kelasId.eq(kid))
@@ -61,7 +60,6 @@ export async function GET(
     collect(db.orm.public.Anak.all()),
   ]);
 
-  const mapel = mapelArr[0];
   const periode = periodeArr[0];
   const anakMap = new Map(semuaAnak.map((a) => [a.id, a]));
   const pendaftaranIds = pendaftaranList.map((p) => p.id);
@@ -201,7 +199,7 @@ export async function GET(
         anak?.nama ?? `Siswa #${p.anakId}`,
         kelas.jenjang,
         kelas.tingkat ?? "",
-        mapel?.nama ?? `Kelas #${kelas.id}`,
+        kelas.mapel || kelas.nama || `Kelas #${kelas.id}`,
         periode?.nama ?? "",
         String(totalSesi),
         String(hadir),

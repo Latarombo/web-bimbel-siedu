@@ -20,14 +20,12 @@ export default async function TeacherStatusPage() {
   const guruId = Number(session.user.id);
 
   // 1. Get active classes owned by this teacher
-  const [kelas, mapel, pendaftaran, anakList] = await Promise.all([
+  const [kelas, pendaftaran, anakList] = await Promise.all([
     collect(db.orm.public.Kelas.where((k) => k.guruId.eq(guruId)).where((k) => k.status.eq('aktif')).all()),
-    collect(db.orm.public.MataPelajaran.all()),
     collect(db.orm.public.Pendaftaran.all()),
     collect(db.orm.public.Anak.all()),
   ]);
 
-  const mapelMap = new Map(mapel.map((m) => [m.id, m.nama]));
   const anakMap = new Map(anakList.map((a) => [a.id, a]));
 
   const classOptions: ClassOption[] = kelas.map((k) => {
@@ -46,7 +44,7 @@ export default async function TeacherStatusPage() {
 
     return {
       id: k.id,
-      nama: `${mapelMap.get(k.mataPelajaranId) ?? 'Mata Pelajaran'} - Kelas #${k.id}`,
+      nama: `${k.mapel || k.nama} - Kelas #${k.id}`,
       jenjang: k.jenjang,
       students,
     };
@@ -57,7 +55,7 @@ export default async function TeacherStatusPage() {
     db.orm.public.StatusPembelajaran.where((s) => s.dibuatOleh.eq(guruId)).all()
   )).filter((s) => s.status !== 'dihapus_guru');
 
-  const kelasMap = new Map(kelas.map((k) => [k.id, mapelMap.get(k.mataPelajaranId) ?? `Kelas #${k.id}`]));
+  const kelasMap = new Map(kelas.map((k) => [k.id, k.mapel || k.nama || `Kelas #${k.id}`]));
 
   // Count recipients per status based on class roster
   const recipientCountMap = new Map<number, number>();

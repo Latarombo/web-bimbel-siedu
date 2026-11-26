@@ -15,8 +15,7 @@ export default async function AdminClassesNew() {
   const session = await auth();
   if (!session?.user) return redirect({ href: { pathname: "/login", query: { next: getPathname({ href: "/admin/classes/new", locale }) } }, locale });
 
-  const [mapel, guru, periode] = await Promise.all([
-    collect(db.orm.public.MataPelajaran.all()),
+  const [guru, periode] = await Promise.all([
     collect(db.orm.public.User.where((u) => u.role.eq("guru")).all()),
     collect(db.orm.public.PeriodePendaftaran.all()),
   ]);
@@ -30,19 +29,15 @@ export default async function AdminClassesNew() {
 
       <Panel className="mt-6 p-6 sm:p-8">
         <KelasForm
-          mapelOptions={mapel.map((m) => ({ id: m.id, nama: m.nama }))}
           guruOptions={guru.map((g) => ({ id: g.id, nama: g.name })).sort((a, b) => a.nama.localeCompare(b.nama))}
           periodeOptions={periode.map((p) => ({ id: p.id, nama: p.nama, status: p.status }))}
         />
       </Panel>
 
-      <p className="mt-4 text-sm text-slate-500">
-        <Link href="/admin/classes" className="font-semibold text-blue-700 hover:underline">{t("text75")} </Link>
-        {" · "}{t("masterDataLinks")}{" "}
-        <Link href="/admin/subjects" className="underline decoration-slate-300 underline-offset-2 hover:text-slate-900">{t("text8")} </Link>{" "}
-        {t("and")}{" "}
-        <Link href="/admin/teachers" className="underline decoration-slate-300 underline-offset-2 hover:text-slate-900">{t("text10")} </Link>
-        .
+      <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+        <Link href="/admin/classes" className="font-semibold text-blue-700 dark:text-blue-400 hover:underline">{t("text75")} </Link>
+        {" · "}
+        <Link href="/admin/teachers" className="underline decoration-slate-300 dark:decoration-slate-600 underline-offset-2 hover:text-slate-900 dark:hover:text-white">{t("text10")} </Link>
       </p>
     </PageShell>
   );

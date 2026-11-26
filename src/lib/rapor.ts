@@ -74,9 +74,8 @@ export async function getRaporKelas(
   );
   if (!kelas) return null;
 
-  const [mapelArr, guruArr, periodeArr, pendaftaranList, semuaAnak, presensiList, penilaianList] =
+  const [guruArr, periodeArr, pendaftaranList, semuaAnak, presensiList, penilaianList] =
     await Promise.all([
-      collect(db.orm.public.MataPelajaran.where({ id: kelas.mataPelajaranId }).all()),
       collect(db.orm.public.User.where({ id: kelas.guruId }).all()),
       collect(db.orm.public.PeriodePendaftaran.where({ id: kelas.periodeId }).all()),
       collect(
@@ -89,7 +88,6 @@ export async function getRaporKelas(
       collect(db.orm.public.Penilaian.where({ kelasId: classId }).all()),
     ]);
 
-  const mapel = mapelArr[0];
   const guru = guruArr[0];
   const periode = periodeArr[0];
 
@@ -168,7 +166,7 @@ export async function getRaporKelas(
 
   return {
     kelasId: kelas.id,
-    namaMapel: mapel?.nama ?? `Kelas #${kelas.id}`,
+    namaMapel: kelas.mapel || kelas.nama || `Kelas #${kelas.id}`,
     jenjang: kelas.jenjang,
     tingkat: kelas.tingkat ?? null,
     namaGuru: guru?.name ?? "Pengajar Siedu",
@@ -204,9 +202,8 @@ export async function getRaporDetail(
     return null;
   }
 
-  const [mapelArr, guruArr, waliArr, presensiList, penilaianList, hasilList] =
+  const [guruArr, waliArr, presensiList, penilaianList, hasilList] =
     await Promise.all([
-      collect(db.orm.public.MataPelajaran.where({ id: kelas.mataPelajaranId }).all()),
       collect(db.orm.public.User.where({ id: kelas.guruId }).all()),
       collect(db.orm.public.User.where({ id: anak.orangTuaId }).all()),
       collect(db.orm.public.Presensi.where({ pendaftaranId: pendaftaran.id }).all()),
@@ -214,7 +211,6 @@ export async function getRaporDetail(
       collect(db.orm.public.HasilPenilaian.where({ pendaftaranId: pendaftaran.id }).all()),
     ]);
 
-  const mapel = mapelArr[0];
   const guru = guruArr[0];
   const wali = waliArr[0];
 
@@ -276,8 +272,8 @@ export async function getRaporDetail(
     tanggalLahir: anak.tanggalLahir ?? null,
     jenjang: kelas.jenjang,
     tingkat: kelas.tingkat ?? null,
-    namaMapel: mapel?.nama ?? `Kelas #${kelas.id}`,
-    deskripsiMapel: mapel?.deskripsi ?? null,
+    namaMapel: kelas.mapel || kelas.nama || `Kelas #${kelas.id}`,
+    deskripsiMapel: null,
     namaGuru: guru?.name ?? "Pengajar Siedu",
     namaWali: wali?.name ?? "Orang Tua / Wali",
     teleponWali: wali?.nomorTelepon ?? null,

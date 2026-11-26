@@ -66,13 +66,6 @@ export default async function PayPage({ params }: Props) {
     notFound();
   }
 
-  const [mapelRows] = await Promise.all([
-    collect(
-      db.orm.public.MataPelajaran.where((m) => m.id.eq(kelas.mataPelajaranId)).all(),
-    ),
-  ]);
-  const mapel = mapelRows[0];
-
   // Cari tagihan terbuka yang harus dibayar saat ini
   const tagihanAktif = await tagihanBerikutinya(pid);
   if (!tagihanAktif) {
@@ -99,7 +92,7 @@ export default async function PayPage({ params }: Props) {
     totalBiayaKelas - (totalDibayar + nominalSaatIni),
   );
 
-  const mapelNama = mapel?.nama ?? "Bimbingan Belajar";
+  const mapelNama = kelas.mapel || kelas.nama || "Bimbingan Belajar";
   const namaTingkat = kelas.tingkat
     ? (kelas.tingkat.toLowerCase().startsWith("kelas") ? kelas.tingkat : `Kelas ${kelas.tingkat}`)
     : "";

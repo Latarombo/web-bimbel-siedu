@@ -1,215 +1,64 @@
-import { getLocale, getTranslations } from 'next-intl/server';
-import { Link } from '@/i18n/navigation';
+import { getLocale } from 'next-intl/server';
 import { redirect, getPathname } from '@/i18n/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/prisma/db';
 import { collect } from '@/lib/collect';
 import {
-    DataTable,
-    type TableColumn,
-    type TableRowData,
-} from '@/components/ui/data-table';
-import { PageShell, PageHeader, Panel } from '@/components/admin/ui';
-import { ConfirmAction } from '@/components/admin/confirm-action';
-import { hapusGuru } from '@/app/actions/admin';
-import GuruForm from '@/components/admin/guru-form';
+    AdminTeachersView,
+    type AdminTeacherRow,
+} from '@/components/admin/views/teachers-view';
 
 export const dynamic = 'force-dynamic';
 
-export default async function AdminTeachers({
-    searchParams,
-}: {
-    searchParams: Promise<{ edit?: string }>;
-}) {
+export default async function AdminTeachersPage() {
     const locale = await getLocale();
-    const t = await getTranslations('admin');
     const session = await auth();
-    if (!session?.user)
+    if (!session?.user) {
         return redirect({
             href: {
                 pathname: '/login',
-                query: {
-                    next: getPathname({ href: '/admin/teachers', locale }),
-                },
+                query: { next: getPathname({ href: '/admin/teachers', locale }) },
             },
             locale,
         });
-    const { edit } = await searchParams;
-    const editId = Number(edit ?? 0);
+    }
+    if (session.user.role !== 'admin') {
+        return redirect({
+            href: session.user.role === 'guru' ? '/teacher/dashboard' : '/home',
+            locale,
+        });
+    }
 
-    const guru = await collect(
-        db.orm.public.User.where((u) => u.role.eq('guru')).all(),
-    );
-    const [kelas, presensi, penilaian] = await Promise.all([
+    const [guruList, kelasList] = await Promise.all([
+        collect(db.orm.public.User.where((u) => u.role.eq('guru')).all()),
         collect(db.orm.public.Kelas.all()),
-        collect(db.orm.public.Presensi.all()),
-        collect(db.orm.public.Penilaian.all()),
     ]);
-    const nKelas = new Map<number, number>();
-    for (const k of kelas)
-        nKelas.set(k.guruId, (nKelas.get(k.guruId) ?? 0) + 1);
-    const catat = new Map<number, number>();
-    for (const x of presensi)
-        catat.set(x.dicatatOleh, (catat.get(x.dicatatOleh) ?? 0) + 1);
-    for (const n of penilaian)
-        catat.set(n.dibuatOleh, (catat.get(n.dibuatOleh) ?? 0) + 1);
 
-    const editing = editId > 0 ? guru.find((g) => g.id === editId) : undefined;
-    const mengampu = guru.filter((g) => (nKelas.get(g.id) ?? 0) > 0).length;
+    const kelasByGuru = new Map<number, { id: number; nama: string }[]>();
+    for (const k of kelasList) {
+        if (k.status !== 'aktif') continue;
+        const arr = kelasByGuru.get(k.guruId) ?? [];
+        arr.push({ id: k.id, nama: k.nama });
+        kelasByGuru.set(k.guruId, arr);
+    }
 
-    const columns: TableColumn[] = [
-        { key: 'nama', header: t('text78') },
-        { key: 'email', header: t('text79') },
-        { key: 'telepon', header: t('text80'), align: 'right' },
-        { key: 'nKelas', header: t('text81'), align: 'center' },
-        { key: 'catatan', header: t('text82'), align: 'center' },
-        { key: 'aksi', header: t('text61'), align: 'right', sortable: false },
-    ];
-
-    const rows: TableRowData[] = guru.map((g) => {
-        const bisaHapus =
-            (nKelas.get(g.id) ?? 0) === 0 && (catat.get(g.id) ?? 0) === 0;
-        return {
+    const teachers: AdminTeacherRow[] = guruList
+        .slice()
+        .sort((a, b) => a.name.localeCompare(b.name, 'id'))
+        .map((g) => ({
             id: g.id,
-            values: {
-                nama: g.name,
-                email: g.email,
-                telepon: g.nomorTelepon ?? '',
-                nKelas: nKelas.get(g.id) ?? 0,
-            },
-            cells: {
-                nama: (
-                    <div className="flex items-center gap-3">
-                        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-blue-100 text-xs font-bold text-blue-800">
-                            {g.name.trim().charAt(0).toUpperCase()}
-                        </span>
-                        <span className="font-semibold text-slate-900">
-                            {g.name}
-                        </span>
-                    </div>
-                ),
-                email: <span className="text-slate-500">{g.email}</span>,
-                telepon: (
-                    <span className="tabular-nums text-slate-500">
-                        {g.nomorTelepon || "—"}
-                    </span>
-                ),
-                nKelas:
-                    (nKelas.get(g.id) ?? 0) > 0 ? (
-                        <Link
-                            href={`/admin/classes?guruId=${g.id}`}
-                            className="inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-bold tabular-nums text-blue-800 transition-colors hover:bg-blue-200"
-                            title="Lihat kelas yang diampu"
-                        >
-                            {nKelas.get(g.id) ?? 0}
-                        </Link>
-                    ) : (
-                        <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-bold tabular-nums text-slate-600">
-                            0
-                        </span>
-                    ),
-                catatan: (
-                    <span className="text-sm tabular-nums text-slate-500">
-                        {(catat.get(g.id) ?? 0) > 0
-                            ? t('entryCount', { count: catat.get(g.id) ?? 0 })
-                            : '—'}
-                    </span>
-                ),
-                aksi: (
-                    <div className="flex items-center justify-end gap-3">
-                        <Link
-                            href={`/admin/teachers?edit=${g.id}`}
-                            className="text-sm font-semibold text-blue-700 hover:underline"
-                        >
-                            {t('text83')}{' '}
-                        </Link>
-                        {bisaHapus ? (
-                            <ConfirmAction
-                                action={hapusGuru}
-                                confirmLabel={t('text84')}
-                            >
-                                <input
-                                    type="hidden"
-                                    name="guru_id"
-                                    value={g.id}
-                                />
-                            </ConfirmAction>
-                        ) : (
-                            <span
-                                className="cursor-help text-sm font-semibold text-slate-600"
-                                title={t('text85')}
-                            >
-                                {t('text86')}{' '}
-                            </span>
-                        )}
-                    </div>
-                ),
-            },
-        };
-    });
+            nama: g.name,
+            nomorTelepon: g.nomorTelepon ?? '',
+            email: g.email ?? '',
+            alamat: g.alamat ?? '',
+            kelasList: (kelasByGuru.get(g.id) ?? []).sort((a, b) =>
+                a.nama.localeCompare(b.nama, 'id'),
+            ),
+        }));
 
     return (
-        <PageShell>
-            <PageHeader
-                title={t('text10')}
-                desc={t('text87')}
-                meta={t('teachersAssigned', {
-                    count: mengampu,
-                    total: guru.length,
-                })}
-            />
-
-            <div className="mt-6 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_22rem]">
-                <Panel className="p-5">
-                    <DataTable
-                        columns={columns}
-                        rows={rows}
-                        empty={t('text88')}
-                        initialSort={{ key: 'nama', dir: 'asc' }}
-                        searchPlaceholder={t('text89')}
-                    />
-                </Panel>
-
-                <Panel className="lg:sticky lg:top-6">
-                    <div className="p-6">
-                        <div className="flex items-center justify-between">
-                            <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
-                                {editing
-                                    ? t('editName', { name: editing.name })
-                                    : t('text90')}
-                            </h2>
-                            {editing ? (
-                                <Link
-                                    href="/admin/teachers"
-                                    className="text-sm font-semibold text-slate-500 underline hover:text-slate-900"
-                                >
-                                    {t('text197')}{' '}
-                                </Link>
-                            ) : null}
-                        </div>
-                        <div className="mt-4">
-                            <GuruForm
-                                key={editing?.id ?? 'baru'}
-                                guruId={editing?.id}
-                                defaults={
-                                    editing
-                                        ? {
-                                              nama: editing.name,
-                                              email: editing.email,
-                                              alamat: editing.alamat ?? '',
-                                              nomorTelepon:
-                                                  editing.nomorTelepon ?? '',
-                                          }
-                                        : undefined
-                                }
-                            />
-                        </div>
-                        <p className="mt-4 border-t border-slate-100 pt-3 text-xs leading-relaxed text-slate-500">
-                            {t('text91')}{' '}
-                        </p>
-                    </div>
-                </Panel>
-            </div>
-        </PageShell>
+        <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+            <AdminTeachersView teachers={teachers} />
+        </div>
     );
 }

@@ -185,7 +185,7 @@ export async function saveChildInfo(
         tanggalLahir: d.tanggal_lahir,
         jenjangTerakhir: d.jenjang_terakhir,
         tingkat: d.tingkat,
-        emailNotifikasi: d.email_notifikasi || null,
+        email: d.email_notifikasi || null,
         nomorTelepon: normalizedHpAnak,
     });
     revalidatePath(getPathname({ href: '/children', locale }));
@@ -374,7 +374,7 @@ export async function updateChild(
         tanggalLahir: finalTanggalLahir,
         jenjangTerakhir: finalJenjang,
         tingkat: finalTingkat,
-        emailNotifikasi: emailKetik || null,
+        email: emailKetik || null,
         nomorTelepon: normalizedHpAnak,
     });
 

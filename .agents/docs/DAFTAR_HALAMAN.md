@@ -73,15 +73,20 @@
 | #   | Halaman / Fitur        | Route                        | Tipe Kontainer   | Keterangan                                                             |
 | --- | ---------------------- | ---------------------------- | ---------------- | ---------------------------------------------------------------------- |
 | E1  | Dashboard Admin        | `/admin/dashboard`           | Halaman Penuh    | Metrik penerimaan, pendaftar, & pendapatan                             |
-| E2  | Mata Pelajaran         | `/admin/subjects`            | **Dialog Form**  | CRUD mata pelajaran                                                    |
-| E3  | Periode Pendaftaran    | `/admin/periods`             | **Dialog Form**  | CRUD periode pendaftaran & tanggal aktif                               |
-| E4  | Data Guru              | `/admin/teachers`            | **Sheet Form**   | CRUD data guru & akun pengajar                                         |
-| E5a | Data Kelas             | `/admin/classes`             | Halaman Penuh    | Indeks kelas, filter pengajar/mapel/periode, & validasi bentrok (BR#6) |
-| E5b | Rincian Kelas          | `/admin/classes/[classId]`   | Halaman Penuh    | Roster siswa terdaftar, status cicilan, jadwal, & rekap presensi       |
-| E6a | Hub Pendaftaran        | `/admin/enrollments`         | Halaman Penuh    | Pengelolaan menyeluruh seluruh pendaftaran siswa & status pembayaran   |
+| E2  | Semester / Periode     | `/admin/periods`             | **Dialog Form**  | CRUD semester/periode pendaftaran & tanggal aktif                      |
+| E3  | Data Guru              | `/admin/teachers`            | **Dialog Form**  | CRUD data guru & akun pengajar                                         |
+| E4  | Data Kelas             | `/admin/classes`             | Halaman Penuh    | Indeks kelas, mapel langsung, filter pengajar/status, & CRUD modal     |
+| E5  | Rincian Kelas          | `/admin/classes/[classId]`   | Halaman Penuh    | Roster siswa terdaftar, status cicilan, jadwal, & rekap presensi       |
+| E6a | Hub Pendaftaran        | `/admin/enrollments`         | Halaman Penuh    | Pengelolaan seluruh pendaftaran siswa & status pembayaran              |
 | E6b | Pendaftaran Bermasalah | `/admin/enrollments/flagged` | Halaman Penuh    | Monitoring pendaftaran tersendat, timeout, & tertunggak                |
+| E6c | Rincian Pendaftaran    | `/admin/enrollments/[id]`    | Halaman Penuh    | Rincian pendaftaran, termin cicilan, referensi gateway, & konfirmasi bayar manual |
+| E6d | Data Pembayaran        | `/admin/payments`            | Halaman Penuh    | Tabel riwayat tagihan, cicilan, metode bayar, & konfirmasi bayar manual |
 | E7  | Laporan & Keuangan     | `/admin/reports`             | Halaman Penuh    | Analitik pendaftaran & penerimaan kas                                  |
 | E8  | Pesan Masuk            | `/admin/messages`            | **Sheet Detail** | Daftar pertanyaan dari form kontak publik                              |
+| E9  | Jadwal Master          | `/admin/schedule`            | Halaman Penuh    | Daftar jadwal CRUD + matriks mingguan seluruh guru dan kelas           |
+| E10 | Direktori Orang Tua    | `/admin/parents`             | Halaman Penuh    | CRUD akun wali murid & modal detail (profil orang tua + daftar anak)   |
+| E11 | Direktori Siswa        | `/admin/students`            | Halaman Penuh    | CRUD seluruh profil anak (TK–SMA), kontak, alamat, & kelas/tingkat     |
+| E12 | Log Audit Sistem       | `/admin/audit-logs`          | Halaman Penuh    | Jejak audit kronologis perubahan data penting (nilai, presensi, bayar) |
 
 ---
 

@@ -36,7 +36,7 @@ export function toKelasKatalog(
     const biaya = Number(k.biayaPeriode);
     return {
         id: k.id,
-        mapel: k.mataPelajaran.nama,
+        mapel: k.mapel,
         jenjang: k.jenjang as JenjangKatalog,
         tingkat: (k as unknown as { tingkat?: string | null }).tingkat ?? null,
         jadwal:
@@ -55,7 +55,7 @@ export function toKelasKatalog(
         tenorMaksimum: k.tenorMaksimum,
         kuotaMinimum: k.kuotaMinimum,
         periode: k.periode.nama,
-        mapelDeskripsi: k.mataPelajaran.deskripsi,
+        mapelDeskripsi: null,
     };
 }
 
@@ -67,9 +67,6 @@ export function toKelasKatalog(
 export async function kelasAktifPublik() {
     return collect(
         db.orm.public.Kelas.where((k) => k.status.eq('aktif'))
-            .include('mataPelajaran', (b) =>
-                b.select('id', 'nama', 'deskripsi'),
-            )
             .include('guru', (b) => b.select('id', 'name'))
             .include('periode', (b) => b.select('id', 'nama'))
             .include('jadwalItem', (b) =>
@@ -125,7 +122,7 @@ export function guruDariKelasAktif(
         }
         g.jumlahKelas += 1;
         g.jumlahSiswa += k.kuotaTerisi;
-        g.mapelSet.add(k.mataPelajaran.nama);
+        g.mapelSet.add(k.mapel);
         g.jenjangSet.add(k.jenjang as JenjangKatalog);
     }
     return [...byGuru.values()]

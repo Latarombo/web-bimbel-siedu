@@ -3,7 +3,7 @@ export const JENJANG_KATALOG = ['Semua', 'TK', 'SD', 'SMP', 'SMA'] as const;
 export type FilterKatalog = {
     q: string;
     jenjang: (typeof JENJANG_KATALOG)[number];
-    mapelId?: number;
+    mapel?: string;
     tingkat?: string;
     sort: 'terbaru' | 'termurah' | 'termahal';
     page: number;
@@ -16,11 +16,11 @@ export function filterKatalog(
         typeof params.page === 'string' && /^\d+$/.test(params.page)
             ? Number(params.page)
             : 1;
-    const mapelId =
-        typeof params.mapelId === 'string' &&
-        /^\d+$/.test(params.mapelId) &&
-        Number(params.mapelId) > 0
-            ? Number(params.mapelId)
+    const mapel =
+        typeof params.mapel === 'string' &&
+        params.mapel.trim().length > 0 &&
+        params.mapel.trim() !== 'Semua'
+            ? params.mapel.trim().slice(0, 100)
             : undefined;
     const tingkat =
         typeof params.tingkat === 'string' &&
@@ -35,7 +35,7 @@ export function filterKatalog(
         )
             ? (params.jenjang as FilterKatalog['jenjang'])
             : 'Semua',
-        mapelId,
+        mapel,
         tingkat,
         sort:
             params.sort === 'termurah' || params.sort === 'termahal'
@@ -56,7 +56,7 @@ export function urlKatalog(
     const params = new URLSearchParams();
     if (next.q) params.set('q', next.q);
     if (next.jenjang !== 'Semua') params.set('jenjang', next.jenjang);
-    if (next.mapelId) params.set('mapelId', String(next.mapelId));
+    if (next.mapel) params.set('mapel', next.mapel);
     if (next.tingkat && next.tingkat !== 'Semua')
         params.set('tingkat', next.tingkat);
     if (next.sort !== 'terbaru') params.set('sort', next.sort);

@@ -73,6 +73,18 @@ powershell.exe -NonInteractive -NoProfile -Command "Set-Location 'D:\projek_reac
   - Tombol "Beri Nilai Maks Semua" dengan teks netral kontras jelas.
   - Tombol "Reset" dengan teks merah (`text-rose-600`) dan hover merah halus.
 
+### AC 7: Penghapusan Banner Peringatan Presensi dari Halaman Rekapitulasi Presensi
+- **Given** guru mengakses halaman `/teacher/attendance`,
+- **When** halaman dirender,
+- **Then** banner alert amber "Terdapat X sesi pertemuan yang belum diisi lembar presensinya..." tidak lagi tampil di isi halaman.
+- **And** notifikasi tersebut tetap aktif dan tersedia di popover lonceng notifikasi header atas.
+
+### AC 8: Floating Toast / Snackbar untuk Sukses Simpan Form Penilaian
+- **Given** guru menyimpan draf atau menerbitkan asesmen pada form penilaian,
+- **When** mutasi berhasil,
+- **Then** pesan sukses ditampilkan sebagai Floating Toast / Snackbar yang mengambang di bawah layar (*fixed bottom*).
+- **And** snackbar memiliki auto-dismiss (3.5 detik), transisi halus, tombol tutup manual, tanpa pergeseran layout (*zero Cumulative Layout Shift*).
+
 ## 5. Out-of-Scope
 - Drop kolom `nilai_maksimum` dari tabel database PostgreSQL (tetap dipertahankan dengan default 100 demi integritas data lama dan modul rapor).
 - Perubahan alur atau status penilaian (draf/terbit) selain penghapusan konfigurasi nilai maksimum.

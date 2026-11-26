@@ -491,11 +491,10 @@ export default async function ParentHome({
 
   // Kabar & Status Pembelajaran untuk seluruh anak milik orang tua (multi-anak story WA)
   const allChildrenIds = anakList.map((a) => a.id);
-  const [allStatusList, allClasses, allMapel, allUsers, allPendaftaran] =
+  const [allStatusList, allClasses, allUsers, allPendaftaran] =
     await Promise.all([
       collect(db.orm.public.StatusPembelajaran.where((s) => s.status.eq("aktif")).all()),
       collect(db.orm.public.Kelas.all()),
-      collect(db.orm.public.MataPelajaran.all()),
       collect(db.orm.public.User.all()),
       collect(
         allChildrenIds.length
@@ -526,13 +525,12 @@ export default async function ParentHome({
   }
 
   const kelasMap = new Map(allClasses.map((k) => [k.id, k]));
-  const mapelMap = new Map(allMapel.map((m) => [m.id, m.nama]));
   const userMap = new Map(allUsers.map((u) => [u.id, u.name]));
 
   const learningStatuses: LearningStatusItem[] = visibleStatuses.map((s) => {
     const k = kelasMap.get(s.kelasId);
     const kelasNama = k
-      ? `${mapelMap.get(k.mataPelajaranId) ?? "Kelas"} #${k.id}`
+      ? k.nama
       : `Kelas #${s.kelasId}`;
     const guruNama = k ? (userMap.get(k.guruId) ?? undefined) : undefined;
     const enrolledChildren = classToChildNameMap.get(s.kelasId);

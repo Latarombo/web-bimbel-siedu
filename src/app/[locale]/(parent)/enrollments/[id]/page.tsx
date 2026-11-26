@@ -82,14 +82,13 @@ export default async function EnrollmentDetailPage({
   // Pastikan pendaftaran benar milik orang tua yang login.
   if (!a || a.orangTuaId !== ortuId) notFound();
 
-  const [mapel, guru, periode] = k
+  const [guru, periode] = k
     ? await Promise.all([
-        COLLECT(db.orm.public.MataPelajaran.where((m) => m.id.eq(k.mataPelajaranId)).all()),
         COLLECT(db.orm.public.User.where((u) => u.id.eq(k.guruId)).all()),
         COLLECT(db.orm.public.PeriodePendaftaran.where((per) => per.id.eq(k.periodeId)).all()),
       ])
-    : [[], [], []];
-  const mapelNama = mapel[0]?.nama ?? `Kelas #${p.kelasId}`;
+    : [[], []];
+  const mapelNama = k?.mapel ?? `Kelas #${p.kelasId}`;
   const guruNama = guru[0]?.name ?? "Pengajar Siedu";
   const periodeNama = periode[0]?.nama ?? "";
 

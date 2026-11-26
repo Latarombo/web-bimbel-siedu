@@ -32,8 +32,7 @@ export default async function TeacherAttendancePage() {
   const kelasIds = new Set(kelas.map((k) => k.id));
 
   // 2. Fetch parallel data
-  const [mapel, semuaPeriode, semuaPendaftaran, semuaAnak, semuaJadwal, semuaPresensi] = await Promise.all([
-    collect(db.orm.public.MataPelajaran.all()),
+  const [semuaPeriode, semuaPendaftaran, semuaAnak, semuaJadwal, semuaPresensi] = await Promise.all([
     collect(db.orm.public.PeriodePendaftaran.all()),
     kelas.length
       ? collect(db.orm.public.Pendaftaran.where((p) => p.kelasId.in([...kelasIds])).all())
@@ -53,7 +52,6 @@ export default async function TeacherAttendancePage() {
     : [];
 
   // 3. Mappings
-  const mapelById = new Map(mapel.map((m) => [m.id, m]));
   const periodeById = new Map(semuaPeriode.map((p) => [p.id, p]));
   const kelasById = new Map(kelas.map((k) => [k.id, k]));
   const anakById = new Map(semuaAnak.map((a) => [a.id, a]));
@@ -84,8 +82,7 @@ export default async function TeacherAttendancePage() {
   const studentRows: StudentAttendanceRow[] = activePendaftaran.map((p) => {
     const anak = anakById.get(p.anakId);
     const k = kelasById.get(p.kelasId);
-    const m = k ? mapelById.get(k.mataPelajaranId) : undefined;
-    const kelasNama = m?.nama ?? `Kelas #${p.kelasId}`;
+    const kelasNama = k ? (k.mapel || k.nama) : `Kelas #${p.kelasId}`;
 
     const presList = presensiByStudent.get(p.id) ?? [];
     let hadir = 0;
@@ -145,8 +142,7 @@ export default async function TeacherAttendancePage() {
   let unrecordedSessionsCount = 0;
 
   for (const k of kelas) {
-    const m = mapelById.get(k.mataPelajaranId);
-    const kelasNama = m ? `${m.nama} (${k.jenjang})` : `Kelas #${k.id}`;
+    const kelasNama = `${k.mapel || k.nama} (${k.jenjang})`;
     const kelasJadwal = semuaJadwal.filter((j) => j.kelasId === k.id);
     const periode = periodeById.get(k.periodeId);
     const classStudents = studentsByClass.get(k.id) ?? [];
@@ -261,15 +257,12 @@ export default async function TeacherAttendancePage() {
   };
 
   // 7. Class filter options
-  const classFilterOptions: ClassFilterOption[] = kelas.map((k) => {
-    const m = mapelById.get(k.mataPelajaranId);
-    return {
-      id: k.id,
-      nama: m?.nama ?? `Kelas #${k.id}`,
-      jenjang: k.jenjang,
-      tingkat: k.tingkat ?? null,
-    };
-  });
+  const classFilterOptions: ClassFilterOption[] = kelas.map((k) => ({
+    id: k.id,
+    nama: k.mapel || k.nama || `Kelas #${k.id}`,
+    jenjang: k.jenjang,
+    tingkat: k.tingkat ?? null,
+  }));
 
   return (
     <TeacherAttendanceOverview

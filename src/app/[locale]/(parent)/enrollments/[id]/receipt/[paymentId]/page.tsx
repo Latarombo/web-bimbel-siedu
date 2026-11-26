@@ -57,15 +57,13 @@ export default async function ReceiptPage({
     notFound();
   }
 
-  const [ortuRows, mapelRows, guruRows, periodeRows] = await Promise.all([
+  const [ortuRows, guruRows, periodeRows] = await Promise.all([
     collect(db.orm.public.User.where((u) => u.id.eq(anak.orangTuaId)).all()),
-    collect(db.orm.public.MataPelajaran.where((m) => m.id.eq(kelas.mataPelajaranId)).all()),
     collect(db.orm.public.User.where((u) => u.id.eq(kelas.guruId)).all()),
     collect(db.orm.public.PeriodePendaftaran.where((per) => per.id.eq(kelas.periodeId)).all()),
   ]);
 
   const ortu = ortuRows[0];
-  const mapel = mapelRows[0];
   const guru = guruRows[0];
   const periode = periodeRows[0];
 
@@ -92,7 +90,7 @@ export default async function ReceiptPage({
     namaSiswa: anak.nama,
     jenjangSiswa: kelas.jenjang,
     pendaftaranId: pendaftaran.id,
-    namaMapel: mapel?.nama || `Kelas #${kelas.id}`,
+    namaMapel: kelas.mapel || kelas.nama || `Kelas #${kelas.id}`,
     namaGuru: guru?.name || 'Pengajar Siedu',
     periodeNama: periode?.nama || 'Semester Aktif',
     tipeTagihan,

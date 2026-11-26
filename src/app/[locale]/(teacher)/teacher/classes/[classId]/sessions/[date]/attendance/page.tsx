@@ -46,8 +46,7 @@ export default async function AttendancePage({
   const hari = hariDariTanggal(date);
   const tanggal = date;
 
-  const mapel = await collect(db.orm.public.MataPelajaran.where((m) => m.id.eq(kelas.mataPelajaranId)).all());
-  const kelasLabel = `${mapel[0]?.nama ?? t("class")} · ${kelas.jenjang}`;
+  const kelasLabel = `${kelas.mapel || kelas.nama || t("class")} · ${kelas.jenjang}`;
   const sesiTanggal = await collect(
     db.orm.public.SesiPertemuan.where((s) => s.jadwalItemId.in(jadwal.map((j) => j.id)))
       .where((s) => s.tanggalPertemuan.eq(tanggal)).all(),

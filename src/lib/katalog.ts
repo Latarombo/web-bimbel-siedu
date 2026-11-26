@@ -50,23 +50,22 @@ export async function kelasKatalogHalaman(
       group by j.kelas_id
     ), kelas_search as (
       select
-        k.id, k.jenjang, k.tingkat, k.biaya_periode, k.created_at, k.status, k.mata_pelajaran_id,
-        m.nama as mapel_nama, coalesce(m.deskripsi, '') as mapel_deskripsi,
-        lower(m.nama || ' ' || coalesce(m.deskripsi, '') || ' ' || k.jenjang::text || ' ' || coalesce(k.tingkat, '') || ' ' || coalesce(k.ruangan, '') || ' ' || g.name || ' ' || coalesce(jt.teks, ${belumAdaJadwal})) as searchable
+        k.id, k.jenjang, k.tingkat, k.biaya_periode, k.created_at, k.status,
+        k.nama as kelas_nama, k.mapel as mapel_nama,
+        lower(k.nama || ' ' || k.mapel || ' ' || k.jenjang::text || ' ' || coalesce(k.tingkat, '') || ' ' || coalesce(k.ruangan, '') || ' ' || g.name || ' ' || coalesce(jt.teks, ${belumAdaJadwal})) as searchable
       from kelas k
-      join mata_pelajaran m on m.id = k.mata_pelajaran_id
       join users g on g.id = k.guru_id
       left join jadwal_teks jt on jt.kelas_id = k.id
     ), cocok as materialized (
       select id, jenjang, biaya_periode, created_at
       from kelas_search
       where status = 'aktif'
-        and (${filter.mapelId ?? 0} = 0 or mata_pelajaran_id = ${filter.mapelId ?? 0})
+        and (${filter.mapel ?? ''} = '' or lower(mapel_nama) = lower(${filter.mapel ?? ''}))
         and (
           ${rawTingkat} = '' or ${rawTingkat} = 'Semua'
           or lower(coalesce(tingkat, '')) = lower(${rawTingkat})
           or strpos(lower(coalesce(tingkat, '')), lower(${rawTingkat})) > 0
-          or strpos(lower(mapel_nama || ' ' || mapel_deskripsi), lower(${rawTingkat})) > 0
+          or strpos(lower(kelas_nama || ' ' || mapel_nama), lower(${rawTingkat})) > 0
           or (${gradeNum} > 0 and (
             coalesce(tingkat, '') ~* ('\m' || ${gradeNum}::text || '\M')
             or (
@@ -138,9 +137,6 @@ export async function kelasKatalogHalaman(
     const rows = info.ids.length
         ? await collect(
               db.orm.public.Kelas.where((k) => k.id.in(info.ids))
-                  .include('mataPelajaran', (b) =>
-                      b.select('id', 'nama', 'deskripsi'),
-                  )
                   .include('guru', (b) => b.select('id', 'name'))
                   .include('periode', (b) => b.select('id', 'nama'))
                   .include('jadwalItem', (b) =>
@@ -166,8 +162,9 @@ export async function kelasKatalogHalaman(
     };
 }
 
-export async function daftarMataPelajaranKatalog() {
-    return collect(
-        db.orm.public.MataPelajaran.orderBy((m) => m.nama.asc()).all(),
+export async function daftarMataPelajaranKatalog(): Promise<string[]> {
+    const rows = await collect(
+        db.orm.public.Kelas.where((k) => k.status.eq('aktif')).all(),
     );
+    return [...new Set(rows.map((k) => k.mapel).filter(Boolean))].sort();
 }

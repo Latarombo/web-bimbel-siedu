@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useTransition } from 'react';
+import { useState, useMemo, useTransition, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/navigation';
 import {
@@ -11,6 +11,7 @@ import {
 import { Search, X, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { DatePicker } from '@/components/ui/date-picker';
 import { UnderlineTabs } from '@/components/ui/underline-tabs';
+import { AnimatePresence, motion } from 'motion/react';
 
 export interface StudentAssessmentRow {
     pendaftaranId: number;
@@ -97,6 +98,14 @@ export function PenilaianForm({
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
+
+    useEffect(() => {
+        if (!successMsg) return;
+        const timer = setTimeout(() => {
+            setSuccessMsg(null);
+        }, 3500);
+        return () => clearTimeout(timer);
+    }, [successMsg]);
 
     // Filtered Students List
     const filteredStudents = useMemo(() => {
@@ -302,25 +311,6 @@ export function PenilaianForm({
                         type="button"
                         onClick={() => setErrorMsg(null)}
                         className="text-xs font-bold text-rose-700 hover:text-rose-900 dark:text-rose-300 cursor-pointer"
-                    >
-                        Tutup
-                    </button>
-                </div>
-            ) : null}
-
-            {successMsg ? (
-                <div
-                    role="status"
-                    className="flex items-center justify-between gap-2 rounded-lg border border-emerald-200 dark:border-emerald-900/70 bg-emerald-50 dark:bg-emerald-950/30 px-4 py-3 text-xs font-medium text-emerald-800 dark:text-emerald-200"
-                >
-                    <div className="flex items-center gap-2">
-                        <CheckCircle2 className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                        <span>{successMsg}</span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setSuccessMsg(null)}
-                        className="text-xs font-bold text-emerald-700 hover:text-emerald-900 dark:text-emerald-300 cursor-pointer"
                     >
                         Tutup
                     </button>
@@ -819,6 +809,36 @@ export function PenilaianForm({
                     </div>
                 </section>
             )}
+
+            {/* Floating Toast / Snackbar (Sukses Simpan Data) */}
+            <AnimatePresence>
+                {successMsg ? (
+                    <motion.div
+                        initial={{ opacity: 0, y: 16, scale: 0.96 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.96 }}
+                        transition={{
+                            duration: 0.22,
+                            ease: [0.23, 1, 0.32, 1],
+                        }}
+                        role="status"
+                        className="fixed bottom-6 right-6 z-50 flex items-center justify-between gap-3 rounded-xl border border-slate-800/80 dark:border-slate-200/80 bg-slate-900/95 dark:bg-white text-white dark:text-slate-950 px-4 py-3 text-xs sm:text-sm font-medium shadow-xl shadow-black/15 backdrop-blur-md max-w-sm sm:max-w-md w-[calc(100%-3rem)] sm:w-auto"
+                    >
+                        <div className="flex items-center gap-2.5">
+                            <CheckCircle2 className="size-4.5 shrink-0 text-emerald-400 dark:text-emerald-600" />
+                            <span>{successMsg}</span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setSuccessMsg(null)}
+                            aria-label="Tutup notifikasi"
+                            className="rounded-md p-1 text-slate-400 hover:text-white dark:hover:text-slate-900 transition-colors cursor-pointer"
+                        >
+                            <X className="size-3.5" />
+                        </button>
+                    </motion.div>
+                ) : null}
+            </AnimatePresence>
         </div>
     );
 }

@@ -3,11 +3,9 @@ import { redirect, getPathname } from "@/i18n/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/prisma/db";
 import { collect } from "@/lib/collect";
-import AdminSidebar, { type NavSection } from "@/components/admin/admin-sidebar";
-
-// Konstanta status antrean — modul polos, bukan 'use server' (pitfall ekspor const).
-// Sama dengan STATUS_MASALAH di halaman flagged (E6).
-const PENDAFTARAN_MASALAH = ["tertunggak", "dibatalkan_timeout", "dibatalkan_tunggakan", "dibatalkan_kelas"];
+import { AdminShell } from "@/components/admin/admin-shell";
+import type { NavSection } from "@/components/admin/admin-sidebar";
+import type { AdminNotificationItem } from "@/components/admin/admin-header";
 
 export const dynamic = "force-dynamic";
 
@@ -21,15 +19,49 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     return redirect({ href: session.user.role === "guru" ? "/teacher/dashboard" : "/home", locale });
   }
 
-  // Badge counter = angka antrean NYATA dari DB (bukan hiasan). Scan ringan;
-  // tabel skala lembaga (ratusan baris), bukan jutaan.
+  // Scan ringan; tabel skala lembaga (ratusan baris), bukan jutaan.
   const [pendaftaran, pesanBaru] = await Promise.all([
     collect(db.orm.public.Pendaftaran.all()),
     collect(db.orm.public.PesanKontak.where((p) => p.status.eq("baru")).all()),
   ]);
-  const nPendaftaranMasalah = pendaftaran.filter((p) =>
-    PENDAFTARAN_MASALAH.includes(p.status as string),
-  ).length;
+  const nTunggakan = pendaftaran.filter((p) => p.status === "tertunggak").length;
+  const nMenungguBayar = pendaftaran.filter((p) => p.status === "menunggu_pembayaran").length;
+
+  // Notifikasi header — diturunkan dari antrean nyata, sama seperti teacher.
+  const notifications: AdminNotificationItem[] = [];
+  if (nTunggakan > 0) {
+    notifications.push({
+      id: "admin-overdue",
+      title: t("text22"),
+      description: t("overdueCount", { count: nTunggakan }),
+      time: t("text111"),
+      unread: true,
+      category: "payment",
+      href: "/admin/enrollments/flagged?status=tertunggak",
+    });
+  }
+  if (nMenungguBayar > 0) {
+    notifications.push({
+      id: "admin-awaiting-payment",
+      title: t("text24"),
+      description: t("awaitingPaymentCount", { count: nMenungguBayar }),
+      time: t("text111"),
+      unread: true,
+      category: "payment",
+      href: "/admin/enrollments?status=menunggu_pembayaran",
+    });
+  }
+  if (pesanBaru.length > 0) {
+    notifications.push({
+      id: "admin-new-messages",
+      title: t("text28"),
+      description: t("newMessageCount", { count: pesanBaru.length }),
+      time: t("text111"),
+      unread: true,
+      category: "message",
+      href: "/admin/messages?status=baru",
+    });
+  }
 
   // Grup nav: Operasional (antrean kerja) / Data Master / Komunikasi & Laporan.
   const NAV_SECTIONS: NavSection[] = [
@@ -41,34 +73,41 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           name: t("text3"),
           href: "/admin/enrollments",
           icon: "clipboard",
-          badge: nPendaftaranMasalah,
         },
+        { name: t("payments"), href: "/admin/payments", icon: "creditCard" },
+        { name: t("scheduleMaster"), href: "/admin/schedule", icon: "clock" },
       ],
     },
     {
       label: t("text7"),
       items: [
-        { name: t("text8"), href: "/admin/subjects", icon: "book" },
+        { name: t("text11"), href: "/admin/classes", icon: "layers" },
         { name: t("text9"), href: "/admin/periods", icon: "calendar" },
         { name: t("text10"), href: "/admin/teachers", icon: "users" },
-        { name: t("text11"), href: "/admin/classes", icon: "layers" },
+        { name: t("parents"), href: "/admin/parents", icon: "userCheck" },
+        { name: t("students"), href: "/admin/students", icon: "graduation" },
       ],
     },
     {
       label: t("text12"),
       items: [
-        { name: t("text13"), href: "/admin/messages", icon: "mail", badge: pesanBaru.length },
+        { name: t("text13"), href: "/admin/messages", icon: "mail" },
         { name: t("text14"), href: "/admin/reports", icon: "chart" },
+        { name: t("auditLogs"), href: "/admin/audit-logs", icon: "history" },
       ],
     },
   ];
 
   return (
-    <div className="min-h-dvh bg-slate-50">
-      <AdminSidebar role="Admin" userName={session.user.name ?? "Admin"} userEmail={session.user.email} accountRole={session.user.role} navSections={NAV_SECTIONS} />
-      <main id="main" className="lg:pl-64">
-        {children}
-      </main>
-    </div>
+    <AdminShell
+      role="Admin"
+      userName={session.user.name ?? "Admin"}
+      userEmail={session.user.email ?? null}
+      accountRole={session.user.role}
+      navSections={NAV_SECTIONS}
+      notifications={notifications}
+    >
+      {children}
+    </AdminShell>
   );
 }

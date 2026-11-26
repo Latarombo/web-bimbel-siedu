@@ -56,9 +56,7 @@ export default async function EditClassAssessment({
   const [kelas] = await collect(
     db.orm.public.Kelas.where({ id: assessment.kelasId }).all(),
   );
-  const mapelList = await collect(db.orm.public.MataPelajaran.all());
-  const mapelById = new Map(mapelList.map((m) => [m.id, m]));
-  const mapelName = kelas ? mapelById.get(kelas.mataPelajaranId)?.nama ?? "Kelas" : "Kelas";
+  const mapelName = kelas ? (kelas.mapel || kelas.nama) : "Kelas";
   const kelasLabel = kelas ? `${mapelName} · ${kelas.jenjang}${kelas.tingkat ? ` (${kelas.tingkat})` : ""}` : "";
 
   const [pendaftaranRows, anakRows, hasilRows, jadwalRows] = await Promise.all([

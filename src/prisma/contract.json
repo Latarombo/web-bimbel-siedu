@@ -24,10 +24,6 @@
       "model": "Kelas",
       "namespace": "public"
     },
-    "mata_pelajaran": {
-      "model": "MataPelajaran",
-      "namespace": "public"
-    },
     "pembayaran": {
       "model": "Pembayaran",
       "namespace": "public"
@@ -385,6 +381,13 @@
         "models": {
           "Anak": {
             "fields": {
+              "alamat": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -392,7 +395,7 @@
                   "kind": "scalar"
                 }
               },
-              "emailNotifikasi": {
+              "email": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
@@ -496,11 +499,14 @@
             },
             "storage": {
               "fields": {
+                "alamat": {
+                  "column": "alamat"
+                },
                 "createdAt": {
                   "column": "created_at"
                 },
-                "emailNotifikasi": {
-                  "column": "email_notifikasi"
+                "email": {
+                  "column": "email"
                 },
                 "id": {
                   "column": "id"
@@ -818,6 +824,13 @@
                   "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
+              },
+              "tempat": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
               }
             },
             "relations": {
@@ -868,6 +881,9 @@
                 },
                 "kelasId": {
                   "column": "kelas_id"
+                },
+                "tempat": {
+                  "column": "tempat"
                 }
               },
               "namespaceId": "public",
@@ -945,10 +961,17 @@
                   "kind": "scalar"
                 }
               },
-              "mataPelajaranId": {
+              "mapel": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "nama": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               },
@@ -1032,21 +1055,6 @@
                   "namespace": "public"
                 }
               },
-              "mataPelajaran": {
-                "cardinality": "N:1",
-                "on": {
-                  "localFields": [
-                    "mataPelajaranId"
-                  ],
-                  "targetFields": [
-                    "id"
-                  ]
-                },
-                "to": {
-                  "model": "MataPelajaran",
-                  "namespace": "public"
-                }
-              },
               "pendaftaran": {
                 "cardinality": "1:N",
                 "on": {
@@ -1122,8 +1130,11 @@
                 "kuotaTerisi": {
                   "column": "kuota_terisi"
                 },
-                "mataPelajaranId": {
-                  "column": "mata_pelajaran_id"
+                "mapel": {
+                  "column": "mapel"
+                },
+                "nama": {
+                  "column": "nama"
                 },
                 "periodeId": {
                   "column": "periode_id"
@@ -1146,83 +1157,6 @@
               },
               "namespaceId": "public",
               "table": "kelas"
-            }
-          },
-          "MataPelajaran": {
-            "fields": {
-              "createdAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              },
-              "deskripsi": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
-              },
-              "nama": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
-              "updatedAt": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "kind": "scalar"
-                }
-              }
-            },
-            "relations": {
-              "kelas": {
-                "cardinality": "1:N",
-                "on": {
-                  "localFields": [
-                    "id"
-                  ],
-                  "targetFields": [
-                    "mataPelajaranId"
-                  ]
-                },
-                "to": {
-                  "model": "Kelas",
-                  "namespace": "public"
-                }
-              }
-            },
-            "storage": {
-              "fields": {
-                "createdAt": {
-                  "column": "created_at"
-                },
-                "deskripsi": {
-                  "column": "deskripsi"
-                },
-                "id": {
-                  "column": "id"
-                },
-                "nama": {
-                  "column": "nama"
-                },
-                "updatedAt": {
-                  "column": "updated_at"
-                }
-              },
-              "namespaceId": "public",
-              "table": "mata_pelajaran"
             }
           },
           "Pembayaran": {
@@ -3054,14 +2988,19 @@
             "anak": {
               "checks": [
                 {
+                  "expression": "alamat IS NULL OR length(alamat) <= 500",
+                  "name": "anak_alamat_len_4f61cabf",
+                  "prefix": "anak_alamat_len"
+                },
+                {
                   "expression": "tanggal_lahir <= CURRENT_DATE",
                   "name": "anak_dob_not_future_661a6c61",
                   "prefix": "anak_dob_not_future"
                 },
                 {
-                  "expression": "email_notifikasi IS NULL OR length(email_notifikasi) <= 255",
-                  "name": "anak_email_notif_len_62e5eb95",
-                  "prefix": "anak_email_notif_len"
+                  "expression": "email IS NULL OR length(email) <= 255",
+                  "name": "anak_email_len_8c6ae839",
+                  "prefix": "anak_email_len"
                 },
                 {
                   "expression": "\"jenjang_terakhir\" IN ('TK', 'SD', 'SMP', 'SMA')",
@@ -3085,6 +3024,11 @@
                 }
               ],
               "columns": {
+                "alamat": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
+                },
                 "created_at": {
                   "codecId": "pg/timestamptz-string@1",
                   "default": {
@@ -3094,7 +3038,7 @@
                   "nativeType": "timestamptz",
                   "nullable": false
                 },
-                "email_notifikasi": {
+                "email": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
                   "nullable": true
@@ -3460,6 +3404,11 @@
                   "expression": "jam_mulai < jam_selesai",
                   "name": "jadwal_item_jam_range_20bc40a8",
                   "prefix": "jadwal_item_jam_range"
+                },
+                {
+                  "expression": "tempat IS NULL OR length(tempat) <= 150",
+                  "name": "jadwal_tempat_len_09599b24",
+                  "prefix": "jadwal_tempat_len"
                 }
               ],
               "columns": {
@@ -3497,6 +3446,11 @@
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
                   "nullable": false
+                },
+                "tempat": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": true
                 }
               },
               "foreignKeys": [
@@ -3578,6 +3532,16 @@
                   "expression": "kuota_terisi <= kuota_maksimum",
                   "name": "kelas_kuota_terisi_e8fa8168",
                   "prefix": "kelas_kuota_terisi"
+                },
+                {
+                  "expression": "length(mapel) <= 100",
+                  "name": "kelas_mapel_len_d9120fb6",
+                  "prefix": "kelas_mapel_len"
+                },
+                {
+                  "expression": "length(nama) <= 120",
+                  "name": "kelas_nama_len_96c4b68a",
+                  "prefix": "kelas_nama_len"
                 },
                 {
                   "expression": "ruangan IS NULL OR length(ruangan) <= 50",
@@ -3669,9 +3633,14 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
-                "mata_pelajaran_id": {
-                  "codecId": "pg/int4@1",
-                  "nativeType": "int4",
+                "mapel": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "nama": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
                   "nullable": false
                 },
                 "periode_id": {
@@ -3720,23 +3689,6 @@
                 }
               },
               "foreignKeys": [
-                {
-                  "onDelete": "restrict",
-                  "source": {
-                    "columns": [
-                      "mata_pelajaran_id"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "kelas"
-                  },
-                  "target": {
-                    "columns": [
-                      "id"
-                    ],
-                    "namespaceId": "public",
-                    "tableName": "mata_pelajaran"
-                  }
-                },
                 {
                   "onDelete": "restrict",
                   "source": {
@@ -3791,10 +3743,10 @@
                 },
                 {
                   "columns": [
-                    "mata_pelajaran_id"
+                    "mapel"
                   ],
-                  "name": "kelas_mata_pelajaran_id_idx_2f899638",
-                  "prefix": "kelas_mata_pelajaran_id_idx",
+                  "name": "kelas_mapel_idx_39bfe6d2",
+                  "prefix": "kelas_mapel_idx",
                   "unique": false
                 },
                 {
@@ -3829,73 +3781,6 @@
                 ]
               },
               "uniques": []
-            },
-            "mata_pelajaran": {
-              "checks": [
-                {
-                  "expression": "deskripsi IS NULL OR length(deskripsi) <= 500",
-                  "name": "mapel_deskripsi_len_d8e96230",
-                  "prefix": "mapel_deskripsi_len"
-                },
-                {
-                  "expression": "length(nama) <= 100",
-                  "name": "mapel_nama_len_0ee8313e",
-                  "prefix": "mapel_nama_len"
-                }
-              ],
-              "columns": {
-                "created_at": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "timestamptz",
-                  "nullable": false
-                },
-                "deskripsi": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": true
-                },
-                "id": {
-                  "codecId": "pg/int4@1",
-                  "default": {
-                    "expression": "autoincrement()",
-                    "kind": "function"
-                  },
-                  "nativeType": "int4",
-                  "nullable": false
-                },
-                "nama": {
-                  "codecId": "pg/text@1",
-                  "nativeType": "text",
-                  "nullable": false
-                },
-                "updated_at": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "default": {
-                    "expression": "now()",
-                    "kind": "function"
-                  },
-                  "nativeType": "timestamptz",
-                  "nullable": false
-                }
-              },
-              "foreignKeys": [],
-              "indexes": [],
-              "primaryKey": {
-                "columns": [
-                  "id"
-                ]
-              },
-              "uniques": [
-                {
-                  "columns": [
-                    "nama"
-                  ]
-                }
-              ]
             },
             "pembayaran": {
               "checks": [
@@ -5773,7 +5658,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "3469d0712c58d96e339567963a2be40eea61c17aa264e9da36d0417ed6838ef4"
+    "storageHash": "c008938cf5ae112f0ba4822fd8c6049eefb98e767e1ff3456c58ef89e476129e"
   },
   "capabilities": {
     "postgres": {

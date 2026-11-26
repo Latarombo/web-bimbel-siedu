@@ -28,8 +28,6 @@ export default async function TeacherGrades({
     db.orm.public.Kelas.where((k) => k.guruId.eq(guruId)).all(),
   );
   const kelasIds = new Set(kelas.map((k) => k.id));
-  const mapel = await collect(db.orm.public.MataPelajaran.all());
-  const mapelById = new Map(mapel.map((m) => [m.id, m]));
   const kelasById = new Map(kelas.map((k) => [k.id, k]));
 
   // 2. Fetch enrollments, students, and grading records
@@ -58,7 +56,6 @@ export default async function TeacherGrades({
     .map((p) => {
       const hList = hasilByPenilaian.get(p.id) ?? [];
       const k = kelasById.get(p.kelasId);
-      const m = k ? mapelById.get(k.mataPelajaranId) : null;
       const countDinilai = hList.filter((x) => x.statusHasil === "dinilai").length;
       const countTidakIkut = hList.filter((x) => x.statusHasil === "tidak_ikut").length;
       const countBelum = hList.filter((x) => x.statusHasil === "belum_dinilai").length;
@@ -67,7 +64,7 @@ export default async function TeacherGrades({
         id: p.id,
         nama: p.nama,
         kelasId: p.kelasId,
-        kelasNama: m?.nama ?? `Kelas #${p.kelasId}`,
+        kelasNama: k ? (k.mapel || k.nama) : `Kelas #${p.kelasId}`,
         jenjang: k?.jenjang ?? "SD",
         tingkat: k?.tingkat,
         tanggal: p.tanggal,
@@ -100,7 +97,6 @@ export default async function TeacherGrades({
       (h) => h.statusHasil === "dinilai" && h.nilai != null,
     );
     const k = kelas.find((x) => x.id === p.kelasId);
-    const m = k ? mapelById.get(k.mataPelajaranId) : null;
 
     // Normalisasi skala 100 per tugas terbit (status tidak_ikut dikecualikan dari pembagi)
     const skor100 = dinilaiList.map((h) => {
@@ -125,7 +121,7 @@ export default async function TeacherGrades({
       anakId: p.anakId,
       nama: anak?.nama ?? `Siswa #${p.anakId}`,
       kelasId: p.kelasId ?? 0,
-      kelasNama: m?.nama ?? `Kelas #${p.kelasId}`,
+      kelasNama: k ? (k.mapel || k.nama) : `Kelas #${p.kelasId}`,
       jenjang: k?.jenjang ?? "SD",
       tingkat: k?.tingkat,
       jumlahNilai: dinilaiList.length,
@@ -147,15 +143,12 @@ export default async function TeacherGrades({
   };
 
   // 7. Class options for filter dropdown
-  const classOptions: ClassFilterOption[] = kelas.map((k) => {
-    const m = mapelById.get(k.mataPelajaranId);
-    return {
-      id: k.id,
-      nama: m?.nama ?? `Kelas #${k.id}`,
-      jenjang: k.jenjang,
-      tingkat: k.tingkat,
-    };
-  });
+  const classOptions: ClassFilterOption[] = kelas.map((k) => ({
+    id: k.id,
+    nama: k.mapel || k.nama || `Kelas #${k.id}`,
+    jenjang: k.jenjang,
+    tingkat: k.tingkat,
+  }));
 
   return (
     <TeacherGradesView

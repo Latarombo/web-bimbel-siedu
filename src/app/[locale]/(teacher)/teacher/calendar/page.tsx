@@ -48,9 +48,8 @@ export default async function TeacherCalendarPage() {
     );
   }
 
-  const [periodeList, mapelList, jadwalList, pendaftaranList, presensiList, penilaianList] = await Promise.all([
+  const [periodeList, jadwalList, pendaftaranList, presensiList, penilaianList] = await Promise.all([
     collect(db.orm.public.PeriodePendaftaran.where((p) => p.id.in(kelasList.map((k) => k.periodeId))).all()),
-    collect(db.orm.public.MataPelajaran.all()),
     collect(db.orm.public.JadwalItem.where((j) => j.kelasId.in(kelasIds)).all()),
     collect(db.orm.public.Pendaftaran.where((p) => p.kelasId.in(kelasIds)).all()),
     collect(db.orm.public.Presensi.where((x) => x.dicatatOleh.eq(guruId)).all()),
@@ -65,7 +64,6 @@ export default async function TeacherCalendarPage() {
     : [];
 
   const periodeMap = new Map(periodeList.map((p) => [p.id, p]));
-  const mapelMap = new Map(mapelList.map((m) => [m.id, m.nama]));
   const storedBySlotAndDate = new Map(
     storedSessions.map((s) => [`${s.jadwalItemId}:${s.tanggalPertemuan}`, s]),
   );
@@ -124,7 +122,7 @@ export default async function TeacherCalendarPage() {
       })),
     ];
 
-    const namaMapel = mapelMap.get(k.mataPelajaranId) ?? t("class");
+    const namaMapel = k.mapel || k.nama || t("class");
     const formatTingkat = k.tingkat
       ? (k.tingkat.toLowerCase().startsWith("kelas") ? k.tingkat : `Kelas ${k.tingkat}`)
       : null;
@@ -180,7 +178,7 @@ export default async function TeacherCalendarPage() {
   });
 
   const classOptions: ClassOption[] = kelasList.map((k) => {
-    const namaMapel = mapelMap.get(k.mataPelajaranId) ?? t("class");
+    const namaMapel = k.mapel || k.nama || t("class");
     const formatTingkat = k.tingkat
       ? (k.tingkat.toLowerCase().startsWith("kelas") ? k.tingkat : `Kelas ${k.tingkat}`)
       : null;

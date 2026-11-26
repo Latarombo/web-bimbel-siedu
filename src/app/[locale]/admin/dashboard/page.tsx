@@ -17,45 +17,19 @@ import {
     PaymentStatusChart,
     type StatusSlice,
 } from '@/components/admin/payment-status-chart';
+import { Panel } from '@/components/admin/ui';
+import { ArrowUpRight } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
 /*
- * Dashboard admin — gaya dashboard eksplisit, TIDAK terpaku token globals.css:
- * kanvas slate-50 (layout), kartu putih border slate-200 + shadow nyata,
- * sub-wadah lapis slate-50 supaya ada kedalaman di atas kartu putih.
- * Kelas Tailwind literal, bukan border-border/bg-surface yang di putih murni
- * jadi tak terlihat (audit computed-style 13 Sep).
+ * Dashboard admin — menyelaraskan bahasa desain dengan dashboard guru:
+ * header bersih + tanggal, KPI tanpa border-top warna, grid 12 kolom,
+ * quick actions, dan antrean flat list. Token dark:* disiapkan untuk
+ * saat mode gelap diaktifkan.
  */
 
-// Konvensi DESIGN.md: top border 4px per kategori kartu dashboard.
-type Kategori = 'akademik' | 'keuangan' | 'perhatian';
-const BORDER: Record<Kategori, string> = {
-    akademik: 'border-t-blue-600',
-    keuangan: 'border-t-emerald-500',
-    perhatian: 'border-t-amber-500',
-};
-
-// Kartu dasar dashboard — div biasa (Card ui/ memo rankainya template literal,
-// override shadow/radius dari luar tidak andal), radius & shadow mengikuti
-// skala DESIGN.md (16px, shadow-1/2) tapi dengan border slate-200 yang nyata.
-function Panel({
-    children,
-    className = '',
-}: {
-    children: React.ReactNode;
-    className?: string;
-}) {
-    return (
-        <div
-            className={`rounded-2xl border border-slate-200 bg-white shadow-[0_1px_3px_0_rgba(15,23,42,0.10),0_4px_12px_-6px_rgba(15,23,42,0.08)] ${className}`}
-        >
-            {children}
-        </div>
-    );
-}
-
-// Ikon feather-style inline — nol dependency (hanya untuk status kritis/peringatan).
+// Ikon feather-style inline — hanya untuk status kritis/peringatan.
 function Icon({ d, className }: { d: string; className: string }) {
     return (
         <svg
@@ -78,6 +52,30 @@ const P = {
 };
 
 const STATUS_AKTIF = ['menunggu_pembayaran', 'terdaftar', 'tertunggak'];
+
+// Warna hover per pintasan aksi — kelas literal agar terbaca Tailwind.
+const QUICK_TONE = {
+    blue: {
+        card: 'hover:border-blue-300 hover:bg-blue-50/40 dark:hover:border-blue-800 dark:hover:bg-blue-950/20',
+        arrow: 'group-hover:text-blue-500',
+        label: 'group-hover:text-blue-700 dark:group-hover:text-blue-400',
+    },
+    amber: {
+        card: 'hover:border-amber-300 hover:bg-amber-50/40 dark:hover:border-amber-800 dark:hover:bg-amber-950/20',
+        arrow: 'group-hover:text-amber-500',
+        label: 'group-hover:text-amber-700 dark:group-hover:text-amber-400',
+    },
+    emerald: {
+        card: 'hover:border-emerald-300 hover:bg-emerald-50/40 dark:hover:border-emerald-800 dark:hover:bg-emerald-950/20',
+        arrow: 'group-hover:text-emerald-500',
+        label: 'group-hover:text-emerald-700 dark:group-hover:text-emerald-400',
+    },
+    indigo: {
+        card: 'hover:border-indigo-300 hover:bg-indigo-50/40 dark:hover:border-indigo-800 dark:hover:bg-indigo-950/20',
+        arrow: 'group-hover:text-indigo-500',
+        label: 'group-hover:text-indigo-700 dark:group-hover:text-indigo-400',
+    },
+} as const;
 
 // "YYYY-MM-DD" (DateString) → Date WIB tengah malam; aman untuk selisih hari.
 function tanggalWIB(s: string): Date {
@@ -107,7 +105,6 @@ export default async function AdminDashboard() {
         periode,
         pesanBaru,
         anak,
-        mapel,
     ] = await Promise.all([
         collect(db.orm.public.User.all()),
         collect(db.orm.public.Kelas.all()),
@@ -122,7 +119,6 @@ export default async function AdminDashboard() {
             db.orm.public.PesanKontak.where((p) => p.status.eq('baru')).all(),
         ),
         collect(db.orm.public.Anak.all()),
-        collect(db.orm.public.MataPelajaran.all()),
     ]);
 
     const now = new Date();
@@ -167,7 +163,6 @@ export default async function AdminDashboard() {
         value: string;
         sub: React.ReactNode;
         href: string | null;
-        kategori: Kategori;
         bar?: number;
     }[] = [
         {
@@ -175,14 +170,12 @@ export default async function AdminDashboard() {
             value: String(nSiswaAktif),
             sub: t('childrenTotal', { count: anak.length }),
             href: '/admin/enrollments?status=terdaftar',
-            kategori: 'akademik',
         },
         {
             label: t('text10'),
             value: String(nGuru),
             sub: t('teachingActive', { count: kelasAktif.length }),
             href: '/admin/teachers',
-            kategori: 'akademik',
         },
         {
             label: t('text16'),
@@ -193,7 +186,6 @@ export default async function AdminDashboard() {
                 total: kuotaTotal,
             }),
             href: '/admin/classes?status=aktif',
-            kategori: 'akademik',
             bar: pctKuota,
         },
         {
@@ -201,7 +193,6 @@ export default async function AdminDashboard() {
             value: String(bulanIni),
             sub: t('lastMonth', { count: bulanLalu }),
             href: '/admin/enrollments',
-            kategori: 'akademik',
         },
         {
             label: t('text18'),
@@ -210,7 +201,6 @@ export default async function AdminDashboard() {
             ),
             sub: t('successfulPayments', { count: bayarBerhasil.length }),
             href: '/admin/reports',
-            kategori: 'keuangan',
         },
     ];
 
@@ -276,6 +266,38 @@ export default async function AdminDashboard() {
             },
         ];
 
+    const quickActions: {
+        label: string;
+        desc: string;
+        href: string;
+        tone: keyof typeof QUICK_TONE;
+    }[] = [
+        {
+            label: t('quickNewClass'),
+            desc: t('quickNewClassDesc'),
+            href: '/admin/classes/new',
+            tone: 'blue',
+        },
+        {
+            label: t('quickEnrollments'),
+            desc: t('quickEnrollmentsDesc'),
+            href: '/admin/enrollments',
+            tone: 'amber',
+        },
+        {
+            label: t('quickTeachers'),
+            desc: t('quickTeachersDesc'),
+            href: '/admin/teachers',
+            tone: 'emerald',
+        },
+        {
+            label: t('quickReports'),
+            desc: t('quickReportsDesc'),
+            href: '/admin/reports',
+            tone: 'indigo',
+        },
+    ];
+
     // Periode dibuka terdekat — hitung hari nyata ke tanggal tutup pendaftaran.
     const periodeTerkini = periode
         .map((p) => ({
@@ -291,7 +313,6 @@ export default async function AdminDashboard() {
     // Tabel pendaftaran terbaru — 6 baris terakhir (ReactNode sel dirender server).
     const anakById = new Map(anak.map((a) => [a.id, a]));
     const kelasById = new Map(kelas.map((k) => [k.id, k]));
-    const mapelById = new Map(mapel.map((m) => [m.id, m]));
     const terbaru = pendaftaran
         .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
         .slice(0, 6);
@@ -304,7 +325,7 @@ export default async function AdminDashboard() {
     const rows: TableRowData[] = terbaru.map((p) => {
         const a = anakById.get(p.anakId);
         const k = kelasById.get(p.kelasId);
-        const mapelNama = mapelById.get(k?.mataPelajaranId ?? 0)?.nama ?? "—";
+        const mapelNama = k?.nama || k?.mapel || "—";
         return {
             id: p.id,
             values: {
@@ -316,10 +337,10 @@ export default async function AdminDashboard() {
             cells: {
                 anak: (
                     <span className="flex items-center gap-2.5">
-                        <span className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full bg-blue-50 text-[11px] font-bold leading-none text-blue-700">
+                        <span className="grid h-7 w-7 flex-shrink-0 place-items-center rounded-full bg-blue-50 text-[11px] font-bold leading-none text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
                             {(a?.nama ?? '?').slice(0, 1).toUpperCase()}
                         </span>
-                        <span className="font-semibold text-slate-900">
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">
                             {a?.nama ?? t('childFallback', { id: p.anakId })}
                         </span>
                     </span>
@@ -327,11 +348,11 @@ export default async function AdminDashboard() {
                 kelas: (
                     <Link
                         href={`/admin/classes/${p.kelasId}`}
-                        className="font-medium text-slate-700 hover:text-blue-700 hover:underline"
+                        className="font-medium text-slate-700 hover:text-blue-700 hover:underline dark:text-slate-300 dark:hover:text-blue-400"
                     >
                         {mapelNama}
                         {k ? (
-                            <span className="text-slate-500">
+                            <span className="text-slate-500 dark:text-slate-400">
                                 {' '}
                                 · {k.jenjang}
                             </span>
@@ -339,7 +360,7 @@ export default async function AdminDashboard() {
                     </Link>
                 ),
                 createdAt: (
-                    <span className="text-slate-500 tabular-nums">
+                    <span className="text-slate-500 tabular-nums dark:text-slate-400">
                         {new Date(p.createdAt).toLocaleDateString(
                             locale === 'en' ? 'en-GB' : 'id-ID',
                             {
@@ -356,101 +377,92 @@ export default async function AdminDashboard() {
         };
     });
 
+    const tanggalLengkap = now.toLocaleDateString(
+        locale === 'en' ? 'en-US' : 'id-ID',
+        {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            timeZone: 'Asia/Jakarta',
+        },
+    );
+
+    const periodeInfo = periodeTerkini ? (
+        <>
+            {t('periodLabel')}:{' '}
+            <span className="font-medium text-slate-600 dark:text-slate-300">
+                {periodeTerkini.p.nama}
+            </span>{' '}
+            ·{' '}
+            {periodeTerkini.sisa > 30 ? (
+                t('closesIn', { days: periodeTerkini.sisa })
+            ) : periodeTerkini.sisa > 0 ? (
+                <span className="font-medium text-amber-600 dark:text-amber-400">
+                    {t('closesSoon', { days: periodeTerkini.sisa })}
+                </span>
+            ) : periodeTerkini.sisa === 0 ? (
+                <span className="font-medium text-amber-600 dark:text-amber-400">
+                    {t('text37')}
+                </span>
+            ) : (
+                t('closedAgo', { days: Math.abs(periodeTerkini.sisa) })
+            )}
+        </>
+    ) : (
+        <>
+            {t('text38')}{' '}
+            <Link
+                href="/admin/periods"
+                className="font-semibold text-blue-600 hover:underline dark:text-blue-400"
+            >
+                {t('text39')}
+            </Link>
+        </>
+    );
+
     return (
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-            {/* HEADER + konteks periode + aksi cepat */}
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+            {/* HEADER — judul bersih + tanggal + konteks periode + 1 CTA utama */}
+            <div className="flex flex-col gap-4 border-b border-slate-200 pb-4 dark:border-slate-800 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                    <h1 className="font-display text-2xl font-extrabold tracking-tight text-balance text-slate-900 sm:text-[26px]">
-                        {t('text33')}{' '}
+                    <h1 className="font-display text-2xl font-bold tracking-tight text-balance text-slate-950 dark:text-slate-50 sm:text-3xl">
+                        {t('dashboardTitle')}
                     </h1>
-                    <p className="mt-1 text-sm text-slate-500">{t('text34')}</p>
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-400 sm:text-sm">
+                        {tanggalLengkap}
+                    </p>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        {periodeInfo}
+                    </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-shrink-0">
                     <ButtonLink
                         href={getPathname({
                             href: '/admin/classes/new',
                             locale,
                         })}
-                        variant="outline"
                         size="sm"
                     >
-                        {t('text35')}{' '}
-                    </ButtonLink>
-                    <ButtonLink
-                        href={getPathname({ href: '/admin/reports', locale })}
-                        size="sm"
-                    >
-                        {t('text36')}{' '}
+                        {t('text35')}
                     </ButtonLink>
                 </div>
             </div>
 
-            {/* STRIP STATUS PERIODE — bar gelap tipis sebagai jangkar visual halaman */}
-            <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-xl bg-slate-900 px-4 py-3 text-sm text-slate-300">
-                {periodeTerkini ? (
-                    <>
-                        <span className="font-semibold text-white">
-                            {periodeTerkini.p.nama}
-                        </span>
-                        <span aria-hidden="true" className="text-slate-600">
-                            ·
-                        </span>
-                        {periodeTerkini.sisa > 30 ? (
-                            <span>
-                                {t('closesIn', { days: periodeTerkini.sisa })}
-                            </span>
-                        ) : periodeTerkini.sisa > 0 ? (
-                            <span className="font-semibold text-amber-300">
-                                {t('closesSoon', { days: periodeTerkini.sisa })}
-                            </span>
-                        ) : periodeTerkini.sisa === 0 ? (
-                            <span className="font-semibold text-amber-300">
-                                {t('text37')}
-                            </span>
-                        ) : (
-                            <span className="text-slate-600">
-                                {t('closedAgo', {
-                                    days: Math.abs(periodeTerkini.sisa),
-                                })}
-                            </span>
-                        )}
-                        <span aria-hidden="true" className="text-slate-600">
-                            ·
-                        </span>
-                        <span>
-                            {t('activeEnrollmentsCount', {
-                                count: daftarAktif.length,
-                            })}
-                        </span>
-                    </>
-                ) : (
-                    <>
-                        <span>{t('text38')}</span>
-                        <Link
-                            href="/admin/periods"
-                            className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-white/20"
-                        >
-                            {t('text39')}{' '}
-                        </Link>
-                    </>
-                )}
-            </div>
-
-            {/* BANNER perlu perhatian — actionable, angka nyata */}
+            {/* BANNER perlu perhatian — ringan, actionable */}
             {perluTindakan > 0 ? (
-                <Panel className="mt-4 border-amber-300 bg-amber-50 shadow-none">
-                    <div className="flex flex-col items-start justify-between gap-3 p-4 sm:p-5 sm:flex-row sm:items-center">
+                <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-900/50 dark:bg-amber-950/30">
+                    <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
                         <div className="flex items-start gap-3">
                             <Icon
                                 d={P.alert}
-                                className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600"
+                                className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400"
                             />
                             <div>
-                                <p className="text-sm font-bold text-amber-900">
+                                <p className="text-sm font-bold text-amber-900 dark:text-amber-200">
                                     {t('actionCount', { count: perluTindakan })}
                                 </p>
-                                <p className="mt-0.5 text-sm text-amber-800">
+                                <p className="mt-0.5 text-sm text-amber-800 dark:text-amber-300/90">
                                     {[
                                         nTunggakan > 0
                                             ? t('overdueCount', {
@@ -473,58 +485,52 @@ export default async function AdminDashboard() {
                                 </p>
                             </div>
                         </div>
-                        <div className="flex flex-shrink-0 flex-wrap gap-2">
-                            <Link
-                                href="/admin/enrollments/flagged"
-                                className="rounded-lg bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-amber-600"
-                            >
-                                {t('text40')}{' '}
-                            </Link>
-                        </div>
+                        <Link
+                            href="/admin/enrollments/flagged"
+                            className="flex-shrink-0 rounded-lg bg-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-500"
+                        >
+                            {t('text40')}
+                        </Link>
                     </div>
-                </Panel>
+                </div>
             ) : null}
 
-            {/* KPI CARDS */}
-            <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {/* KPI CARDS — label uppercase kecil, angka besar, tanpa border warna */}
+            <ul className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
                 {stats.map((s) => {
                     const cardContent = (
-                        <Panel
-                            className={`h-full border-t-4 ${BORDER[s.kategori]} transition-shadow hover:shadow-[0_4px_12px_-2px_rgba(15,23,42,0.1)]`}
-                        >
-                            <div className="flex h-full flex-col p-4 sm:p-5">
-                                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors group-hover:text-blue-700">
-                                    {s.label}
-                                </p>
-                                <p className="mt-3 font-display text-2xl font-extrabold leading-none tracking-tight tabular-nums text-slate-900 sm:text-[28px]">
-                                    {s.value}
-                                </p>
-                                {s.bar !== undefined ? (
-                                    <div
-                                        className="mt-2"
-                                        role="progressbar"
-                                        aria-valuenow={s.bar}
-                                        aria-valuemin={0}
-                                        aria-valuemax={100}
-                                        aria-label={t('text42')}
-                                    >
-                                        <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-                                            <div
-                                                className="h-full rounded-full bg-blue-600"
-                                                style={{
-                                                    width: `${Math.max(0, Math.min(100, s.bar))}%`,
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                ) : null}
-                                <p
-                                    className={`text-xs text-slate-500 ${s.bar !== undefined ? 'mt-1.5' : 'mt-auto pt-2'}`}
+                        <div className="flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white p-4 shadow-2xs transition-shadow hover:shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-6">
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                {s.label}
+                            </p>
+                            <p className="mt-3 font-display text-2xl font-extrabold leading-none tracking-tight tabular-nums text-slate-950 dark:text-white sm:text-3xl">
+                                {s.value}
+                            </p>
+                            {s.bar !== undefined ? (
+                                <div
+                                    className="mt-2"
+                                    role="progressbar"
+                                    aria-valuenow={s.bar}
+                                    aria-valuemin={0}
+                                    aria-valuemax={100}
+                                    aria-label={t('text42')}
                                 >
-                                    {s.sub}
-                                </p>
-                            </div>
-                        </Panel>
+                                    <div className="h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                                        <div
+                                            className="h-full rounded-full bg-blue-600 dark:bg-blue-500"
+                                            style={{
+                                                width: `${Math.max(0, Math.min(100, s.bar))}%`,
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            ) : null}
+                            <p
+                                className={`text-xs text-slate-500 dark:text-slate-400 ${s.bar !== undefined ? 'mt-1.5' : 'mt-auto pt-2'}`}
+                            >
+                                {s.sub}
+                            </p>
+                        </div>
                     );
 
                     return (
@@ -547,22 +553,23 @@ export default async function AdminDashboard() {
                 })}
             </ul>
 
-            {/* Grid dua kolom: kiri = TREN + TABEL (tumpuk), kanan = DONUT + ANTREAN */}
-            <div className="mt-4 grid items-start gap-4 lg:grid-cols-3">
-                <div className="flex flex-col gap-4 lg:col-span-2">
+            {/* GRID 12 KOLOM: kiri alur operasional (8), kanan panel ringkas (4) */}
+            <div className="mt-4 grid items-start gap-4 lg:grid-cols-12 lg:gap-6">
+                <div className="flex flex-col gap-4 lg:col-span-8 lg:gap-6">
+                    {/* Tren pendaftaran + stat cards */}
                     <Panel>
                         <div className="p-4 sm:p-6">
                             <div className="flex items-start justify-between gap-2">
                                 <div>
-                                    <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
+                                    <h2 className="font-display text-base font-bold tracking-tight text-slate-950 dark:text-slate-50">
                                         {t('text43')}
                                     </h2>
-                                    <p className="text-xs text-slate-500">
+                                    <p className="text-xs text-slate-600 dark:text-slate-400">
                                         {t('text44')}
                                     </p>
                                 </div>
                                 {bulanIni > bulanLalu ? (
-                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200">
+                                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900">
                                         {t('monthIncrease', {
                                             count: bulanIni - bulanLalu,
                                         })}
@@ -577,29 +584,29 @@ export default async function AdminDashboard() {
                                     }))}
                                 />
                             </div>
-                            {/* Sub-metri di bawah sumbu — lapis slate-50 supaya terbaca di kartu putih */}
-                            <dl className="mt-4 grid grid-cols-3 divide-x divide-slate-200 rounded-xl border border-slate-200 bg-slate-50">
-                                <div className="px-4 py-3">
-                                    <dt className="text-xs text-slate-500">
+                            {/* Sub-metri — stat card kecil pola teacher */}
+                            <dl className="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+                                <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-800/40">
+                                    <dt className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                         {t('text45')}
                                     </dt>
-                                    <dd className="mt-1 font-display text-lg font-extrabold tabular-nums text-slate-900">
+                                    <dd className="mt-0.5 font-display text-lg font-extrabold tabular-nums text-slate-950 dark:text-white">
                                         {bulanIni}
                                     </dd>
                                 </div>
-                                <div className="px-4 py-3">
-                                    <dt className="text-xs text-slate-500">
+                                <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-800/40">
+                                    <dt className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                         {t('text46')}
                                     </dt>
-                                    <dd className="mt-1 font-display text-lg font-extrabold tabular-nums text-slate-900">
+                                    <dd className="mt-0.5 font-display text-lg font-extrabold tabular-nums text-slate-950 dark:text-white">
                                         {rata2Bulan}
                                     </dd>
                                 </div>
-                                <div className="px-4 py-3">
-                                    <dt className="text-xs text-slate-500">
+                                <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2.5 dark:border-slate-800 dark:bg-slate-800/40">
+                                    <dt className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                         {t('text47')}
                                     </dt>
-                                    <dd className="mt-1 font-display text-lg font-extrabold tabular-nums text-slate-900">
+                                    <dd className="mt-0.5 font-display text-lg font-extrabold tabular-nums text-slate-950 dark:text-white">
                                         {daftarAktif.length}
                                     </dd>
                                 </div>
@@ -607,15 +614,15 @@ export default async function AdminDashboard() {
                         </div>
                     </Panel>
 
-                    {/* PENDAFTARAN TERBARU — DataTable yang sama dengan halaman list lain */}
+                    {/* PENDAFTARAN TERBARU */}
                     <Panel>
                         <div className="p-4 sm:p-6">
                             <div className="flex items-center justify-between gap-2">
                                 <div>
-                                    <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
+                                    <h2 className="font-display text-base font-bold tracking-tight text-slate-950 dark:text-slate-50">
                                         {t('text48')}
                                     </h2>
-                                    <p className="text-xs text-slate-500">
+                                    <p className="text-xs text-slate-600 dark:text-slate-400">
                                         {t('text49')}
                                     </p>
                                 </div>
@@ -627,7 +634,7 @@ export default async function AdminDashboard() {
                                     variant="outline"
                                     size="sm"
                                 >
-                                    {t('text50')}{' '}
+                                    {t('text50')}
                                 </ButtonLink>
                             </div>
                             <div className="mt-4">
@@ -643,15 +650,43 @@ export default async function AdminDashboard() {
                             </div>
                         </div>
                     </Panel>
+
+                    {/* PINTASAN AKSI CEPAT */}
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+                        {quickActions.map((a) => {
+                            const tone = QUICK_TONE[a.tone];
+                            return (
+                                <Link
+                                    key={a.href}
+                                    href={a.href}
+                                    className={`group relative flex min-h-24 flex-col justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-2xs transition-all dark:border-slate-800 dark:bg-slate-900 ${tone.card}`}
+                                >
+                                    <ArrowUpRight
+                                        className={`absolute right-3 top-3 size-4 text-slate-300 transition-colors dark:text-slate-600 ${tone.arrow}`}
+                                        aria-hidden="true"
+                                    />
+                                    <span
+                                        className={`pr-6 text-sm font-bold text-slate-950 transition-colors dark:text-slate-50 ${tone.label}`}
+                                    >
+                                        {a.label}
+                                    </span>
+                                    <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                        {a.desc}
+                                    </span>
+                                </Link>
+                            );
+                        })}
+                    </div>
                 </div>
 
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 lg:col-span-4 lg:gap-6">
+                    {/* DONUT STATUS PEMBAYARAN */}
                     <Panel>
                         <div className="p-4 sm:p-6">
-                            <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
+                            <h2 className="font-display text-base font-bold tracking-tight text-slate-950 dark:text-slate-50">
                                 {t('text52')}
                             </h2>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-slate-600 dark:text-slate-400">
                                 {t('midtransCount', {
                                     count: pembayaran.length,
                                 })}
@@ -664,8 +699,8 @@ export default async function AdminDashboard() {
                                     />
                                 </div>
                             ) : (
-                                <div className="mt-4 flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center">
-                                    <p className="text-sm text-slate-500">
+                                <div className="mt-4 flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center dark:border-slate-700 dark:bg-slate-800/40">
+                                    <p className="text-sm text-slate-500 dark:text-slate-400">
                                         {t('text53')}
                                     </p>
                                     <ButtonLink
@@ -676,68 +711,77 @@ export default async function AdminDashboard() {
                                         variant="outline"
                                         size="sm"
                                     >
-                                        {t('text54')}{' '}
+                                        {t('text54')}
                                     </ButtonLink>
                                 </div>
                             )}
                         </div>
                     </Panel>
 
+                    {/* ANTREAN PERLU TINDAKAN — flat divide-y list */}
                     <Panel className="flex-1">
                         <div className="p-4 sm:p-6">
                             <div className="flex items-center justify-between gap-2">
-                                <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
-                                    {t('text55')}
+                                <h2 className="font-display text-base font-bold tracking-tight text-slate-950 dark:text-slate-50">
+                                    {t('actionQueueTitle')}
                                 </h2>
                                 {perluTindakan > 0 ? (
-                                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold tabular-nums text-amber-800">
+                                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold tabular-nums text-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
                                         {perluTindakan}
                                     </span>
                                 ) : null}
                             </div>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-slate-600 dark:text-slate-400">
                                 {t('text56')}
                             </p>
                             {antrean.every((a) => a.n === 0) ? (
-                                <div className="mt-4 flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center">
-                                    <p className="text-sm font-medium text-slate-600">
+                                <div className="mt-4 flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center dark:border-slate-700 dark:bg-slate-800/40">
+                                    <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
                                         {t('text57')}
                                     </p>
                                 </div>
                             ) : (
-                                <div className="mt-4 space-y-2">
-                                    {antrean.map((a) => (
-                                        <Link
-                                            key={a.label}
-                                            href={a.href}
-                                            className={`group flex items-start justify-between gap-3 rounded-xl border px-4 py-3 transition-colors ${
-                                                a.n > 0
-                                                    ? 'border-slate-200 bg-slate-50 hover:border-blue-300 hover:bg-blue-50/60'
-                                                    : 'border-slate-100 bg-white opacity-70'
-                                            }`}
-                                        >
-                                            <span className="min-w-0 flex-1">
-                                                <span className="block text-sm font-semibold leading-snug text-slate-800">
-                                                    {a.label}
-                                                </span>
-                                                <span className="mt-0.5 block text-xs leading-snug text-slate-500">
-                                                    {a.hint}
-                                                </span>
-                                            </span>
-                                            <span className="flex flex-shrink-0 items-center pt-0.5">
-                                                <span
-                                                    className={`rounded-full px-2.5 py-1 text-sm font-bold tabular-nums ${
-                                                        a.n > 0
-                                                            ? 'bg-amber-100 text-amber-800'
-                                                             : 'bg-slate-100 text-slate-600'
-                                                    }`}
+                                <>
+                                    <ul className="mt-3 divide-y divide-slate-100 dark:divide-slate-800">
+                                        {antrean.map((a) => (
+                                            <li key={a.label}>
+                                                <Link
+                                                    href={a.href}
+                                                    className="group flex items-center justify-between gap-3 rounded-lg px-2 py-3 transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/50"
                                                 >
-                                                    {a.n}
-                                                </span>
-                                            </span>
-                                        </Link>
-                                    ))}
-                                </div>
+                                                    <span className="min-w-0 flex-1">
+                                                        <span className="block text-sm font-semibold leading-snug text-slate-800 dark:text-slate-200">
+                                                            {a.label}
+                                                        </span>
+                                                        <span className="mt-0.5 block text-xs leading-snug text-slate-500 dark:text-slate-400">
+                                                            {a.hint}
+                                                        </span>
+                                                    </span>
+                                                    <span
+                                                        className={`flex-shrink-0 rounded-full px-2.5 py-1 text-sm font-bold tabular-nums ${
+                                                            a.n > 0
+                                                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300'
+                                                                : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                                                        }`}
+                                                    >
+                                                        {a.n}
+                                                    </span>
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    {antrean.some((a) => a.n > 0) ? (
+                                        <div className="mt-2 border-t border-slate-100 pt-3 dark:border-slate-800">
+                                            <Link
+                                                href="/admin/enrollments/flagged"
+                                                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                            >
+                                                {t('viewAllQueue')}
+                                                <ArrowUpRight className="size-3.5" />
+                                            </Link>
+                                        </div>
+                                    ) : null}
+                                </>
                             )}
                         </div>
                     </Panel>

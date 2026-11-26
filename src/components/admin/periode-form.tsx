@@ -10,12 +10,21 @@ const initial: AdminState = {};
 export default function PeriodeForm({
   periodeId,
   defaults,
+  onSuccess,
 }: {
   periodeId?: number;
   defaults?: { nama: string; tanggalMulai: string; tanggalSelesai: string; tanggalTutupPendaftaran: string; status: string };
+  onSuccess?: () => void;
 }) {
   const t = useTranslations("adminForms");
-  const [state, formAction, pending] = useActionState(savePeriode, initial);
+  const [state, formAction, pending] = useActionState(
+    async (prev: AdminState, formData: FormData) => {
+      const res = await savePeriode(prev, formData);
+      if (res.ok && !res.error && onSuccess) onSuccess();
+      return res;
+    },
+    initial,
+  );
   const err = (k: string) => state.fieldErrors?.[k];
   return (
     <form action={formAction} className="space-y-4" noValidate>

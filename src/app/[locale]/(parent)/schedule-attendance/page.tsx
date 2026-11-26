@@ -60,7 +60,7 @@ export default async function ScheduleAttendancePage({
 
     const pendaftaran = await collect(
         db.orm.public.Pendaftaran.include('kelas', (b) =>
-            b.select('id', 'mataPelajaranId', 'guruId', 'ruangan'),
+            b.select('id', 'nama', 'mapel', 'guruId', 'ruangan'),
         ).all(),
     );
     const pendaftaranAktifSemua = pendaftaran.filter(
@@ -74,24 +74,11 @@ export default async function ScheduleAttendancePage({
         ? pendaftaranAktifSemua.filter((p) => p.anakId === anakTerpilihId)
         : pendaftaranAktifSemua;
 
-    // Nama mapel + guru per kelas.
-    const mapelIds = [
-        ...new Set(milikSaya.map((p) => p.kelas.mataPelajaranId)),
-    ];
+    // Nama guru per kelas.
     const guruIds = [...new Set(milikSaya.map((p) => p.kelas.guruId))];
-    const [mapelRows, guruRows] = await Promise.all([
-        mapelIds.length
-            ? collect(
-                  db.orm.public.MataPelajaran.where((m) =>
-                      m.id.in(mapelIds),
-                  ).all(),
-              )
-            : Promise.resolve([]),
-        guruIds.length
-            ? collect(db.orm.public.User.where((u) => u.id.in(guruIds)).all())
-            : Promise.resolve([]),
-    ]);
-    const mapel = new Map(mapelRows.map((m) => [m.id, m.nama]));
+    const guruRows = guruIds.length
+        ? await collect(db.orm.public.User.where((u) => u.id.in(guruIds)).all())
+        : [];
     const guru = new Map(guruRows.map((g) => [g.id, g.name]));
 
     // Jadwal per kelas yang diikuti.
@@ -132,9 +119,9 @@ export default async function ScheduleAttendancePage({
         hari: j.hari,
         jamMulai: j.jamMulai,
         jamSelesai: j.jamSelesai,
-        mapel: mapel.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`,
+        mapel: p.kelas.mapel ?? `Kelas #${p.kelasId}`,
         guru: guru.get(p.kelas.guruId) ?? '-',
-        ruangan: p.kelas.ruangan,
+        ruangan: j.tempat ?? p.kelas.ruangan,
         anak: namaAnak.get(p.anakId) ?? tr('text162'),
         jenjang: p.jenjangSaatDaftar,
     }));
@@ -196,7 +183,7 @@ export default async function ScheduleAttendancePage({
             id: `${p.id}-${s.id}`,
             tanggal: s.tanggalPertemuan,
             status: s.status as 'hadir' | 'izin' | 'sakit' | 'alpa',
-            mapel: mapel.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`,
+            mapel: p.kelas.mapel ?? `Kelas #${p.kelasId}`,
             anak: namaAnak.get(p.anakId) ?? tr('text162'),
             catatan: s.catatan,
             materi: sesi && !sesi.catatanDraf ? sesi.catatanMateri : null,
@@ -224,7 +211,7 @@ export default async function ScheduleAttendancePage({
                 sesi,
                 anakNama: namaAnak.get(pend.anakId) ?? tr('text162'),
                 mapelNama:
-                    mapel.get(pend.kelas.mataPelajaranId) ??
+                    pend.kelas.mapel ??
                     `Kelas #${pend.kelasId}`,
             };
         })

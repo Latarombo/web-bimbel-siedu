@@ -11,6 +11,7 @@
 import * as React from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
+import { TablePagination } from '@/components/ui/table-pagination';
 
 export type TableColumn = {
     key: string;
@@ -46,6 +47,10 @@ export function DataTable({
     searchKeys,
     stickyLeft = true,
     stickyActions = true,
+    pagination = true,
+    pageSize = 10,
+    renderMobileCard,
+    mobileAdaptive = true,
 }: {
     columns: TableColumn[];
     rows: TableRowData[];
@@ -61,11 +66,25 @@ export function DataTable({
     stickyLeft?: boolean;
     /** Bekukan kolom aksi di sisi kanan saat scroll horizontal (default: true) */
     stickyActions?: boolean;
+    /** Aktifkan paginasi bawaan (default: true) */
+    pagination?: boolean;
+    /** Jumlah baris per halaman (default: 10) */
+    pageSize?: number;
+    /** Render kustom kartu mobile (< md) */
+    renderMobileCard?: (row: TableRowData, index: number) => React.ReactNode;
+    /** Otomatis beralih ke mobile card view di layar < md (default: true) */
+    mobileAdaptive?: boolean;
 }) {
     const t = useTranslations('shared.table');
     const locale = useLocale();
     const [sort, setSort] = React.useState(initialSort ?? null);
     const [q, setQ] = React.useState('');
+    const [page, setPage] = React.useState(1);
+
+    // Reset halaman saat pencarian berubah
+    React.useEffect(() => {
+        setPage(1);
+    }, [q]);
 
     const keys = React.useMemo(
         () =>
@@ -98,6 +117,11 @@ export function DataTable({
             return dir === 'asc' ? cmp : -cmp;
         });
     }, [filtered, sort, locale]);
+
+    const totalPages = pagination ? Math.max(1, Math.ceil(sorted.length / pageSize)) : 1;
+    const displayRows = pagination
+        ? sorted.slice((page - 1) * pageSize, page * pageSize)
+        : sorted;
 
     function toggleSort(key: string) {
         setSort((s) =>
@@ -166,218 +190,288 @@ export function DataTable({
                 aria-label={caption || 'Tabel data'}
                 className="max-h-[70dvh] overflow-auto overscroll-x-contain rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-hidden focus:ring-1 focus:ring-blue-600/30"
             >
-                <table className="w-full text-sm">
-                    <caption className="sr-only">
-                        {caption || 'Tabel data'}
-                    </caption>
-                    <thead>
-                        <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60">
-                            {columns.map((c, idx) => {
-                                const sortable =
-                                    c.sortable !== false &&
-                                    rows.some(
-                                        (r) => r.values[c.key] !== undefined,
-                                    );
-                                const isFirstSticky =
-                                    stickyLeft &&
-                                    (c.sticky === 'left' ||
-                                        (idx === 0 && c.sticky !== 'right'));
-                                const isLastSticky =
-                                    stickyActions &&
-                                    (c.sticky === 'right' ||
-                                        (c.key === 'aksi' &&
-                                            c.sticky !== 'left'));
-                                const stickyHeaderClass = isFirstSticky
-                                    ? 'sticky top-0 left-0 z-30 bg-slate-50 dark:bg-slate-800 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]'
-                                    : isLastSticky
-                                      ? 'sticky top-0 right-0 z-30 bg-slate-50 dark:bg-slate-800 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]'
-                                      : 'sticky top-0 z-10 bg-slate-50 dark:bg-slate-800/90';
-                                const alignClass =
-                                    c.align === 'right'
-                                        ? 'text-right'
-                                        : c.align === 'center'
-                                          ? 'text-center'
-                                          : 'text-left';
+                {/* Mobile Cards View (< md) */}
+                {mobileAdaptive ? (
+                    <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                        {displayRows.map((row, idx) => {
+                            if (renderMobileCard) {
                                 return (
-                                    <th
-                                        key={c.key}
-                                        scope="col"
-                                        tabIndex={sortable ? 0 : undefined}
-                                        role={sortable ? 'button' : undefined}
-                                        onKeyDown={
-                                            sortable
-                                                ? (e) => {
-                                                      if (
-                                                          e.key === 'Enter' ||
-                                                          e.key === ' '
-                                                      ) {
-                                                          e.preventDefault();
-                                                          toggleSort(c.key);
-                                                      }
-                                                  }
-                                                : undefined
-                                        }
-                                        className={cn(
-                                            'px-3 py-3 text-xs font-semibold whitespace-nowrap text-slate-600 dark:text-slate-300 sm:px-4',
-                                            stickyHeaderClass,
-                                            alignClass,
-                                            sortable &&
-                                                'cursor-pointer select-none hover:text-slate-900 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600',
-                                            c.className,
-                                        )}
-                                        onClick={
-                                            sortable
-                                                ? () => toggleSort(c.key)
-                                                : undefined
-                                        }
-                                        aria-sort={
-                                            sort?.key === c.key
-                                                ? sort.dir === 'asc'
-                                                    ? 'ascending'
-                                                    : 'descending'
-                                                : undefined
-                                        }
-                                    >
-                                        <span
-                                            className={cn(
-                                                'inline-flex items-center gap-1.5',
-                                                c.align === 'right' &&
-                                                    'justify-end',
-                                                c.align === 'center' &&
-                                                    'justify-center',
-                                            )}
-                                        >
-                                            {c.header}
-                                            {sortable ? (
-                                                <svg
-                                                    aria-hidden="true"
-                                                    viewBox="0 0 12 12"
-                                                    className={`size-3 ${sort?.key === c.key ? 'text-blue-600 dark:text-blue-400' : 'text-slate-300 dark:text-slate-600'}`}
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    strokeWidth="1.8"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                >
-                                                    {sort?.key === c.key ? (
-                                                        sort.dir === 'asc' ? (
-                                                            <path d="M2.5 7.5 6 4l3.5 3.5" />
-                                                        ) : (
-                                                            <path d="M2.5 4.5 6 8l3.5-3.5" />
-                                                        )
-                                                    ) : (
-                                                        <path d="M6 2v8M3.5 4.5 6 2l2.5 2.5M3.5 7.5 6 10l2.5-2.5" />
-                                                    )}
-                                                </svg>
-                                            ) : null}
-                                        </span>
-                                    </th>
+                                    <div key={row.id} className="p-3">
+                                        {renderMobileCard(row, (page - 1) * pageSize + idx + 1)}
+                                    </div>
                                 );
-                            })}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {sorted.map((row) => (
-                            <tr
-                                key={row.id}
-                                className="group/row relative border-b border-slate-100 dark:border-slate-800/60 transition-colors last:border-0 hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
-                            >
+                            }
+                            const firstCol = columns[0];
+                            const aksiCol = columns.find((c) => c.key === 'aksi');
+                            const statusCol = columns.find((c) => c.key === 'status');
+                            const otherCols = columns.filter((c, i) => i !== 0 && c.key !== 'aksi' && c.key !== 'status');
+
+                            return (
+                                <div key={row.id} className="p-4 space-y-2.5 bg-white dark:bg-slate-900">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex-1 font-semibold text-slate-900 dark:text-slate-100">
+                                            {row.cells?.[firstCol.key] ?? row.values[firstCol.key]}
+                                        </div>
+                                        {statusCol ? (
+                                            <div className="shrink-0">{row.cells?.[statusCol.key] ?? row.values[statusCol.key]}</div>
+                                        ) : null}
+                                    </div>
+                                    {otherCols.length > 0 ? (
+                                        <div className="grid grid-cols-2 gap-2 text-xs pt-1.5 border-t border-slate-100 dark:border-slate-800/60">
+                                            {otherCols.map((c) => (
+                                                <div key={c.key} className={c.align === 'right' ? 'text-right' : ''}>
+                                                    <span className="block text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                                                        {c.header}
+                                                    </span>
+                                                    <div className="mt-0.5 text-slate-700 dark:text-slate-300">
+                                                        {row.cells?.[c.key] ?? row.values[c.key] ?? '—'}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : null}
+                                    {aksiCol ? (
+                                        <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800/60">
+                                            {row.cells?.[aksiCol.key] ?? row.values[aksiCol.key]}
+                                        </div>
+                                    ) : null}
+                                </div>
+                            );
+                        })}
+                        {displayRows.length === 0 ? (
+                            <div className="p-8 text-center text-sm font-semibold text-slate-600 dark:text-slate-400">
+                                {q.trim() ? t('noResults') : (empty ?? t('empty'))}
+                            </div>
+                        ) : null}
+                    </div>
+                ) : null}
+
+                {/* Desktop Table View (>= md) */}
+                <div className={mobileAdaptive ? 'hidden md:block' : ''}>
+                    <table className="w-full text-sm">
+                        <caption className="sr-only">
+                            {caption || 'Tabel data'}
+                        </caption>
+                        <thead>
+                            <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60">
                                 {columns.map((c, idx) => {
+                                    const sortable =
+                                        c.sortable !== false &&
+                                        rows.some(
+                                            (r) => r.values[c.key] !== undefined,
+                                        );
                                     const isFirstSticky =
                                         stickyLeft &&
                                         (c.sticky === 'left' ||
-                                            (idx === 0 &&
-                                                c.sticky !== 'right'));
+                                            (idx === 0 && c.sticky !== 'right'));
                                     const isLastSticky =
                                         stickyActions &&
                                         (c.sticky === 'right' ||
                                             (c.key === 'aksi' &&
                                                 c.sticky !== 'left'));
-                                    const stickyCellClass = isFirstSticky
-                                        ? 'sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]'
+                                    const stickyHeaderClass = isFirstSticky
+                                        ? 'sticky top-0 left-0 z-30 bg-slate-50 dark:bg-slate-800 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]'
                                         : isLastSticky
-                                          ? 'sticky right-0 z-10 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]'
-                                          : '';
+                                          ? 'sticky top-0 right-0 z-30 bg-slate-50 dark:bg-slate-800 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]'
+                                          : 'sticky top-0 z-10 bg-slate-50 dark:bg-slate-800/90';
                                     const alignClass =
                                         c.align === 'right'
                                             ? 'text-right'
                                             : c.align === 'center'
                                               ? 'text-center'
                                               : 'text-left';
-                                    const rawVal = row.values[c.key];
-                                    const renderedCell = row.cells?.[c.key];
-                                    const isSimple = renderedCell === undefined;
-                                    const textToDisplay = isSimple
-                                        ? String(rawVal ?? '')
-                                        : null;
-                                    const isAksi = c.key === 'aksi';
-
                                     return (
-                                        <td
+                                        <th
                                             key={c.key}
+                                            scope="col"
+                                            tabIndex={sortable ? 0 : undefined}
+                                            role={sortable ? 'button' : undefined}
+                                            onKeyDown={
+                                                sortable
+                                                    ? (e) => {
+                                                          if (
+                                                              e.key === 'Enter' ||
+                                                              e.key === ' '
+                                                          ) {
+                                                              e.preventDefault();
+                                                              toggleSort(c.key);
+                                                          }
+                                                      }
+                                                    : undefined
+                                            }
                                             className={cn(
-                                                'px-3 py-3 align-middle transition-colors sm:px-4',
-                                                stickyCellClass,
+                                                'px-3 py-3 text-xs font-semibold whitespace-nowrap text-slate-600 dark:text-slate-300 sm:px-4',
+                                                stickyHeaderClass,
                                                 alignClass,
+                                                sortable &&
+                                                    'cursor-pointer select-none hover:text-slate-900 dark:hover:text-slate-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600',
                                                 c.className,
                                             )}
+                                            onClick={
+                                                sortable
+                                                    ? () => toggleSort(c.key)
+                                                    : undefined
+                                            }
+                                            aria-sort={
+                                                sort?.key === c.key
+                                                    ? sort.dir === 'asc'
+                                                        ? 'ascending'
+                                                        : 'descending'
+                                                    : undefined
+                                            }
                                         >
-                                            {isAksi ? (
-                                                <div className="opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
-                                                    {renderedCell ??
-                                                        textToDisplay}
-                                                </div>
-                                            ) : isSimple &&
-                                              (c.truncate ||
-                                                  typeof rawVal ===
-                                                      'string') ? (
-                                                <div
-                                                    className={cn(
-                                                        'truncate whitespace-nowrap',
-                                                        c.maxWidth ??
-                                                            'max-w-[220px] sm:max-w-[280px]',
-                                                    )}
-                                                    title={
-                                                        textToDisplay ??
-                                                        undefined
-                                                    }
-                                                >
-                                                    {textToDisplay}
-                                                </div>
-                                            ) : (
-                                                (renderedCell ?? textToDisplay)
-                                            )}
-                                        </td>
+                                            <span
+                                                className={cn(
+                                                    'inline-flex items-center gap-1.5',
+                                                    c.align === 'right' &&
+                                                        'justify-end',
+                                                    c.align === 'center' &&
+                                                        'justify-center',
+                                                )}
+                                            >
+                                                {c.header}
+                                                {sortable ? (
+                                                    <svg
+                                                        aria-hidden="true"
+                                                        viewBox="0 0 12 12"
+                                                        className={`size-3 ${sort?.key === c.key ? 'text-blue-600 dark:text-blue-400' : 'text-slate-300 dark:text-slate-600'}`}
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        strokeWidth="1.8"
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                    >
+                                                        {sort?.key === c.key ? (
+                                                            sort.dir === 'asc' ? (
+                                                                <path d="M2.5 7.5 6 4l3.5 3.5" />
+                                                            ) : (
+                                                                <path d="M2.5 4.5 6 8l3.5-3.5" />
+                                                            )
+                                                        ) : (
+                                                            <path d="M6 2v8M3.5 4.5 6 2l2.5 2.5M3.5 7.5 6 10l2.5-2.5" />
+                                                        )}
+                                                    </svg>
+                                                ) : null}
+                                            </span>
+                                        </th>
                                     );
                                 })}
                             </tr>
-                        ))}
-                        {sorted.length === 0 ? (
-                            <tr>
-                                <td
-                                    colSpan={columns.length}
-                                    className="px-4 py-12 text-center"
+                        </thead>
+                        <tbody>
+                            {displayRows.map((row) => (
+                                <tr
+                                    key={row.id}
+                                    className="group/row relative border-b border-slate-100 dark:border-slate-800/60 transition-colors last:border-0 hover:bg-slate-50/80 dark:hover:bg-slate-800/40"
                                 >
-                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                        {q.trim()
-                                            ? t('noResults')
-                                            : (empty ?? t('empty'))}
-                                    </p>
-                                    {q.trim() ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => setQ('')}
-                                            className="mt-1 text-xs font-semibold text-blue-700 dark:text-blue-400 hover:underline"
-                                        >
-                                            {t('clearSearch')}
-                                        </button>
-                                    ) : null}
-                                </td>
-                            </tr>
-                        ) : null}
-                    </tbody>
-                </table>
-                {sorted.length > 0 ? (
+                                    {columns.map((c, idx) => {
+                                        const isFirstSticky =
+                                            stickyLeft &&
+                                            (c.sticky === 'left' ||
+                                                (idx === 0 &&
+                                                    c.sticky !== 'right'));
+                                        const isLastSticky =
+                                            stickyActions &&
+                                            (c.sticky === 'right' ||
+                                                (c.key === 'aksi' &&
+                                                    c.sticky !== 'left'));
+                                        const stickyCellClass = isFirstSticky
+                                            ? 'sticky left-0 z-10 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]'
+                                            : isLastSticky
+                                              ? 'sticky right-0 z-10 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 border-l border-slate-200/80 dark:border-slate-800/80 shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]'
+                                              : '';
+                                        const alignClass =
+                                            c.align === 'right'
+                                                ? 'text-right'
+                                                : c.align === 'center'
+                                                  ? 'text-center'
+                                                  : 'text-left';
+                                        const rawVal = row.values[c.key];
+                                        const renderedCell = row.cells?.[c.key];
+                                        const isSimple = renderedCell === undefined;
+                                        const textToDisplay = isSimple
+                                            ? String(rawVal ?? '')
+                                            : null;
+                                        const isAksi = c.key === 'aksi';
+
+                                        return (
+                                            <td
+                                                key={c.key}
+                                                className={cn(
+                                                    'px-3 py-3 align-middle transition-colors sm:px-4',
+                                                    stickyCellClass,
+                                                    alignClass,
+                                                    c.className,
+                                                )}
+                                            >
+                                                {isAksi ? (
+                                                    <div className="opacity-70 group-hover/row:opacity-100 focus-within:opacity-100 transition-opacity duration-150 max-sm:opacity-100">
+                                                        {renderedCell ??
+                                                            textToDisplay}
+                                                    </div>
+                                                ) : isSimple &&
+                                                  (c.truncate ||
+                                                      typeof rawVal ===
+                                                          'string') ? (
+                                                    <div
+                                                        className={cn(
+                                                            'truncate whitespace-nowrap',
+                                                            c.maxWidth ??
+                                                                'max-w-[220px] sm:max-w-[280px]',
+                                                        )}
+                                                        title={
+                                                            textToDisplay ??
+                                                            undefined
+                                                        }
+                                                    >
+                                                        {textToDisplay}
+                                                    </div>
+                                                ) : (
+                                                    (renderedCell ?? textToDisplay)
+                                                )}
+                                            </td>
+                                        );
+                                    })}
+                                </tr>
+                            ))}
+                            {displayRows.length === 0 ? (
+                                <tr>
+                                    <td
+                                        colSpan={columns.length}
+                                        className="px-4 py-12 text-center"
+                                    >
+                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                                            {q.trim()
+                                                ? t('noResults')
+                                                : (empty ?? t('empty'))}
+                                        </p>
+                                        {q.trim() ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => setQ('')}
+                                                className="mt-1 text-xs font-semibold text-blue-700 dark:text-blue-400 hover:underline"
+                                            >
+                                                {t('clearSearch')}
+                                            </button>
+                                        ) : null}
+                                    </td>
+                                </tr>
+                            ) : null}
+                        </tbody>
+                    </table>
+                </div>
+
+                {/* Footer Paginasi Konsisten */}
+                {pagination && sorted.length > 0 ? (
+                    <TablePagination
+                        currentPage={page}
+                        totalPages={totalPages}
+                        totalItems={sorted.length}
+                        itemsPerPage={pageSize}
+                        itemLabel="data"
+                        onPageChange={setPage}
+                    />
+                ) : sorted.length > 0 ? (
                     <p className="flex items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800 px-4 py-2.5 text-xs text-slate-500 dark:text-slate-400">
                         <span className="tabular-nums">
                             {q.trim()

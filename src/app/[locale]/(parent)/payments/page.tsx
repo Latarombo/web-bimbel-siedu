@@ -38,22 +38,11 @@ export default async function PaymentsPage({
   const pendaftaran = await collect(
     db.orm.public.Pendaftaran
       .include("kelas", (b) =>
-        b.select("id", "mataPelajaranId", "biayaPeriode", "biayaDp", "tenorMaksimum", "jenjang", "tingkat")
+        b.select("id", "nama", "mapel", "biayaPeriode", "biayaDp", "tenorMaksimum", "jenjang", "tingkat")
       )
       .all()
   );
   const milikSaya = pendaftaran.filter((p) => anakIds.has(p.anakId));
-
-  // 3. Nama mapel per kelas
-  const mapelIds = [...new Set(milikSaya.map((p) => p.kelas.mataPelajaranId))];
-  const mapelRows = mapelIds.length
-    ? await collect(
-        db.orm.public.MataPelajaran.where((m) => m.id.in(mapelIds)).all(),
-      )
-    : [];
-  const mapelMap = new Map<number, string>(
-    mapelRows.map((m) => [m.id, m.nama]),
-  );
 
   // 4. Semua tagihan pendaftaran milik saya
   const pendaftaranIds = milikSaya.map((p) => p.id);
@@ -74,7 +63,7 @@ export default async function PaymentsPage({
   const paymentItems: PaymentItem[] = tagihanRaw.map((b) => {
     const p = pById.get(b.pendaftaranId);
     const anakNama = p ? namaAnakMap.get(p.anakId) ?? "Anak" : "Anak";
-    const mapelNama = p ? mapelMap.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}` : "-";
+    const mapelNama = p ? (p.kelas.mapel || p.kelas.nama || `Kelas #${p.kelasId}`) : "-";
 
     const isOverdue =
       b.status === "pending" && !!b.jatuhTempo && b.jatuhTempo < nowIso;
@@ -137,7 +126,7 @@ export default async function PaymentsPage({
   // 7. Kelompokkan per Pendaftaran Kelas
   const groups: EnrollmentBillingGroup[] = milikSaya.map((p) => {
     const childName = namaAnakMap.get(p.anakId) ?? "Anak";
-    const subjectName = mapelMap.get(p.kelas.mataPelajaranId) ?? `Kelas #${p.kelasId}`;
+    const subjectName = p.kelas.mapel || p.kelas.nama || `Kelas #${p.kelasId}`;
     const pBills = paymentItems.filter((b) => b.pendaftaranId === p.id);
     const paidBills = pBills.filter((b) => b.status === "berhasil");
 

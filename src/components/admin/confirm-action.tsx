@@ -28,7 +28,7 @@ export function ConfirmAction({
       <button
         type="button"
         onClick={() => setArmed(true)}
-        className="h-7 rounded-lg bg-rose-50 px-2.5 text-[0.8rem] font-semibold text-rose-700 transition-colors hover:bg-rose-100"
+        className="h-7 rounded-lg bg-rose-50 dark:bg-rose-950/30 px-2.5 text-[0.8rem] font-semibold text-rose-700 dark:text-rose-300 transition-colors hover:bg-rose-100 dark:hover:bg-rose-950/60"
       >
         {buttonLabel}
       </button>
@@ -48,7 +48,7 @@ export function ConfirmAction({
       className="flex items-center gap-1.5"
     >
       {children}
-      <span className="text-[11px] font-semibold text-rose-700">{confirmation}</span>
+      <span className="text-[11px] font-semibold text-rose-700 dark:text-rose-300">{confirmation}</span>
       <button
         type="submit"
         disabled={pending}
@@ -59,7 +59,7 @@ export function ConfirmAction({
       <button
         type="button"
         onClick={() => setArmed(false)}
-        className="h-7 rounded-lg border border-slate-200 bg-white px-2.5 text-[0.8rem] font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+        className="h-7 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-2.5 text-[0.8rem] font-semibold text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
       >
         {t("common.cancel")}
       </button>

@@ -5,7 +5,13 @@ import { Link } from "@/i18n/navigation";
 import { UnderlineTabs } from "@/components/ui/underline-tabs";
 import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import { TablePagination } from "@/components/ui/table-pagination";
-import { Search, X } from "lucide-react";
+import {
+  Search,
+  X,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+} from "lucide-react";
 import { useSetTeacherHeaderAction } from "@/components/teacher/teacher-header-action-context";
 
 export interface StudentAttendanceRow {
@@ -82,6 +88,52 @@ export function TeacherAttendanceOverview({
   const [sessionSearch, setSessionSearch] = useState<string>("");
   const [studentPage, setStudentPage] = useState<number>(1);
   const [sessionPage, setSessionPage] = useState<number>(1);
+  const [studentSort, setStudentSort] = useState<{
+    key: "nama" | "kelas" | "jenjang" | "hadir" | "alpa" | "total" | "persentase";
+    dir: "asc" | "desc";
+  } | null>(null);
+  const [sessionSort, setSessionSort] = useState<{
+    key: "tanggal" | "kelas" | "kehadiran" | "status";
+    dir: "asc" | "desc";
+  } | null>(null);
+
+  const toggleStudentSort = (
+    key: "nama" | "kelas" | "jenjang" | "hadir" | "alpa" | "total" | "persentase",
+  ) => {
+    setStudentSort((prev) => {
+      if (prev?.key === key) {
+        return prev.dir === "asc" ? { key, dir: "desc" } : null;
+      }
+      return { key, dir: "asc" };
+    });
+    setStudentPage(1);
+  };
+
+  const toggleSessionSort = (
+    key: "tanggal" | "kelas" | "kehadiran" | "status",
+  ) => {
+    setSessionSort((prev) => {
+      if (prev?.key === key) {
+        return prev.dir === "asc" ? { key, dir: "desc" } : null;
+      }
+      return { key, dir: "asc" };
+    });
+    setSessionPage(1);
+  };
+
+  const renderSortIcon = (
+    state: { key: string; dir: "asc" | "desc" } | null,
+    key: string,
+  ) =>
+    state?.key === key ? (
+      state.dir === "asc" ? (
+        <ArrowUp className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+      ) : (
+        <ArrowDown className="size-3 text-blue-600 dark:text-blue-400 shrink-0" aria-hidden="true" />
+      )
+    ) : (
+      <ArrowUpDown className="size-3 text-slate-400 opacity-60 shrink-0" aria-hidden="true" />
+    );
 
   const targetAttendanceSession = useMemo(() => {
     return (
@@ -122,7 +174,7 @@ export function TeacherAttendanceOverview({
 
   // Filtered Students
   const filteredStudents = useMemo(() => {
-    return students.filter((s) => {
+    const list = students.filter((s) => {
       if (selectedClass !== "all" && String(s.kelasId) !== selectedClass) {
         return false;
       }
@@ -137,7 +189,32 @@ export function TeacherAttendanceOverview({
       }
       return true;
     });
-  }, [students, selectedClass, studentStatusFilter, studentSearch]);
+
+    if (studentSort) {
+      const { key, dir } = studentSort;
+      list.sort((a, b) => {
+        let cmp = 0;
+        if (key === "nama") {
+          cmp = a.nama.localeCompare(b.nama, "id");
+        } else if (key === "kelas") {
+          cmp = a.kelasNama.localeCompare(b.kelasNama, "id");
+        } else if (key === "jenjang") {
+          cmp = a.jenjang.localeCompare(b.jenjang, "id");
+        } else if (key === "hadir") {
+          cmp = a.hadir - b.hadir;
+        } else if (key === "alpa") {
+          cmp = a.alpa - b.alpa;
+        } else if (key === "total") {
+          cmp = a.totalPertemuan - b.totalPertemuan;
+        } else if (key === "persentase") {
+          cmp = a.persentase - b.persentase;
+        }
+        return dir === "asc" ? cmp : -cmp;
+      });
+    }
+
+    return list;
+  }, [students, selectedClass, studentStatusFilter, studentSearch, studentSort]);
 
   const totalStudentPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE) || 1;
   const paginatedStudents = useMemo(() => {
@@ -147,7 +224,7 @@ export function TeacherAttendanceOverview({
 
   // Filtered Sessions
   const filteredSessions = useMemo(() => {
-    return sessions.filter((sess) => {
+    const list = sessions.filter((sess) => {
       if (selectedClass !== "all" && String(sess.kelasId) !== selectedClass) {
         return false;
       }
@@ -159,7 +236,32 @@ export function TeacherAttendanceOverview({
       }
       return true;
     });
-  }, [sessions, selectedClass, sessionSearch]);
+
+    if (sessionSort) {
+      const { key, dir } = sessionSort;
+      list.sort((a, b) => {
+        let cmp = 0;
+        if (key === "tanggal") {
+          cmp =
+            a.tanggal.localeCompare(b.tanggal) ||
+            a.jamMulai.localeCompare(b.jamMulai);
+        } else if (key === "kelas") {
+          cmp = a.kelasNama.localeCompare(b.kelasNama, "id");
+        } else if (key === "kehadiran") {
+          const pctA = a.totalSiswa > 0 ? a.hadirCount / a.totalSiswa : 0;
+          const pctB = b.totalSiswa > 0 ? b.hadirCount / b.totalSiswa : 0;
+          cmp = pctA - pctB || a.terisiCount - b.terisiCount;
+        } else if (key === "status") {
+          const rank = (s: SessionAttendanceRow) =>
+            s.statusSesi === "dibatalkan" ? 0 : s.terisiCount > 0 ? 3 : 1;
+          cmp = rank(a) - rank(b);
+        }
+        return dir === "asc" ? cmp : -cmp;
+      });
+    }
+
+    return list;
+  }, [sessions, selectedClass, sessionSearch, sessionSort]);
 
   const totalSessionPages = Math.ceil(filteredSessions.length / ITEMS_PER_PAGE) || 1;
   const paginatedSessions = useMemo(() => {
@@ -185,8 +287,8 @@ export function TeacherAttendanceOverview({
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 space-y-6">
       {/* 1. Header (Clean, confident typography without badge soup) */}
-      <div className="border-b border-slate-200 dark:border-slate-800 pb-4">
-        <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-950 dark:text-slate-50">
           Rekapitulasi Presensi
         </h1>
         <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-400">
@@ -194,26 +296,7 @@ export function TeacherAttendanceOverview({
         </p>
       </div>
 
-      {/* 2. Unrecorded Attendance Alert (If Any) */}
-      {stats.unrecordedSessionsCount > 0 ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-950/40 px-4 py-3 text-xs sm:text-sm text-amber-900 dark:text-amber-200">
-          <div className="flex items-center gap-2">
-            <span className="size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
-            <p className="font-medium">
-              Terdapat <b>{stats.unrecordedSessionsCount} sesi pertemuan</b> yang belum diisi lembar presensinya.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setActiveTab("sessions")}
-            className="font-bold text-amber-800 dark:text-amber-300 hover:underline shrink-0 cursor-pointer"
-          >
-            Buka Daftar Sesi →
-          </button>
-        </div>
-      ) : null}
-
-      {/* 3. KPI Cards ("KPIs are type, not tiles" - No colored square icons) */}
+      {/* 2. KPI Cards ("KPIs are type, not tiles" - No colored square icons) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-2xs">
           <div className="text-2xl sm:text-3xl font-display font-bold text-slate-950 dark:text-slate-50 tabular-nums">
@@ -279,15 +362,6 @@ export function TeacherAttendanceOverview({
         <div className="space-y-4">
           {/* Toolbar Filters */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
-                Matriks Kehadiran Siswa
-              </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                Akumulasi kehadiran per murid sepanjang periode bimbingan belajar.
-              </p>
-            </div>
-
             <div className="flex flex-wrap items-center gap-2">
               <FilterDropdown
                 value={selectedClass}
@@ -353,78 +427,214 @@ export function TeacherAttendanceOverview({
 
           {/* Student Table */}
           {filteredStudents.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center bg-white dark:bg-slate-900">
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-8 sm:p-12 text-center">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Tidak ada data murid ditemukan
-              </p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 Silakan sesuaikan filter kelas atau kata kunci pencarian Anda.
               </p>
             </div>
           ) : (
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300 border-collapse">
-                  <thead className="bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-semibold uppercase tracking-wider text-[11px]">
-                    <tr>
-                      <th scope="col" className="px-4 py-3">Murid</th>
-                      <th scope="col" className="px-4 py-3">Kelas & Jenjang</th>
-                      <th scope="col" className="px-3 py-3 text-right">Hadir</th>
-                      <th scope="col" className="px-3 py-3 text-right">Izin</th>
-                      <th scope="col" className="px-3 py-3 text-right">Sakit</th>
-                      <th scope="col" className="px-3 py-3 text-right">Alpa</th>
-                      <th scope="col" className="px-3 py-3 text-right">Total Sesi</th>
-                      <th scope="col" className="px-4 py-3 text-right">% Kehadiran</th>
-                      <th scope="col" className="px-4 py-3 text-center">Status</th>
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+              {/* Responsive Scrollable Table (Desktop & Mobile) */}
+              <div
+                tabIndex={0}
+                role="region"
+                aria-label="Tabel rekapitulasi kehadiran murid"
+                className="w-full overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-blue-600/30 touch-pan-x"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                <table className="w-full min-w-[1000px] text-left text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                      <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">No</th>
+                      <th
+                        scope="col"
+                        aria-sort={studentSort?.key === "nama" ? (studentSort.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="sticky left-12 z-20 min-w-[170px] max-w-[240px] bg-slate-50 dark:bg-slate-800 p-0 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleStudentSort("nama")}
+                          className="flex w-full items-center justify-between gap-1.5 py-3 px-4 sm:px-6 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Murid</span>
+                          {renderSortIcon(studentSort, "nama")}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={studentSort?.key === "kelas" ? (studentSort.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 whitespace-nowrap text-left"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleStudentSort("kelas")}
+                          className="inline-flex w-full items-center justify-between gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Kelas</span>
+                          {renderSortIcon(studentSort, "kelas")}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={studentSort?.key === "jenjang" ? (studentSort.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 whitespace-nowrap text-left"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleStudentSort("jenjang")}
+                          className="inline-flex w-full items-center justify-between gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Jenjang</span>
+                          {renderSortIcon(studentSort, "jenjang")}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={studentSort?.key === "hadir" ? (studentSort.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-right whitespace-nowrap"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleStudentSort("hadir")}
+                          className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Hadir</span>
+                          {renderSortIcon(studentSort, "hadir")}
+                        </button>
+                      </th>
+                      <th scope="col" className="px-3 py-3 text-right whitespace-nowrap">Izin</th>
+                      <th scope="col" className="px-3 py-3 text-right whitespace-nowrap">Sakit</th>
+                      <th
+                        scope="col"
+                        aria-sort={studentSort?.key === "alpa" ? (studentSort.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-right whitespace-nowrap"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleStudentSort("alpa")}
+                          className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Alpa</span>
+                          {renderSortIcon(studentSort, "alpa")}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={studentSort?.key === "total" ? (studentSort.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-right whitespace-nowrap"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleStudentSort("total")}
+                          className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-3 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Total Sesi</span>
+                          {renderSortIcon(studentSort, "total")}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={studentSort?.key === "persentase" ? (studentSort.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-right whitespace-nowrap"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleStudentSort("persentase")}
+                          className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>% Kehadiran</span>
+                          {renderSortIcon(studentSort, "persentase")}
+                        </button>
+                      </th>
+                      <th scope="col" className="md:sticky md:right-0 md:z-20 px-4 py-3 text-center bg-slate-50 dark:bg-slate-800 md:border-l md:border-slate-200/80 md:dark:border-slate-800/80 md:shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]">
+                        Status
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {paginatedStudents.map((s) => (
+                    {paginatedStudents.map((s, idx) => (
                       <tr
                         key={s.pendaftaranId}
-                        className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
+                        className="group/row relative border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                       >
-                        <td className="px-4 py-3.5 font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap">
-                          {s.nama}
+                        {/* 1. Nomor Urut (Sticky Left 0) */}
+                        <td className="sticky left-0 z-10 w-12 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 text-center font-medium text-slate-500 dark:text-slate-400 tabular-nums text-xs transition-colors">
+                          {(studentPage - 1) * ITEMS_PER_PAGE + idx + 1}
                         </td>
-                        <td className="px-4 py-3.5 text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                          <span>{s.kelasNama}</span>
-                          <span className="text-[11px] text-slate-400 dark:text-slate-500 ml-1">
-                            ({s.jenjang})
+
+                        {/* 2. Murid (Sticky Left 12) */}
+                        <td className="sticky left-12 z-10 min-w-[170px] max-w-[240px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                          <span
+                            className="font-semibold text-slate-950 dark:text-slate-50 text-sm truncate block"
+                            title={s.nama}
+                          >
+                            {s.nama}
                           </span>
                         </td>
-                        <td className="px-3 py-3.5 text-right font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+
+                        {/* 3. Kelas */}
+                        <td className="px-4 py-3 whitespace-nowrap font-medium text-slate-900 dark:text-slate-100">
+                          {s.kelasNama}
+                        </td>
+
+                        {/* 4. Jenjang */}
+                        <td className="px-4 py-3 whitespace-nowrap text-slate-600 dark:text-slate-400">
+                          {s.jenjang}
+                        </td>
+
+                        {/* 4. Hadir */}
+                        <td className="px-3 py-3 text-right text-xs sm:text-sm font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums whitespace-nowrap">
                           {s.hadir}
                         </td>
-                        <td className="px-3 py-3.5 text-right tabular-nums text-slate-700 dark:text-slate-300">
+
+                        {/* 5. Izin */}
+                        <td className="px-3 py-3 text-right text-xs sm:text-sm tabular-nums text-slate-700 dark:text-slate-300 whitespace-nowrap">
                           {s.izin}
                         </td>
-                        <td className="px-3 py-3.5 text-right tabular-nums text-slate-700 dark:text-slate-300">
+
+                        {/* 6. Sakit */}
+                        <td className="px-3 py-3 text-right text-xs sm:text-sm tabular-nums text-slate-700 dark:text-slate-300 whitespace-nowrap">
                           {s.sakit}
                         </td>
-                        <td className="px-3 py-3.5 text-right font-semibold text-rose-600 dark:text-rose-400 tabular-nums">
+
+                        {/* 7. Alpa */}
+                        <td className="px-3 py-3 text-right text-xs sm:text-sm font-semibold text-rose-600 dark:text-rose-400 tabular-nums whitespace-nowrap">
                           {s.alpa}
                         </td>
-                        <td className="px-3 py-3.5 text-right font-semibold text-slate-900 dark:text-slate-100 tabular-nums">
+
+                        {/* 8. Total Sesi */}
+                        <td className="px-3 py-3 text-right text-xs sm:text-sm font-semibold text-slate-900 dark:text-slate-100 tabular-nums whitespace-nowrap">
                           {s.totalPertemuan}
                         </td>
-                        <td className="px-4 py-3.5 text-right font-bold text-slate-950 dark:text-slate-50 tabular-nums">
+
+                        {/* 9. Persentase Kehadiran */}
+                        <td className="px-4 py-3 text-right text-xs sm:text-sm font-bold text-slate-950 dark:text-slate-50 tabular-nums whitespace-nowrap">
                           {s.persentase}%
                         </td>
-                        <td className="px-4 py-3.5 text-center whitespace-nowrap">
-                          {s.statusKehadiran === "sangat_baik" ? (
-                            <span className="inline-block rounded px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                              Sangat Baik
+
+                        {/* 10. Status (Sticky Right on Desktop) */}
+                        <td className="md:sticky md:right-0 md:z-10 px-4 py-3 text-center whitespace-nowrap bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 md:border-l md:border-slate-200/80 md:dark:border-slate-800/80 md:shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                          <span className="inline-flex items-center gap-2 text-xs font-medium">
+                            <span
+                              className={`size-1.5 rounded-full ${
+                                s.statusKehadiran === "sangat_baik"
+                                  ? "bg-emerald-500"
+                                  : s.statusKehadiran === "cukup"
+                                    ? "bg-amber-500"
+                                    : "bg-rose-500"
+                              }`}
+                            />
+                            <span className="text-slate-700 dark:text-slate-300">
+                              {s.statusKehadiran === "sangat_baik"
+                                ? "Sangat Baik"
+                                : s.statusKehadiran === "cukup"
+                                  ? "Cukup"
+                                  : "Perlu Perhatian"}
                             </span>
-                          ) : s.statusKehadiran === "cukup" ? (
-                            <span className="inline-block rounded px-2 py-0.5 text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                              Cukup
-                            </span>
-                          ) : (
-                            <span className="inline-block rounded px-2 py-0.5 text-[11px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-                              Perlu Perhatian
-                            </span>
-                          )}
+                          </span>
                         </td>
                       </tr>
                     ))}
@@ -453,15 +663,6 @@ export function TeacherAttendanceOverview({
         <div className="space-y-4">
           {/* Toolbar Filters */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
-                Riwayat & Jadwal Sesi Pertemuan
-              </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                Kelola pencatatan presensi per sesi kelas secara langsung.
-              </p>
-            </div>
-
             <div className="flex flex-wrap items-center gap-2">
               <FilterDropdown
                 value={selectedClass}
@@ -515,29 +716,91 @@ export function TeacherAttendanceOverview({
 
           {/* Session Table */}
           {filteredSessions.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 p-8 text-center bg-white dark:bg-slate-900">
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-8 sm:p-12 text-center">
+              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 Tidak ada sesi pertemuan ditemukan
-              </p>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              </h3>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
                 Belum ada data sesi pertemuan pada kelas yang dipilih.
               </p>
             </div>
           ) : (
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300 border-collapse">
-                  <thead className="bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-semibold uppercase tracking-wider text-[11px]">
-                    <tr>
-                      <th scope="col" className="px-4 py-3">Tanggal & Waktu</th>
-                      <th scope="col" className="px-4 py-3">Kelas</th>
-                      <th scope="col" className="px-4 py-3">Kehadiran</th>
-                      <th scope="col" className="px-4 py-3">Status Sesi</th>
-                      <th scope="col" className="px-4 py-3 text-right">Aksi</th>
+            <div className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden shadow-2xs">
+              {/* Responsive Scrollable Table (Desktop & Mobile) */}
+              <div
+                tabIndex={0}
+                role="region"
+                aria-label="Tabel daftar sesi pertemuan"
+                className="w-full overflow-x-auto overscroll-x-contain focus:outline-hidden focus:ring-1 focus:ring-blue-600/30 touch-pan-x"
+                style={{ WebkitOverflowScrolling: "touch" }}
+              >
+                <table className="w-full min-w-[860px] text-left text-sm border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                      <th scope="col" className="sticky left-0 z-20 w-12 bg-slate-50 dark:bg-slate-800 px-4 py-3 text-center">No</th>
+                      <th
+                        scope="col"
+                        aria-sort={sessionSort?.key === "tanggal" ? (sessionSort.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="sticky left-12 z-20 min-w-[200px] bg-slate-50 dark:bg-slate-800 p-0 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)]"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleSessionSort("tanggal")}
+                          className="flex w-full items-center justify-between gap-1.5 py-3 px-4 sm:px-6 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Tanggal & Waktu</span>
+                          {renderSortIcon(sessionSort, "tanggal")}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={sessionSort?.key === "kelas" ? (sessionSort.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 whitespace-nowrap text-left"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleSessionSort("kelas")}
+                          className="inline-flex w-full items-center justify-between gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Kelas</span>
+                          {renderSortIcon(sessionSort, "kelas")}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={sessionSort?.key === "kehadiran" ? (sessionSort.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-right whitespace-nowrap"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleSessionSort("kehadiran")}
+                          className="inline-flex w-full items-center justify-end gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Kehadiran</span>
+                          {renderSortIcon(sessionSort, "kehadiran")}
+                        </button>
+                      </th>
+                      <th
+                        scope="col"
+                        aria-sort={sessionSort?.key === "status" ? (sessionSort.dir === "asc" ? "ascending" : "descending") : undefined}
+                        className="p-0 text-center whitespace-nowrap"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => toggleSessionSort("status")}
+                          className="inline-flex w-full items-center justify-center gap-1.5 py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white cursor-pointer select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+                        >
+                          <span>Status Sesi</span>
+                          {renderSortIcon(sessionSort, "status")}
+                        </button>
+                      </th>
+                      <th scope="col" className="md:sticky md:right-0 md:z-20 px-4 py-3 text-right bg-slate-50 dark:bg-slate-800 md:border-l md:border-slate-200/80 md:dark:border-slate-800/80 md:shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)]">
+                        Aksi
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {paginatedSessions.map((sess) => {
+                    {paginatedSessions.map((sess, idx) => {
                       const isComplete = sess.terisiCount > 0 && sess.terisiCount >= sess.totalSiswa;
                       const isPartial = sess.terisiCount > 0 && sess.terisiCount < sess.totalSiswa;
                       const isCancelled = sess.statusSesi === "dibatalkan";
@@ -545,52 +808,72 @@ export function TeacherAttendanceOverview({
                       return (
                         <tr
                           key={sess.id}
-                          className="hover:bg-slate-50/70 dark:hover:bg-slate-800/50 transition-colors"
+                          className="group/row relative border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                         >
-                          <td className="px-4 py-3.5 whitespace-nowrap">
-                            <div className="font-medium text-slate-900 dark:text-slate-100">
+                          {/* 1. Nomor Urut (Sticky Left 0) */}
+                          <td className="sticky left-0 z-10 w-12 bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 px-4 py-3 text-center font-medium text-slate-500 dark:text-slate-400 tabular-nums text-xs transition-colors">
+                            {(sessionPage - 1) * ITEMS_PER_PAGE + idx + 1}
+                          </td>
+
+                          {/* 2. Tanggal & Waktu (Sticky Left 12) */}
+                          <td className="sticky left-12 z-10 min-w-[200px] bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 py-3 px-4 sm:px-6 border-r border-slate-200/80 dark:border-slate-800/80 shadow-[2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
+                            <div className="font-medium text-slate-950 dark:text-slate-50 text-sm">
                               {formatDate(sess.tanggal)}
                             </div>
                             <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 tabular-nums">
                               {sess.jamMulai.slice(0, 5)} - {sess.jamSelesai.slice(0, 5)} WIB
                             </div>
                           </td>
-                          <td className="px-4 py-3.5 font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap">
+
+                          {/* 3. Kelas */}
+                          <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap">
                             {sess.kelasNama}
                           </td>
-                          <td className="px-4 py-3.5 whitespace-nowrap tabular-nums">
+
+                          {/* 4. Kehadiran */}
+                          <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">
                             {isCancelled ? (
-                              <span className="text-slate-400 dark:text-slate-500">-</span>
+                              <span className="text-slate-400 dark:text-slate-500">—</span>
                             ) : sess.terisiCount > 0 ? (
-                              <span className="font-semibold text-slate-900 dark:text-slate-100">
-                                {sess.hadirCount}/{sess.totalSiswa} hadir
+                              <span className="font-semibold text-slate-900 dark:text-slate-100 text-xs sm:text-sm">
+                                {sess.hadirCount}/{sess.totalSiswa}{" "}
+                                <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">hadir</span>
                               </span>
                             ) : (
-                              <span className="text-amber-600 dark:text-amber-400 font-medium">
+                              <span className="text-amber-600 dark:text-amber-400 font-medium text-xs sm:text-sm">
                                 Belum diisi
                               </span>
                             )}
                           </td>
-                          <td className="px-4 py-3.5 whitespace-nowrap">
-                            {isCancelled ? (
-                              <span className="inline-block rounded px-2 py-0.5 text-[11px] font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-                                Dibatalkan
+
+                          {/* 5. Status Sesi */}
+                          <td className="px-4 py-3 text-center whitespace-nowrap">
+                            <span className="inline-flex items-center gap-2 text-xs font-medium">
+                              <span
+                                className={`size-1.5 rounded-full ${
+                                  isCancelled
+                                    ? "bg-rose-500"
+                                    : isComplete
+                                      ? "bg-emerald-500"
+                                      : isPartial
+                                        ? "bg-blue-500"
+                                        : "bg-slate-400"
+                                }`}
+                              />
+                              <span className="text-slate-700 dark:text-slate-300">
+                                {isCancelled
+                                  ? "Dibatalkan"
+                                  : isComplete
+                                    ? `Lengkap (${sess.terisiCount}/${sess.totalSiswa})`
+                                    : isPartial
+                                      ? `Sebagian (${sess.terisiCount}/${sess.totalSiswa})`
+                                      : "Belum Presensi"}
                               </span>
-                            ) : isComplete ? (
-                              <span className="inline-block rounded px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                Lengkap ({sess.terisiCount}/{sess.totalSiswa})
-                              </span>
-                            ) : isPartial ? (
-                              <span className="inline-block rounded px-2 py-0.5 text-[11px] font-semibold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                                Sebagian ({sess.terisiCount}/{sess.totalSiswa})
-                              </span>
-                            ) : (
-                              <span className="inline-block rounded px-2 py-0.5 text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                                Belum Presensi
-                              </span>
-                            )}
+                            </span>
                           </td>
-                          <td className="px-4 py-3.5 text-right whitespace-nowrap">
+
+                          {/* 6. Aksi (Sticky Right on Desktop) */}
+                          <td className="md:sticky md:right-0 md:z-10 px-4 py-3 text-right bg-white dark:bg-slate-900 group-hover/row:bg-slate-50/90 dark:group-hover/row:bg-slate-800/50 md:border-l md:border-slate-200/80 md:dark:border-slate-800/80 md:shadow-[-2px_0_5px_-2px_rgba(15,23,42,0.06)] transition-colors">
                             {isCancelled ? (
                               <span className="text-xs text-slate-400 dark:text-slate-500 cursor-not-allowed">
                                 Sesi Batal

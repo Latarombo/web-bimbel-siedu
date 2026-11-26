@@ -38,16 +38,13 @@ export default async function GradeInputPage({
   if (!kelas) notFound();
 
   const [
-    mapel,
     anak,
     presensi,
     hasilPenilaianRows,
     semuaPenilaian,
     riwayatPendaftaran,
     semuaKelas,
-    semuaMapel,
   ] = await Promise.all([
-    collect(db.orm.public.MataPelajaran.where((m) => m.id.eq(kelas.mataPelajaranId)).all()),
     collect(db.orm.public.Anak.where((a) => a.id.eq(p.anakId)).all()),
     collect(db.orm.public.Presensi.where((x) => x.pendaftaranId.eq(pid)).all()),
     collect(db.orm.public.HasilPenilaian.where((h) => h.pendaftaranId.eq(pid)).all()),
@@ -58,14 +55,12 @@ export default async function GradeInputPage({
     ),
     collect(db.orm.public.Pendaftaran.where((pnd) => pnd.anakId.eq(p.anakId)).all()),
     collect(db.orm.public.Kelas.all()),
-    collect(db.orm.public.MataPelajaran.all()),
   ]);
 
   const nama = anak[0]?.nama ?? t("childFallback", { id: p.anakId });
   const nHadir = presensi.filter((x) => x.status === "hadir").length;
 
   const kelasMap = new Map(semuaKelas.map((k) => [k.id, k]));
-  const mapelMap = new Map(semuaMapel.map((m) => [m.id, m]));
   const hasilByPenilaianId = new Map(hasilPenilaianRows.map((h) => [h.penilaianId, h]));
 
   // Kalkulasi rata-rata (hanya yang berstatus dinilai, dinormalisasi ke skala 100)
@@ -85,10 +80,9 @@ export default async function GradeInputPage({
   // Histori kelas terkait anak ini
   const kelasTerkait = riwayatPendaftaran.map((rp) => {
     const k = kelasMap.get(rp.kelasId);
-    const m = k ? mapelMap.get(k.mataPelajaranId) : null;
     return {
       pendaftaranId: rp.id,
-      namaKelas: m ? `${m.nama} · ${k?.jenjang}` : `Kelas #${rp.kelasId}`,
+      namaKelas: k ? `${k.mapel || k.nama} · ${k.jenjang}` : `Kelas #${rp.kelasId}`,
       status: rp.status,
       isCurrent: rp.id === pid,
     };
@@ -104,7 +98,7 @@ export default async function GradeInputPage({
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">
             {t("gradeStudentDescription", {
-              subject: mapel[0]?.nama ?? t("class"),
+              subject: kelas.mapel || kelas.nama || t("class"),
               level: kelas.jenjang,
               status: t(`status_${p.status}`),
             })}

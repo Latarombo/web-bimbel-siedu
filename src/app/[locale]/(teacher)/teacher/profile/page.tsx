@@ -18,13 +18,12 @@ export default async function TeacherProfile() {
   if (!guru) return redirect({ href: "/login", locale });
 
   const kelas = await collect(db.orm.public.Kelas.where((k) => k.guruId.eq(guruId)).all());
-  const [mapel, penilaianList, presensi] = await Promise.all([
-    collect(db.orm.public.MataPelajaran.all()),
+  const [penilaianList, presensi] = await Promise.all([
     collect(db.orm.public.Penilaian.where((p) => p.dibuatOleh.eq(guruId)).all()),
     collect(db.orm.public.Presensi.where((x) => x.dicatatOleh.eq(guruId)).all()),
   ]);
   const mapelNama = new Set(
-    kelas.map((k) => mapel.find((m) => m.id === k.mataPelajaranId)?.nama).filter(Boolean),
+    kelas.map((k) => k.mapel).filter(Boolean),
   );
   const inisial = (guru.name ?? "?").trim().charAt(0).toUpperCase();
 

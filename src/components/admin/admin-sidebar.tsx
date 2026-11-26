@@ -1,27 +1,44 @@
 'use client';
 
 /*
- * AdminSidebar — shell SaaS: sidebar kiri fixed di desktop (lg), drawer di mobile.
- * Dipakai khusus area admin; parent/teacher tetap pakai DashboardNavbar.
- * Grup nav (Operasional / Data Master / Komunikasi & Laporan) + badge counter
- * antrean kerja dikirim dari layout (angka nyata dari DB, bukan hiasan).
- * ponytail: drawer state lokal tanpa lib; kalau butuh nested submenu/collapse,
- * baru pertimbangkan komponen sidebar shadcn.
+ * AdminSidebar — shell admin mengikuti bahasa desain TeacherSidebar:
+ * sidebar collapsible (260px / 72px), brand light/dark, grup nav, badge
+ * antrean nyata, theme switch, dan drawer mobile. State buka/tutup
+ * dikendalikan AdminShell.
  */
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Link, usePathname } from '@/i18n/navigation';
-import { LanguageSwitcher } from '@/components/common/language-switcher';
-import LogoutDialog from '@/components/common/logout-dialog';
+import { TeacherThemeSwitch } from '@/components/teacher/teacher-theme-switch';
+import {
+    LayoutGrid,
+    BookOpen,
+    CalendarDays,
+    Users,
+    Layers,
+    Mail,
+    BarChart3,
+    ClipboardList,
+    CheckSquare,
+    Copy,
+    FileText,
+    Clock,
+    UserCheck,
+    GraduationCap,
+    History,
+    CreditCard,
+    ChevronsLeft,
+    ChevronsRight,
+    X,
+    type LucideIcon,
+} from 'lucide-react';
 
 export interface NavItem {
     name: string;
     href: string;
-    /** Kunci ikon feather-style inline — nol dependency. */
+    /** Kunci ikon yang dipetakan ke ikon lucide. */
     icon?: string;
-    /** Count antrean kerja; 0/undefined = badge disembunyikan. */
-    badge?: number;
 }
 
 export interface NavSection {
@@ -29,121 +46,140 @@ export interface NavSection {
     items: NavItem[];
 }
 
-// Path ikon feather-style (stroke, 24x24 viewBox) — sama dengan DashboardNavbar.
-const ICONS: Record<string, string> = {
-    grid: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
-    book: 'M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2zM22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z',
-    calendar:
-        'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 012 2v14a2 2 0 01-2-2V6a2 2 0 012-2z',
-    users: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zm14 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75',
-    layers: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
-    inbox: 'M22 12h-6l-2 3h-4l-2-3H2M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z',
-    check: 'M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11',
-    copy: 'M20 9h-9a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-9a2 2 0 00-2-2zM5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1',
-    chart: 'M18 20V10M12 20V4M6 20v-6',
-    mail: 'M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2zM22 6l-10 7L2 6',
-    clipboard:
-        'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
-    file: 'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8',
+const ICONS: Record<string, LucideIcon> = {
+    grid: LayoutGrid,
+    book: BookOpen,
+    calendar: CalendarDays,
+    clock: Clock,
+    users: Users,
+    userCheck: UserCheck,
+    graduation: GraduationCap,
+    layers: Layers,
+    mail: Mail,
+    chart: BarChart3,
+    clipboard: ClipboardList,
+    inbox: Mail,
+    check: CheckSquare,
+    copy: Copy,
+    file: FileText,
+    history: History,
+    creditCard: CreditCard,
 };
 
-function NavIcon({ icon, className }: { icon?: string; className: string }) {
-    if (!icon) return null;
-    return (
-        <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={className}
-            aria-hidden="true"
-        >
-            <path d={ICONS[icon]} />
-        </svg>
-    );
-}
-
 interface AdminSidebarProps {
-    role: string;
     navSections: NavSection[];
-    userName?: string;
-    userEmail?: string | null;
-    accountRole?: string;
+    isCollapsed: boolean;
+    onToggleCollapse: () => void;
+    isDrawerOpen: boolean;
+    onCloseDrawer: () => void;
 }
 
-export default function AdminSidebar({
-    role,
+export function AdminSidebar({
     navSections,
-    userName = 'Admin',
-    userEmail,
-    accountRole,
+    isCollapsed,
+    onToggleCollapse,
+    isDrawerOpen,
+    onCloseDrawer,
 }: AdminSidebarProps) {
     const t = useTranslations('shared.admin');
     const pathname = usePathname();
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const [isLogoutOpen, setIsLogoutOpen] = useState(false);
+    const [pendingHref, setPendingHref] = useState<string | null>(null);
 
-    const initials = userName
-        .split(' ')
-        .map((w) => w[0])
-        .slice(0, 2)
-        .join('')
-        .toUpperCase();
+    const [prevPathname, setPrevPathname] = useState(pathname);
+    if (pathname !== prevPathname) {
+        setPrevPathname(pathname);
+        setPendingHref(null);
+    }
 
-    const isActive = (href: string) =>
-        pathname === href || pathname.startsWith(href + '/');
+    const navRef = useRef<HTMLDivElement>(null);
+    const handleHeaderOrFooterWheel = (e: React.WheelEvent) => {
+        if (navRef.current) {
+            navRef.current.scrollTop += e.deltaY;
+        }
+    };
 
-    const navList = (
-        <nav
-            aria-label={t('menuAria', { role })}
-            className="flex-1 overflow-y-auto px-3 py-4"
-        >
-            {navSections.map((group) => (
-                <div
-                    key={group.label}
-                    className={
-                        group.label === navSections[0]?.label ? '' : 'mt-5'
-                    }
-                >
-                    <p className="px-3 pb-1.5 text-xs font-semibold text-slate-600">
-                        {group.label}
-                    </p>
-                    <ul className="space-y-0.5">
-                        {group.items.map((item) => {
-                            const active = isActive(item.href);
+    const isRouteActive = (href: string) => {
+        const current = pendingHref || pathname;
+        if (href === '/admin/dashboard') return current === '/admin/dashboard';
+        return current === href || current.startsWith(href + '/');
+    };
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onCloseDrawer();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onCloseDrawer]);
+
+    const navList = (collapsed: boolean) => (
+        <nav className="space-y-4 pb-4">
+            {navSections.map((section, sectionIdx) => (
+                <div key={section.label} className="space-y-1">
+                    {!collapsed ? (
+                        <div
+                            className={`px-3 text-sm font-medium text-slate-800 dark:text-slate-300 ${
+                                sectionIdx > 0 ? 'pt-3 pb-1' : 'pb-1'
+                            }`}
+                        >
+                            {section.label}
+                        </div>
+                    ) : (
+                        sectionIdx > 0 && (
+                            <div className="my-2 border-t border-slate-200 dark:border-slate-800" />
+                        )
+                    )}
+
+                    <ul className="space-y-1">
+                        {section.items.map((item) => {
+                            const Icon = ICONS[item.icon ?? 'grid'] ?? LayoutGrid;
+                            const active = isRouteActive(item.href);
+
                             return (
-                                <li key={item.name}>
+                                <li key={item.name} className="relative">
                                     <Link
                                         href={item.href}
-                                        onClick={() => setIsDrawerOpen(false)}
+                                        prefetch={true}
                                         aria-current={
                                             active ? 'page' : undefined
                                         }
-                                        className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+                                        onClick={() => {
+                                            if (pathname !== item.href)
+                                                setPendingHref(item.href);
+                                        }}
+                                        className={`group relative flex h-10 items-center rounded-md px-3 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 ${
                                             active
-                                                ? 'bg-blue-50 text-blue-700'
-                                                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                                ? 'bg-slate-100 text-slate-950 font-semibold dark:bg-slate-800 dark:text-white'
+                                                : 'text-slate-800 hover:bg-slate-50 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-slate-100'
                                         }`}
                                     >
-                                        <NavIcon
-                                            icon={item.icon}
-                                            className={`h-[18px] w-[18px] ${active ? 'text-blue-600' : 'text-slate-600'}`}
-                                        />
-                                        <span className="min-w-0 flex-1 truncate">
-                                            {item.name}
-                                        </span>
-                                        {item.badge && item.badge > 0 ? (
-                                            <span
-                                                className="flex-shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold tabular-nums text-amber-800"
-                                                aria-label={t('badgeAria', {
-                                                    count: item.badge,
-                                                })}
-                                            >
-                                                {item.badge}
+                                        <div className="flex size-5 shrink-0 items-center justify-center">
+                                            <Icon
+                                                className={`size-4.5 ${
+                                                    active
+                                                        ? 'text-slate-950 dark:text-white stroke-[2.2]'
+                                                        : 'text-slate-800 group-hover:text-slate-950 dark:text-slate-300 dark:group-hover:text-slate-100 stroke-[1.8]'
+                                                }`}
+                                            />
+                                        </div>
+
+                                        <div
+                                            className={`flex-1 min-w-0 flex items-center transition-all duration-200 ${
+                                                collapsed
+                                                    ? 'opacity-0 pointer-events-none max-w-0 w-0 overflow-hidden ml-0'
+                                                    : 'opacity-100 max-w-full ml-3'
+                                            }`}
+                                        >
+                                            <span className="truncate text-sm whitespace-nowrap">
+                                                {item.name}
                                             </span>
-                                        ) : null}
+                                        </div>
+
+                                        {collapsed && (
+                                            <div className="pointer-events-none absolute left-full top-1/2 ml-3 -translate-y-1/2 whitespace-nowrap rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-slate-900 dark:text-white opacity-0 shadow-xl transition-all duration-150 group-hover:opacity-100 z-50">
+                                                {item.name}
+                                            </div>
+                                        )}
                                     </Link>
                                 </li>
                             );
@@ -154,140 +190,174 @@ export default function AdminSidebar({
         </nav>
     );
 
-    const userBlock = (
-        <div className="border-t border-slate-100 p-3">
-            <div className="px-2 py-2">
-                <LanguageSwitcher />
-            </div>
-            <div className="flex items-center gap-3 rounded-lg px-2 py-2">
-                <div className="grid h-9 w-9 flex-shrink-0 place-items-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
-                    {initials}
-                </div>
-                <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-slate-900">
-                        {userName}
-                    </p>
-                    <p className="text-xs text-slate-500">{role}</p>
-                </div>
-                <button
-                    onClick={() => setIsLogoutOpen(true)}
-                    aria-label={t('logout')}
-                    title={t('logout')}
-                    className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-rose-50 hover:text-danger"
+    const brand = (collapsed: boolean) => (
+        <div
+            onWheel={handleHeaderOrFooterWheel}
+            className="relative flex h-16 shrink-0 items-center border-b border-slate-200 dark:border-slate-800 px-3"
+        >
+            <div
+                className={`flex items-center justify-center w-full transition-opacity duration-200 ${
+                    collapsed
+                        ? 'opacity-100'
+                        : 'opacity-0 pointer-events-none absolute'
+                }`}
+            >
+                <Link
+                    href="/admin/dashboard"
+                    className="flex size-10 items-center justify-center rounded-lg transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
+                    title={t('brandAria')}
                 >
-                    <svg
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="h-4 w-4"
-                        aria-hidden="true"
-                    >
-                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
-                    </svg>
-                </button>
+                    <Image
+                        src="/svg/symbol_siedu.svg"
+                        alt="Siedu"
+                        width={32}
+                        height={32}
+                        className="size-7 object-contain"
+                        priority
+                    />
+                </Link>
+            </div>
+
+            <div
+                className={`flex items-center w-full pl-2 transition-opacity duration-250 ${
+                    !collapsed
+                        ? 'opacity-100'
+                        : 'opacity-0 pointer-events-none absolute'
+                }`}
+            >
+                <Link
+                    href="/admin/dashboard"
+                    className="flex items-center transition-opacity hover:opacity-90 shrink-0"
+                    title={t('brandAria')}
+                >
+                    <Image
+                        src="/images/Logo.png"
+                        alt="Siedu"
+                        width={120}
+                        height={36}
+                        className="h-7 sm:h-7.5 w-auto object-contain dark:hidden"
+                        priority
+                    />
+                    <Image
+                        src="/images/Logo-white.png"
+                        alt="Siedu"
+                        width={120}
+                        height={36}
+                        className="h-7 sm:h-7.5 w-auto object-contain hidden dark:block"
+                        priority
+                    />
+                </Link>
             </div>
         </div>
     );
 
-    const brand = (
-        <div className="flex h-16 flex-shrink-0 items-center gap-2 border-b border-slate-100 px-5">
-            <Link
-                href="/admin/dashboard"
-                className="flex items-center"
-                aria-label={t('brandAria')}
-            >
-                <Image
-                    src="/images/Logo.png"
-                    alt="Siedu"
-                    width={120}
-                    height={36}
-                    className="h-8 w-auto"
-                />
-            </Link>
-            <span className="ml-auto rounded-full border border-blue-100 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
-                {role}
-            </span>
+    const scrollArea = (collapsed: boolean) => (
+        <div
+            ref={navRef}
+            data-lenis-prevent
+            onWheel={(e) => e.stopPropagation()}
+            className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain px-3 py-3 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] dark:[scrollbar-color:#334155_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700"
+        >
+            {navList(collapsed)}
         </div>
     );
 
     return (
         <>
-            {/* Sidebar desktop — fixed kiri */}
-            <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-slate-200 bg-white lg:flex">
-                {brand}
-                {navList}
-                {userBlock}
+            {/* Desktop sidebar */}
+            <aside
+                data-lenis-prevent
+                onWheel={(e) => e.stopPropagation()}
+                className={`fixed inset-y-0 left-0 z-40 hidden flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 shadow-xs dark:shadow-none transition-[width] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] lg:flex ${
+                    isCollapsed ? 'w-[72px]' : 'w-[260px]'
+                }`}
+            >
+                <button
+                    type="button"
+                    onClick={onToggleCollapse}
+                    aria-label={isCollapsed ? 'Buka sidebar' : 'Tutup sidebar'}
+                    title={isCollapsed ? 'Buka sidebar' : 'Tutup sidebar'}
+                    className="absolute -right-3 top-5 z-50 grid size-7 place-items-center rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-md transition-all duration-200 hover:scale-110 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+                >
+                    {isCollapsed ? (
+                        <ChevronsRight className="size-4 stroke-[2.2]" />
+                    ) : (
+                        <ChevronsLeft className="size-4 stroke-[2.2]" />
+                    )}
+                </button>
+
+                {brand(isCollapsed)}
+                {scrollArea(isCollapsed)}
+
+                <div
+                    onWheel={handleHeaderOrFooterWheel}
+                    className="relative border-t border-slate-200 dark:border-slate-800 p-3 shrink-0"
+                >
+                    <TeacherThemeSwitch isCollapsed={isCollapsed} />
+                </div>
             </aside>
 
-            {/* Top bar mobile */}
-            <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-slate-200 bg-white px-4 lg:hidden">
-                <div className="flex items-center gap-2">
-                    <Link
-                        href="/admin/dashboard"
-                        className="flex items-center"
-                        aria-label={t('brandAria')}
-                    >
-                        <Image
-                            src="/images/Logo.png"
-                            alt="Siedu"
-                            width={120}
-                            height={36}
-                            className="h-8 w-auto"
-                        />
-                    </Link>
-                    <span className="rounded-full border border-blue-100 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
-                        {role}
-                    </span>
-                </div>
-                <button
-                    onClick={() => setIsDrawerOpen(true)}
-                    aria-label={t('menuOpen')}
-                    aria-expanded={isDrawerOpen}
-                    className="rounded-lg p-2 text-slate-600 hover:bg-slate-50 hover:text-blue-600"
+            {/* Mobile drawer */}
+            {isDrawerOpen && (
+                <div
+                    className="fixed inset-0 z-50 lg:hidden"
+                    role="dialog"
+                    aria-modal="true"
                 >
-                    <svg
-                        className="h-6 w-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        aria-hidden="true"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 6h16M4 12h16M4 18h16"
-                        />
-                    </svg>
-                </button>
-            </header>
-
-            {/* Drawer mobile + overlay */}
-            {isDrawerOpen ? (
-                <div className="fixed inset-0 z-50 lg:hidden">
-                    <button
-                        aria-label={t('menuClose')}
-                        onClick={() => setIsDrawerOpen(false)}
-                        className="absolute inset-0 bg-slate-900/50"
+                    <div
+                        className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
+                        onClick={onCloseDrawer}
                     />
-                    <div className="absolute inset-y-0 left-0 flex w-64 flex-col bg-white shadow-xl">
-                        {brand}
-                        {navList}
-                        {userBlock}
+                    <div className="fixed inset-y-0 left-0 flex w-[280px] max-w-[85vw] flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 shadow-2xl animate-in slide-in-from-left duration-250">
+                        <div className="flex h-16 items-center justify-between border-b border-slate-200 dark:border-slate-800 px-4">
+                            <Link
+                                href="/admin/dashboard"
+                                onClick={onCloseDrawer}
+                                className="flex items-center"
+                            >
+                                <Image
+                                    src="/images/Logo.png"
+                                    alt="Siedu"
+                                    width={120}
+                                    height={36}
+                                    className="h-7 sm:h-7.5 w-auto object-contain dark:hidden"
+                                    priority
+                                />
+                                <Image
+                                    src="/images/Logo-white.png"
+                                    alt="Siedu"
+                                    width={120}
+                                    height={36}
+                                    className="h-7 sm:h-7.5 w-auto object-contain hidden dark:block"
+                                    priority
+                                />
+                            </Link>
+                            <button
+                                type="button"
+                                onClick={onCloseDrawer}
+                                className="grid size-8 place-items-center rounded-md text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                                aria-label={t('menuClose')}
+                            >
+                                <X className="size-5" />
+                            </button>
+                        </div>
+
+                        <div
+                            data-lenis-prevent
+                            onWheel={(e) => e.stopPropagation()}
+                            className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-3 py-4 [scrollbar-width:thin] [scrollbar-color:#cbd5e1_transparent] dark:[scrollbar-color:#334155_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-slate-200 dark:[&::-webkit-scrollbar-thumb]:bg-slate-800 hover:[&::-webkit-scrollbar-thumb]:bg-slate-300 dark:hover:[&::-webkit-scrollbar-thumb]:bg-slate-700"
+                        >
+                            {navList(false)}
+                        </div>
+
+                        <div className="border-t border-slate-200 dark:border-slate-800 p-3">
+                            <TeacherThemeSwitch isCollapsed={false} />
+                        </div>
                     </div>
                 </div>
-            ) : null}
-            <LogoutDialog
-                open={isLogoutOpen}
-                onOpenChange={setIsLogoutOpen}
-                userName={userName}
-                userEmail={userEmail}
-                role={role}
-                accountRole={accountRole}
-            />
+            )}
         </>
     );
 }
+
+export default AdminSidebar;

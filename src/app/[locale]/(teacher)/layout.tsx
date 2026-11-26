@@ -34,11 +34,10 @@ export default async function TeacherLayout({ children }: { children: React.Reac
   const kelasIdsArray = kelas.map((k) => k.id);
   const kelasIds = new Set(kelasIdsArray);
 
-  const [pendaftaran, mapel, jadwal, periode, presensi, penilaian, hasilPenilaian] = await Promise.all([
+  const [pendaftaran, jadwal, periode, presensi, penilaian, hasilPenilaian] = await Promise.all([
     kelasIdsArray.length
       ? collect(db.orm.public.Pendaftaran.where((p) => p.kelasId.in(kelasIdsArray)).all())
       : Promise.resolve([]),
-    collect(db.orm.public.MataPelajaran.all()),
     kelasIdsArray.length
       ? collect(db.orm.public.JadwalItem.where((j) => j.kelasId.in(kelasIdsArray)).all())
       : Promise.resolve([]),
@@ -50,15 +49,13 @@ export default async function TeacherLayout({ children }: { children: React.Reac
     collect(db.orm.public.HasilPenilaian.all()),
   ]);
 
-  const mapelById = new Map(mapel.map((m) => [m.id, m.nama]));
-
   const siswaAktif = pendaftaran.filter(
     (p) => p.kelasId !== undefined && kelasIds.has(p.kelasId) && ["terdaftar", "tertunggak"].includes(p.status),
   );
 
   const searchClasses: QuickSearchClassItem[] = kelas.map((k) => ({
     id: k.id,
-    name: mapelById.get(k.mataPelajaranId) ?? `Kelas #${k.id}`,
+    name: k.mapel || k.nama || `Kelas #${k.id}`,
     jenjang: k.jenjang,
     tingkat: k.tingkat,
   }));
@@ -69,7 +66,7 @@ export default async function TeacherLayout({ children }: { children: React.Reac
     : [];
   const anakById = new Map(anakList.map((a) => [a.id, a.nama]));
   const kelasNamaById = new Map(
-    kelas.map((k) => [k.id, mapelById.get(k.mataPelajaranId) ?? `Kelas #${k.id}`])
+    kelas.map((k) => [k.id, k.mapel || k.nama || `Kelas #${k.id}`])
   );
 
   const searchStudents: QuickSearchStudentItem[] = siswaAktif.map((s) => ({

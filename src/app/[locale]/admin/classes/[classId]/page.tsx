@@ -74,7 +74,6 @@ export default async function AdminClassDetail({
 
     const [
         kelasArr,
-        mapelAll,
         guruAll,
         periodeAll,
         jadwalAll,
@@ -85,7 +84,6 @@ export default async function AdminClassDetail({
         presensiAll,
     ] = await Promise.all([
         collect(db.orm.public.Kelas.where((k) => k.id.eq(kId)).all()),
-        collect(db.orm.public.MataPelajaran.all()),
         collect(db.orm.public.User.where((u) => u.role.eq('guru')).all()),
         collect(db.orm.public.PeriodePendaftaran.all()),
         collect(db.orm.public.JadwalItem.where((j) => j.kelasId.eq(kId)).all()),
@@ -101,7 +99,6 @@ export default async function AdminClassDetail({
     const kelas = kelasArr[0];
     if (!kelas) notFound();
 
-    const mapel = mapelAll.find((m) => m.id === kelas.mataPelajaranId);
     const guru = guruAll.find((g) => g.id === kelas.guruId);
     const periode = periodeAll.find((p) => p.id === kelas.periodeId);
 
@@ -167,10 +164,10 @@ export default async function AdminClassDetail({
                 cells: {
                     anak: (
                         <div>
-                            <p className="font-semibold text-slate-900">
+                            <p className="font-semibold text-slate-900 dark:text-slate-100">
                                 {anakNama}
                             </p>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
                                 {a?.jenjangTerakhir ?? p.jenjangSaatDaftar}
                                 {a?.tingkat ? ` · ${a.tingkat}` : ''}
                             </p>
@@ -178,21 +175,21 @@ export default async function AdminClassDetail({
                     ),
                     wali: (
                         <div>
-                            <p className="text-sm font-medium text-slate-900">
+                            <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
                                 {waliNama}
                             </p>
-                            <p className="text-xs tabular-nums text-slate-500">
+                            <p className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
                                 {wali?.nomorTelepon || '-'}
                             </p>
                         </div>
                     ),
                     metode: (
                         <div className="text-center">
-                            <span className="text-xs font-medium text-slate-700">
+                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
                                 {labelMetode(p.metodeBayar)}
                             </span>
                             {p.tenorBulan ? (
-                                <span className="block text-[11px] tabular-nums text-slate-500">
+                                <span className="block text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
                                     {p.tenorBulan}x cicilan
                                 </span>
                             ) : null}
@@ -200,10 +197,10 @@ export default async function AdminClassDetail({
                     ),
                     pembayaran: (
                         <div className="text-right">
-                            <span className="font-semibold tabular-nums text-slate-900">
+                            <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                                 {rupiah(totalBayar)}
                             </span>
-                            <span className="block text-xs tabular-nums text-slate-500">
+                            <span className="block text-xs tabular-nums text-slate-500 dark:text-slate-400">
                                 {tagihanBerhasil.length}/{tagihanSiswa.length}{' '}
                                 tagihan
                             </span>
@@ -213,7 +210,7 @@ export default async function AdminClassDetail({
                         <StatusBadge status={p.status as StatusPendaftaran} />
                     ),
                     tanggal: (
-                        <span className="tabular-nums text-xs text-slate-500">
+                        <span className="tabular-nums text-xs text-slate-500 dark:text-slate-400">
                             {fmtTanggal(p.createdAt)}
                         </span>
                     ),
@@ -234,7 +231,7 @@ export default async function AdminClassDetail({
             a.jamMulai.localeCompare(b.jamMulai),
     );
 
-    const mapelNama = mapel?.nama ?? `Kelas #${kelas.id}`;
+    const mapelNama = kelas.nama || kelas.mapel || `Kelas #${kelas.id}`;
 
     return (
         <PageShell wide>
@@ -291,10 +288,10 @@ export default async function AdminClassDetail({
                 <Panel className="mt-4 p-5">
                     <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
+                            <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900 dark:text-slate-100">
                                 Daftar Siswa Terdaftar
                             </h2>
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
                                 Siswa dan status administrasi pendaftaran pada
                                 kelas ini.
                             </p>
@@ -324,40 +321,40 @@ export default async function AdminClassDetail({
                 <div className="mt-4 grid gap-5 lg:grid-cols-2">
                     {/* Slot Jadwal */}
                     <Panel className="p-5">
-                        <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
+                        <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900 dark:text-slate-100">
                             Jadwal Sesi Mingguan
                         </h2>
-                        <p className="mt-0.5 text-xs text-slate-500">
+                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                             Hari dan jam pelaksanaan kegiatan belajar mengajar
                             per minggu.
                         </p>
                         {jadwalSorted.length === 0 ? (
-                            <p className="mt-4 text-sm text-slate-500">
+                            <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
                                 Belum ada slot jadwal yang ditentukan.
                             </p>
                         ) : (
-                            <ul className="mt-4 divide-y divide-slate-100">
+                            <ul className="mt-4 divide-y divide-slate-100 dark:divide-slate-800">
                                 {jadwalSorted.map((j) => (
                                     <li
                                         key={j.id}
                                         className="flex items-center justify-between py-3"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <span className="inline-flex size-8 items-center justify-center rounded-lg bg-blue-50 text-xs font-bold text-blue-700">
+                                            <span className="inline-flex size-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/40 text-xs font-bold text-blue-700 dark:text-blue-400">
                                                 {j.hari.slice(0, 3)}
                                             </span>
                                             <div>
-                                                <p className="text-sm font-semibold text-slate-900">
+                                                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                                                     {dayLabel(j.hari)}
                                                 </p>
-                                                <p className="text-xs tabular-nums text-slate-500">
+                                                <p className="text-xs tabular-nums text-slate-500 dark:text-slate-400">
                                                     {j.jamMulai.slice(0, 5)} –{' '}
                                                     {j.jamSelesai.slice(0, 5)}{' '}
                                                     WIB
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className="text-xs text-slate-600">
+                                        <span className="text-xs text-slate-600 dark:text-slate-300">
                                             {kelas.ruangan || 'Ruangan standar'}
                                         </span>
                                     </li>
@@ -368,50 +365,50 @@ export default async function AdminClassDetail({
 
                     {/* Rekap Presensi */}
                     <Panel className="p-5">
-                        <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
+                        <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900 dark:text-slate-100">
                             Rekapitulasi Presensi Sesi
                         </h2>
-                        <p className="mt-0.5 text-xs text-slate-500">
+                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                             Total catatan kehadiran seluruh siswa pada sesi
                             kelas ini.
                         </p>
                         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                            <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 text-center">
-                                <p className="font-display text-xl font-bold tabular-nums text-emerald-800">
+                            <div className="rounded-xl border border-emerald-100 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/30 p-3 text-center">
+                                <p className="font-display text-xl font-bold tabular-nums text-emerald-800 dark:text-emerald-300">
                                     {countHadir}
                                 </p>
-                                <p className="mt-1 text-xs font-medium text-emerald-700">
+                                <p className="mt-1 text-xs font-medium text-emerald-700 dark:text-emerald-400">
                                     Hadir
                                 </p>
                             </div>
-                            <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-3 text-center">
-                                <p className="font-display text-xl font-bold tabular-nums text-blue-800">
+                            <div className="rounded-xl border border-blue-100 dark:border-blue-900/50 bg-blue-50/50 dark:bg-blue-950/30 p-3 text-center">
+                                <p className="font-display text-xl font-bold tabular-nums text-blue-800 dark:text-blue-300">
                                     {countIzin}
                                 </p>
-                                <p className="mt-1 text-xs font-medium text-blue-700">
+                                <p className="mt-1 text-xs font-medium text-blue-700 dark:text-blue-400">
                                     Izin
                                 </p>
                             </div>
-                            <div className="rounded-xl border border-amber-100 bg-amber-50/50 p-3 text-center">
-                                <p className="font-display text-xl font-bold tabular-nums text-amber-800">
+                            <div className="rounded-xl border border-amber-100 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/30 p-3 text-center">
+                                <p className="font-display text-xl font-bold tabular-nums text-amber-800 dark:text-amber-300">
                                     {countSakit}
                                 </p>
-                                <p className="mt-1 text-xs font-medium text-amber-700">
+                                <p className="mt-1 text-xs font-medium text-amber-700 dark:text-amber-400">
                                     Sakit
                                 </p>
                             </div>
-                            <div className="rounded-xl border border-rose-100 bg-rose-50/50 p-3 text-center">
-                                <p className="font-display text-xl font-bold tabular-nums text-rose-800">
+                            <div className="rounded-xl border border-rose-100 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/30 p-3 text-center">
+                                <p className="font-display text-xl font-bold tabular-nums text-rose-800 dark:text-rose-300">
                                     {countAlpa}
                                 </p>
-                                <p className="mt-1 text-xs font-medium text-rose-700">
+                                <p className="mt-1 text-xs font-medium text-rose-700 dark:text-rose-300">
                                     Alpa
                                 </p>
                             </div>
                         </div>
-                        <p className="mt-4 text-xs text-slate-500">
+                        <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
                             Total entri presensi tercatat:{' '}
-                            <strong className="text-slate-700">
+                            <strong className="text-slate-700 dark:text-slate-300">
                                 {totalPresensi} entri
                             </strong>
                             .
@@ -424,34 +421,34 @@ export default async function AdminClassDetail({
                 <div className="mt-4 grid gap-5 lg:grid-cols-2">
                     {/* Profil Guru */}
                     <Panel className="p-5">
-                        <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
+                        <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900 dark:text-slate-100">
                             Pengajar / Guru Pengampu
                         </h2>
-                        <p className="mt-0.5 text-xs text-slate-500">
+                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                             Informasi kontak guru yang ditugaskan mengampu kelas
                             ini.
                         </p>
                         {guru ? (
                             <div className="mt-4 space-y-3">
                                 <div className="flex items-center gap-3">
-                                    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-blue-100 text-sm font-bold text-blue-800">
+                                    <span className="grid size-10 shrink-0 place-items-center rounded-full bg-blue-100 dark:bg-blue-950/50 text-sm font-bold text-blue-800 dark:text-blue-300">
                                         {guru.name
                                             .trim()
                                             .charAt(0)
                                             .toUpperCase()}
                                     </span>
                                     <div>
-                                        <p className="font-semibold text-slate-900">
+                                        <p className="font-semibold text-slate-900 dark:text-slate-100">
                                             {guru.name}
                                         </p>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-xs text-slate-500 dark:text-slate-400">
                                             {guru.email}
                                         </p>
                                     </div>
                                 </div>
-                                <div className="rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs text-slate-700 space-y-1">
+                                <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-3 text-xs text-slate-700 dark:text-slate-300 space-y-1">
                                     <p>
-                                        <span className="font-medium text-slate-500">
+                                        <span className="font-medium text-slate-500 dark:text-slate-400">
                                             Nomor Telepon:
                                         </span>{' '}
                                         <span className="tabular-nums font-semibold">
@@ -459,7 +456,7 @@ export default async function AdminClassDetail({
                                         </span>
                                     </p>
                                     <p>
-                                        <span className="font-medium text-slate-500">
+                                        <span className="font-medium text-slate-500 dark:text-slate-400">
                                             Alamat:
                                         </span>{' '}
                                         <span>{guru.alamat || '-'}</span>
@@ -468,7 +465,7 @@ export default async function AdminClassDetail({
                                 <div>
                                     <Link
                                         href={`/admin/classes?guruId=${guru.id}`}
-                                        className="inline-flex text-xs font-semibold text-blue-700 hover:underline"
+                                        className="inline-flex text-xs font-semibold text-blue-700 dark:text-blue-400 hover:underline"
                                     >
                                         Lihat seluruh kelas yang diampu guru ini
                                         ➔
@@ -476,7 +473,7 @@ export default async function AdminClassDetail({
                                 </div>
                             </div>
                         ) : (
-                            <p className="mt-4 text-sm text-slate-500">
+                            <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
                                 Belum ada guru yang ditugaskan.
                             </p>
                         )}
@@ -484,54 +481,54 @@ export default async function AdminClassDetail({
 
                     {/* Kuota & Biaya */}
                     <Panel className="p-5">
-                        <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900">
+                        <h2 className="font-display text-[15px] font-bold tracking-tight text-slate-900 dark:text-slate-100">
                             Konfigurasi Kuota & Keuangan
                         </h2>
-                        <p className="mt-0.5 text-xs text-slate-500">
+                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                             Ketentuan biaya pendaftaran, cicilan, dan kapasitas
                             ruang belajar.
                         </p>
                         <div className="mt-4 space-y-3 text-sm">
-                            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                <span className="text-slate-500">
+                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <span className="text-slate-500 dark:text-slate-400">
                                     Kapasitas Kuota
                                 </span>
-                                <span className="font-semibold tabular-nums text-slate-900">
+                                <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                                     {terisi} / {kelas.kuotaMaksimum} kursi (
                                     {pctKuota}%)
                                 </span>
                             </div>
-                            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                <span className="text-slate-500">
+                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <span className="text-slate-500 dark:text-slate-400">
                                     Kuota Minimum (BR#10)
                                 </span>
-                                <span className="font-semibold tabular-nums text-slate-900">
+                                <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                                     {kelas.kuotaMinimum} kursi
                                 </span>
                             </div>
-                            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                <span className="text-slate-500">
+                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <span className="text-slate-500 dark:text-slate-400">
                                     Biaya Periode Penuh
                                 </span>
-                                <span className="font-semibold tabular-nums text-slate-900">
+                                <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                                     {rupiah(Number(kelas.biayaPeriode))}
                                 </span>
                             </div>
-                            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                                <span className="text-slate-500">
+                            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                                <span className="text-slate-500 dark:text-slate-400">
                                     Uang Muka (DP)
                                 </span>
-                                <span className="font-semibold tabular-nums text-slate-900">
+                                <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                                     {kelas.biayaDp
                                         ? rupiah(Number(kelas.biayaDp))
                                         : 'Tidak tersedia'}
                                 </span>
                             </div>
                             <div className="flex items-center justify-between pb-1">
-                                <span className="text-slate-500">
+                                <span className="text-slate-500 dark:text-slate-400">
                                     Maksimal Tenor Cicilan
                                 </span>
-                                <span className="font-semibold tabular-nums text-slate-900">
+                                <span className="font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                                     {kelas.tenorMaksimum
                                         ? `${kelas.tenorMaksimum} bulan`
                                         : '-'}
@@ -540,15 +537,15 @@ export default async function AdminClassDetail({
                         </div>
 
                         {periode ? (
-                            <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50/70 p-3 text-xs text-slate-600">
-                                <p className="font-semibold text-slate-900">
+                            <div className="mt-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 p-3 text-xs text-slate-600 dark:text-slate-300">
+                                <p className="font-semibold text-slate-900 dark:text-slate-100">
                                     {periode.nama}
                                 </p>
                                 <p className="mt-0.5 tabular-nums">
                                     Rentang: {fmtTanggal(periode.tanggalMulai)}{' '}
                                     – {fmtTanggal(periode.tanggalSelesai)}
                                 </p>
-                                <p className="mt-0.5 tabular-nums text-slate-500">
+                                <p className="mt-0.5 tabular-nums text-slate-500 dark:text-slate-400">
                                     Batas Pendaftaran:{' '}
                                     {fmtTanggal(
                                         periode.tanggalTutupPendaftaran,

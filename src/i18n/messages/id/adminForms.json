@@ -43,7 +43,7 @@
     "fee": "Biaya per semester (Rp)",
     "deposit": "Biaya DP (kosong = non-DP)",
     "tenor": "Tenor maksimum (kosong = non-DP)",
-    "schedule": "Jadwal sesi per minggu (1–3 baris)",
+    "schedule": "Jadwal sesi per minggu (1–7 hari)",
     "day": "Hari {number}",
     "start": "Jam mulai",
     "end": "Jam selesai",

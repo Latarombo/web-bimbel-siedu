@@ -117,7 +117,8 @@ export async function dashboardOrangTua(
             db.orm.public.Pendaftaran.include('kelas', (b) =>
                 b.select(
                     'id',
-                    'mataPelajaranId',
+                    'nama',
+                    'mapel',
                     'guruId',
                     'jenjang',
                     'ruangan',
@@ -141,7 +142,6 @@ export async function dashboardOrangTua(
         presensi,
         penilaian,
         hasilPenilaian,
-        mapelRows,
         guruRows,
         jadwalRows,
     ] = await Promise.all([
@@ -155,7 +155,6 @@ export async function dashboardOrangTua(
                 h.statusHasil.eq('dinilai'),
             ).all(),
         ),
-        collect(db.orm.public.MataPelajaran.all()),
         collect(db.orm.public.User.where((u) => u.role.eq('guru')).all()),
         collect(db.orm.public.JadwalItem.all()),
     ]);
@@ -169,7 +168,6 @@ export async function dashboardOrangTua(
     );
     const jadwalSemua = jadwalRows.filter((j) => kelasIdSet.has(j.kelasId));
 
-    const mapel = new Map(mapelRows.map((m) => [m.id, m.nama]));
     const guru = new Map(guruRows.map((g) => [g.id, g.name]));
     const byPendaftaran = <T extends { pendaftaranId: number }>(rows: T[]) => {
         const out = new Map<number, T[]>();
@@ -279,10 +277,10 @@ export async function dashboardOrangTua(
                 mulai: j.jamMulai.slice(0, 5),
                 selesai: j.jamSelesai.slice(0, 5),
                 mapel:
-                    mapel.get(p.kelas.mataPelajaranId) ??
+                    p.kelas.mapel ??
                     `${locale === 'en' ? 'Class' : 'Kelas'} #${p.kelasId}`,
                 guru: guru.get(p.kelas.guruId) ?? '-',
-                ruangan: p.kelas.ruangan ?? null,
+                ruangan: j.tempat ?? p.kelas.ruangan ?? null,
                 tanggalBerikutnya: tanggalHariBerikut(j.hari),
             }));
 
@@ -370,7 +368,7 @@ export async function dashboardOrangTua(
             tertunggak: p.status === 'tertunggak',
             kelas: {
                 mapel:
-                    mapel.get(p.kelas.mataPelajaranId) ??
+                    p.kelas.mapel ??
                     `${locale === 'en' ? 'Class' : 'Kelas'} #${p.kelasId}`,
                 guru: guru.get(p.kelas.guruId) ?? '-',
                 ruangan: p.kelas.ruangan ?? null,

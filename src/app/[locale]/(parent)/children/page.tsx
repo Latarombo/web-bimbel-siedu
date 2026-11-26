@@ -58,7 +58,7 @@ export default async function ChildrenPage() {
       tanggalLahir: a.tanggalLahir,
       jenjangTerakhir: a.jenjangTerakhir,
       tingkat: a.tingkat,
-      emailNotifikasi: a.emailNotifikasi,
+      emailNotifikasi: a.email,
       nomorTelepon: a.nomorTelepon,
       jumlahKelasAktif: nAktif,
       isLocked: nAktif > 0,

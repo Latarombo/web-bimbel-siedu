@@ -239,15 +239,6 @@ export function TeacherGradesView({
         <div className="space-y-4">
           {/* Table Toolbar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
-                Daftar Asesmen
-              </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                Kuis, tugas, dan ujian yang telah dibuat untuk rombongan belajar.
-              </p>
-            </div>
-
             <div className="flex flex-wrap items-center gap-2">
               {/* Search input */}
               <div className="relative">
@@ -523,15 +514,6 @@ export function TeacherGradesView({
         <div className="space-y-4">
           {/* Table Toolbar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-bold text-slate-950 dark:text-slate-50 tracking-tight">
-                Rekap Nilai Siswa
-              </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                Ringkasan akumulasi tugas dan nilai rata-rata per murid.
-              </p>
-            </div>
-
             <div className="flex flex-wrap items-center gap-2">
               {/* Search input */}
               <div className="relative">

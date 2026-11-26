@@ -123,22 +123,15 @@ export default async function PaymentResultPage({
         : [[], []];
 
     const kelasItem = kelasRows[0];
-    const [mapelRows, guruRows] = kelasItem
-        ? await Promise.all([
-              collect(
-                  db.orm.public.MataPelajaran.where((m) =>
-                      m.id.eq(kelasItem.mataPelajaranId),
-                  ).all(),
-              ),
-              collect(
-                  db.orm.public.User.where((u) =>
-                      u.id.eq(kelasItem.guruId),
-                  ).all(),
-              ),
-          ])
-        : [[], []];
+    const guruRows = kelasItem
+        ? await collect(
+              db.orm.public.User.where((u) =>
+                  u.id.eq(kelasItem.guruId),
+              ).all(),
+          )
+        : [];
 
-    const subjectName = mapelRows[0]?.nama ?? `Kelas #${p.kelasId}`;
+    const subjectName = kelasItem?.mapel ?? `Kelas #${p.kelasId}`;
     const teacherName = guruRows[0]?.name ?? 'Pengajar Siedu';
 
     return (
